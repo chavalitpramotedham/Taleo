@@ -11,16 +11,18 @@ export default function SharedPage() {
   const router = useRouter();
   const [story, setStory] = useState<Story | null | undefined>(undefined);
 
-  useEffect(() => setStory(decodeShared(window.location.hash)), []);
+  useEffect(() => {
+    setStory(decodeShared(window.location.hash));
+  }, []);
 
   if (story === undefined) return null;
   if (!story)
     return (
       <div className="container empty">
-        <h2>This story link looks broken</h2>
-        <p className="meta">Ask for the link again, or make a brand-new story.</p>
+        <h2>This story link seems torn</h2>
+        <p className="meta">Ask for the link again, or begin a brand-new story.</p>
         <Link className="btn btn-primary" href="/create">
-          Make a story
+          Begin a story
         </Link>
       </div>
     );

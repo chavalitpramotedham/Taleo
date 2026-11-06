@@ -9,11 +9,17 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
   const { id } = use(params);
   const [story, setStory] = useState<Story | null | undefined>(undefined);
 
-  useEffect(() => setStory(getStory(id) ?? null), [id]);
+  useEffect(() => {
+    setStory(getStory(id) ?? null);
+  }, [id]);
 
-  const update = useCallback((s: Story) => {
-    setStory(s);
-    saveStory(s);
+  const update = useCallback((fn: (s: Story) => Story) => {
+    setStory((prev) => {
+      if (!prev) return prev;
+      const next = fn(prev);
+      saveStory(next);
+      return next;
+    });
   }, []);
 
   if (story === undefined) return null;
@@ -21,11 +27,11 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
     return (
       <div className="container empty">
         <h2>We couldn&apos;t find that story</h2>
-        <p className="meta">Stories are saved on this device. It may have been deleted.</p>
+        <p className="meta">Stories are kept on this device. It may have been tidied away.</p>
         <Link className="btn btn-primary" href="/create">
-          Make a new story
+          Begin a new story
         </Link>
       </div>
     );
-  return <StoryReader story={story} onChange={update} />;
+  return <StoryReader story={story} update={update} />;
 }

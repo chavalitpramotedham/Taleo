@@ -12,17 +12,21 @@ Every page is fully illustrated. Pages can be read aloud (browser text-to-speech
 
 ## How the pictures work
 
-Claude doesn't output images. For each page it returns a **scene description**: setting, time of day, weather, which characters stand where with which expression and pose, and which props go where. The browser paints that scene from a hand-built SVG library:
+The look is classic English country watercolour: fine sepia pen line, soft earthy washes, and naturalistic animals. Pictures fade into the page like vignette plates. Type is set in IM Fell English and EB Garamond.
 
-- `src/components/art/presetArt.tsx`: 16 preset characters
-- `src/components/art/Face.tsx`: 10 expressions shared by every character, including custom ones
-- `src/components/art/propArt.tsx`: 58 props
-- `src/components/art/Background.tsx`: 19 settings, plus day/sunset/night and rain/snow/wind/rainbow
-- `src/components/art/WatercolorDefs.tsx`: SVG filters for wobbly edges, pigment granulation, pooled edges and paper grain
+**Claude paints every page.** When it writes the story, Claude also art-directs it:
+- A `world` note sets the place, season, light and palette for the whole book.
+- Each page gets a `picture` brief for one dynamic moment: who is doing what with their whole body, their expression, the camera angle and the composition.
 
-For custom heroes, new side characters and plot-critical objects missing from the library, Claude draws simple SVG under strict style rules. All model-drawn SVG passes through a whitelist sanitizer (`src/lib/svg-sanitize.ts`) on the server and again in the browser. Shared links are untrusted input.
+A second call (`/api/illustrate`, `src/server/claude.ts → paintPage`) then paints that moment as layered SVG and streams it to the browser. You can watch each page paint in. The page being read is painted first, and up to three pages paint at a time (`src/lib/usePaintings.ts`).
 
-Because pictures are vectors painted on the device, they render instantly, cost very few tokens, and stay consistent from page to page.
+**Consistent characters.** Every character has a model sheet: a description with exact hex colours, plus a reference painting in a neutral pose. Presets are in `src/lib/art/presetArt.ts`; custom heroes are designed by Claude in the same format. The illustrator re-poses each character but keeps their colours, markings and proportions.
+
+**The paint box.** Claude paints flat shapes in layer groups (`class="wash" | "paint" | "ink" | "detail"`). The app supplies the medium through shared SVG filters (`src/components/art/PaintDefs.tsx`): bleeding washes, mottled pigment with pooled edges, wobbly pen line, paper grain and a vignette.
+
+**Safety.** All painted SVG goes through a whitelist sanitizer (`src/lib/svg-sanitize.ts`) when saved and again when shown, because shared links are untrusted. Only plain shapes survive, and layer classes map to the app's own filters.
+
+**Fallback.** If a painting fails, the page offers "Paint this page again". In the meantime, and in demo mode, a simple composer (`src/lib/art/compose.ts`) builds a picture from the reference art.
 
 ## Running it
 
@@ -38,15 +42,18 @@ Without an `ANTHROPIC_API_KEY` the app runs in **demo mode**: a templated storyt
 |---|---|---|
 | `ANTHROPIC_API_KEY` | – | Server-side only; never sent to the browser |
 | `TALEO_MODEL` | `claude-opus-5-5` | |
-| `TALEO_EFFORT` | `low` | `low` keeps the wait short for little ones; `medium`/`high` for richer writing |
+| `TALEO_EFFORT` | `low` | Story writing effort |
+| `TALEO_ART_MODEL` | same as `TALEO_MODEL` | Model that paints the pages (e.g. `claude-sonnet-5-5` to paint faster and cheaper) |
+| `TALEO_ART_EFFORT` | `low` | Painting effort |
 
 ## Architecture
 
 - **Next.js (App Router) + TypeScript**, plain CSS (`app/globals.css`).
 - `app/api/story`: writes one segment per call (opening, continuation after a choice, or the ending). Uses structured outputs (`src/server/schemas.ts`) so responses are always valid JSON, plus server-side refusal fallbacks. Output is clamped and normalised in `src/server/claude.ts`.
-- `app/api/character`: designs a custom hero.
+- `app/api/illustrate`: streams one painted page as SVG.
+- `app/api/character`: designs a custom hero (model sheet plus reference painting).
 - Prompts are in `src/server/prompts.ts`; age guidance is in `src/lib/ages.ts`.
-- Stories are stored in `localStorage` (`src/lib/storage.ts`). Share links are lz-string-compressed into the URL fragment (`src/lib/share.ts`).
+- Stories, paintings included, are stored in `localStorage` (`src/lib/storage.ts`). That's roughly 5 MB, enough for a few dozen books. Share links are lz-string-compressed into the URL fragment (`src/lib/share.ts`) and carry the paintings, so they run to roughly 20–40 KB.
 
 ## Ideas for next steps
 

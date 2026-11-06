@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { MicIcon } from "./Icons";
 
 // Minimal typing for the (still vendor-prefixed) Web Speech API.
 interface SpeechRecognitionLike {
@@ -40,15 +41,10 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
     }
     const rec = getRecognition();
     if (!rec) return;
-    rec.lang = navigator.language || "en-US";
+    rec.lang = navigator.language || "en-GB";
     rec.interimResults = true;
     rec.continuous = false;
-    rec.onresult = (e) => {
-      const text = Array.from(e.results)
-        .map((r) => r[0]?.transcript ?? "")
-        .join(" ");
-      onText(text.trim());
-    };
+    rec.onresult = (e) => onText(Array.from(e.results).map((r) => r[0]?.transcript ?? "").join(" ").trim());
     rec.onend = () => setListening(false);
     rec.onerror = () => setListening(false);
     recRef.current = rec;
@@ -64,7 +60,7 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
       aria-label={listening ? "Stop listening" : label}
       title={listening ? "Listening… tap to stop" : label}
     >
-      {listening ? "👂" : "🎤"}
+      <MicIcon />
     </button>
   );
 }

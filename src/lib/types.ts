@@ -1,57 +1,32 @@
-import type { Expression, Pose, Setting, Size, TimeOfDay, Weather } from "./vocab";
 import type { AgeId } from "./ages";
 
-/** A character that can appear in illustrations. */
+/** A character that appears in the book. */
 export interface CharacterDef {
   id: string;
   name: string;
-  /** Short look/personality description, used in prompts. */
-  description: string;
-  /** Preset art key (see presets.ts). Null for custom-drawn characters. */
+  /** Model-sheet description (species, colours with hex, features, personality). */
+  look: string;
+  /** Preset key (see presets.ts), or null for a custom character. */
   preset: string | null;
-  /** Custom body art: SVG inner markup in a 200x200 viewBox, without a face. */
+  /** Custom reference painting: layered SVG in a 200x200 canvas. */
   svg?: string | null;
-  /** Where to draw the face on custom art (200x200 coordinates). */
-  face?: { x: number; y: number; size: number } | null;
-}
-
-export interface SceneCharacter {
-  id: string;
-  x: number; // 0-100, horizontal position
-  expression: Expression;
-  pose: Pose;
-  size: Size;
-  flip: boolean; // face left instead of right
-}
-
-export interface SceneProp {
-  kind: string; // a PropKind or a custom prop key
-  x: number; // 0-100
-  y: number; // 0-100, where the bottom of the prop sits
-  size: Size;
 }
 
 export interface Page {
   text: string;
-  /** Optional big onomatopoeia drawn into the picture, e.g. "SPLASH!" */
-  sound: string | null;
-  /** Optional narrator aside shown in a bubble (used to steer silly requests). */
+  /** Narrator aside shown as a marginal note (used to steer silly requests). */
   aside: string | null;
-  setting: Setting;
-  time: TimeOfDay;
-  weather: Weather;
-  characters: SceneCharacter[];
-  props: SceneProp[];
-}
-
-export interface ChoiceOption {
-  label: string;
-  emoji: string;
+  /** The illustrator's brief for this page: the exact moment to paint. */
+  picture: string;
+  /** Ids of the characters in the picture. */
+  characters: string[];
+  /** The finished painting (layered SVG body for a 400x300 canvas). */
+  svg?: string | null;
 }
 
 export interface ChoicePoint {
   prompt: string;
-  options: ChoiceOption[];
+  options: { label: string }[];
 }
 
 export interface Segment {
@@ -61,11 +36,6 @@ export interface Segment {
   chosen?: { text: string; custom: boolean } | null;
 }
 
-export interface CustomProp {
-  key: string;
-  svg: string; // inner markup in a 100x100 viewBox, bottom-centred
-}
-
 export interface Story {
   id: string;
   title: string;
@@ -73,9 +43,10 @@ export interface Story {
   updatedAt: number;
   age: AgeId;
   theme: string;
+  /** Art direction for the whole book: place, season, light, palette. */
+  world: string;
   hero: CharacterDef;
   cast: CharacterDef[]; // side characters
-  customProps: CustomProp[];
   segments: Segment[];
   status: "new" | "in-progress" | "complete";
   rating: number; // 0 = unrated, 1-5
@@ -93,18 +64,25 @@ export interface StartRequest {
 
 export interface ContinueRequest {
   kind: "continue";
-  story: Pick<Story, "age" | "theme" | "hero" | "cast" | "customProps" | "segments" | "title">;
+  story: Pick<Story, "age" | "theme" | "world" | "hero" | "cast" | "segments" | "title">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;
 
 export interface SegmentResponse {
   title?: string;
+  world?: string;
   newCharacters: CharacterDef[];
-  newProps: CustomProp[];
   segment: Segment;
   ending: boolean;
   demo?: boolean;
+}
+
+export interface IllustrateRequest {
+  world: string;
+  cast: CharacterDef[]; // characters in this picture (hero included when present)
+  page: Pick<Page, "text" | "picture" | "characters">;
+  previous?: string | null; // previous page's picture brief, for continuity
 }
 
 export interface CharacterRequest {

@@ -3,13 +3,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Story } from "@/lib/types";
 import { deleteStory, listStories, saveStory } from "@/lib/storage";
-import { castMap, coverPage, wordCount } from "@/lib/story-utils";
+import { coverSvg, wordCount } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
 import { shareUrl } from "@/lib/share";
-import { Scene } from "@/components/art/Scene";
-import { CharacterAvatar } from "@/components/art/CharacterArt";
+import { PRESETS, presetCharacter } from "@/lib/presets";
+import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { StarRating } from "@/components/StarRating";
-import { presetCharacter, PRESETS } from "@/lib/presets";
+import { Ornament } from "@/components/Icons";
 
 type Sort = "recent" | "rating";
 
@@ -46,7 +46,7 @@ export default function LibraryPage() {
     }
     try {
       await navigator.clipboard.writeText(url);
-      setToast("Link copied! 💌");
+      setToast("Link copied.");
     } catch {
       window.prompt("Copy this link to share:", url);
     }
@@ -57,10 +57,11 @@ export default function LibraryPage() {
 
   return (
     <div className="container">
-      <div className="wizard-head">
-        <h1 style={{ fontSize: "clamp(1.6rem,4vw,2.4rem)", margin: 0 }}>My stories</h1>
+      <header className="wizard-head">
+        <p className="eyebrow">Your bookshelf</p>
+        <h1>Stories we made</h1>
         {stories.length > 1 && (
-          <div className="filter-row" style={{ margin: 0 }}>
+          <div className="filter-row">
             <button className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => setSort("recent")}>
               Newest
             </button>
@@ -69,55 +70,53 @@ export default function LibraryPage() {
             </button>
           </div>
         )}
-      </div>
+      </header>
 
       {sorted.length === 0 ? (
         <div className="empty">
-          <CharacterAvatar def={presetCharacter(PRESETS[0])} expression="thinking" />
-          <h2>No stories yet</h2>
-          <p className="meta">Your finished stories will live here, ready to read again and again.</p>
+          <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
+          <h2>The shelf is empty, for now</h2>
+          <p className="meta">Finished stories live here, ready to read again and again.</p>
           <Link className="btn btn-primary" href="/create">
-            ✨ Make our first story
+            Begin our first story
           </Link>
         </div>
       ) : (
-        <div className="lib-grid">
+        <div className="shelf">
           {sorted.map((s) => {
-            const cover = coverPage(s);
-            const minutes = Math.max(1, Math.round(wordCount(s) / 90 + s.segments.reduce((n, g) => n + g.pages.length, 0) * 0.12));
+            const cover = coverSvg(s);
+            const pages = s.segments.reduce((n, g) => n + g.pages.length, 0);
+            const minutes = Math.max(1, Math.round(wordCount(s) / 90 + pages * 0.12));
             return (
-              <article key={s.id} className="story-card">
+              <article key={s.id} className="book-card">
                 <Link href={`/story/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
-                  {cover && <Scene page={cover} cast={castMap(s)} customProps={s.customProps} animate={false} title={s.title} />}
-                  <span className="badge">{s.status === "complete" ? `Age ${ageById(s.age).label}` : "✏️ Unfinished"}</span>
+                  {cover ? <Painting svg={cover} title={s.title} /> : <CharacterPortrait character={s.hero} className="cover-portrait" />}
                 </Link>
                 <div className="body">
-                  <h3>{s.title || "Untitled story"}</h3>
-                  <div className="meta">
-                    {s.hero.name} · ~{minutes} min · {new Date(s.createdAt).toLocaleDateString()}
-                  </div>
-                  <StarRating
-                    small={false}
-                    value={s.rating}
-                    onChange={(r) => saveStory({ ...s, rating: r })}
-                  />
+                  <h3>{s.title || "An untitled story"}</h3>
+                  <Ornament className="ornament small" />
+                  <p className="meta">
+                    {s.status === "complete" ? `For ages ${ageById(s.age).label}` : "Still being written"} · about {minutes} min
+                    <br />
+                    {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                  <StarRating value={s.rating} onChange={(r) => saveStory({ ...s, rating: r })} />
                   <div className="card-actions">
                     <Link className="btn btn-primary btn-sm" href={`/story/${s.id}`}>
-                      {s.status === "complete" ? "📖 Read" : "Continue"}
+                      {s.status === "complete" ? "Read" : "Continue"}
                     </Link>
                     {s.status === "complete" && (
                       <button className="btn btn-soft btn-sm" onClick={() => share(s)}>
-                        💌 Share
+                        Share
                       </button>
                     )}
                     <button
                       className="btn btn-ghost btn-sm"
                       onClick={() => {
-                        if (window.confirm(`Delete “${s.title || "this story"}”?`)) deleteStory(s.id);
+                        if (window.confirm(`Remove “${s.title || "this story"}” from the shelf?`)) deleteStory(s.id);
                       }}
-                      aria-label={`Delete ${s.title}`}
                     >
-                      🗑️
+                      Remove
                     </button>
                   </div>
                 </div>

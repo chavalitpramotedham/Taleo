@@ -2,38 +2,38 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Page, SegmentResponse, Story } from "@/lib/types";
-import { ageById } from "@/lib/ages";
-import { castMap } from "@/lib/story-utils";
+import { castFor, pageKey } from "@/lib/story-utils";
 import { shareUrl } from "@/lib/share";
-import { Scene } from "./art/Scene";
-import { CharacterAvatar } from "./art/CharacterArt";
+import { usePaintings } from "@/lib/usePaintings";
+import { composePainting } from "@/lib/art/compose";
+import { Painting, CharacterPortrait } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { StarRating } from "./StarRating";
+import { BrushIcon, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
 
 type View =
-  | { kind: "page"; page: Page; seg: number; n: number }
+  | { kind: "page"; page: Page; seg: number; n: number; number: number }
   | { kind: "choice"; seg: number }
   | { kind: "loading" }
   | { kind: "error" }
   | { kind: "end" };
 
 const LOADING_LINES = [
+  "Dipping the pen in the ink…",
   "Mixing the watercolours…",
-  "Sharpening the crayons…",
   "Asking the characters what happens next…",
-  "Painting fluffy clouds…",
-  "Finding the perfect words…",
+  "Finding just the right words…",
   "Adding a sprinkle of giggles…",
 ];
 
 interface Props {
   story: Story;
-  onChange?: (s: Story) => void;
+  update?: (fn: (s: Story) => Story) => void;
   readOnly?: boolean;
   onSaveCopy?: () => void;
 }
 
-export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: Props) {
+export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
@@ -45,13 +45,11 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
   storyRef.current = story;
   const started = useRef(false);
 
-  const cast = useMemo(() => castMap(story), [story]);
-  const age = ageById(story.age);
-
   const views: View[] = useMemo(() => {
     const v: View[] = [];
+    let number = 0;
     story.segments.forEach((seg, si) => {
-      seg.pages.forEach((page, pi) => v.push({ kind: "page", page, seg: si, n: pi }));
+      seg.pages.forEach((page, pi) => v.push({ kind: "page", page, seg: si, n: pi, number: ++number }));
       if (seg.choice) v.push({ kind: "choice", seg: si });
     });
     if (busy) v.push({ kind: "loading" });
@@ -62,13 +60,21 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
 
   const view = views[Math.min(index, views.length - 1)];
   const lastIndex = views.length - 1;
+  const totalPages = views.filter((v) => v.kind === "page").length;
+
+  // The picture shown alongside choices / endings is the most recent page's.
+  const lastPage = [...views.slice(0, index + 1)].reverse().find((v): v is Extract<View, { kind: "page" }> => v.kind === "page");
+  const shown = view?.kind === "page" ? view : lastPage;
+  const focus = shown ? pageKey(shown.seg, shown.n) : null;
+
+  const { live, failed, retry, painting } = usePaintings(story, update, focus, !readOnly);
 
   const flash = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 2600);
   };
 
-  // ---------------------------------------------------------------- generation
+  // ---------------------------------------------------------------- writing
   const generate = useCallback(
     async (s: Story) => {
       setBusy(true);
@@ -78,15 +84,7 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
           ? { kind: "start", age: s.age, theme: s.theme, hero: s.hero }
           : {
               kind: "continue",
-              story: {
-                age: s.age,
-                theme: s.theme,
-                title: s.title,
-                hero: s.hero,
-                cast: s.cast,
-                customProps: s.customProps,
-                segments: s.segments,
-              },
+              story: { age: s.age, theme: s.theme, world: s.world, title: s.title, hero: s.hero, cast: s.cast, segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })) },
             };
       try {
         const res = await fetch("/api/story", {
@@ -96,24 +94,22 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
         });
         const data = (await res.json()) as SegmentResponse & { error?: string };
         if (!res.ok || !data.segment) throw new Error(data.error || "The story got stuck. Let's try again!");
-        const knownProps = new Set(s.customProps.map((p) => p.key));
-        const next: Story = {
-          ...s,
-          title: s.title || data.title || `${s.hero.name}'s Story`,
-          cast: [...s.cast, ...data.newCharacters],
-          customProps: [...s.customProps, ...data.newProps.filter((p) => !knownProps.has(p.key))],
-          segments: [...s.segments, data.segment],
+        update?.((cur) => ({
+          ...cur,
+          title: cur.title || data.title || `${cur.hero.name}'s Story`,
+          world: cur.world || data.world || "",
+          cast: [...cur.cast, ...data.newCharacters],
+          segments: [...cur.segments, data.segment],
           status: data.ending ? "complete" : "in-progress",
-          demo: s.demo || data.demo,
-        };
-        onChange?.(next);
+          demo: cur.demo || data.demo,
+        }));
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong.");
       } finally {
         setBusy(false);
       }
     },
-    [onChange],
+    [update],
   );
 
   useEffect(() => {
@@ -123,7 +119,7 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     }
   }, [story, readOnly, generate]);
 
-  // When a new segment lands, jump to its first page.
+  // When a new segment lands, turn to its first page.
   const segCount = story.segments.length;
   const prevSegCount = useRef(segCount);
   useEffect(() => {
@@ -134,7 +130,6 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     prevSegCount.current = segCount;
   }, [segCount, views]);
 
-  // Keep the loading view visible while generating.
   useEffect(() => {
     if (busy) {
       setIndex(views.length - 1);
@@ -148,8 +143,9 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     if (!t || busy) return;
     const segs = story.segments.map((s, i) => (i === story.segments.length - 1 ? { ...s, chosen: { text: t, custom } } : s));
     const next = { ...story, segments: segs };
-    onChange?.(next);
+    update?.(() => next);
     setCustomIdea("");
+    (document.activeElement as HTMLElement | null)?.blur();
     void generate(next);
   };
 
@@ -166,6 +162,10 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [index]);
+
   const touchX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => (touchX.current = e.touches[0].clientX);
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -181,7 +181,7 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.88;
-    u.pitch = 1.1;
+    u.pitch = 1.05;
     window.speechSynthesis.speak(u);
   }, []);
 
@@ -192,12 +192,15 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
       const c = story.segments[view.seg].choice;
       if (c) speak(`${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?`);
     }
-    if (view.kind === "end") speak("The end!");
+    if (view.kind === "end") speak("The end.");
   }, [readAloud, view, speak, story.segments]);
 
-  useEffect(() => () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-  }, []);
+  useEffect(
+    () => () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    },
+    [],
+  );
 
   // ---------------------------------------------------------------- share
   const share = async () => {
@@ -213,35 +216,61 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
     }
     try {
       await navigator.clipboard.writeText(url);
-      flash("Link copied! Paste it to share 💌");
+      flash("Link copied. Paste it anywhere to share.");
     } catch {
       window.prompt("Copy this link to share:", url);
     }
   };
 
-  // ---------------------------------------------------------------- render
-  const lastPage = [...views.slice(0, index + 1)].reverse().find((v): v is Extract<View, { kind: "page" }> => v.kind === "page");
-  const scenePage = view?.kind === "page" ? view.page : lastPage?.page ?? story.segments[0]?.pages[0];
+  // ---------------------------------------------------------------- picture
+  let picture: React.ReactNode;
+  if (!shown) {
+    picture = (
+      <div className="picture-wait">
+        <CharacterPortrait character={story.hero} className="wait-portrait" />
+      </div>
+    );
+  } else {
+    const key = pageKey(shown.seg, shown.n);
+    const done = shown.page.svg;
+    const partial = live[key];
+    const fallback = !done && (readOnly || failed[key]) ? composePainting(shown.page, castFor(story, shown.page)) : null;
+    const svg = done || partial || fallback;
+    picture = (
+      <>
+        {svg ? <Painting svg={svg} title={shown.page.picture || shown.page.text} className={partial && !done ? "painting live" : "painting"} /> : null}
+        {!svg && (
+          <div className="picture-wait" aria-live="polite">
+            <BrushIcon />
+            <span>The illustrator is painting this page…</span>
+          </div>
+        )}
+        {!done && partial && <div className="painting-badge">Painting…</div>}
+        {!done && !readOnly && failed[key] && !painting(key) && (
+          <button className="painting-badge retry" onClick={() => retry(key)}>
+            Paint this page again
+          </button>
+        )}
+      </>
+    );
+  }
 
-  let text: React.ReactNode = null;
+  // ---------------------------------------------------------------- words
+  let words: React.ReactNode = null;
   if (!view || view.kind === "loading") {
-    text = (
+    words = (
       <div className="loading" aria-live="polite">
-        <CharacterAvatar def={story.hero} pose="dance" expression="excited" animate />
-        <div className="l-title">{story.segments.length === 0 ? "Writing your story…" : "What happens next?"}</div>
-        <div className="meta">{LOADING_LINES[loadingLine]}</div>
-        <div className="paintbrush" aria-hidden>
-          <span />
-          <span />
-          <span />
+        <p className="once">{story.segments.length === 0 ? "Once upon a time…" : "And then…"}</p>
+        <p className="meta">{LOADING_LINES[loadingLine]}</p>
+        <div className="quill" aria-hidden>
           <span />
         </div>
       </div>
     );
   } else if (view.kind === "error") {
-    text = (
+    words = (
       <div className="choice-wrap">
-        <p className="choice-prompt">Oops! The pages got stuck together.</p>
+        <p className="choice-prompt">Oh dear, the pages stuck together.</p>
         <p className="meta">{error}</p>
         <div>
           <button className="btn btn-primary" onClick={() => generate(storyRef.current)}>
@@ -251,40 +280,46 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
       </div>
     );
   } else if (view.kind === "page") {
-    text = (
-      <div key={`${view.seg}-${view.n}`} className="page-anim" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {view.page.aside && <div className="aside">{view.page.aside}</div>}
-        <p className="story-text">{view.page.text}</p>
+    const first = view.number === 1;
+    words = (
+      <div key={`${view.seg}-${view.n}`} className="page-anim words">
+        {view.page.aside && (
+          <p className="aside">
+            <span>The storyteller says:</span> {view.page.aside}
+          </p>
+        )}
+        <p className={`story-text ${first ? "drop" : ""}`}>{view.page.text}</p>
+        <p className="folio">— {view.number} —</p>
       </div>
     );
   } else if (view.kind === "choice") {
     const seg = story.segments[view.seg];
     const c = seg.choice!;
-    text = (
+    words = (
       <div className="choice-wrap page-anim">
         <p className="choice-prompt">{c.prompt}</p>
         {seg.chosen ? (
           <>
-            <div className="chosen-note">
-              {seg.chosen.custom ? "💡 Your idea: " : "✅ You chose: "}
-              {seg.chosen.text}
-            </div>
+            <p className="chosen-note">
+              {seg.chosen.custom ? "Your idea: " : "You chose: "}
+              <em>{seg.chosen.text}</em>
+            </p>
             {index < lastIndex && (
               <div>
                 <button className="btn btn-soft btn-sm" onClick={() => go(1)}>
-                  See what happened →
+                  See what happened
                 </button>
               </div>
             )}
           </>
         ) : readOnly ? (
-          <div className="meta">This story is still being written.</div>
+          <p className="meta">This story is still being written.</p>
         ) : (
           <>
             <div className="options">
-              {c.options.map((o) => (
+              {c.options.map((o, i) => (
                 <button key={o.label} className="option" disabled={busy} onClick={() => choose(o.label, false)}>
-                  <span className="o-emoji">{o.emoji}</span>
+                  <span className="o-num">{["i", "ii", "iii", "iv"][i]}.</span>
                   <span>{o.label}</span>
                 </button>
               ))}
@@ -294,14 +329,14 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
                 className="input"
                 value={customIdea}
                 maxLength={160}
-                placeholder="Or your own idea…"
+                placeholder="Or something else…"
                 onChange={(e) => setCustomIdea(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && choose(customIdea, true)}
                 aria-label="Your own idea for what happens next"
               />
               <DictateButton onText={setCustomIdea} label="Say your idea" />
               <button className="btn btn-primary" disabled={!customIdea.trim() || busy} onClick={() => choose(customIdea, true)}>
-                Go!
+                Go
               </button>
             </div>
           </>
@@ -309,55 +344,50 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
       </div>
     );
   } else if (view.kind === "end") {
-    text = (
+    words = (
       <div className="the-end page-anim">
-        <h2>The End</h2>
+        <p className="end-title">The End</p>
+        <Ornament className="ornament" />
         {!readOnly && (
-          <div>
-            <div className="meta" style={{ marginBottom: 4 }}>
-              How did you like it?
-            </div>
+          <div className="rate">
+            <p className="meta">Did you enjoy it?</p>
             <StarRating
               value={story.rating}
               onChange={(r) => {
-                onChange?.({ ...story, rating: r });
-                flash(r >= 4 ? "Yay! Saved to your stories ⭐" : "Thanks! Saved to your stories");
+                update?.((cur) => ({ ...cur, rating: r }));
+                flash("Thank you. It's saved in your bookshelf.");
               }}
             />
           </div>
         )}
         <div className="end-actions">
           <button className="btn btn-soft" onClick={() => setIndex(0)}>
-            📖 Read again
+            Read it again
           </button>
-          {readOnly ? (
-            onSaveCopy && (
-              <button className="btn btn-primary" onClick={onSaveCopy}>
-                💾 Save to my stories
-              </button>
-            )
-          ) : (
-            <button className="btn btn-primary" onClick={share}>
-              💌 Share
-            </button>
-          )}
+          {readOnly
+            ? onSaveCopy && (
+                <button className="btn btn-primary" onClick={onSaveCopy}>
+                  Keep this story
+                </button>
+              )
+            : (
+                <button className="btn btn-primary" onClick={share}>
+                  Share
+                </button>
+              )}
           <Link className="btn btn-soft" href="/create">
-            ✨ New story
+            A new story
           </Link>
-          {!readOnly && (
-            <Link className="btn btn-ghost" href="/library">
-              My stories
-            </Link>
-          )}
         </div>
-        {story.demo && <span className="demo-note">Demo story — add an Anthropic API key for AI-written adventures.</span>}
+        {story.demo && <p className="demo-note">Demo story: add an Anthropic API key for stories written and painted by Claude.</p>}
       </div>
     );
   }
 
-  const canBack = index > 0;
   const atChoiceUnanswered = view?.kind === "choice" && !story.segments[view.seg].chosen;
+  const canBack = index > 0;
   const canForward = index < lastIndex && !atChoiceUnanswered;
+  const position = view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
 
   return (
     <div className={`reader age-${story.age}`}>
@@ -365,7 +395,7 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
         <h1 className="reader-title">{story.title || "A new story"}</h1>
         <div className="reader-tools">
           <button
-            className={`btn btn-soft icon-btn ${readAloud ? "on" : ""}`}
+            className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
               if (readAloud && typeof window !== "undefined") window.speechSynthesis?.cancel();
               setReadAloud((r) => !r);
@@ -373,52 +403,32 @@ export function StoryReader({ story, onChange, readOnly = false, onSaveCopy }: P
             aria-pressed={readAloud}
             aria-label={readAloud ? "Stop reading aloud" : "Read aloud"}
             title={readAloud ? "Stop reading aloud" : "Read to me"}
-            style={readAloud ? { background: "var(--pink-soft)", borderColor: "var(--pink)" } : undefined}
           >
-            {readAloud ? "🔊" : "🔈"}
+            <SpeakerIcon on={readAloud} />
           </button>
           {!readOnly && story.status === "complete" && (
-            <button className="btn btn-soft icon-btn" onClick={share} aria-label="Share story" title="Share">
-              💌
+            <button className="icon-btn" onClick={share} aria-label="Share story" title="Share">
+              <ShareIcon />
             </button>
           )}
         </div>
       </div>
 
       <div className="book" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className="book-art">
-          {scenePage ? (
-            <Scene page={scenePage} cast={cast} customProps={story.customProps} title={scenePage.text} />
-          ) : (
-            <Scene
-              page={{ text: "", sound: null, aside: null, setting: "meadow", time: "day", weather: "clear", characters: [{ id: "hero", x: 50, expression: "excited", pose: "jump", size: "large", flip: false }], props: [{ kind: "sun", x: 82, y: 30, size: "medium" }, { kind: "flowers", x: 18, y: 92, size: "medium" }, { kind: "cloud", x: 25, y: 24, size: "small" }] }}
-              cast={cast}
-            />
-          )}
-        </div>
-        <div className="book-text">{text}</div>
+        <div className="book-art">{picture}</div>
+        <div className="book-text">{words}</div>
       </div>
 
-      <div className="reader-nav">
-        <button className="nav-btn back" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
-          ←
+      <nav className="reader-nav" aria-label="Turn the page">
+        <button className="nav-btn" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
+          ‹
         </button>
-        <div className="dots" role="tablist" aria-label="Pages">
-          {views.map((v, i) => (
-            <button
-              key={i}
-              className={`dot ${i === index ? "on" : ""} ${v.kind === "choice" ? "choice" : ""}`}
-              onClick={() => setIndex(i)}
-              aria-label={v.kind === "page" ? `Page ${i + 1}` : v.kind}
-              aria-current={i === index}
-            />
-          ))}
-        </div>
+        <span className="position">{position}</span>
         <button className="nav-btn" onClick={() => go(1)} disabled={!canForward} aria-label="Next page">
-          →
+          ›
         </button>
-      </div>
-      {age && toast && <div className="toast">{toast}</div>}
+      </nav>
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

@@ -5,17 +5,23 @@ import { AGES, type AgeId, ageById } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter, type Preset } from "@/lib/presets";
 import type { CharacterDef, CharacterResponse, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
-import { CharacterAvatar } from "@/components/art/CharacterArt";
+import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 
 const AGE_KEY = "taleo.age";
 type Step = 0 | 1 | 2;
 const GROUPS = [
-  { key: "all", label: "All" },
+  { key: "all", label: "Everyone" },
   { key: "animal", label: "Animals" },
-  { key: "food", label: "Yummy" },
-  { key: "object", label: "Things" },
+  { key: "food", label: "Good enough to eat" },
+  { key: "object", label: "Curious things" },
 ] as const;
+const STEP_TITLES = ["Who is the story for?", "Who shall it be about?", "What shall happen?"];
+const STEP_NOTES = [
+  "The words, the length and the choices will suit your little one's age.",
+  "Choose a friend from the shelf, or invent a brand-new one together.",
+  "Pick a kind of story, or describe your own idea in a line.",
+];
 
 export default function CreatePage() {
   const router = useRouter();
@@ -53,7 +59,7 @@ export default function CreatePage() {
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
   const drawCustom = async () => {
-    if (!customDesc.trim()) return;
+    if (!customDesc.trim() || drawing) return;
     setDrawing(true);
     setError(null);
     try {
@@ -63,7 +69,7 @@ export default function CreatePage() {
         body: JSON.stringify({ description: customDesc, name: heroName || undefined }),
       });
       const data = (await res.json()) as CharacterResponse & { error?: string };
-      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't draw that one. Try again?");
+      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
       setCustom(data.character);
       setUseCustom(true);
       setPresetKey(null);
@@ -87,15 +93,15 @@ export default function CreatePage() {
       updatedAt: Date.now(),
       age,
       theme,
+      world: "",
       hero: { ...hero, id: "hero" },
       cast: [],
-      customProps: [],
       segments: [],
       status: "new",
       rating: 0,
     };
     if (!saveStory(story)) {
-      setError("Your device storage is full. Delete an old story in My stories and try again.");
+      setError("This device's storage is full. Remove an old story from your bookshelf and try again.");
       return;
     }
     router.push(`/story/${story.id}`);
@@ -111,55 +117,54 @@ export default function CreatePage() {
 
   return (
     <div className="container wizard">
-      <div className="wizard-head">
-        <h1>{["Who's listening?", "Pick a star character", "What's the story about?"][step]}</h1>
-        <div className="progress" aria-label={`Step ${step + 1} of 3`}>
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={i <= step ? "on" : ""} />
-          ))}
-        </div>
-      </div>
+      <header className="wizard-head">
+        <p className="eyebrow">Chapter {["the First", "the Second", "the Third"][step]}</p>
+        <h1>{STEP_TITLES[step]}</h1>
+        <p className="sub">{STEP_NOTES[step]}</p>
+      </header>
 
       {step === 0 && (
-        <>
-          <p className="sub">We&apos;ll match the words, length and choices to your little one&apos;s age.</p>
-          <div className="grid ages" role="radiogroup" aria-label="Child's age">
-            {AGES.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                role="radio"
-                aria-checked={age === a.id}
-                className={`tile ${age === a.id ? "selected" : ""}`}
-                onClick={() => setAge(a.id)}
-              >
-                <div className="emoji">{a.emoji}</div>
-                <div className="t-label">{a.label}</div>
-                <div className="t-blurb">{a.blurb}</div>
-              </button>
-            ))}
-          </div>
-        </>
+        <div className="grid ages" role="radiogroup" aria-label="Child's age">
+          {AGES.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              role="radio"
+              aria-checked={age === a.id}
+              className={`plate ${age === a.id ? "selected" : ""}`}
+              onClick={() => setAge(a.id)}
+            >
+              <span className="plate-label">{a.label}</span>
+              <span className="plate-sub">{a.blurb}</span>
+            </button>
+          ))}
+        </div>
       )}
 
       {step === 1 && (
         <>
-          <p className="sub">Choose a friend, or invent a brand-new one together.</p>
-          <div className="filter-row">
+          <div className="filter-row" role="tablist">
             {GROUPS.map((g) => (
-              <button key={g.key} type="button" className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
+              <button key={g.key} type="button" role="tab" aria-selected={group === g.key} className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
                 {g.label}
               </button>
             ))}
           </div>
           <div className="grid chars">
+            {custom && (
+              <button type="button" className={`plate char-plate ${useCustom ? "selected" : ""}`} aria-pressed={useCustom} onClick={() => setUseCustom(true)}>
+                <CharacterPortrait character={custom} />
+                <span className="plate-label">{custom.name}</span>
+                <span className="plate-sub">your own</span>
+              </button>
+            )}
             {visiblePresets.map((p) => {
               const selected = !useCustom && presetKey === p.key;
               return (
                 <button
                   key={p.key}
                   type="button"
-                  className={`tile char-tile ${selected ? "selected" : ""}`}
+                  className={`plate char-plate ${selected ? "selected" : ""}`}
                   aria-pressed={selected}
                   onClick={() => {
                     setPresetKey(p.key);
@@ -167,75 +172,58 @@ export default function CreatePage() {
                     setHeroName("");
                   }}
                 >
-                  <CharacterAvatar def={presetCharacter(p)} expression={selected ? "excited" : "happy"} pose={selected ? "jump" : "stand"} animate={selected} />
-                  <div className="t-label">{p.name}</div>
-                  <div className="t-blurb">{p.key}</div>
+                  <CharacterPortrait character={presetCharacter(p)} />
+                  <span className="plate-label">{p.name}</span>
+                  <span className="plate-sub">the {p.kind}</span>
                 </button>
               );
             })}
-            {custom && (
-              <button
-                type="button"
-                className={`tile char-tile ${useCustom ? "selected" : ""}`}
-                aria-pressed={useCustom}
-                onClick={() => setUseCustom(true)}
-              >
-                <CharacterAvatar def={custom} expression={useCustom ? "excited" : "happy"} pose={useCustom ? "jump" : "stand"} animate={useCustom} />
-                <div className="t-label">{custom.name}</div>
-                <div className="t-blurb">your creation</div>
-              </button>
-            )}
           </div>
 
-          <div className="panel">
-            <h3>✏️ Invent your own character</h3>
-            <p className="sub" style={{ marginBottom: 12 }}>
-              Describe it, or tap the mic and let your child say it — &ldquo;a purple giraffe with rainbow spots&rdquo;.
-            </p>
+          <section className="panel">
+            <h3>Invent your own</h3>
+            <p className="meta">Describe them, or tap the microphone and let your child say it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
             <div className="field-row">
               <input
                 className="input"
                 value={customDesc}
                 maxLength={200}
-                placeholder="A sleepy pink whale who loves pancakes…"
+                placeholder="A sleepy hedgehog who loves pancakes…"
                 onChange={(e) => setCustomDesc(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && drawCustom()}
                 aria-label="Describe your character"
               />
               <DictateButton onText={setCustomDesc} label="Describe by voice" />
               <button type="button" className="btn btn-primary" onClick={drawCustom} disabled={!customDesc.trim() || drawing}>
-                {drawing ? "Painting…" : "🎨 Draw it"}
+                {drawing ? "Painting…" : "Paint them"}
               </button>
             </div>
-          </div>
+          </section>
 
           {hero && (
-            <div className="panel">
-              <div className="summary">
-                <CharacterAvatar def={hero} expression="happy" pose="wave" animate />
-                <div style={{ flex: "1 1 220px" }}>
-                  <h3>Our hero&apos;s name</h3>
-                  <div className="field-row">
-                    <input
-                      className="input"
-                      value={heroName}
-                      maxLength={30}
-                      placeholder={useCustom ? custom?.name : preset?.name}
-                      onChange={(e) => setHeroName(e.target.value)}
-                      aria-label="Character name"
-                    />
-                    <DictateButton onText={setHeroName} label="Say a name" />
-                  </div>
+            <section className="panel hero-panel">
+              <CharacterPortrait character={hero} className="hero-portrait" />
+              <div className="hero-name">
+                <h3>And their name is…</h3>
+                <div className="field-row">
+                  <input
+                    className="input"
+                    value={heroName}
+                    maxLength={30}
+                    placeholder={useCustom ? custom?.name : preset?.name}
+                    onChange={(e) => setHeroName(e.target.value)}
+                    aria-label="Character name"
+                  />
+                  <DictateButton onText={setHeroName} label="Say a name" />
                 </div>
               </div>
-            </div>
+            </section>
           )}
         </>
       )}
 
       {step === 2 && (
         <>
-          <p className="sub">Pick a kind of story, or describe your own in one line.</p>
           <div className="grid themes">
             {THEMES.map((t) => {
               const selected = !themeText.trim() && themeKey === t.key;
@@ -243,49 +231,49 @@ export default function CreatePage() {
                 <button
                   key={t.key}
                   type="button"
-                  className={`tile ${selected ? "selected" : ""}`}
+                  className={`plate theme-plate ${selected ? "selected" : ""}`}
                   aria-pressed={selected}
                   onClick={() => {
                     setThemeKey(t.key);
                     setThemeText("");
                   }}
                 >
-                  <div className="emoji">{t.emoji}</div>
-                  <div className="t-label">{t.label}</div>
+                  <span className="plate-label">{t.label}</span>
+                  <span className="plate-sub">{t.line}</span>
                 </button>
               );
             })}
           </div>
-          <div className="panel">
-            <h3>💡 Or your own idea</h3>
+          <section className="panel">
+            <h3>Or your own idea</h3>
             <div className="field-row">
               <input
                 className="input"
                 value={themeText}
                 maxLength={160}
-                placeholder="Looking for the moon's lost hat…"
+                placeholder="The moon has lost its hat…"
                 onChange={(e) => setThemeText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && next()}
                 aria-label="Your own story idea"
               />
               <DictateButton onText={setThemeText} label="Say your idea" />
             </div>
-          </div>
+          </section>
         </>
       )}
 
-      {error && <div className="error">{error}</div>}
+      {error && <p className="error">{error}</p>}
 
       <div className="wizard-foot">
         <button type="button" className="btn btn-ghost" onClick={() => (step === 0 ? router.push("/") : setStep((s) => (s - 1) as Step))}>
-          ← Back
+          ‹ Back
         </button>
-        <span className="meta" style={{ textAlign: "center" }}>
+        <span className="meta foot-summary">
           {age && step > 0 ? `Age ${ageById(age).label}` : ""}
           {hero && step > 1 ? ` · ${hero.name}` : ""}
         </span>
         <button type="button" className="btn btn-primary" onClick={next} disabled={!canNext}>
-          {step === 2 ? "✨ Make our story" : "Next →"}
+          {step === 2 ? "Begin the story" : "Next ›"}
         </button>
       </div>
     </div>

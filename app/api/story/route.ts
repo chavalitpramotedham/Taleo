@@ -12,14 +12,12 @@ export async function POST(req: Request) {
   if (!parsed) return NextResponse.json({ error: "That story request looks incomplete." }, { status: 400 });
 
   if (!hasApiKey()) {
-    await new Promise((r) => setTimeout(r, 900)); // let the loading animation breathe
+    await new Promise((r) => setTimeout(r, 900)); // let the loading screen breathe
     return NextResponse.json({ ...mockSegment(parsed), demo: true });
   }
-
   try {
     return NextResponse.json(await generateSegment(parsed));
   } catch (err) {
     return errorResponse(err);
   }
 }
-
