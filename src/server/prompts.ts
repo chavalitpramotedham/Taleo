@@ -118,7 +118,8 @@ ${PALETTE}
 QUALITY
 - Paint the WHOLE scene: a background that fills the canvas (sky, land or room), the setting details from the brief, the characters and the foreground, with generous pen detail. Usually 150-300 elements.
 - Painting order: wash layers, then scenery paint, then for each character (furthest first) its paint, ink and detail groups, then a final foreground ink layer.
-- Use the 400x300 canvas (x right, y down). No lettering anywhere.`;
+- Use the 400x300 canvas (x right, y down). No lettering anywhere.
+- Before finishing, check every body: head overlapping or necked onto the body (no gap, no floating head), limbs proportioned to the torso and actually reaching what they hold or touch, hands/paws ending in a shape (not a bare line), and nothing drifting outside its silhouette. Fix any shape that looks pasted on rather than built from the body outward.`;
 }
 
 export const characterDesignerPrompt = () => `You are the character designer for Taleo, a picture-book app painted in the style of classic English country watercolour books: fine sepia pen line, soft earthy washes, naturalistic animals with real proportions, and food or object characters given dot eyes and thin ink-line arms and legs.

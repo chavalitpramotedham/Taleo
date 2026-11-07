@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Story } from "@/lib/types";
 import { deleteStory, listStories, saveStory } from "@/lib/storage";
+import { publishToGallery } from "@/lib/gallery-client";
 import { coverSvg, wordCount } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
 import { shareUrl } from "@/lib/share";
@@ -100,7 +101,14 @@ export default function LibraryPage() {
                     <br />
                     {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
                   </p>
-                  <StarRating value={s.rating} onChange={(r) => saveStory({ ...s, rating: r })} />
+                  <StarRating
+                    value={s.rating}
+                    onChange={(r) => {
+                      const next = { ...s, rating: r };
+                      saveStory(next);
+                      if (s.published) void publishToGallery(next);
+                    }}
+                  />
                   <div className="card-actions">
                     <Link className="btn btn-primary btn-sm" href={`/story/${s.id}`}>
                       {s.status === "complete" ? "Read" : "Continue"}

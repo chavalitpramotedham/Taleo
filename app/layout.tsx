@@ -39,6 +39,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/library" className="nav-link">
               Bookshelf
             </Link>
+            <Link href="/store" className="nav-link">
+              Story store
+            </Link>
           </nav>
         </header>
         <main>{children}</main>

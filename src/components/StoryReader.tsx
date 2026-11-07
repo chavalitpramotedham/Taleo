@@ -2,9 +2,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
-import { castFor, pageKey } from "@/lib/story-utils";
+import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
+import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
@@ -139,6 +140,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       return () => window.clearInterval(t);
     }
   }, [busy, views.length]);
+
+  // Once a story is finished and every page is painted, it joins the public story store.
+  const publishedRef = useRef(false);
+  useEffect(() => {
+    if (readOnly || publishedRef.current || story.published || story.status !== "complete") return;
+    const pages = allPages(story);
+    if (pages.length === 0 || !pages.every((p) => p.svg)) return;
+    publishedRef.current = true;
+    void publishToGallery(story).then((ok) => {
+      if (ok) update?.((cur) => ({ ...cur, published: true }));
+    });
+  }, [story, readOnly, update]);
 
   const choose = (text: string, custom: boolean) => {
     const t = text.trim();
@@ -369,6 +382,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
               onChange={(r) => {
                 update?.((cur) => ({ ...cur, rating: r }));
                 flash("Thank you. It's saved in your bookshelf.");
+                if (story.published) void publishToGallery({ ...story, rating: r });
               }}
             />
           </div>

@@ -65,6 +65,8 @@ export interface Story {
   status: "new" | "in-progress" | "complete";
   rating: number; // 0 = unrated, 1-5
   demo?: boolean;
+  /** Mirrored to the public story store once finished and fully painted. */
+  published?: boolean;
 }
 
 // ---- API contracts ----
@@ -90,6 +92,19 @@ export interface SegmentResponse {
   segment: Segment;
   ending: boolean;
   demo?: boolean;
+}
+
+// ---- public story store ----
+
+/** One card in the public story store: everything needed to list it, no full content. */
+export interface GalleryEntry {
+  id: string;
+  title: string;
+  createdAt: number;
+  rating: number;
+  age: AgeId;
+  heroName: string;
+  cover: string | null;
 }
 
 export interface IllustrateRequest {
