@@ -158,8 +158,8 @@ button {
 }
 /* A whirlwind's own circling (around a vertical axis) reads, seen from the
    side, as side-to-side sway rather than a visible circle - so each leaf
-   sways as it rises through the mark, fading in at the bottom and out at
-   the top so the loop's reset is never seen. The sway's extremes are also
+   sways as it falls through the mark, fading in at the top and out at the
+   bottom so the loop's reset is never seen. The sway's extremes are also
    where the leaf would be edge-on to a side-on viewer, so a horizontal
    squash lands there too, timed to a continuous two-turn spin for a real
    3D tumble instead of a flat spin in place. Durations differ per leaf so
@@ -179,19 +179,19 @@ button {
 }
 @keyframes leaf-whirl {
   0% {
-    transform: translate(0, 9px) rotate(0deg) scale(0.8, 0.8);
+    transform: translate(0, -9px) rotate(0deg) scale(0.8, 0.8);
     opacity: 0;
   }
   12.5% {
-    transform: translate(3px, 6.75px) rotate(90deg) scale(0.27, 0.9);
+    transform: translate(3px, -6.75px) rotate(90deg) scale(0.27, 0.9);
     opacity: 0.85;
   }
   25% {
-    transform: translate(0, 4.5px) rotate(180deg) scale(1, 1);
+    transform: translate(0, -4.5px) rotate(180deg) scale(1, 1);
     opacity: 1;
   }
   37.5% {
-    transform: translate(-3px, 2.25px) rotate(270deg) scale(0.315, 1.05);
+    transform: translate(-3px, -2.25px) rotate(270deg) scale(0.315, 1.05);
     opacity: 1;
   }
   50% {
@@ -199,19 +199,19 @@ button {
     opacity: 1;
   }
   62.5% {
-    transform: translate(3px, -2.25px) rotate(450deg) scale(0.315, 1.05);
+    transform: translate(3px, 2.25px) rotate(450deg) scale(0.315, 1.05);
     opacity: 1;
   }
   75% {
-    transform: translate(0, -4.5px) rotate(540deg) scale(1, 1);
+    transform: translate(0, 4.5px) rotate(540deg) scale(1, 1);
     opacity: 1;
   }
   87.5% {
-    transform: translate(-3px, -6.75px) rotate(630deg) scale(0.27, 0.9);
+    transform: translate(-3px, 6.75px) rotate(630deg) scale(0.27, 0.9);
     opacity: 0.85;
   }
   100% {
-    transform: translate(0, -9px) rotate(720deg) scale(0.8, 0.8);
+    transform: translate(0, 9px) rotate(720deg) scale(0.8, 0.8);
     opacity: 0;
   }
 }

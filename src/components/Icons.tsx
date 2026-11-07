@@ -53,7 +53,7 @@ export const AccountIcon = () => (
  *  five-lobed outline), painted in the house ink-and-wash style, pointing
  *  "up" (tip at the top) before its parent <g> rotates/positions it. */
 const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
-  <g transform={`rotate(${rotate})`}>
+  <g transform={`rotate(${rotate}) scale(1.3)`}>
     <path
       d="M0,-6.2 L1,-4.1 L3.1,-4.8 L2.3,-2.7 L4.9,-2.8 L2.8,-0.9 L4.1,0.9 L1.8,0.5 L2,3.3 L0.7,1.8 L0.5,5.7 L0,4.4 L-0.5,5.7 L-0.7,1.8 L-2,3.3 L-1.8,0.5 L-4.1,0.9 L-2.8,-0.9 L-4.9,-2.8 L-2.3,-2.7 L-3.1,-4.8 L-1,-4.1 Z"
       fill={fill}
@@ -65,21 +65,23 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
   </g>
 );
 
-/** Three maple leaves, each rising and falling through the mark on its own
- *  loop - like ash caught in a whirlwind, seen side-on: the funnel's actual
+/** Three maple leaves, each falling through the mark on its own loop - like
+ *  ash sinking through a whirlwind, seen side-on: the funnel's actual
  *  circling (around a vertical axis) reads from this angle as side-to-side
- *  sway, so each leaf sways as it climbs, fading in at the bottom and out
- *  at the top so the loop's reset is never seen. A continuous two-turn
+ *  sway, so each leaf sways as it falls, fading in at the top and out at
+ *  the bottom so the loop's reset is never seen. A continuous two-turn
  *  spin, paired with a periodic horizontal squash timed to the sway's
  *  extremes (the moment it would be edge-on to the viewer), gives the
  *  tumble real depth rather than a flat spin in place. Durations and
  *  delays differ per leaf so they drift in and out of phase instead of
- *  orbiting a shared centre in lockstep. (The static base rotation is an
+ *  orbiting a shared centre in lockstep. Each leaf also keeps its own
+ *  horizontal column (left/centre/right) so the three spread across the
+ *  mark instead of stacking on one line. (The static base rotation is an
  *  SVG attribute on each leaf; the whirl itself is a separate wrapping
  *  group animated in CSS, so the two never fight.) */
 export const BrandMark = () => (
   <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <g transform="translate(12,12)">
+    <g transform="translate(6,12)">
       <g className="leaf-whirl leaf-whirl-a">
         <Leaf fill="#9C4F32" rotate={10} />
       </g>
@@ -89,7 +91,7 @@ export const BrandMark = () => (
         <Leaf fill="#6F7F52" rotate={130} />
       </g>
     </g>
-    <g transform="translate(12,12)">
+    <g transform="translate(18,12)">
       <g className="leaf-whirl leaf-whirl-c">
         <Leaf fill="#C49A3E" rotate={250} />
       </g>
