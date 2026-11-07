@@ -63,10 +63,13 @@ export interface Story {
   cast: CharacterDef[]; // side characters
   segments: Segment[];
   status: "new" | "in-progress" | "complete";
-  rating: number; // 0 = unrated, 1-5
+  rating: number; // this device's own vote, 0 = unrated, 1-5
   demo?: boolean;
   /** Mirrored to the public story store once finished and fully painted. */
   published?: boolean;
+  /** Community rating, mirrored from the store once published. */
+  ratingSum?: number;
+  ratingCount?: number;
 }
 
 // ---- API contracts ----
@@ -101,7 +104,8 @@ export interface GalleryEntry {
   id: string;
   title: string;
   createdAt: number;
-  rating: number;
+  ratingSum: number;
+  ratingCount: number;
   age: AgeId;
   heroName: string;
   cover: string | null;

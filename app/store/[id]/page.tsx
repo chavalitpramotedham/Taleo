@@ -1,42 +1,25 @@
-"use client";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
-import type { Story } from "@/lib/types";
-import { fetchGalleryStory } from "@/lib/gallery-client";
-import { newId, saveStory } from "@/lib/storage";
-import { StoryReader } from "@/components/StoryReader";
+import type { Metadata } from "next";
+import { getGalleryStory } from "@/server/gallery";
+import { GalleryStoryClient } from "@/components/GalleryStoryClient";
 
-export default function GalleryStoryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const router = useRouter();
-  const [story, setStory] = useState<Story | null | undefined>(undefined);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const story = await getGalleryStory(id);
+  if (!story) return { title: "Story not found · Taleo" };
 
-  useEffect(() => {
-    let live = true;
-    fetchGalleryStory(id).then((s) => live && setStory(s));
-    return () => {
-      live = false;
-    };
-  }, [id]);
-
-  if (story === undefined) return null;
-  if (!story)
-    return (
-      <div className="container empty">
-        <h2>We couldn&apos;t find that story</h2>
-        <p className="meta">It may have been removed from the store.</p>
-        <Link className="btn btn-primary" href="/store">
-          Back to the store
-        </Link>
-      </div>
-    );
-
-  const saveCopy = () => {
-    const copy: Story = { ...story, id: newId(), createdAt: Date.now(), rating: 0, published: false };
-    saveStory(copy);
-    router.push(`/story/${copy.id}`);
+  const title = story.title || "An untitled story";
+  const rating = story.ratingCount ? ` · rated ${(story.ratingSum! / story.ratingCount).toFixed(1)}/5` : "";
+  const description = `A Taleo picture-book story about ${story.hero.name}${rating}. Painted and shared for anyone to read.`;
+  return {
+    title: `${title} · Taleo`,
+    description,
+    openGraph: { title, description, type: "article" },
+    twitter: { card: "summary_large_image", title, description },
   };
+}
 
-  return <StoryReader story={story} readOnly onSaveCopy={saveCopy} />;
+export default async function GalleryStoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const story = await getGalleryStory(id);
+  return <GalleryStoryClient story={story} />;
 }

@@ -96,6 +96,12 @@ export function sanitizeSvg(input: string | null | undefined, maxLength = 80000)
   return result.length > maxLength ? "" : result;
 }
 
+/** Sanitised markup with the watercolour layer filters stripped, for renderers
+ *  (e.g. the OG image generator) that have no matching <defs> to resolve them. */
+export function sanitizeSvgFlat(input: string | null | undefined, maxLength = 80000): string {
+  return sanitizeSvg(input, maxLength).replace(/ filter="url\(#tl-[a-z]+\)"/g, "");
+}
+
 /** Pull the SVG markup out of a model response (drops code fences and chatter). */
 export function extractSvgMarkup(text: string): string {
   const start = text.indexOf("<");

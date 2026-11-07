@@ -67,17 +67,43 @@ export async function getGalleryStory(id: string): Promise<Story | null> {
 
 /** Publish (or re-publish) a finished story to the public store. */
 export async function publishStory(story: Story): Promise<GalleryEntry> {
+  const index = await listGallery();
+  const existing = index.find((e) => e.id === story.id);
+  // Content (title, cover, ...) can change on re-publish, but community votes
+  // must not be wiped out just because the story was repainted. A brand new
+  // entry seeds its count from the creator's own first vote, if any.
+  const ratingSum = existing?.ratingSum ?? (story.rating > 0 ? story.rating : 0);
+  const ratingCount = existing?.ratingCount ?? (story.rating > 0 ? 1 : 0);
+
   const entry: GalleryEntry = {
     id: story.id,
     title: story.title || "An untitled story",
     createdAt: story.createdAt,
-    rating: story.rating,
+    ratingSum,
+    ratingCount,
     age: story.age,
     heroName: story.hero.name,
     cover: allPages(story).find((p) => p.svg)?.svg ?? null,
   };
-  const index = await listGallery();
   const next = [entry, ...index.filter((e) => e.id !== story.id)];
-  await Promise.all([writeJson(INDEX_PATH, next), writeJson(storyPath(story.id), story)]);
+  await Promise.all([writeJson(INDEX_PATH, next), writeJson(storyPath(story.id), { ...story, ratingSum, ratingCount })]);
   return entry;
+}
+
+/** Record (or change) one vote and return the new aggregate. Not atomic
+ *  across concurrent writers, but good enough for this scale. */
+export async function rateStory(id: string, rating: number, previousRating?: number): Promise<GalleryEntry | null> {
+  const [index, full] = await Promise.all([listGallery(), getGalleryStory(id)]);
+  const i = index.findIndex((e) => e.id === id);
+  if (i < 0 || !full) return null;
+
+  const entry = index[i];
+  const ratingSum = Math.max(0, (entry.ratingSum ?? 0) + rating - (previousRating ?? 0));
+  const ratingCount = Math.max(0, (entry.ratingCount ?? 0) + (previousRating == null ? 1 : 0));
+  const nextEntry: GalleryEntry = { ...entry, ratingSum, ratingCount };
+  const nextIndex = [...index];
+  nextIndex[i] = nextEntry;
+
+  await Promise.all([writeJson(INDEX_PATH, nextIndex), writeJson(storyPath(id), { ...full, ratingSum, ratingCount })]);
+  return nextEntry;
 }

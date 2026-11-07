@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
-import { shareUrl } from "@/lib/share";
+import { storeUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
+import { formatRating, useRating } from "@/lib/useRating";
 import { usePaintings } from "@/lib/usePaintings";
+import { cancelSpeech, speakText, unlockSpeech } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -47,6 +49,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   storyRef.current = story;
   const started = useRef(false);
   const paintingRef = useRef<InteractivePaintingHandle>(null);
+
+  const { mine: myRating, agg: ratingAgg, vote: voteRating } = useRating(
+    story.id,
+    { ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 },
+    story.rating,
+    readOnly ? undefined : (r) => update?.((cur) => ({ ...cur, rating: r })),
+  );
 
   const views: View[] = useMemo(() => {
     const v: View[] = [];
@@ -191,14 +200,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   // ---------------------------------------------------------------- read aloud
-  const speak = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.88;
-    u.pitch = 1.05;
-    window.speechSynthesis.speak(u);
-  }, []);
+  const speak = useCallback((text: string) => speakText(text, { rate: 0.92, pitch: 1.1 }), []);
 
   useEffect(() => {
     if (!readAloud || !view) return;
@@ -210,16 +212,37 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     if (view.kind === "end") speak("The end.");
   }, [readAloud, view, speak, story.segments]);
 
-  useEffect(
-    () => () => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-    },
-    [],
-  );
+  useEffect(() => () => cancelSpeech(), []);
 
   // ---------------------------------------------------------------- share
+  /** Make sure the story is live in the public store before handing out its link.
+   *  Idempotent (upsert), so it's safe to call even for a story read from the
+   *  store itself, or an old pre-store share link that isn't published yet. */
+  const ensurePublished = async () => {
+    if (story.published) return;
+    const ok = await publishToGallery(story);
+    if (ok) update?.((cur) => ({ ...cur, published: true }));
+  };
+
+  const shareLink = () => storeUrl(story.id, window.location.origin);
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      flash("Link copied. Paste it anywhere to share.");
+    } catch {
+      window.prompt("Copy this link to share:", url);
+    }
+  };
+
+  const copyLink = async () => {
+    await ensurePublished();
+    await copyToClipboard(shareLink());
+  };
+
   const share = async () => {
-    const url = shareUrl(story, window.location.origin);
+    await ensurePublished();
+    const url = shareLink();
     const data = { title: story.title, text: `A Taleo story: “${story.title}”`, url };
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
@@ -229,12 +252,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     } catch (e) {
       if ((e as Error)?.name === "AbortError") return;
     }
-    try {
-      await navigator.clipboard.writeText(url);
-      flash("Link copied. Paste it anywhere to share.");
-    } catch {
-      window.prompt("Copy this link to share:", url);
-    }
+    await copyToClipboard(url);
   };
 
   // ---------------------------------------------------------------- picture
@@ -374,22 +392,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       <div className="the-end page-anim">
         <p className="end-title">The End</p>
         <Ornament className="ornament" />
-        {!readOnly && (
-          <div className="rate">
-            <p className="meta">Did you enjoy it?</p>
-            <StarRating
-              value={story.rating}
-              onChange={(r) => {
-                update?.((cur) => ({ ...cur, rating: r }));
-                flash("Thank you. It's saved in your bookshelf.");
-                if (story.published) void publishToGallery({ ...story, rating: r });
-              }}
-            />
-          </div>
-        )}
+        <div className="rate">
+          <p className="meta">{readOnly ? "Rate this story" : "Did you enjoy it?"}</p>
+          <StarRating
+            value={myRating}
+            onChange={(r) => {
+              voteRating(r);
+              flash(readOnly ? "Thank you for rating!" : "Thank you. It's saved in your bookshelf.");
+            }}
+          />
+          <p className="meta rating-summary">{formatRating(ratingAgg.ratingSum, ratingAgg.ratingCount)}</p>
+        </div>
         <div className="end-actions">
           <button className="btn btn-soft" onClick={() => setIndex(0)}>
             Read it again
+          </button>
+          <button className="btn btn-soft" onClick={copyLink}>
+            Copy link
           </button>
           {readOnly
             ? onSaveCopy && (
@@ -424,7 +443,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
           <button
             className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
-              if (readAloud && typeof window !== "undefined") window.speechSynthesis?.cancel();
+              if (readAloud) cancelSpeech();
+              else unlockSpeech();
               setReadAloud((r) => !r);
             }}
             aria-pressed={readAloud}

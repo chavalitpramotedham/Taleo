@@ -3,6 +3,7 @@
 // no audio files are needed. Each page's tap-target names one of these.
 
 import type { SoundId } from "./actions";
+import { speakText, unlockSpeech } from "./speech";
 
 let ctx: AudioContext | null = null;
 function audio(): AudioContext | null {
@@ -195,14 +196,9 @@ export function playSound(id: SoundId | null | undefined) {
 /** Say a single word slowly and clearly (for word association). */
 export function sayWord(word: string, delayMs = 650) {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !word) return;
-  window.setTimeout(() => {
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(word);
-      u.rate = 0.75;
-      u.pitch = 1.15;
-      window.speechSynthesis.speak(u);
-    } catch {}
-  }, delayMs);
+  // Unlock synchronously now, inside the tap's call stack, so the delayed
+  // speak() below isn't silently dropped by iOS Safari's gesture rule.
+  unlockSpeech();
+  window.setTimeout(() => speakText(word, { rate: 0.8, pitch: 1.18 }), delayMs);
 }
 

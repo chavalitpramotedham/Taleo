@@ -1,13 +1,12 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
+import { decompressFromEncodedURIComponent } from "lz-string";
 import type { Story } from "./types";
 
-/** Encode a finished story into a self-contained link (no server storage needed). */
-export function shareUrl(story: Story, origin: string): string {
-  const { rating: _r, ...rest } = story;
-  void _r;
-  return `${origin}/shared#${compressToEncodedURIComponent(JSON.stringify(rest))}`;
+/** A short, stable link to a story published in the public store. */
+export function storeUrl(id: string, origin: string): string {
+  return `${origin}/store/${id}`;
 }
 
+/** Decodes a story from a pre-store share link (`/shared#...`), kept so old links still open. */
 export function decodeShared(hash: string): Story | null {
   try {
     const json = decompressFromEncodedURIComponent(hash.replace(/^#/, ""));

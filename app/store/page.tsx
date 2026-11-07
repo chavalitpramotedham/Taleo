@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
+import { storeUrl } from "@/lib/share";
+import { formatRating, useRating } from "@/lib/useRating";
 import { ageById } from "@/lib/ages";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { StarRating } from "@/components/StarRating";
@@ -11,10 +13,13 @@ import { PRESETS, presetCharacter } from "@/lib/presets";
 
 type Sort = "recent" | "rating";
 
+const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
+
 export default function StorePage() {
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<Sort>("recent");
   const [error, setError] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGallery()
@@ -23,9 +28,14 @@ export default function StorePage() {
   }, []);
 
   const sorted = useMemo(
-    () => (stories ? [...stories].sort((a, b) => (sort === "rating" ? b.rating - a.rating || b.createdAt - a.createdAt : b.createdAt - a.createdAt)) : []),
+    () => (stories ? [...stories].sort((a, b) => (sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt)) : []),
     [stories, sort],
   );
+
+  const flash = (msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast(null), 2400);
+  };
 
   return (
     <div className="container">
@@ -62,29 +72,52 @@ export default function StorePage() {
       ) : (
         <div className="shelf">
           {sorted.map((s) => (
-            <article key={s.id} className="book-card">
-              <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
-                {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
-              </Link>
-              <div className="body">
-                <h3>{s.title || "An untitled story"}</h3>
-                <Ornament className="ornament small" />
-                <p className="meta">
-                  {s.heroName ? `${s.heroName}'s story · ` : ""}For ages {ageById(s.age).label}
-                  <br />
-                  {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
-                </p>
-                <StarRating value={s.rating} />
-                <div className="card-actions">
-                  <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
-                    Read
-                  </Link>
-                </div>
-              </div>
-            </article>
+            <StoreCard key={s.id} entry={s} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
           ))}
         </div>
       )}
+      {toast && <div className="toast">{toast}</div>}
     </div>
+  );
+}
+
+function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
+  const { mine, agg, vote } = useRating(s.id, { ratingSum: s.ratingSum, ratingCount: s.ratingCount });
+
+  const copyLink = async () => {
+    const url = storeUrl(s.id, window.location.origin);
+    try {
+      await navigator.clipboard.writeText(url);
+      onCopied();
+    } catch {
+      window.prompt("Copy this link to share:", url);
+    }
+  };
+
+  return (
+    <article className="book-card">
+      <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
+        {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
+      </Link>
+      <div className="body">
+        <h3>{s.title || "An untitled story"}</h3>
+        <Ornament className="ornament small" />
+        <p className="meta">
+          {s.heroName ? `${s.heroName}'s story · ` : ""}For ages {ageById(s.age).label}
+          <br />
+          {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+        </p>
+        <StarRating value={mine} onChange={vote} />
+        <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
+        <div className="card-actions">
+          <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
+            Read
+          </Link>
+          <button className="btn btn-soft btn-sm" onClick={copyLink}>
+            Copy link
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }

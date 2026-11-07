@@ -867,6 +867,11 @@ main {
   padding-top: 10px;
   flex-wrap: wrap;
 }
+.rating-summary {
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 2px;
+}
 .empty {
   text-align: center;
   padding: 30px 16px;
@@ -983,6 +988,38 @@ main {
   }
 }
 
+/* Two-tier navbar: a title line, then a scrollable strip of nav links below
+   it. Keeps the brand uncluttered and lets the strip take any number of
+   future links without crowding or wrapping mid-word. */
+@media (max-width: 640px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 0 0;
+  }
+  .brand {
+    text-align: center;
+    padding: 0 16px 10px;
+  }
+  .topnav {
+    justify-content: center;
+    gap: 2px;
+    padding: 8px clamp(12px, 4vw, 24px);
+    border-top: 1px solid var(--rule);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topnav::-webkit-scrollbar {
+    display: none;
+  }
+  .nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 520px) {
   body {
     font-size: 18px;
@@ -991,7 +1028,7 @@ main {
     font-size: 1.55rem;
   }
   .nav-link {
-    padding: 6px 6px;
+    padding: 6px 10px;
     font-size: 0.98rem;
   }
   .ages {

@@ -27,3 +27,23 @@ export async function publishToGallery(story: Story): Promise<boolean> {
     return false;
   }
 }
+
+export interface RatingAggregate {
+  ratingSum: number;
+  ratingCount: number;
+}
+
+export async function rateGalleryStory(id: string, rating: number, previousRating?: number): Promise<RatingAggregate | null> {
+  try {
+    const res = await fetch(`/api/gallery/${id}/rate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ rating, previousRating: previousRating || undefined }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { entry?: GalleryEntry };
+    return data.entry ? { ratingSum: data.entry.ratingSum, ratingCount: data.entry.ratingCount } : null;
+  } catch {
+    return null;
+  }
+}
