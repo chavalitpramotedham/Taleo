@@ -49,38 +49,48 @@ export const AccountIcon = () => (
   </svg>
 );
 
-/** One small autumn leaf, painted in the house ink-and-wash style, pointing
+/** One small maple leaf (a faceted, 11-point silhouette - the classic
+ *  five-lobed outline), painted in the house ink-and-wash style, pointing
  *  "up" (tip at the top) before its parent <g> rotates/positions it. */
 const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
   <g transform={`rotate(${rotate})`}>
-    <path d="M0,-7 C2.8,-6 4,-2.3 2.6,1.5 C1.8,3.7 0.6,5.1 0,6.3 C-0.6,5.1 -1.8,3.7 -2.6,1.5 C-4,-2.3 -2.8,-6 0,-7Z" fill={fill} stroke="#4F3A2A" strokeWidth="0.6" />
-    <path d="M0,-5.6 L0,4.8" stroke="#4F3A2A" strokeWidth="0.5" opacity="0.6" />
+    <path
+      d="M0,-6.2 L1,-4.1 L3.1,-4.8 L2.3,-2.7 L4.9,-2.8 L2.8,-0.9 L4.1,0.9 L1.8,0.5 L2,3.3 L0.7,1.8 L0.5,5.7 L0,4.4 L-0.5,5.7 L-0.7,1.8 L-2,3.3 L-1.8,0.5 L-4.1,0.9 L-2.8,-0.9 L-4.9,-2.8 L-2.3,-2.7 L-3.1,-4.8 L-1,-4.1 Z"
+      fill={fill}
+      stroke="#4F3A2A"
+      strokeWidth="0.5"
+      strokeLinejoin="round"
+    />
+    <path d="M0,-4.4 L0,2.6" stroke="#4F3A2A" strokeWidth="0.4" opacity="0.55" />
   </g>
 );
 
-/** Three autumn leaves tracing the same vertical-ellipse orbit around a
- *  shared centre, a third of a cycle apart — the brand mark, in place of a
- *  plain static dot. Scale/opacity dip on the far side of the loop so each
- *  leaf reads as tumbling away from and back toward the viewer, and the
- *  staggered phases mean they swing past and briefly over one another on
- *  the way round, like leaves spiralling down rather than one flat spin.
- *  (The static base rotation is an SVG attribute on each leaf; the orbit
- *  itself is a separate wrapping group animated in CSS, so the two never
- *  fight.) */
+/** Three maple leaves, each rising and falling through the mark on its own
+ *  loop - like ash caught in a whirlwind, seen side-on: the funnel's actual
+ *  circling (around a vertical axis) reads from this angle as side-to-side
+ *  sway, so each leaf sways as it climbs, fading in at the bottom and out
+ *  at the top so the loop's reset is never seen. A continuous two-turn
+ *  spin, paired with a periodic horizontal squash timed to the sway's
+ *  extremes (the moment it would be edge-on to the viewer), gives the
+ *  tumble real depth rather than a flat spin in place. Durations and
+ *  delays differ per leaf so they drift in and out of phase instead of
+ *  orbiting a shared centre in lockstep. (The static base rotation is an
+ *  SVG attribute on each leaf; the whirl itself is a separate wrapping
+ *  group animated in CSS, so the two never fight.) */
 export const BrandMark = () => (
   <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
     <g transform="translate(12,12)">
-      <g className="leaf-spiral leaf-spiral-a">
+      <g className="leaf-whirl leaf-whirl-a">
         <Leaf fill="#9C4F32" rotate={10} />
       </g>
     </g>
     <g transform="translate(12,12)">
-      <g className="leaf-spiral leaf-spiral-b">
+      <g className="leaf-whirl leaf-whirl-b">
         <Leaf fill="#6F7F52" rotate={130} />
       </g>
     </g>
     <g transform="translate(12,12)">
-      <g className="leaf-spiral leaf-spiral-c">
+      <g className="leaf-whirl leaf-whirl-c">
         <Leaf fill="#C49A3E" rotate={250} />
       </g>
     </g>

@@ -45,18 +45,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <BrandMark />
               Taleo
             </Link>
-            <nav className="topnav">
-              <Link href="/create" className="nav-link">
-                New story
-              </Link>
-              <Link href="/my-stories" className="nav-link">
-                My bookshelf
-              </Link>
-              <Link href="/store" className="nav-link">
-                Library
-              </Link>
+            <div className="nav-row">
+              <nav className="topnav">
+                <Link href="/create" className="nav-link">
+                  New story
+                </Link>
+                <Link href="/my-stories" className="nav-link">
+                  My bookshelf
+                </Link>
+                <Link href="/store" className="nav-link">
+                  Library
+                </Link>
+              </nav>
               <AccountNav />
-            </nav>
+            </div>
           </header>
           <main>{children}</main>
         </Providers>

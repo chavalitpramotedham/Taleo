@@ -86,9 +86,6 @@ function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () =
       <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
         {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
         <div className="cover-meta">
-          <span>
-            by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-          </span>
           <span className="cover-rating">
             {s.ratingCount ? (
               <>
@@ -97,6 +94,9 @@ function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () =
             ) : (
               "Not yet rated"
             )}
+          </span>
+          <span className="cover-byline">
+            by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
           </span>
         </div>
       </Link>
