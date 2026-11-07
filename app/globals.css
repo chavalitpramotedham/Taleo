@@ -134,25 +134,33 @@ button {
   background: linear-gradient(to bottom, rgba(251, 247, 238, 0.7), rgba(251, 247, 238, 0));
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-title);
   font-size: 1.85rem;
   text-decoration: none;
   letter-spacing: 0.01em;
   color: var(--ink);
 }
-.brand::before {
-  content: "";
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 10px;
-  border-radius: 50%;
-  background: var(--russet);
-  vertical-align: 0.18em;
-  opacity: 0.85;
+.brand-mark {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.brand-mark-spin {
+  transform-origin: 12px 12px;
+  animation: brand-orbit 3.2s linear infinite;
+}
+@keyframes brand-orbit {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .topnav {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 .nav-link {
@@ -994,9 +1002,13 @@ main {
   display: inline-flex;
 }
 .account-trigger {
+  width: 34px;
+  height: 34px;
+  margin-left: 6px;
   color: var(--ink-soft);
   padding: 0;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .account-trigger:hover {
   color: var(--ink);
@@ -1337,7 +1349,7 @@ main {
     padding: 12px 0 0;
   }
   .brand {
-    text-align: center;
+    justify-content: center;
     padding: 0 16px 10px;
   }
   .topnav {

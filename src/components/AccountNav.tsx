@@ -23,8 +23,8 @@ export function AccountNav() {
 
   if (!session?.user) {
     return (
-      <Link href="/sign-in" className="nav-link">
-        Sign in
+      <Link href="/sign-in" className="icon-btn account-trigger" aria-label="Sign in">
+        <AccountIcon />
       </Link>
     );
   }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { PaintDefs } from "@/components/art/PaintDefs";
+import { BrandMark } from "@/components/Icons";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
 import { AccountNav } from "@/components/AccountNav";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AudioUnlock />
           <header className="topbar">
             <Link href="/" className="brand" aria-label="Taleo home">
+              <BrandMark />
               Taleo
             </Link>
             <nav className="topnav">

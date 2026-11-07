@@ -49,6 +49,18 @@ export const AccountIcon = () => (
   </svg>
 );
 
+/** Three Taleo-accent dots orbiting a shared centre — the brand mark, in
+ *  place of a plain static dot, for a touch of "something's thinking" life. */
+export const BrandMark = () => (
+  <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+    <g className="brand-mark-spin">
+      <circle cx="12" cy="4" r="3.1" fill="#9C4F32" />
+      <circle cx="5.07" cy="16" r="3.1" fill="#6F7F52" />
+      <circle cx="18.93" cy="16" r="3.1" fill="#C49A3E" />
+    </g>
+  </svg>
+);
+
 export const Ornament = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 120 14" width="120" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
     <path d="M2 7h40M78 7h40" />
