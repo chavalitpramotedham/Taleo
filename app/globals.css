@@ -88,6 +88,33 @@ button {
   margin: 2px 0 4px;
 }
 
+.pull-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.15s ease;
+}
+.pull-refresh-spin {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--rule-strong);
+  border-top-color: var(--russet);
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: pull-spin 0.7s linear infinite;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.pull-refresh-spin.ready {
+  opacity: 1;
+  transform: scale(1.15);
+}
+@keyframes pull-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ---------- top bar ---------- */
 .topbar {
   display: flex;
@@ -393,6 +420,29 @@ main {
   box-shadow: var(--shadow);
   padding: clamp(16px, 3vw, 26px);
   margin-top: 22px;
+}
+.panel-invent {
+  margin-top: 0;
+  border-color: var(--rule-strong);
+  border-style: dashed;
+  background: var(--sage-soft);
+}
+.divider-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-faint);
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  font-size: 0.95rem;
+  margin: 26px 0 14px;
+}
+.divider-label::before,
+.divider-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
 }
 .panel .meta {
   margin-bottom: 12px;

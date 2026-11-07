@@ -143,6 +143,28 @@ export default function CreatePage() {
 
       {step === 1 && (
         <>
+          <section className="panel panel-invent">
+            <h3>Dream up a hero</h3>
+            <p className="meta">Say it out loud, or type it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
+            <div className="field-row">
+              <DictateButton onText={setCustomDesc} label="Describe by voice" />
+              <input
+                className="input"
+                value={customDesc}
+                maxLength={200}
+                placeholder="A sleepy hedgehog who loves pancakes…"
+                onChange={(e) => setCustomDesc(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && drawCustom()}
+                aria-label="Describe your character"
+              />
+              <button type="button" className="btn btn-primary" onClick={drawCustom} disabled={!customDesc.trim() || drawing}>
+                {drawing ? "Painting…" : "Paint them"}
+              </button>
+            </div>
+          </section>
+
+          <p className="divider-label">Or choose a friend from the shelf</p>
+
           <div className="filter-row" role="tablist">
             {GROUPS.map((g) => (
               <button key={g.key} type="button" role="tab" aria-selected={group === g.key} className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
@@ -180,26 +202,6 @@ export default function CreatePage() {
             })}
           </div>
 
-          <section className="panel">
-            <h3>Invent your own</h3>
-            <p className="meta">Describe them, or tap the microphone and let your child say it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
-            <div className="field-row">
-              <input
-                className="input"
-                value={customDesc}
-                maxLength={200}
-                placeholder="A sleepy hedgehog who loves pancakes…"
-                onChange={(e) => setCustomDesc(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && drawCustom()}
-                aria-label="Describe your character"
-              />
-              <DictateButton onText={setCustomDesc} label="Describe by voice" />
-              <button type="button" className="btn btn-primary" onClick={drawCustom} disabled={!customDesc.trim() || drawing}>
-                {drawing ? "Painting…" : "Paint them"}
-              </button>
-            </div>
-          </section>
-
           {hero && (
             <section className="panel hero-panel">
               <CharacterPortrait character={hero} className="hero-portrait" />
@@ -224,6 +226,25 @@ export default function CreatePage() {
 
       {step === 2 && (
         <>
+          <section className="panel panel-invent">
+            <h3>Dream up the tale</h3>
+            <p className="meta">Say it out loud, or type it: &ldquo;the moon has lost its hat&rdquo;.</p>
+            <div className="field-row">
+              <DictateButton onText={setThemeText} label="Say your idea" />
+              <input
+                className="input"
+                value={themeText}
+                maxLength={160}
+                placeholder="The moon has lost its hat…"
+                onChange={(e) => setThemeText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && next()}
+                aria-label="Your own story idea"
+              />
+            </div>
+          </section>
+
+          <p className="divider-label">Or pick a kind of story</p>
+
           <div className="grid themes">
             {THEMES.map((t) => {
               const selected = !themeText.trim() && themeKey === t.key;
@@ -244,21 +265,6 @@ export default function CreatePage() {
               );
             })}
           </div>
-          <section className="panel">
-            <h3>Or your own idea</h3>
-            <div className="field-row">
-              <input
-                className="input"
-                value={themeText}
-                maxLength={160}
-                placeholder="The moon has lost its hat…"
-                onChange={(e) => setThemeText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && next()}
-                aria-label="Your own story idea"
-              />
-              <DictateButton onText={setThemeText} label="Say your idea" />
-            </div>
-          </section>
         </>
       )}
 

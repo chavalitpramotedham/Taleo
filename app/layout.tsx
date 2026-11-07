@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { PaintDefs } from "@/components/art/PaintDefs";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <PaintDefs />
+        <PullToRefresh />
         <header className="topbar">
           <Link href="/" className="brand" aria-label="Taleo home">
             Taleo
