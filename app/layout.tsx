@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
+import { AccountNav } from "@/components/AccountNav";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,25 +35,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <PaintDefs />
-        <PullToRefresh />
-        <header className="topbar">
-          <Link href="/" className="brand" aria-label="Taleo home">
-            Taleo
-          </Link>
-          <nav className="topnav">
-            <Link href="/create" className="nav-link">
-              New story
+        <Providers>
+          <PaintDefs />
+          <PullToRefresh />
+          <AudioUnlock />
+          <header className="topbar">
+            <Link href="/" className="brand" aria-label="Taleo home">
+              Taleo
             </Link>
-            <Link href="/library" className="nav-link">
-              Bookshelf
-            </Link>
-            <Link href="/store" className="nav-link">
-              Story store
-            </Link>
-          </nav>
-        </header>
-        <main>{children}</main>
+            <nav className="topnav">
+              <Link href="/create" className="nav-link">
+                New story
+              </Link>
+              <Link href="/my-stories" className="nav-link">
+                My stories
+              </Link>
+              <Link href="/store" className="nav-link">
+                Story store
+              </Link>
+              <AccountNav />
+            </nav>
+          </header>
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );

@@ -932,6 +932,78 @@ main {
   align-items: center;
   gap: 4px;
 }
+.rate-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.comment-input {
+  width: 100%;
+  max-width: 420px;
+  min-height: 70px;
+  resize: vertical;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.4;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 10px 12px;
+  background: var(--page);
+}
+.comment-input:focus {
+  outline: none;
+  border-color: var(--russet);
+}
+.my-comment {
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 420px;
+  text-align: center;
+}
+.ratings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+.rating-card {
+  background: var(--page);
+  border: 1px solid var(--page-edge);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+}
+.rating-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.rating-card .stars {
+  transform: scale(0.75);
+  transform-origin: right center;
+}
+.rating-date {
+  font-size: 0.82rem;
+  margin-top: 6px;
+}
+.account-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.account-name {
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+.account-signout {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
 .stars {
   display: flex;
   gap: 4px;
@@ -981,8 +1053,43 @@ main {
 /* ---------- bookshelf ---------- */
 .shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 26px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (min-width: 640px) {
+  .shelf {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+@media (min-width: 900px) {
+  .shelf {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 26px;
+  }
+}
+@media (min-width: 1180px) {
+  .shelf {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+@media (max-width: 639px) {
+  .book-card .body {
+    padding: 10px 12px 12px;
+    gap: 3px;
+  }
+  .book-card h3 {
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+  .book-card .meta {
+    font-size: 0.8rem;
+  }
+  .card-actions .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    min-height: 32px;
+  }
 }
 .book-card {
   background: var(--page);

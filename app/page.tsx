@@ -16,8 +16,8 @@ export default function Home() {
             little one, pausing at just the right moments so <em>you</em> can decide what happens next.
           </p>
           <div className="hero-actions">
-            <Link className="btn btn-soft" href="/library">
-              Our bookshelf
+            <Link className="btn btn-soft" href="/my-stories">
+              My stories
             </Link>
           </div>
         </div>

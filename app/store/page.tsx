@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
 import { storeUrl } from "@/lib/share";
-import { formatRating, useRating } from "@/lib/useRating";
+import { formatRating } from "@/lib/useRating";
 import { ageById } from "@/lib/ages";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { StarRating } from "@/components/StarRating";
@@ -82,8 +82,6 @@ export default function StorePage() {
 }
 
 function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
-  const { mine, agg, vote } = useRating(s.id, { ratingSum: s.ratingSum, ratingCount: s.ratingCount });
-
   const copyLink = async () => {
     const url = storeUrl(s.id, window.location.origin);
     try {
@@ -103,12 +101,12 @@ function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () =
         <h3>{s.title || "An untitled story"}</h3>
         <Ornament className="ornament small" />
         <p className="meta">
-          {s.heroName ? `${s.heroName}'s story · ` : ""}For ages {ageById(s.age).label}
+          by @{s.authorUsername || "taleo"} · ages {ageById(s.age).label}
           <br />
           {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
         </p>
-        <StarRating value={mine} onChange={vote} />
-        <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
+        <StarRating value={Math.round(avg(s))} />
+        <p className="meta rating-summary">{formatRating(s.ratingSum, s.ratingCount)}</p>
         <div className="card-actions">
           <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
             Read

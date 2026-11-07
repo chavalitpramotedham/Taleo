@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { AGES, type AgeId, ageById } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter, type Preset } from "@/lib/presets";
 import type { CharacterDef, CharacterResponse, Story } from "@/lib/types";
@@ -25,6 +26,7 @@ const STEP_NOTES = [
 
 export default function CreatePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(0);
   const [age, setAge] = useState<AgeId | null>(null);
 
@@ -46,6 +48,11 @@ export default function CreatePage() {
       if (saved && AGES.some((a) => a.id === saved)) setAge(saved);
     } catch {}
   }, []);
+
+  useEffect(() => {
+    if (status === "unauthenticated") router.replace("/sign-in?next=/create");
+    else if (status === "authenticated" && !session?.user.username) router.replace("/welcome?next=/create");
+  }, [status, session, router]);
 
   const preset: Preset | undefined = PRESETS.find((p) => p.key === presetKey);
   const hero: CharacterDef | null = useCustom
@@ -82,7 +89,7 @@ export default function CreatePage() {
   };
 
   const start = () => {
-    if (!age || !hero || !theme) return;
+    if (!age || !hero || !theme || !session?.user.username) return;
     try {
       localStorage.setItem(AGE_KEY, age);
     } catch {}
@@ -99,6 +106,8 @@ export default function CreatePage() {
       segments: [],
       status: "new",
       rating: 0,
+      authorId: session.user.id,
+      authorUsername: session.user.username,
     };
     if (!saveStory(story)) {
       setError("This device's storage is full. Remove an old story from your bookshelf and try again.");
@@ -114,6 +123,8 @@ export default function CreatePage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else start();
   };
+
+  if (status !== "authenticated" || !session?.user.username) return null;
 
   return (
     <div className="container wizard">

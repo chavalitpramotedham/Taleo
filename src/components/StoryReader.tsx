@@ -6,13 +6,12 @@ import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
 import { storeUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
-import { formatRating, useRating } from "@/lib/useRating";
 import { usePaintings } from "@/lib/usePaintings";
 import { cancelSpeech, speakText, unlockSpeech } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
-import { StarRating } from "./StarRating";
+import { RateAndComment } from "./RateAndComment";
 import { BrushIcon, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
 
 type View =
@@ -49,13 +48,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   storyRef.current = story;
   const started = useRef(false);
   const paintingRef = useRef<InteractivePaintingHandle>(null);
-
-  const { mine: myRating, agg: ratingAgg, vote: voteRating } = useRating(
-    story.id,
-    { ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 },
-    story.rating,
-    readOnly ? undefined : (r) => update?.((cur) => ({ ...cur, rating: r })),
-  );
 
   const views: View[] = useMemo(() => {
     const v: View[] = [];
@@ -405,14 +397,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
         <Ornament className="ornament" />
         <div className="rate">
           <p className="meta">{readOnly ? "Rate this story" : "Did you enjoy it?"}</p>
-          <StarRating
-            value={myRating}
-            onChange={(r) => {
-              voteRating(r);
-              flash(readOnly ? "Thank you for rating!" : "Thank you. It's saved in your bookshelf.");
-            }}
-          />
-          <p className="meta rating-summary">{formatRating(ratingAgg.ratingSum, ratingAgg.ratingCount)}</p>
+          <RateAndComment storyId={story.id} initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }} />
         </div>
         <div className="end-actions">
           <button className="btn btn-soft" onClick={() => setIndex(0)}>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/server/auth";
 import { listGallery, publishStory } from "@/server/gallery";
 import type { Story } from "@/lib/types";
 
@@ -10,6 +11,10 @@ export async function GET() {
 const MAX_BYTES = 4_000_000;
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.username) {
+    return NextResponse.json({ error: "Sign in and choose a username first." }, { status: 401 });
+  }
   const raw = await req.text();
   if (raw.length > MAX_BYTES) {
     return NextResponse.json({ error: "That story is too large to publish." }, { status: 413 });
@@ -27,7 +32,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Only finished stories can be published." }, { status: 400 });
   }
   try {
-    const entry = await publishStory(story);
+    const entry = await publishStory(story, { id: session.user.id, username: session.user.username });
     return NextResponse.json({ entry });
   } catch {
     return NextResponse.json({ error: "Couldn't publish that story." }, { status: 500 });

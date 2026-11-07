@@ -63,13 +63,40 @@ export interface Story {
   cast: CharacterDef[]; // side characters
   segments: Segment[];
   status: "new" | "in-progress" | "complete";
-  rating: number; // this device's own vote, 0 = unrated, 1-5
+  /** @deprecated superseded by per-user RatingRecord; kept only so very old local drafts still load. */
+  rating: number;
   demo?: boolean;
   /** Mirrored to the public story store once finished and fully painted. */
   published?: boolean;
   /** Community rating, mirrored from the store once published. */
   ratingSum?: number;
   ratingCount?: number;
+  /** The account that created this story (back-filled to the admin account for pre-accounts stories). */
+  authorId?: string;
+  authorUsername?: string;
+}
+
+// ---- accounts ----
+
+export interface UserProfile {
+  /** Stable id (the Google account's subject claim). */
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  /** Chosen once, right after first sign-in; null until then. */
+  username: string | null;
+  isAdmin: boolean;
+  createdAt: number;
+}
+
+/** One reader's rating (and optional comment) on a published story. One per user per story. */
+export interface RatingRecord {
+  userId: string;
+  username: string;
+  rating: number; // 1-5
+  comment: string | null;
+  createdAt: number;
 }
 
 // ---- API contracts ----
@@ -109,6 +136,8 @@ export interface GalleryEntry {
   age: AgeId;
   heroName: string;
   cover: string | null;
+  authorId: string;
+  authorUsername: string;
 }
 
 export interface IllustrateRequest {

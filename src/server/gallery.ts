@@ -1,79 +1,42 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { allPages } from "@/lib/story-utils";
-import type { GalleryEntry, Story } from "@/lib/types";
+import type { GalleryEntry, RatingRecord, Story } from "@/lib/types";
+import { readJson, writeJson } from "./store";
+import { ADMIN_USER_ID } from "./users";
 
-/**
- * The public story store (no accounts: everything published lives under one
- * shared "shelf"). Uses Vercel Blob when BLOB_READ_WRITE_TOKEN is set
- * (production), and local JSON files otherwise, so the feature works offline
- * in dev the same way the rest of the app does without an API key.
- */
-
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
-const useBlob = Boolean(BLOB_TOKEN);
+/** The public story store: every finished, published story lives here. */
 
 const INDEX_PATH = "gallery/index.json";
 const storyPath = (id: string) => `gallery/stories/${id}.json`;
-
-const DATA_DIR = path.join(process.cwd(), ".data", "gallery");
-const localFile = (pathname: string) => path.join(DATA_DIR, pathname.replace(/^gallery\//, ""));
-
-async function localRead<T>(pathname: string): Promise<T | null> {
-  try {
-    return JSON.parse(await fs.readFile(localFile(pathname), "utf8")) as T;
-  } catch {
-    return null;
-  }
-}
-
-async function localWrite(pathname: string, data: unknown) {
-  const file = localFile(pathname);
-  await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(file, JSON.stringify(data));
-}
-
-async function blobRead<T>(pathname: string): Promise<T | null> {
-  const { list } = await import("@vercel/blob");
-  const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN, limit: 1 });
-  const blob = blobs.find((b) => b.pathname === pathname);
-  if (!blob) return null;
-  const res = await fetch(blob.url, { cache: "no-store" });
-  return res.ok ? ((await res.json()) as T) : null;
-}
-
-async function blobWrite(pathname: string, data: unknown) {
-  const { put } = await import("@vercel/blob");
-  await put(pathname, JSON.stringify(data), {
-    access: "public",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    token: BLOB_TOKEN,
-  });
-}
-
-const readJson = <T>(pathname: string) => (useBlob ? blobRead<T>(pathname) : localRead<T>(pathname));
-const writeJson = (pathname: string, data: unknown) => (useBlob ? blobWrite(pathname, data) : localWrite(pathname, data));
+const ratingsPath = (id: string) => `gallery/ratings/${id}.json`;
 
 export async function listGallery(): Promise<GalleryEntry[]> {
-  return (await readJson<GalleryEntry[]>(INDEX_PATH)) ?? [];
+  const entries = (await readJson<GalleryEntry[]>(INDEX_PATH)) ?? [];
+  // Back-fill stories published before accounts existed.
+  return entries.map((e) => ({ ...e, authorId: e.authorId ?? ADMIN_USER_ID, authorUsername: e.authorUsername ?? "taleo" }));
 }
 
 export async function getGalleryStory(id: string): Promise<Story | null> {
   if (!/^[a-z0-9]+$/i.test(id)) return null;
-  return readJson<Story>(storyPath(id));
+  const story = await readJson<Story>(storyPath(id));
+  if (!story) return null;
+  return story.authorId ? story : { ...story, authorId: ADMIN_USER_ID, authorUsername: "taleo" };
+}
+
+export async function listMyStories(authorId: string): Promise<GalleryEntry[]> {
+  const all = await listGallery();
+  return all.filter((e) => e.authorId === authorId);
 }
 
 /** Publish (or re-publish) a finished story to the public store. */
-export async function publishStory(story: Story): Promise<GalleryEntry> {
+export async function publishStory(story: Story, author: { id: string; username: string }): Promise<GalleryEntry> {
   const index = await listGallery();
   const existing = index.find((e) => e.id === story.id);
-  // Content (title, cover, ...) can change on re-publish, but community votes
-  // must not be wiped out just because the story was repainted. A brand new
-  // entry seeds its count from the creator's own first vote, if any.
-  const ratingSum = existing?.ratingSum ?? (story.rating > 0 ? story.rating : 0);
-  const ratingCount = existing?.ratingCount ?? (story.rating > 0 ? 1 : 0);
+  const ratings = await listRatings(story.id);
+  const ratingSum = ratings.reduce((n, r) => n + r.rating, 0);
+  const ratingCount = ratings.length;
+  // Keep the original author even on re-publish (repainting shouldn't change ownership).
+  const authorId = existing?.authorId ?? author.id;
+  const authorUsername = existing?.authorUsername ?? author.username;
 
   const entry: GalleryEntry = {
     id: story.id,
@@ -84,26 +47,58 @@ export async function publishStory(story: Story): Promise<GalleryEntry> {
     age: story.age,
     heroName: story.hero.name,
     cover: allPages(story).find((p) => p.svg)?.svg ?? null,
+    authorId,
+    authorUsername,
   };
   const next = [entry, ...index.filter((e) => e.id !== story.id)];
-  await Promise.all([writeJson(INDEX_PATH, next), writeJson(storyPath(story.id), { ...story, ratingSum, ratingCount })]);
+  await Promise.all([writeJson(INDEX_PATH, next), writeJson(storyPath(story.id), { ...story, ratingSum, ratingCount, authorId, authorUsername })]);
   return entry;
 }
 
-/** Record (or change) one vote and return the new aggregate. Not atomic
- *  across concurrent writers, but good enough for this scale. */
-export async function rateStory(id: string, rating: number, previousRating?: number): Promise<GalleryEntry | null> {
-  const [index, full] = await Promise.all([listGallery(), getGalleryStory(id)]);
-  const i = index.findIndex((e) => e.id === id);
-  if (i < 0 || !full) return null;
+export async function listRatings(storyId: string): Promise<RatingRecord[]> {
+  return (await readJson<RatingRecord[]>(ratingsPath(storyId))) ?? [];
+}
 
-  const entry = index[i];
-  const ratingSum = Math.max(0, (entry.ratingSum ?? 0) + rating - (previousRating ?? 0));
-  const ratingCount = Math.max(0, (entry.ratingCount ?? 0) + (previousRating == null ? 1 : 0));
-  const nextEntry: GalleryEntry = { ...entry, ratingSum, ratingCount };
-  const nextIndex = [...index];
-  nextIndex[i] = nextEntry;
+async function syncAggregate(storyId: string, ratings: RatingRecord[]) {
+  const ratingSum = ratings.reduce((n, r) => n + r.rating, 0);
+  const ratingCount = ratings.length;
+  const [index, full] = await Promise.all([listGallery(), getGalleryStory(storyId)]);
+  const i = index.findIndex((e) => e.id === storyId);
+  const writes: Promise<void>[] = [];
+  if (i >= 0) {
+    const nextIndex = [...index];
+    nextIndex[i] = { ...nextIndex[i], ratingSum, ratingCount };
+    writes.push(writeJson(INDEX_PATH, nextIndex));
+  }
+  if (full) writes.push(writeJson(storyPath(storyId), { ...full, ratingSum, ratingCount }));
+  await Promise.all(writes);
+  return { ratingSum, ratingCount };
+}
 
-  await Promise.all([writeJson(INDEX_PATH, nextIndex), writeJson(storyPath(id), { ...full, ratingSum, ratingCount })]);
-  return nextEntry;
+/** One rating (and optional comment) per signed-in user per story — once
+ *  recorded it can't be changed, only read back. Returns null if the story
+ *  doesn't exist, or the existing record if this user already rated it. */
+export async function addRating(
+  storyId: string,
+  user: { id: string; username: string },
+  rating: number,
+  comment: string | null,
+): Promise<{ record: RatingRecord; alreadyRated: boolean; ratingSum: number; ratingCount: number } | null> {
+  const full = await getGalleryStory(storyId);
+  if (!full) return null;
+  const ratings = await listRatings(storyId);
+  const existing = ratings.find((r) => r.userId === user.id);
+  if (existing) {
+    const agg = await syncAggregate(storyId, ratings);
+    return { record: existing, alreadyRated: true, ...agg };
+  }
+  const record: RatingRecord = { userId: user.id, username: user.username, rating, comment: comment?.trim() || null, createdAt: Date.now() };
+  const next = [...ratings, record];
+  await writeJson(ratingsPath(storyId), next);
+  const agg = await syncAggregate(storyId, next);
+  return { record, alreadyRated: false, ...agg };
+}
+
+export function myRating(ratings: RatingRecord[], userId: string): RatingRecord | null {
+  return ratings.find((r) => r.userId === userId) ?? null;
 }
