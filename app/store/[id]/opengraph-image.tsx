@@ -3,6 +3,7 @@ import { ImageResponse } from "next/og";
 import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
 import { sanitizeSvgFlat } from "@/lib/svg-sanitize";
+import { loadBrandFonts } from "@/server/og-fonts";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -54,6 +55,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const flatCover = cover ? sanitizeSvgFlat(cover) : "";
   const count = story?.ratingCount ?? 0;
   const avg = count ? Math.round((story!.ratingSum! / count) * 10) / 10 : 0;
+  const fonts = await loadBrandFonts();
+  const FONT_TITLE = "IM Fell English";
+  const FONT_CAPS = "IM Fell English SC";
+  const FONT_BODY = "EB Garamond";
 
   return new ImageResponse(
     (
@@ -66,7 +71,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           gap: 48,
           padding: 56,
           background: "#F3ECDC",
-          fontFamily: "serif",
+          fontFamily: FONT_BODY,
         }}
       >
         <div
@@ -88,20 +93,23 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               {svgToReact(flatCover)}
             </svg>
           ) : (
-            <div style={{ fontSize: 28, color: "#9A8A74" }}>Taleo</div>
+            <div style={{ fontSize: 28, color: "#9A8A74", fontFamily: FONT_TITLE }}>Taleo</div>
           )}
         </div>
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          <div style={{ display: "flex", fontSize: 26, letterSpacing: 2, color: "#9C4F32", marginBottom: 14 }}>A TALEO STORY</div>
+          <div style={{ display: "flex", fontSize: 24, letterSpacing: 2, color: "#9C4F32", marginBottom: 14, fontFamily: FONT_CAPS }}>
+            A Taleo Story
+          </div>
           <div
             style={{
               display: "flex",
-              fontSize: title.length > 28 ? 52 : 64,
+              fontSize: title.length > 28 ? 54 : 66,
               color: "#3B3127",
               lineHeight: 1.1,
               marginBottom: 28,
               maxHeight: 220,
               overflow: "hidden",
+              fontFamily: FONT_TITLE,
             }}
           >
             {title}
@@ -114,13 +122,13 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ display: "flex", fontSize: 28, color: "#6B5A48", marginTop: 10, fontStyle: "italic" }}>
             {count ? `${avg.toFixed(1)} · ${count} rating${count === 1 ? "" : "s"}` : "A new story, painted just for you"}
           </div>
-          <div style={{ display: "flex", alignItems: "center", marginTop: "auto", fontSize: 34, color: "#3B3127" }}>
+          <div style={{ display: "flex", alignItems: "center", marginTop: "auto", fontSize: 36, color: "#3B3127", fontFamily: FONT_TITLE }}>
             <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: "#9C4F32", marginRight: 12 }} />
             Taleo
           </div>
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, fonts },
   );
 }
