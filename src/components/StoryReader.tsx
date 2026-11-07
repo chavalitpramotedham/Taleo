@@ -174,10 +174,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   // ---------------------------------------------------------------- navigation
-  const [flipDir, setFlipDir] = useState<1 | -1>(1);
+  // A snapshot of the page being left, so it can flip away on top while the
+  // new page (already rendered beneath it) is revealed underneath.
+  const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; dir: 1 | -1 } | null>(null);
+  const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode }>({ picture: null, words: null });
   const go = useCallback(
     (d: number) => {
-      setFlipDir(d > 0 ? 1 : -1);
+      setOutgoing({ ...currentContentRef.current, dir: d > 0 ? 1 : -1 });
       setIndex((i) => Math.max(0, Math.min(lastIndex, i + d)));
     },
     [lastIndex],
@@ -443,6 +446,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   const canForward = index < lastIndex && !atChoiceUnanswered;
   const position = view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
 
+  // Remember what's on the page right now, so the next go() can hand a
+  // snapshot of it to the outgoing flip layer.
+  currentContentRef.current = { picture, words };
+
   return (
     <div className={`reader age-${story.age}`}>
       <div className="reader-top">
@@ -470,11 +477,21 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       </div>
 
       <div className="book" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div key={`art-${index}`} className={`book-art flip-${flipDir > 0 ? "next" : "prev"}`}>
+        <div className="book-art">
           {picture}
+          {outgoing && (
+            <div className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`} onAnimationEnd={() => setOutgoing(null)}>
+              {outgoing.picture}
+            </div>
+          )}
         </div>
-        <div key={`text-${index}`} className={`book-text flip-${flipDir > 0 ? "next" : "prev"}`}>
+        <div className="book-text">
           {words}
+          {outgoing && (
+            <div className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`} aria-hidden>
+              {outgoing.words}
+            </div>
+          )}
         </div>
       </div>
 

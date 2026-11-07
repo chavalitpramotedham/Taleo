@@ -169,6 +169,9 @@ main {
   margin: 0 auto;
   padding: clamp(18px, 4vw, 44px) clamp(16px, 4vw, 44px);
 }
+.home {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
 
 /* ---------- buttons ---------- */
 .btn {
@@ -271,21 +274,17 @@ main {
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--paper) 55%, rgba(243, 236, 220, 0));
-  transform: translateY(120%);
-  transition: transform 0.25s ease;
+  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
   pointer-events: none;
-}
-.floating-cta.show {
-  transform: translateY(0);
-  pointer-events: auto;
 }
 .floating-cta-btn {
   width: 100%;
   max-width: 420px;
   text-align: center;
-  box-shadow: 0 6px 18px -6px rgba(70, 50, 30, 0.45);
+  pointer-events: auto;
+  border-radius: 999px;
+  padding: 15px 24px;
+  box-shadow: 0 8px 22px -6px rgba(70, 50, 30, 0.5);
 }
 .hero-art {
   margin: 0;
@@ -594,6 +593,7 @@ main {
   border: 1px solid var(--page-edge);
   box-shadow: var(--shadow);
   position: relative;
+  -webkit-perspective: 1800px;
   perspective: 1800px;
 }
 .book-art {
@@ -707,41 +707,75 @@ main {
 .page-anim {
   animation: pageIn 0.5s ease both;
 }
-.flip-next,
-.flip-prev {
+/* The outgoing page sits on top, already showing the old content, and
+   flips away like a real leaf turning to reveal the new page (already
+   rendered beneath it) as it goes. */
+.book-text {
+  position: relative;
+}
+.flip-leaf {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  background: var(--page);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   backface-visibility: hidden;
-  box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
 }
-.flip-next {
+.book-text .flip-leaf {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 48px) clamp(22px, 5vw, 56px) clamp(16px, 3vw, 28px);
+}
+.flip-leaf-next {
   transform-origin: left center;
-  animation: flipNext 0.45s cubic-bezier(0.3, 0, 0.3, 1) both;
+  animation: flipLeafNext 0.85s cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
 }
-.flip-prev {
+.flip-leaf-prev {
   transform-origin: right center;
-  animation: flipPrev 0.45s cubic-bezier(0.3, 0, 0.3, 1) both;
+  animation: flipLeafPrev 0.85s cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
 }
-@keyframes flipNext {
+/* "next": hinged on the left, the right edge lifts and swings away,
+   unveiling the new page from the right. "prev" is the mirror image. */
+@keyframes flipLeafNext {
   0% {
-    transform: rotateY(-22deg);
-    filter: brightness(0.85);
-    box-shadow: -14px 0 24px -14px rgba(70, 50, 30, 0.45);
-  }
-  100% {
     transform: rotateY(0deg);
     filter: brightness(1);
+    box-shadow: 26px 0 44px -6px rgba(70, 50, 30, 0.55);
+  }
+  45% {
+    filter: brightness(0.85);
+  }
+  88% {
+    filter: brightness(0.55);
+    box-shadow: -10px 0 30px -10px rgba(70, 50, 30, 0.2);
+  }
+  100% {
+    transform: rotateY(-100deg);
+    filter: brightness(0.5);
     box-shadow: 0 0 0 rgba(70, 50, 30, 0);
   }
 }
-@keyframes flipPrev {
+@keyframes flipLeafPrev {
   0% {
-    transform: rotateY(22deg);
-    filter: brightness(0.85);
-    box-shadow: 14px 0 24px -14px rgba(70, 50, 30, 0.45);
-  }
-  100% {
     transform: rotateY(0deg);
     filter: brightness(1);
+    box-shadow: -26px 0 44px -6px rgba(70, 50, 30, 0.55);
+  }
+  45% {
+    filter: brightness(0.85);
+  }
+  88% {
+    filter: brightness(0.55);
+    box-shadow: 10px 0 30px -10px rgba(70, 50, 30, 0.2);
+  }
+  100% {
+    transform: rotateY(100deg);
+    filter: brightness(0.5);
     box-shadow: 0 0 0 rgba(70, 50, 30, 0);
   }
 }

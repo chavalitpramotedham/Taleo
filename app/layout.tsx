@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { AudioUnlock } from "@/components/AudioUnlock";
 import "./globals.css";
 
 export const metadata: Metadata = {

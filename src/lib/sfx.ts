@@ -6,16 +6,37 @@ import type { SoundId } from "./actions";
 import { speakText, unlockSpeech } from "./speech";
 
 let ctx: AudioContext | null = null;
+function getCtor() {
+  return window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+}
+
 function audio(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
-    const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const Ctor = getCtor();
+    if (!Ctor) return null;
     ctx ??= new Ctor();
     if (ctx.state === "suspended") void ctx.resume();
     return ctx;
   } catch {
     return null;
   }
+}
+
+/** Call synchronously inside a real tap/click handler (ideally the very first
+ *  one on the page) to get the AudioContext running on iOS Safari, where it's
+ *  otherwise created in a "suspended" state and its first sound can be lost
+ *  while resume() is still pending. Safe to call repeatedly. */
+export function unlockAudio() {
+  const c = audio();
+  if (!c) return;
+  try {
+    const buf = c.createBuffer(1, 1, 22050);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.connect(c.destination);
+    src.start(0);
+  } catch {}
 }
 
 const MASTER = 0.35;
