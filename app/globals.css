@@ -166,16 +166,16 @@ button {
    they drift in and out of phase rather than circling a shared centre in
    lockstep. */
 .leaf-whirl-a {
-  animation-duration: 3.2s;
-  animation-delay: -0.6s;
+  animation-duration: 4.2s;
+  animation-delay: -0.8s;
 }
 .leaf-whirl-b {
-  animation-duration: 4.1s;
-  animation-delay: -2.7s;
+  animation-duration: 5.3s;
+  animation-delay: -3.5s;
 }
 .leaf-whirl-c {
-  animation-duration: 2.7s;
-  animation-delay: -1.3s;
+  animation-duration: 3.5s;
+  animation-delay: -1.7s;
 }
 @keyframes leaf-whirl {
   0% {
