@@ -263,6 +263,30 @@ main {
   gap: 12px;
   margin-top: 26px;
 }
+.floating-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--paper) 55%, rgba(243, 236, 220, 0));
+  transform: translateY(120%);
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+.floating-cta.show {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.floating-cta-btn {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 6px 18px -6px rgba(70, 50, 30, 0.45);
+}
 .hero-art {
   margin: 0;
   background: var(--page);

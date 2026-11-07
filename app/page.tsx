@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Painting } from "@/components/art/Painting";
 import { Ornament } from "@/components/Icons";
 import { HOME_SCENE } from "@/lib/art/homeScene";
+import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 
 export default function Home() {
   return (
@@ -53,6 +54,8 @@ export default function Home() {
           <p>At each turning point, choose what happens, or call out your own idea. Every page is painted as you go.</p>
         </div>
       </section>
+
+      <FloatingBeginBar />
     </div>
   );
 }
