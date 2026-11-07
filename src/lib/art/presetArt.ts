@@ -10,7 +10,7 @@
 // each character stays recognisable from page to page.
 
 const INK = `class="ink" fill="none" stroke="#4F3A2A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"`;
-const SHADOW = `<ellipse cx="100" cy="191" rx="62" ry="6" fill="#CFC6AC" opacity="0.6"/>`;
+const SHADOW = `<ellipse cx="104" cy="191" rx="64" ry="6.5" fill="#CFC6AC" opacity="0.6"/><ellipse cx="102" cy="190" rx="40" ry="3.5" fill="#A89E84" opacity="0.45"/>`;
 const MOUTH = "#6E3B32";
 const TONGUE = "#C9786E";
 const BLUSH = "#E7A99A";
@@ -29,6 +29,23 @@ const blush = (x: number, y: number, rx = 6, ry = 3.2) =>
 const hatch = (x: number, y: number, n: number, gap: number, dx: number, dy: number) =>
   `<path d="${Array.from({ length: n }, (_, i) => `M${x + i * gap} ${y} l${dx} ${dy}`).join(" ")}" stroke-width="0.8"/>`;
 
+/** Watercolour form shadow: a crescent glaze on the lower-right of an ellipse (light from the upper left). */
+const shade = (cx: number, cy: number, rx: number, ry: number, color = "#4A3020", op = 0.26, t = 0.3) => {
+  const c = Math.SQRT1_2;
+  const p1 = [cx + rx * c, cy - ry * c];
+  const p2 = [cx - rx * c, cy + ry * c];
+  const q1 = [p1[0] - t * rx, p1[1] - t * ry];
+  const q2 = [p2[0] - t * rx, p2[1] - t * ry];
+  const f = (n: number) => n.toFixed(1);
+  return `<path d="M${f(p1[0])} ${f(p1[1])} A${rx} ${ry} 0 0 1 ${f(p2[0])} ${f(p2[1])} L${f(q2[0])} ${f(q2[1])} A${rx} ${ry} 0 0 0 ${f(q1[0])} ${f(q1[1])}Z" fill="${color}" opacity="${op}"/>`;
+};
+/** Soft pale glaze where the light hits. */
+const glow = (cx: number, cy: number, rx: number, ry: number, op = 0.3) =>
+  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#FFF8E8" opacity="${op}"/>`;
+/** Shadow cast by a head onto the chest. */
+const chin = (cx: number, cy: number, rx: number, ry = 4.5, color = "#4A3020", op = 0.28) =>
+  `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${color}" opacity="${op}"/>`;
+
 export const PRESET_ART: Record<string, string> = {
   // Pip waves hello with one paw, the other on a hip, head cocked, ears up.
   bunny: `
@@ -38,6 +55,7 @@ export const PRESET_ART: Record<string, string> = {
 <ellipse cx="86" cy="164" rx="16" ry="20" fill="#9C7756"/><ellipse cx="116" cy="166" rx="16" ry="20" fill="#A98463"/>
 <path d="M76 170 C68 142 74 110 96 100 C116 94 132 106 134 130 C136 152 128 170 112 176 C98 180 82 178 76 170Z" fill="#A98463"/>
 <path d="M92 170 C86 150 88 122 102 112 C116 116 122 138 118 160 C116 172 104 176 92 170Z" fill="#E9DCC5"/>
+${shade(104, 140, 30, 38)}${shade(116, 166, 16, 20)}${chin(110, 103, 16)}
 <path d="M88 112 C74 118 62 128 64 138 C66 146 76 148 84 146 L86 138 C80 138 76 136 76 132 C78 126 84 122 92 120Z" fill="#9C7756"/>
 <path d="M120 112 C132 100 144 86 150 72 C153 64 164 66 162 74 C158 90 144 106 128 120Z" fill="#A98463"/>
 <ellipse cx="157" cy="67" rx="7" ry="8" fill="#A98463"/>
@@ -46,6 +64,7 @@ export const PRESET_ART: Record<string, string> = {
 <path d="M107 52 C113 28 124 9 132 13 C139 18 127 41 116 58Z" fill="#A98463"/>
 <path d="M110 50 C116 33 124 20 129 21 C132 25 124 40 116 54Z" fill="#D9B8A0"/>
 <ellipse cx="105" cy="74" rx="29" ry="25" transform="rotate(-10 105 74)" fill="#A98463"/>
+${shade(105, 74, 29, 25)}${glow(94, 62, 9, 6)}
 <ellipse cx="118" cy="86" rx="13" ry="9" fill="#E9DCC5"/>
 <ellipse cx="88" cy="88" rx="9" ry="6" fill="#E9DCC5" opacity="0.7"/>
 </g>
@@ -81,11 +100,14 @@ ${hatch(110, 168, 3, 3.5, 3, 6)}
 <path d="M130 118 C144 110 160 98 170 86 C175 79 168 72 162 77 C150 88 136 98 120 106Z" fill="#8E6A4C"/>
 <circle cx="32" cy="79" r="9" fill="#7A5A40"/><circle cx="168" cy="79" r="9" fill="#7A5A40"/>
 <path d="M62 150 C58 118 76 98 100 98 C124 98 142 118 138 150 C136 172 118 182 100 182 C82 182 64 172 62 150Z" fill="#8E6A4C"/>
-<ellipse cx="100" cy="148" rx="24" ry="26" fill="#C9AC88"/>
+<ellipse cx="100" cy="148" rx="24" ry="26" fill="#C9AC88"/>${shade(100, 140, 38, 42)}${shade(84, 170, 16, 17)}${shade(118, 170, 16, 17)}
+
 <circle cx="74" cy="44" r="12" fill="#8E6A4C"/><circle cx="74" cy="44" r="6" fill="#C9AC88"/>
 <circle cx="126" cy="44" r="12" fill="#8E6A4C"/><circle cx="126" cy="44" r="6" fill="#C9AC88"/>
 <circle cx="100" cy="70" r="33" fill="#8E6A4C"/>
+${shade(100, 70, 33, 33)}${glow(88, 54, 10, 7)}
 <ellipse cx="100" cy="84" rx="17" ry="13" fill="#C9AC88"/>
+${chin(100, 104, 20)}
 <ellipse cx="80" cy="186" rx="8" ry="4" fill="#C9AC88"/><ellipse cx="122" cy="186" rx="8" ry="4" fill="#C9AC88"/>
 </g>
 <g ${INK}>
@@ -112,11 +134,16 @@ ${hatch(66, 156, 4, 3.5, 3, 9)}${hatch(126, 156, 4, 3.5, -3, 9)}
 <ellipse cx="86" cy="187" rx="11" ry="5" fill="#F3DDC0"/><ellipse cx="114" cy="187" rx="11" ry="5" fill="#F3DDC0"/>
 <ellipse cx="88" cy="172" rx="13" ry="16" fill="#D99A5B"/><ellipse cx="112" cy="172" rx="13" ry="16" fill="#D99A5B"/>
 <path d="M80 176 C74 150 80 122 98 116 C116 114 126 132 124 156 C122 172 112 180 100 180 C90 180 82 178 80 176Z" fill="#D99A5B"/>
+${shade(102, 150, 22, 30)}
 <path d="M92 172 C88 152 92 130 101 126 C112 132 114 152 110 172Z" fill="#F3DDC0"/>
-<g transform="rotate(7 100 62)">
+<path d="M86 96 C86 106 88 114 90 122 L112 122 C112 114 114 106 114 96Z" fill="#D99A5B"/>
+<path d="M94 104 C94 110 96 116 100 122 C104 116 106 110 106 104Z" fill="#F3DDC0"/>
+${chin(100, 112, 13)}
+<g transform="translate(0 12) rotate(7 100 62)">
 <path d="M68 48 L66 12 L94 34Z" fill="#D99A5B"/><path d="M132 48 L136 12 L108 32Z" fill="#D99A5B"/>
 <path d="M72 42 L72 22 L88 34Z" fill="#E7B9A6"/><path d="M128 42 L131 22 L114 32Z" fill="#E7B9A6"/>
 <path d="M64 62 C64 40 80 28 100 28 C120 28 136 40 136 62 C136 84 120 96 100 96 C80 96 64 84 64 62Z" fill="#D99A5B"/>
+${shade(100, 62, 36, 34)}${glow(86, 44, 9, 6)}
 <ellipse cx="100" cy="76" rx="15" ry="10" fill="#F3DDC0"/>
 </g>
 <path d="M88 130 C70 124 56 112 52 98 C50 90 58 86 62 92 C66 104 78 114 96 122Z" fill="#D99A5B"/>
@@ -131,7 +158,7 @@ ${hatch(66, 156, 4, 3.5, 3, 9)}${hatch(126, 156, 4, 3.5, -3, 9)}
 <path d="M88 130 C70 124 56 112 52 98 M96 122 C78 114 66 104 62 92 M112 128 C130 122 144 110 148 96 M104 120 C122 112 134 102 138 90"/>
 <path d="M50 88 l-2 -3 M55 86 l0 -4 M60 87 l2 -3 M139 85 l-2 -3 M144 84 l0 -4 M149 85 l2 -3" stroke-width="1"/>
 <path d="M66 112 l4 -3 M74 118 l4 -3 M134 110 l-4 -3 M126 116 l-4 -3" stroke="#A8642F" stroke-width="1.8"/>
-<g transform="rotate(7 100 62)">
+<g transform="translate(0 12) rotate(7 100 62)">
 <path d="M68 48 L66 12 L94 34 M132 48 L136 12 L108 32"/>
 <path d="M64 62 C64 84 80 96 100 96 C120 96 136 84 136 62 C136 50 132 42 126 36 M74 36 C68 42 64 50 64 62"/>
 <path d="M100 32 l0 9 M91 33 l1 8 M109 33 l-1 8" stroke="#A8642F" stroke-width="2"/>
@@ -143,7 +170,7 @@ ${hatch(66, 156, 4, 3.5, 3, 9)}${hatch(126, 156, 4, 3.5, -3, 9)}
 ${hatch(82, 160, 3, 3.5, 2, 8)}
 <path d="M40 86 q-6 -6 -4 -14 M44 74 q-4 -6 0 -12 M160 84 q6 -6 4 -14 M156 72 q4 -6 0 -12" stroke-width="0.9"/>
 </g>
-<g class="detail"><g transform="rotate(7 100 62)">${ovalEye(86, 60, 4.2, 5.6)}${ovalEye(114, 60, 4.2, 5.6)}<path d="M96 72 L104 72 L100 76Z" fill="#C98A82"/><path d="M97 85 C99 88 101 88 103 85Z" fill="${TONGUE}"/>${blush(78, 74)}${blush(122, 74)}</g></g>`,
+<g class="detail"><g transform="translate(0 12) rotate(7 100 62)">${ovalEye(86, 60, 4.2, 5.6)}${ovalEye(114, 60, 4.2, 5.6)}<path d="M96 72 L104 72 L100 76Z" fill="#C98A82"/><path d="M97 85 C99 88 101 88 103 85Z" fill="${TONGUE}"/>${blush(78, 74)}${blush(122, 74)}</g></g>`,
 
   // Fennel taps his chin with one paw, the other on his hip, one brow raised: he has a plan.
   fox: `
@@ -153,15 +180,20 @@ ${hatch(82, 160, 3, 3.5, 2, 8)}
 <path d="M84 189 L86 160 L96 160 L98 189Z" fill="#4A3A32"/><path d="M106 189 L106 162 L116 162 L118 189Z" fill="#4A3A32"/>
 <ellipse cx="90" cy="189" rx="9" ry="3.5" fill="#4A3A32"/><ellipse cx="113" cy="189" rx="9" ry="3.5" fill="#4A3A32"/>
 <path d="M78 170 C72 140 78 112 98 104 C118 100 130 116 130 140 C130 162 120 174 104 176 C92 178 82 176 78 170Z" fill="#C46A3A"/>
+${shade(104, 140, 26, 36, "#5A2410")}
 <path d="M88 168 C84 146 88 120 100 112 C110 126 110 152 104 170Z" fill="#F3E6D0"/>
 <path d="M118 112 C132 118 140 130 134 140 C130 146 122 144 118 140 L120 134 C126 134 128 130 126 126 C122 120 116 118 112 116Z" fill="#C46A3A"/>
 <path d="M92 112 C80 118 70 112 68 100 C66 92 70 86 76 86 C80 96 86 102 96 104Z" fill="#C46A3A"/>
 <ellipse cx="73" cy="88" rx="6" ry="5" fill="#4A3A32"/>
+<path d="M82 76 C84 90 88 100 92 110 L120 110 C116 98 112 88 110 76Z" fill="#C46A3A"/>
+<path d="M92 82 C94 94 96 104 100 112 C104 104 106 94 106 82Z" fill="#F3E6D0"/>
 <path d="M68 42 L62 8 L88 32Z" fill="#C46A3A"/><path d="M98 34 L108 4 L118 38Z" fill="#C46A3A"/>
 <path d="M70 36 L66 16 L82 30Z" fill="#4A3A32"/><path d="M102 32 L108 12 L113 36Z" fill="#4A3A32"/>
 <path d="M60 66 C56 46 72 32 92 32 C110 32 122 46 120 62 C118 74 108 82 94 86 C82 90 64 84 60 66Z" fill="#C46A3A"/>
+${shade(90, 60, 30, 27, "#5A2410")}${glow(80, 44, 8, 5)}
 <path d="M66 70 C54 72 42 74 33 79 C46 89 66 91 82 82 C78 74 72 70 66 70Z" fill="#F3E6D0"/>
 <path d="M84 80 C94 84 106 80 114 72 C112 80 104 86 94 87 C90 87 86 85 84 80Z" fill="#F3E6D0"/>
+${chin(100, 92, 11)}
 </g>
 <g ${INK}>
 <path d="M118 176 C150 186 184 170 184 140 C184 118 168 106 158 116 C170 132 164 158 132 164"/>
@@ -188,12 +220,15 @@ ${hatch(80, 150, 3, 3.5, 2, 9)}
 <path d="M28 184 C80 180 130 182 178 184 L178 194 C130 192 80 192 28 194Z" fill="#7A6250"/>
 <path d="M60 176 C50 140 58 98 100 92 C142 98 150 140 140 176 C126 188 74 188 60 176Z" fill="#A88560"/>
 <path d="M76 172 C70 144 80 120 100 118 C120 120 130 144 124 172 C114 182 86 182 76 172Z" fill="#E3D2B4"/>
+${shade(100, 140, 42, 46)}
 <path d="M64 118 C50 102 42 80 44 60 C46 52 54 52 56 60 C58 78 66 96 78 110Z" fill="#8C6A48"/>
 <path d="M138 120 C152 136 150 158 134 168 C124 170 118 162 122 156 C132 150 136 138 134 126Z" fill="#8C6A48"/>
 <path d="M66 56 L58 34 L84 50Z" fill="#A88560"/><path d="M134 56 L142 34 L116 50Z" fill="#A88560"/>
 <path d="M62 96 C58 68 76 50 100 50 C124 50 142 68 138 96 C134 116 118 124 100 124 C82 124 66 116 62 96Z" fill="#A88560"/>
+${shade(100, 88, 38, 36)}${glow(86, 64, 10, 6)}
 <ellipse cx="84" cy="88" rx="18" ry="17" fill="#E8D9BC"/><ellipse cx="116" cy="88" rx="18" ry="17" fill="#E8D9BC"/>
 <path d="M95 100 L105 100 L100 108Z" fill="#D3A24F"/><path d="M96 109 L104 109 L100 114Z" fill="#B88A3A"/>
+${chin(100, 122, 22, 4)}
 <ellipse cx="88" cy="185" rx="7" ry="4" fill="#D3A24F"/><ellipse cx="112" cy="185" rx="7" ry="4" fill="#D3A24F"/>
 </g>
 <g ${INK}>
@@ -221,11 +256,13 @@ ${hatch(80, 150, 3, 3.5, 2, 9)}
 <ellipse cx="68" cy="180" rx="23" ry="12" fill="#8C979A"/><ellipse cx="132" cy="180" rx="23" ry="12" fill="#9EA7AA"/>
 <path d="M56 168 C48 136 66 108 100 106 C134 108 152 136 144 168 C138 186 62 186 56 168Z" fill="#9EA7AA"/>
 <ellipse cx="100" cy="152" rx="22" ry="18" fill="#B4BBBC" opacity="0.6"/>
+${shade(100, 146, 44, 38, "#2E3A45")}
 <path d="M68 60 C44 50 32 70 36 92 C40 110 60 112 74 98Z" fill="#929B9E"/>
 <path d="M64 68 C50 64 44 76 46 90 C48 100 60 100 66 92Z" fill="#D9B2A6"/>
 <path d="M132 60 C156 50 168 70 164 92 C160 110 140 112 126 98Z" fill="#929B9E"/>
 <path d="M136 68 C150 64 156 76 154 90 C152 100 140 100 134 92Z" fill="#D9B2A6"/>
 <circle cx="100" cy="76" r="34" fill="#9EA7AA"/>
+${shade(100, 76, 34, 34, "#2E3A45")}${glow(88, 58, 10, 7)}${chin(100, 112, 20, 4, "#2E3A45")}
 <path d="M68 136 C52 132 36 124 26 112 C21 105 30 99 35 105 C42 114 56 122 74 124Z" fill="#9EA7AA"/>
 <path d="M126 122 C136 132 134 148 120 154 C112 156 108 150 112 146 C120 142 122 134 118 128Z" fill="#9EA7AA"/>
 <path d="M102 88 C102 104 108 116 122 118 C136 120 148 112 154 98 C157 90 166 90 164 98" fill="none" stroke="#9EA7AA" stroke-width="14" stroke-linecap="round"/>
@@ -261,6 +298,7 @@ ${hatch(62, 156, 4, 4, 3, 10)}${hatch(126, 158, 4, 4, 3, 10)}
 <path d="M130 108 C146 96 158 86 166 74 C156 72 140 82 126 98Z" fill="#4E5B66"/>
 <path d="M70 180 C56 150 58 104 80 80 C94 66 116 66 128 82 C146 106 146 150 132 180 C118 190 84 190 70 180Z" fill="#4E5B66"/>
 <path d="M82 178 C72 150 76 118 92 104 C100 96 114 94 120 104 C132 130 130 160 120 178 C110 186 92 186 82 178Z" fill="#F2EFE6"/>
+${shade(100, 130, 40, 58, "#1E262E", 0.3)}${glow(86, 86, 8, 6, 0.25)}
 <path d="M112 84 L136 86 L114 92Z" fill="#D99447"/><path d="M114 94 L132 96 L114 99Z" fill="#B87A36"/>
 </g>
 </g>
@@ -292,10 +330,13 @@ ${hatch(90, 160, 4, 4, 2, 8)}
 <ellipse cx="82" cy="186" rx="17" ry="7" fill="#7C9468"/><ellipse cx="122" cy="186" rx="17" ry="7" fill="#7C9468"/>
 <ellipse cx="86" cy="172" rx="15" ry="16" fill="#8FA77A"/><ellipse cx="118" cy="172" rx="15" ry="16" fill="#8FA77A"/>
 <path d="M68 172 C58 144 64 112 88 102 C110 96 132 108 136 132 C140 156 132 176 112 180 C96 184 76 182 68 172Z" fill="#8FA77A"/>
+${shade(100, 142, 34, 40, "#2E3E22")}
 <path d="M90 176 C84 152 88 126 102 118 C118 124 124 150 118 174Z" fill="#DCD9B4"/>
 <path d="M88 112 C76 104 70 92 72 82 C74 76 82 76 82 82 C83 92 88 100 96 106Z" fill="#8FA77A"/>
 <path d="M126 112 C138 104 144 92 142 82 C140 76 132 76 132 82 C131 92 126 100 118 106Z" fill="#8FA77A"/>
+<path d="M94 86 C94 98 92 106 90 114 L130 114 C128 104 126 96 126 86Z" fill="#8FA77A"/>
 <path d="M76 70 C72 46 90 30 112 30 C136 30 152 46 150 68 C148 88 132 98 110 98 C92 98 78 90 76 70Z" fill="#8FA77A"/>
+${shade(113, 64, 37, 34, "#2E3E22")}${glow(98, 44, 9, 6)}${chin(110, 102, 18, 4, "#2E3E22")}
 <path d="M100 76 C106 94 132 96 142 76 C128 82 112 82 100 76Z" fill="${MOUTH}"/>
 </g>
 <g ${INK}>
@@ -320,6 +361,7 @@ ${hatch(72, 156, 3, 4, 2, 8)}
 <g class="paint">${SHADOW}
 <g transform="rotate(-6 100 120)">
 <path d="M100 166 C66 154 52 118 58 92 C64 68 136 68 142 92 C148 118 134 154 100 166Z" fill="#B9473F"/>
+${shade(100, 118, 42, 48, "#4A1010", 0.3)}
 <path d="M70 94 C72 84 82 80 90 82 C82 90 78 102 76 116 C70 110 68 102 70 94Z" fill="#D9776A" opacity="0.8"/>
 <path d="M118 150 C130 140 136 124 136 108 C142 124 136 144 120 156Z" fill="#8E3530" opacity="0.5"/>
 <g transform="rotate(-14 100 70)"><path d="M100 76 C88 82 70 82 64 74 C76 66 90 68 100 72Z M100 76 C112 82 130 82 136 74 C124 66 110 68 100 72Z M100 74 C94 64 92 56 96 50 C104 56 106 64 100 74Z M100 74 C108 68 118 66 124 70 C118 76 108 78 100 74Z" fill="#6F8F4E"/></g>
@@ -349,9 +391,11 @@ ${hatch(72, 156, 3, 4, 2, 8)}
 <g class="paint">${SHADOW}
 <path d="M54 112 L146 112 L134 172 L66 172Z" fill="#C9D6D8"/>
 <path d="M58 116 L70 168 L78 168 L68 116Z M90 116 L94 168 L102 168 L100 116Z M122 116 L114 168 L122 168 L132 116Z" fill="#B3C3C6" opacity="0.7"/>
+<path d="M124 116 L146 112 L134 172 L118 172Z" fill="#4A5A60" opacity="0.18"/>
 <path d="M50 114 C40 108 46 92 60 92 C60 76 80 68 92 76 C98 62 118 64 120 78 C132 72 150 82 146 96 C156 100 156 114 148 116 C120 122 80 122 50 114Z" fill="#F1E2DA"/>
 <path d="M66 90 C78 82 104 80 124 90 C112 98 84 98 66 90Z" fill="#E7C9C0"/>
 <path d="M80 78 C88 70 108 70 116 78 C108 84 88 84 80 78Z" fill="#EBD3CB"/>
+${shade(98, 98, 50, 22, "#6E4038", 0.2)}
 <circle cx="104" cy="56" r="10" fill="#B2443A"/>
 <ellipse cx="80" cy="187" rx="9" ry="4" fill="#4F3A2A"/><ellipse cx="146" cy="176" rx="9" ry="4" fill="#4F3A2A" transform="rotate(-20 146 176)"/>
 <circle cx="36" cy="46" r="5" fill="#F4EFE4"/>
@@ -378,7 +422,9 @@ ${hatch(72, 156, 3, 4, 2, 8)}
 <path d="M100 22 C130 22 140 56 148 84 C158 110 170 130 164 156 C156 182 130 190 100 190 C70 190 44 182 36 156 C30 130 42 110 52 84 C60 56 70 22 100 22Z" fill="#5E6E3F"/>
 <path d="M100 34 C122 34 130 62 136 86 C144 110 156 128 150 152 C144 172 124 178 100 178 C76 178 56 172 50 152 C44 128 56 110 64 86 C70 62 78 34 100 34Z" fill="#D9DDA0"/>
 <path d="M100 40 C116 40 124 62 128 82 C112 76 90 76 72 82 C76 62 84 40 100 40Z" fill="#E6E8BC"/>
+${shade(100, 106, 52, 70, "#2E3A1E", 0.22)}${glow(84, 66, 10, 14, 0.35)}
 <circle cx="100" cy="146" r="25" fill="#8C5E3C"/>
+${shade(100, 146, 25, 25, "#3A2010", 0.3)}
 <ellipse cx="92" cy="138" rx="7" ry="5" fill="#B08462"/>
 <ellipse cx="74" cy="196" rx="9" ry="3.5" fill="#4F3A2A"/><ellipse cx="128" cy="196" rx="9" ry="3.5" fill="#4F3A2A"/>
 </g>
@@ -403,6 +449,7 @@ ${hatch(72, 156, 3, 4, 2, 8)}
 <g class="paint">${SHADOW}
 <path d="M28 172 C22 116 62 74 100 72 C138 74 178 116 172 172 C150 188 50 188 28 172Z" fill="#F4EEE2"/>
 <path d="M32 166 C44 178 154 180 168 166 C170 174 160 182 100 184 C44 182 32 176 32 166Z" fill="#E2D6C2"/>
+${shade(100, 132, 70, 56, "#6E5A40", 0.2)}${glow(76, 100, 16, 10, 0.4)}
 <path d="M90 74 C92 62 108 62 110 74 C104 78 96 78 90 74Z" fill="#EDE4D3"/>
 <ellipse cx="78" cy="189" rx="10" ry="4" fill="#4F3A2A"/><ellipse cx="122" cy="189" rx="10" ry="4" fill="#4F3A2A"/>
 <circle cx="24" cy="136" r="6" fill="#F4EEE2"/><circle cx="176" cy="136" r="6" fill="#F4EEE2"/>
@@ -425,6 +472,7 @@ ${hatch(44, 160, 5, 4, 2, 6)}${hatch(140, 160, 5, 4, -2, 6)}
 <g class="paint">
 <path d="M46 150 C22 150 18 116 42 110 C36 82 70 68 86 84 C92 54 136 50 146 82 C172 76 188 106 168 122 C186 134 176 156 154 152Z" fill="#EEF0EE"/>
 <path d="M44 146 C70 156 130 156 156 148 C150 156 120 160 100 160 C80 160 56 158 44 146Z" fill="#C7D0D4"/>
+${shade(100, 112, 74, 44, "#4E6070", 0.18)}
 <path d="M30 124 C20 118 10 108 6 96 C14 98 24 108 32 116Z" fill="#EEF0EE"/>
 <path d="M172 124 C182 118 190 108 194 96 C186 98 176 108 168 116Z" fill="#EEF0EE"/>
 </g>
@@ -469,6 +517,7 @@ ${happyEye(112, 104, 5)}
 <path d="M44 128 C20 122 18 156 42 160 L46 152 C32 148 32 134 46 138Z" fill="#F2EEE4"/>
 <path d="M148 146 C164 140 168 118 182 108 C186 112 182 120 178 124 C172 140 166 160 146 166Z" fill="#F2EEE4"/>
 <ellipse cx="98" cy="138" rx="58" ry="48" fill="#F2EEE4"/>
+${shade(98, 138, 58, 48, "#2E3A50", 0.2)}${glow(80, 116, 14, 9, 0.45)}
 <path d="M50 160 C70 180 126 180 146 160 C140 178 122 186 98 186 C74 186 56 178 50 160Z" fill="#DCD6C8"/>
 <g transform="rotate(-12 98 92)">
 <path d="M58 98 C62 74 134 74 138 98 C120 104 76 104 58 98Z" fill="#F2EEE4"/>
@@ -498,12 +547,15 @@ ${hatch(60, 162, 5, 4, 2, 6)}
 <path d="M58 132 C46 124 38 112 36 98 L46 94 C48 106 54 116 64 124Z" fill="#6F9A9A"/>
 <path d="M142 132 C156 134 166 130 172 122 L178 130 C170 140 156 144 142 142Z" fill="#6F9A9A"/>
 <circle cx="40" cy="92" r="7" fill="#C9A24F"/><circle cx="178" cy="124" r="7" fill="#C9A24F"/>
+<rect x="84" y="112" width="32" height="12" rx="3" fill="#557E7E"/>
 <rect x="58" y="120" width="84" height="54" rx="8" fill="#6F9A9A"/>
 <rect x="72" y="130" width="56" height="34" rx="4" fill="#E9DFC6"/>
+<rect x="128" y="122" width="14" height="50" rx="5" fill="#2E4646" opacity="0.25"/>
 <path d="M142 150 L160 150 L160 144 L168 144 L168 162 L160 162 L160 156 L142 156Z" fill="#C9A24F"/>
 <g transform="rotate(-6 100 86)">
 <rect x="56" y="52" width="88" height="68" rx="10" fill="#6F9A9A"/>
-<rect x="68" y="64" width="64" height="42" rx="6" fill="#E9DFC6"/>
+<rect x="68" y="64" width="64" height="42" rx="6" fill="#E9DFC6"/><rect x="130" y="54" width="14" height="64" rx="6" fill="#2E4646" opacity="0.25"/>
+
 <path d="M100 52 L100 34" stroke="#4F3A2A" stroke-width="2"/>
 <circle cx="100" cy="30" r="6" fill="#B2443A"/>
 </g>

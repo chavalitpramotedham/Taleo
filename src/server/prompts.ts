@@ -75,8 +75,17 @@ THE MOST IMPORTANT THING: CHARACTER, ACTION AND LIFE
 
 HOW TO BUILD CHARACTERS SO THEY CAN MOVE
 - Construct each body from several overlapping shapes (head, chest, belly or haunch, upper and lower limbs, paws, ears, tail) so it can bend, twist, stretch and squash. Paint far-side limbs a slightly darker value behind the body.
+- Heads always join the body: overlap the head onto the shoulders or paint a short neck in the body colour (with a chest bib or fur continuing up into it). Never leave a gap between head and body, and never let a head float.
 - Match each character's model sheet exactly: same colours, markings, proportions and accessories on every page. Reference paintings show each character's personality in one lively pose; reuse their colours, shapes and facial style, but re-pose and re-express the character completely for this moment.
 - Food and object characters move with thin ink-line arms and legs (stroke-width about 2.2), little round hands and small dark boots or feet.
+
+VOLUME (nothing should look flat or cut-out)
+- The light comes from the upper left. The app adds a soft rounding glaze to every painted group, but also paint form shading yourself, as layered watercolour glazes inside the paint groups:
+  - a darker crescent on the lower-right side of each head, body, limb, tree crown and rock (a darker value of the same colour, or #4A3020 at opacity 0.2-0.3);
+  - a soft pale highlight (#FFF8E8 at opacity about 0.3) on the upper-left of rounded forms;
+  - cast shadows: under the chin onto the chest, under raised arms, behind the far legs, inside ears, under hats and lids;
+  - a soft ground shadow beneath every grounded character or object, offset slightly to the lower right.
+- Prefer three-quarter views over flat front-on poses. Overlap forms (the near arm crosses in front of the body, far limbs tuck behind, the head turns over the shoulder) so bodies read as round and solid.
 
 RICH PEN DETAIL (the ink layer carries the classic look)
 - Contour every main shape with fine sepia line, varied and often broken rather than mechanical.
@@ -100,7 +109,7 @@ export const characterDesignerPrompt = () => `You are the character designer for
 
 Turn a child's or parent's description into one charming, kid-friendly character that fits beside these presets: a wild rabbit, a bear cub, a tabby kitten, a fox cub, a tawny owl, a strawberry, a china teapot and a tin toy robot. If the description is scary or inappropriate for small children, design the closest gentle, friendly version (a "scary monster" becomes a shaggy, shy, smiling little creature).
 
-Make them a real storybook character with personality: give them a characterful, gesturing pose (waving, hands on hips, arms flung wide, mid-skip…) with clearly drawn arms and legs, and an expressive face with eyebrows, bright eyes with highlights, an open or cheeky mouth and rosy cheeks. Add fine pen detail: contours, fur ticks or texture marks, and a few short hatching strokes in the shadows.
+Give them solid, rounded volume: the head joined to the body by a neck or overlap, light from the upper left, a darker crescent glaze on the lower-right of the head, body and limbs, a pale highlight on the upper-left, and a shadow under the chin. Make them a real storybook character with personality: give them a characterful, gesturing pose (waving, hands on hips, arms flung wide, mid-skip…) with clearly drawn arms and legs, and an expressive face with eyebrows, bright eyes with highlights, an open or cheeky mouth and rosy cheeks. Add fine pen detail: contours, fur ticks or texture marks, and a few short hatching strokes in the shadows.
 
 Paint this reference portrait on a 200x200 canvas, standing or sitting with its feet or base at y≈188, centred, fitting within x 15-185 and y 10-190, with a soft shadow ellipse beneath (fill #CFC6AC, opacity 0.6).
 

@@ -33,17 +33,34 @@ export function PaintDefs() {
           <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="3" result="warp" />
           <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="wob" />
           <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="8" result="mott" />
-          <feColorMatrix in="mott" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.55 1.12" result="ma" />
+          <feColorMatrix in="mott" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.35 1.1" result="ma" />
           <feComposite in="wob" in2="ma" operator="in" result="pig" />
           <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="4" result="grain" />
           <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -0.25 1.08" result="gra" />
           <feComposite in="pig" in2="gra" operator="in" result="pig2" />
+          {/* Form shading: light from the upper left. A soft shadow band hugs the
+              lower-right of each painted form and a pale glow sits on the upper
+              left, so flat shapes read as rounded volumes. */}
+          <feOffset in="wob" dx="-6" dy="-7" result="offShade" />
+          <feComposite in="wob" in2="offShade" operator="out" result="shadeBand" />
+          <feGaussianBlur in="shadeBand" stdDeviation="4.5" result="shadeSoft" />
+          <feFlood floodColor="#3B2616" floodOpacity="0.32" result="shadeInk" />
+          <feComposite in="shadeInk" in2="shadeSoft" operator="in" result="shade0" />
+          <feComposite in="shade0" in2="wob" operator="in" result="shade" />
+          <feOffset in="wob" dx="5" dy="6" result="offLight" />
+          <feComposite in="wob" in2="offLight" operator="out" result="lightBand" />
+          <feGaussianBlur in="lightBand" stdDeviation="4" result="lightSoft" />
+          <feFlood floodColor="#FFF8E8" floodOpacity="0.32" result="lightInk" />
+          <feComposite in="lightInk" in2="lightSoft" operator="in" result="light0" />
+          <feComposite in="light0" in2="wob" operator="in" result="light" />
           <feMorphology in="wob" operator="erode" radius="1.3" result="inner" />
           <feComposite in="wob" in2="inner" operator="out" result="edge" />
           <feGaussianBlur in="edge" stdDeviation="0.8" result="edgeS" />
           <feColorMatrix in="edgeS" type="matrix" values="0.72 0 0 0 0  0 0.68 0 0 0  0 0 0.64 0 0  0 0 0 0.45 0" result="edgeD" />
           <feMerge>
             <feMergeNode in="pig2" />
+            <feMergeNode in="shade" />
+            <feMergeNode in="light" />
             <feMergeNode in="edgeD" />
           </feMerge>
         </filter>

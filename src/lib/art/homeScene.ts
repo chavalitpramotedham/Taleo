@@ -32,6 +32,10 @@ export const HOME_SCENE = `
 <ellipse cx="96" cy="204" rx="12" ry="9" fill="#7A5A40" transform="rotate(-30 96 204)"/>
 <ellipse cx="54" cy="246" rx="16" ry="8" fill="#7A5A40"/>
 <ellipse cx="102" cy="246" rx="16" ry="8" fill="#7A5A40"/>
+<path d="M104 176 C116 196 116 224 100 240 C88 246 70 248 56 242 C78 238 96 226 102 206 C104 194 104 184 104 176Z" fill="#4A3020" opacity="0.26"/>
+<path d="M98 136 C104 150 96 166 78 172 C68 174 58 172 50 166 C68 166 86 160 94 148Z" fill="#4A3020" opacity="0.26"/>
+<ellipse cx="74" cy="178" rx="20" ry="5" fill="#4A3020" opacity="0.25"/>
+<ellipse cx="58" cy="128" rx="9" ry="6" fill="#FFF8E8" opacity="0.3"/>
 </g>
 <g class="ink" fill="none" stroke="#4F3A2A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M40 236 C28 212 34 178 58 166 M104 172 C114 188 118 214 104 238"/>
@@ -58,6 +62,12 @@ export const HOME_SCENE = `
 <path d="M258 142 C246 124 232 114 218 112 C224 124 240 138 254 148Z" fill="#A98463"/>
 <path d="M255 143 C246 128 236 120 226 118 C230 128 242 138 252 146Z" fill="#D9B8A0"/>
 <ellipse cx="281" cy="166" rx="9" ry="7" fill="#E9DCC5"/>
+<path d="M168 224 C188 214 214 202 238 194 C246 190 252 186 256 182 C246 196 222 206 200 214 C188 218 178 222 168 224Z" fill="#4A3020" opacity="0.28"/>
+<path d="M150 222 C166 222 184 214 196 200 C194 214 180 226 162 228 C156 228 152 226 150 222Z" fill="#4A3020" opacity="0.26"/>
+<path d="M286 160 C288 172 278 182 262 182 C252 182 246 178 242 172 C254 176 274 174 286 160Z" fill="#4A3020" opacity="0.26"/>
+<ellipse cx="200" cy="178" rx="22" ry="5" transform="rotate(-18 200 178)" fill="#FFF8E8" opacity="0.32"/>
+<ellipse cx="256" cy="150" rx="8" ry="5" fill="#FFF8E8" opacity="0.32"/>
+<ellipse cx="214" cy="262" rx="44" ry="5" fill="#5E6B40" opacity="0.25"/>
 </g>
 <g class="ink" fill="none" stroke="#4F3A2A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
 <path d="M146 210 C140 196 150 182 166 184 C186 174 216 164 240 162"/>
