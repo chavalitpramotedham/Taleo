@@ -51,9 +51,10 @@ export const AccountIcon = () => (
 
 /** One small maple leaf - five soft, rounded lobes (top, two upper side,
  *  two lower side) drawn with smooth curves rather than jagged teeth, so
- *  it reads as cute rather than spiky. Painted in the house ink-and-wash
- *  style, pointing "up" (tip at the top) before its parent <g>
- *  rotates/positions it. */
+ *  it reads as cute rather than spiky, plus a stem below the bottom notch
+ *  so the silhouette reads unmistakably as a leaf rather than a blob.
+ *  Painted in the house ink-and-wash style, pointing "up" (tip at the
+ *  top) before its parent <g> rotates/positions it. */
 const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
   <g transform={`rotate(${rotate}) scale(1.3)`}>
     <path
@@ -64,6 +65,7 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
       strokeLinejoin="round"
     />
     <path d="M0,-5 L0,1.6" stroke="#4F3A2A" strokeWidth="0.4" opacity="0.55" />
+    <path d="M0,1.5 C0,2.9 0,4.3 0.3,6.2" stroke="#4F3A2A" strokeWidth="0.7" strokeLinecap="round" fill="none" />
   </g>
 );
 
