@@ -95,14 +95,14 @@ function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () =
               "Not yet rated"
             )}
           </span>
-          <span className="cover-byline">
-            by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-          </span>
         </div>
       </Link>
       <div className="body">
         <h3>{s.title || "An untitled story"}</h3>
         <Ornament className="ornament small" />
+        <p className="meta byline">
+          by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+        </p>
         <div className="card-actions">
           <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
             Read

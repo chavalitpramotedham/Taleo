@@ -97,12 +97,12 @@ function MyStoryCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: ()
               "Not yet rated"
             )}
           </span>
-          <span className="cover-byline">{new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
         </div>
       </Link>
       <div className="body">
         <h3>{s.title || "An untitled story"}</h3>
         <Ornament className="ornament small" />
+        <p className="meta byline">{new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>
         <div className="card-actions">
           <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
             Read

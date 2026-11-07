@@ -1240,8 +1240,8 @@ main {
   .cover-rating {
     font-size: 0.85rem;
   }
-  .cover-byline {
-    font-size: 0.64rem;
+  .byline {
+    font-size: 0.78rem;
   }
 }
 .book-card {
@@ -1266,10 +1266,9 @@ main {
 .cover-portrait {
   width: 55% !important;
 }
-/* Rating, then author/date, overlaid on the cover's bottom-left corner
-   instead of taking up room in the body - keeps the card text to just the
-   title and its actions. The rating leads and is sized up, since it's the
-   thing other viewers care most about; the byline is a quieter footnote. */
+/* The rating, overlaid on the cover's bottom-left corner, bigger and
+   bolder since it's the thing other viewers care most about. The
+   author/date byline lives in the body instead, under the title. */
 .cover-meta {
   position: absolute;
   left: 0;
@@ -1279,9 +1278,6 @@ main {
   background: linear-gradient(to top, rgba(35, 22, 12, 0.78), rgba(35, 22, 12, 0.4) 60%, transparent);
   color: #fbf4e6;
   line-height: 1.3;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   pointer-events: none;
 }
 .cover-rating {
@@ -1297,10 +1293,6 @@ main {
   flex-shrink: 0;
   fill: #e8c468;
   stroke: #e8c468;
-}
-.cover-byline {
-  font-size: 0.68rem;
-  opacity: 0.85;
 }
 .book-card .body {
   padding: 14px 18px 18px;
@@ -1319,6 +1311,14 @@ main {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+}
+/* Author/date under the title - kept to one line, truncated rather than
+   wrapping or pushing the actions down. */
+.byline {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 .card-actions {
   display: flex;
