@@ -49,14 +49,29 @@ export const AccountIcon = () => (
   </svg>
 );
 
-/** Three Taleo-accent dots orbiting a shared centre — the brand mark, in
- *  place of a plain static dot, for a touch of "something's thinking" life. */
+/** One small autumn leaf, painted in the house ink-and-wash style, pointing
+ *  "up" (tip at the top) before its parent <g> rotates/positions it. */
+const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
+  <g transform={`rotate(${rotate})`}>
+    <path d="M0,-7 C2.8,-6 4,-2.3 2.6,1.5 C1.8,3.7 0.6,5.1 0,6.3 C-0.6,5.1 -1.8,3.7 -2.6,1.5 C-4,-2.3 -2.8,-6 0,-7Z" fill={fill} stroke="#4F3A2A" strokeWidth="0.6" />
+    <path d="M0,-5.6 L0,4.8" stroke="#4F3A2A" strokeWidth="0.5" opacity="0.6" />
+  </g>
+);
+
+/** Three autumn leaves orbiting a shared centre, as if caught on the same
+ *  breeze — the brand mark, in place of a plain static dot. */
 export const BrandMark = () => (
   <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
     <g className="brand-mark-spin">
-      <circle cx="12" cy="4" r="3.1" fill="#9C4F32" />
-      <circle cx="5.07" cy="16" r="3.1" fill="#6F7F52" />
-      <circle cx="18.93" cy="16" r="3.1" fill="#C49A3E" />
+      <g transform="translate(12,4)">
+        <Leaf fill="#9C4F32" rotate={0} />
+      </g>
+      <g transform="translate(5.07,16)">
+        <Leaf fill="#6F7F52" rotate={240} />
+      </g>
+      <g transform="translate(18.93,16)">
+        <Leaf fill="#C49A3E" rotate={120} />
+      </g>
     </g>
   </svg>
 );
