@@ -17,8 +17,9 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
   const [draftAvatar, setDraftAvatar] = useState(avatarKey);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarSaved, setAvatarSaved] = useState(false);
-  const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | null>(null);
+  const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | "claim" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [adminNotice, setAdminNotice] = useState<string | null>(null);
 
   const saveAvatar = async () => {
     if (draftAvatar === avatar || busy) return;
@@ -81,6 +82,23 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
       setNotice(data.deleted ? `Deleted ${data.deleted} ${data.deleted === 1 ? "story" : "stories"}.` : "You had no published stories.");
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const claimLegacyStories = async () => {
+    if (busy) return;
+    setBusy("claim");
+    setAdminNotice(null);
+    try {
+      const res = await fetch("/api/admin/claim-legacy-stories", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't claim those stories.");
+      setAdminNotice(data.claimed ? `Claimed ${data.claimed} ${data.claimed === 1 ? "story" : "stories"}.` : "No legacy stories to claim.");
+      router.refresh();
+    } catch (e) {
+      setAdminNotice(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(null);
     }
@@ -156,6 +174,19 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
         {nameSaved && <p className="meta">Saved.</p>}
         {nameError && <p className="error">{nameError}</p>}
       </section>
+
+      {isAdmin && (
+        <section className="panel">
+          <h3>Admin tools</h3>
+          <p className="meta">Stories published before accounts existed are credited to @taleo. Move them onto your own account.</p>
+          <div className="field-row">
+            <button type="button" className="btn btn-soft" onClick={claimLegacyStories} disabled={Boolean(busy)}>
+              {busy === "claim" ? "Claiming…" : "Claim @taleo's stories"}
+            </button>
+          </div>
+          {adminNotice && <p className="meta">{adminNotice}</p>}
+        </section>
+      )}
 
       <section className="panel">
         <h3>Danger zone</h3>

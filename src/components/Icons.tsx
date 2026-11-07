@@ -87,6 +87,14 @@ export const BrandMark = () => (
   </svg>
 );
 
+/** A single filled star, sized by its parent's font-size - for compact
+ *  inline ratings (e.g. the cover overlay on a book card). */
+export const StarGlyph = () => (
+  <svg viewBox="0 0 24 24" aria-hidden>
+    <path d="M12 2.8l2.7 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.7 6.3 19.9l1.4-6.3L2.9 9.3l6.4-.6z" strokeWidth="1.2" strokeLinejoin="round" />
+  </svg>
+);
+
 export const Ornament = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 120 14" width="120" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
     <path d="M2 7h40M78 7h40" />

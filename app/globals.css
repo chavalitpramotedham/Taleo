@@ -1224,26 +1224,20 @@ main {
 @media (max-width: 639px) {
   .book-card .body {
     padding: 10px 12px 12px;
-    gap: 3px;
+    gap: 8px;
   }
   .book-card h3 {
     font-size: 1.05rem;
     line-height: 1.2;
   }
-  .book-card .meta {
-    font-size: 0.8rem;
-  }
-  .card-actions {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    gap: 8px;
-    padding-top: 12px;
-  }
   .card-actions .btn-sm {
-    width: 100%;
-    padding: 7px 10px;
-    font-size: 0.85rem;
+    padding: 7px 8px;
+    font-size: 0.82rem;
     min-height: 34px;
+  }
+  .cover-meta {
+    padding: 16px 8px 6px;
+    font-size: 0.68rem;
   }
 }
 .book-card {
@@ -1254,6 +1248,7 @@ main {
   flex-direction: column;
 }
 .book-card .cover {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
@@ -1266,6 +1261,36 @@ main {
 }
 .cover-portrait {
   width: 55% !important;
+}
+/* Author, date and rating, overlaid on the cover's bottom-left corner
+   instead of taking up room in the body - keeps the card text to just the
+   title and its actions. */
+.cover-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 10px 7px;
+  background: linear-gradient(to top, rgba(35, 22, 12, 0.75), rgba(35, 22, 12, 0.38) 60%, transparent);
+  color: #fbf4e6;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: none;
+}
+.cover-rating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.book-card .cover .cover-rating svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  fill: #e8c468;
+  stroke: #e8c468;
 }
 .book-card .body {
   padding: 14px 18px 18px;
@@ -1282,15 +1307,16 @@ main {
 }
 .card-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   margin-top: auto;
   padding-top: 10px;
-  flex-wrap: wrap;
 }
-.rating-summary {
-  font-size: 0.85rem;
-  font-style: italic;
-  margin-top: 2px;
+.card-actions .btn-sm {
+  flex: 1;
+}
+.card-actions-secondary {
+  width: 100%;
+  margin-top: 8px;
 }
 .empty {
   text-align: center;

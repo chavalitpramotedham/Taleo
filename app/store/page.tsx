@@ -3,12 +3,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
-import { storeUrl } from "@/lib/share";
-import { formatRating } from "@/lib/useRating";
-import { ageById } from "@/lib/ages";
+import { storeUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
-import { StarRating } from "@/components/StarRating";
-import { Ornament } from "@/components/Icons";
+import { Ornament, StarGlyph } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 
 type Sort = "recent" | "rating";
@@ -82,37 +79,36 @@ export default function StorePage() {
 }
 
 function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
-  const copyLink = async () => {
-    const url = storeUrl(s.id, window.location.origin);
-    try {
-      await navigator.clipboard.writeText(url);
-      onCopied();
-    } catch {
-      window.prompt("Copy this link to share:", url);
-    }
-  };
+  const share = () => shareStory(s.title || "An untitled story", storeUrl(s.id, window.location.origin), onCopied);
 
   return (
     <article className="book-card">
       <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
         {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
+        <div className="cover-meta">
+          <span>
+            by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+          </span>
+          <span className="cover-rating">
+            {s.ratingCount ? (
+              <>
+                <StarGlyph /> {avg(s).toFixed(1)} ({s.ratingCount})
+              </>
+            ) : (
+              "Not yet rated"
+            )}
+          </span>
+        </div>
       </Link>
       <div className="body">
         <h3>{s.title || "An untitled story"}</h3>
         <Ornament className="ornament small" />
-        <p className="meta">
-          by @{s.authorUsername || "taleo"} · ages {ageById(s.age).label}
-          <br />
-          {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
-        </p>
-        <StarRating value={Math.round(avg(s))} />
-        <p className="meta rating-summary">{formatRating(s.ratingSum, s.ratingCount)}</p>
         <div className="card-actions">
           <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
             Read
           </Link>
-          <button className="btn btn-soft btn-sm" onClick={copyLink}>
-            Copy link
+          <button className="btn btn-soft btn-sm" onClick={share}>
+            Share
           </button>
         </div>
       </div>
