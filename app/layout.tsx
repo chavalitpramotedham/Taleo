@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: "Taleo: picture books you make together",
   description:
     "Create interactive, watercolour picture-book stories with your little one. Pick a character, choose a theme, and decide what happens next.",
+  appleWebApp: {
+    title: "Taleo",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {
