@@ -149,13 +149,76 @@ button {
   flex-shrink: 0;
   overflow: visible;
 }
-.brand-mark-spin {
-  transform-origin: 12px 12px;
-  animation: brand-orbit 3.2s linear infinite;
+.leaf-spiral {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leaf-spiral 2.4s linear infinite;
 }
-@keyframes brand-orbit {
-  to {
-    transform: rotate(360deg);
+/* Same orbit for all three, staggered by a third of the cycle each - like
+   a three-dot loader, but tracing a vertical ellipse instead of a line.
+   Scale and opacity dip on the far side of the loop and recover at the
+   near side, so the leaves read as tumbling toward/away from the viewer
+   (a rotation around a vertical axis) while they swing past and over one
+   another on the way round - a falling, spiralling tumble rather than a
+   flat spin. */
+.leaf-spiral-b {
+  animation-delay: -0.8s;
+}
+.leaf-spiral-c {
+  animation-delay: -1.6s;
+}
+@keyframes leaf-spiral {
+  0% {
+    transform: translate(0, -5px) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  8.3% {
+    transform: translate(2px, -4.3px) scale(0.97) rotate(30deg);
+    opacity: 0.95;
+  }
+  16.7% {
+    transform: translate(3.5px, -2.5px) scale(0.88) rotate(60deg);
+    opacity: 0.83;
+  }
+  25% {
+    transform: translate(4px, 0) scale(0.75) rotate(90deg);
+    opacity: 0.65;
+  }
+  33.3% {
+    transform: translate(3.5px, 2.5px) scale(0.63) rotate(120deg);
+    opacity: 0.48;
+  }
+  41.7% {
+    transform: translate(2px, 4.3px) scale(0.53) rotate(150deg);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate(0, 5px) scale(0.5) rotate(180deg);
+    opacity: 0.3;
+  }
+  58.3% {
+    transform: translate(-2px, 4.3px) scale(0.53) rotate(210deg);
+    opacity: 0.35;
+  }
+  66.7% {
+    transform: translate(-3.5px, 2.5px) scale(0.63) rotate(240deg);
+    opacity: 0.48;
+  }
+  75% {
+    transform: translate(-4px, 0) scale(0.75) rotate(270deg);
+    opacity: 0.65;
+  }
+  83.3% {
+    transform: translate(-3.5px, -2.5px) scale(0.88) rotate(300deg);
+    opacity: 0.83;
+  }
+  91.7% {
+    transform: translate(-2px, -4.3px) scale(0.97) rotate(330deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(0, -5px) scale(1) rotate(360deg);
+    opacity: 1;
   }
 }
 .topnav {
@@ -1170,10 +1233,17 @@ main {
   .book-card .meta {
     font-size: 0.8rem;
   }
+  .card-actions {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-top: 12px;
+  }
   .card-actions .btn-sm {
-    padding: 5px 10px;
+    width: 100%;
+    padding: 7px 10px;
     font-size: 0.85rem;
-    min-height: 32px;
+    min-height: 34px;
   }
 }
 .book-card {

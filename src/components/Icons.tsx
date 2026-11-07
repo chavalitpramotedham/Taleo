@@ -58,19 +58,30 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
   </g>
 );
 
-/** Three autumn leaves orbiting a shared centre, as if caught on the same
- *  breeze — the brand mark, in place of a plain static dot. */
+/** Three autumn leaves tracing the same vertical-ellipse orbit around a
+ *  shared centre, a third of a cycle apart — the brand mark, in place of a
+ *  plain static dot. Scale/opacity dip on the far side of the loop so each
+ *  leaf reads as tumbling away from and back toward the viewer, and the
+ *  staggered phases mean they swing past and briefly over one another on
+ *  the way round, like leaves spiralling down rather than one flat spin.
+ *  (The static base rotation is an SVG attribute on each leaf; the orbit
+ *  itself is a separate wrapping group animated in CSS, so the two never
+ *  fight.) */
 export const BrandMark = () => (
   <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <g className="brand-mark-spin">
-      <g transform="translate(12,4)">
-        <Leaf fill="#9C4F32" rotate={0} />
+    <g transform="translate(12,12)">
+      <g className="leaf-spiral leaf-spiral-a">
+        <Leaf fill="#9C4F32" rotate={10} />
       </g>
-      <g transform="translate(5.07,16)">
-        <Leaf fill="#6F7F52" rotate={240} />
+    </g>
+    <g transform="translate(12,12)">
+      <g className="leaf-spiral leaf-spiral-b">
+        <Leaf fill="#6F7F52" rotate={130} />
       </g>
-      <g transform="translate(18.93,16)">
-        <Leaf fill="#C49A3E" rotate={120} />
+    </g>
+    <g transform="translate(12,12)">
+      <g className="leaf-spiral leaf-spiral-c">
+        <Leaf fill="#C49A3E" rotate={250} />
       </g>
     </g>
   </svg>
