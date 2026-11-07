@@ -93,7 +93,16 @@ button {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: height 0.15s ease;
+  opacity: 1;
+  /* Snaps back (or settles) smoothly once released; while actively being
+     dragged this is overridden below so the pull tracks the finger with no lag. */
+  transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity var(--fade-ms, 0.4s) ease;
+}
+.pull-refresh.dragging {
+  transition: none;
+}
+.pull-refresh.fading {
+  opacity: 0;
 }
 .pull-refresh-spin {
   width: 22px;
@@ -103,7 +112,7 @@ button {
   border-radius: 50%;
   opacity: 0.5;
   animation: pull-spin 0.7s linear infinite;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pull-refresh-spin.ready {
   opacity: 1;
