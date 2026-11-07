@@ -360,6 +360,22 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
           <p className="meta">This story is still being written.</p>
         ) : (
           <>
+            <div className="field-row">
+              <DictateButton onText={setCustomIdea} label="Say your idea" />
+              <input
+                className="input"
+                value={customIdea}
+                maxLength={160}
+                placeholder="Say it out loud, or type your own idea…"
+                onChange={(e) => setCustomIdea(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && choose(customIdea, true)}
+                aria-label="Your own idea for what happens next"
+              />
+              <button className="btn btn-primary" disabled={!customIdea.trim() || busy} onClick={() => choose(customIdea, true)}>
+                Go
+              </button>
+            </div>
+            <p className="divider-label">Or pick one</p>
             <div className="options">
               {c.options.map((o, i) => (
                 <button key={o.label} className="option" disabled={busy} onClick={() => choose(o.label, false)}>
@@ -367,21 +383,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
                   <span>{o.label}</span>
                 </button>
               ))}
-            </div>
-            <div className="field-row">
-              <input
-                className="input"
-                value={customIdea}
-                maxLength={160}
-                placeholder="Or something else…"
-                onChange={(e) => setCustomIdea(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && choose(customIdea, true)}
-                aria-label="Your own idea for what happens next"
-              />
-              <DictateButton onText={setCustomIdea} label="Say your idea" />
-              <button className="btn btn-primary" disabled={!customIdea.trim() || busy} onClick={() => choose(customIdea, true)}>
-                Go
-              </button>
             </div>
           </>
         )}
