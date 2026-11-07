@@ -49,19 +49,21 @@ export const AccountIcon = () => (
   </svg>
 );
 
-/** One small maple leaf (a faceted, 11-point silhouette - the classic
- *  five-lobed outline), painted in the house ink-and-wash style, pointing
- *  "up" (tip at the top) before its parent <g> rotates/positions it. */
+/** One small maple leaf - five soft, rounded lobes (top, two upper side,
+ *  two lower side) drawn with smooth curves rather than jagged teeth, so
+ *  it reads as cute rather than spiky. Painted in the house ink-and-wash
+ *  style, pointing "up" (tip at the top) before its parent <g>
+ *  rotates/positions it. */
 const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
   <g transform={`rotate(${rotate}) scale(1.3)`}>
     <path
-      d="M0,-6.2 L1,-4.1 L3.1,-4.8 L2.3,-2.7 L4.9,-2.8 L2.8,-0.9 L4.1,0.9 L1.8,0.5 L2,3.3 L0.7,1.8 L0.5,5.7 L0,4.4 L-0.5,5.7 L-0.7,1.8 L-2,3.3 L-1.8,0.5 L-4.1,0.9 L-2.8,-0.9 L-4.9,-2.8 L-2.3,-2.7 L-3.1,-4.8 L-1,-4.1 Z"
+      d="M0,-7.2 C1.6,-6.8 2,-5.3 1.5,-4 C2.6,-4.6 4.2,-4.6 5.4,-3.4 C4.6,-2.2 3.4,-1.5 2.4,-1.2 C3.6,0.3 4.2,1.8 3.8,3.2 C2.4,2.6 1.1,2.1 0,1.6 C-1.1,2.1 -2.4,2.6 -3.8,3.2 C-4.2,1.8 -3.6,0.3 -2.4,-1.2 C-3.4,-1.5 -4.6,-2.2 -5.4,-3.4 C-4.2,-4.6 -2.6,-4.6 -1.5,-4 C-2,-5.3 -1.6,-6.8 0,-7.2 Z"
       fill={fill}
       stroke="#4F3A2A"
       strokeWidth="0.5"
       strokeLinejoin="round"
     />
-    <path d="M0,-4.4 L0,2.6" stroke="#4F3A2A" strokeWidth="0.4" opacity="0.55" />
+    <path d="M0,-5 L0,1.6" stroke="#4F3A2A" strokeWidth="0.4" opacity="0.55" />
   </g>
 );
 
