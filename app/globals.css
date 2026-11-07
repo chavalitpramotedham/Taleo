@@ -1045,3 +1045,194 @@ main {
     display: none !important;
   }
 }
+
+/* ---------- tappable moments (word, picture and sound together) ---------- */
+.interactive-painting {
+  position: absolute;
+  inset: 0;
+}
+.interactive-painting.has-target .tl-target {
+  cursor: pointer;
+}
+/* Only the bare wrapper animates; the sanitizer keeps the painter's own
+   transforms on an inner group so they are never disturbed. */
+.tl-target {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+/* A small hop every few seconds says "tap me" (still the rest of the time, to spare batteries). */
+.tl-idle {
+  animation: tl-idle 4.5s ease-in-out 1.2s infinite;
+}
+@keyframes tl-idle {
+  0%,
+  14%,
+  100% {
+    transform: none;
+  }
+  4% {
+    transform: translateY(-3%) scale(1.03, 0.98);
+  }
+  8% {
+    transform: translateY(0) scale(1.02, 0.98);
+  }
+  11% {
+    transform: translateY(-1.2%);
+  }
+}
+.tl-anim-bounce {
+  animation: tl-bounce 0.9s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@keyframes tl-bounce {
+  0% { transform: none; }
+  15% { transform: scale(1.08, 0.9); }
+  40% { transform: translateY(-18%) scale(0.95, 1.08); }
+  65% { transform: translateY(0) scale(1.08, 0.92); }
+  80% { transform: translateY(-5%); }
+  100% { transform: none; }
+}
+.tl-anim-hop {
+  animation: tl-hop 1s cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@keyframes tl-hop {
+  0% { transform: none; }
+  12% { transform: scale(1.06, 0.9); }
+  35% { transform: translate(6%, -26%) rotate(-6deg); }
+  60% { transform: translate(10%, 0) scale(1.06, 0.92); }
+  100% { transform: none; }
+}
+.tl-anim-wiggle {
+  animation: tl-wiggle 0.9s ease-in-out;
+}
+@keyframes tl-wiggle {
+  0%, 100% { transform: none; }
+  15% { transform: rotate(-9deg); }
+  35% { transform: rotate(8deg); }
+  55% { transform: rotate(-6deg); }
+  75% { transform: rotate(4deg); }
+}
+.tl-anim-spin {
+  animation: tl-spin 1s ease-in-out;
+  transform-origin: 50% 50%;
+}
+@keyframes tl-spin {
+  0% { transform: none; }
+  20% { transform: translateY(-8%) scale(1.05); }
+  80% { transform: translateY(-8%) rotate(360deg) scale(1.05); }
+  100% { transform: rotate(360deg); }
+}
+.tl-anim-grow {
+  animation: tl-grow 1s cubic-bezier(0.3, 1.6, 0.5, 1);
+  transform-origin: 50% 60%;
+}
+@keyframes tl-grow {
+  0% { transform: none; }
+  35% { transform: scale(1.25); }
+  60% { transform: scale(1.18); }
+  100% { transform: none; }
+}
+.tl-anim-shake {
+  animation: tl-shake 0.7s linear;
+}
+@keyframes tl-shake {
+  0%, 100% { transform: none; }
+  10%, 50%, 90% { transform: translateX(-3%) rotate(-2deg); }
+  30%, 70% { transform: translateX(3%) rotate(2deg); }
+}
+.tl-anim-float {
+  animation: tl-float 1.8s ease-in-out;
+}
+@keyframes tl-float {
+  0%, 100% { transform: none; }
+  40% { transform: translateY(-16%) rotate(-3deg); }
+  70% { transform: translateY(-10%) rotate(3deg); }
+}
+.tl-anim-nod {
+  animation: tl-nod 1.2s ease-in-out;
+}
+@keyframes tl-nod {
+  0%, 100% { transform: none; }
+  25% { transform: rotate(6deg) scale(1, 0.97); }
+  50% { transform: rotate(-3deg); }
+  75% { transform: rotate(5deg) scale(1, 0.97); }
+}
+.tl-anim-zoom {
+  animation: tl-zoom 0.9s cubic-bezier(0.5, 0, 0.3, 1);
+}
+@keyframes tl-zoom {
+  0% { transform: none; }
+  20% { transform: translateX(-6%) scale(0.95, 1.04); }
+  50% { transform: translateX(14%) skewX(-12deg); }
+  75% { transform: translateX(-3%) skewX(4deg); }
+  100% { transform: none; }
+}
+.tl-anim-hint {
+  animation: tl-wiggle 0.5s ease-in-out;
+}
+.word-bubble {
+  position: absolute;
+  transform: translate(-50%, -110%);
+  font-family: var(--font-title);
+  font-style: italic;
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1;
+  color: var(--russet);
+  background: rgba(251, 247, 238, 0.92);
+  border: 1px solid var(--rule);
+  padding: 6px 16px 10px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: word-pop 1.8s ease both;
+  z-index: 3;
+}
+@keyframes word-pop {
+  0% { opacity: 0; transform: translate(-50%, -80%) scale(0.6); }
+  15% { opacity: 1; transform: translate(-50%, -115%) scale(1.08); }
+  25% { transform: translate(-50%, -110%) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -125%); }
+}
+.tap-hint {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  font-size: 0.95rem;
+  color: var(--russet);
+  background: rgba(251, 247, 238, 0.92);
+  border: 1px solid var(--russet);
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 2;
+  animation: hint-in 0.6s ease 0.8s both;
+}
+.tap-hint.done {
+  color: var(--ink-soft);
+  border-color: var(--rule-strong);
+}
+@keyframes hint-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.word-tap {
+  font: inherit;
+  color: var(--russet);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+.word-tap:hover {
+  text-decoration-style: solid;
+}

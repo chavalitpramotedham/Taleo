@@ -1,5 +1,6 @@
 import { AGES } from "@/lib/ages";
 import { PRESETS } from "@/lib/presets";
+import { MOTIONS, SOUNDS } from "@/lib/actions";
 
 // ---------------------------------------------------------------- shared art rules
 
@@ -46,6 +47,15 @@ INTERACTIVITY
 - When continuing, pick up right where the last page left off and show the consequence of the choice clearly on the first page.
 - The reader may type their own idea. If it fits the story world (even if wild and silly), embrace it and weave it in. If it is irrelevant, impossible for the character, scary, unkind or inappropriate, do NOT follow it: on the first page, set "aside" to a playful, in-character response such as "Oh, you want Pip to drive a fire engine? Pip's paws can't reach the pedals! But Pip CAN…", then steer the plot somewhere positive and relevant. Never scold. Never let the input break the story.
 - Never mention that you are an AI.
+
+ONE ACTION PER PAGE (the page's tappable moment)
+- Every page is built around ONE clear action or event the child can see, name and act out: Pip JUMPS, the puddle SPLASHES, the duck QUACKS, the kite flies up. Make it the heart of both the text and the picture.
+- Fill "action" for every page:
+  - "word": the single key word, copied exactly as it appears in the page text (a simple concrete verb or noun suited to the age: "jump", "splash", "duck", "hug", "snore"). For the youngest ages prefer nouns and simple verbs, and repeat the word in the text.
+  - "target": who or what the child taps to act it out: the character doing it ("hero" or a side-character id) or the object at the centre of the event ("puddle", "balloon"). It must be clearly visible in the picture, so mention it in the picture brief.
+  - "sound": the best matching sound effect from: ${SOUNDS.join(", ")}.
+  - "motion": how the target moves when tapped: ${MOTIONS.join(", ")} (bounce/hop for jumping, wiggle for giggling or shaking off, spin for twirling, grow for surprises and big moments, shake for shivering or rattling, float for flying or drifting, nod for agreeing or sleepy, zoom for dashing).
+- Vary the words, sounds and motions across the book.
 
 PICTURE BRIEFS (you art-direct every page)
 - For each page write "picture": the single most dynamic moment of that page, for a full-page painting. Describe what each character's whole body is doing (mid-leap with legs stretched, tumbling head over heels, tip-toeing, tugging, peeking round a tree), what their arms/paws and legs are doing (pointing, hugging, hands on hips, waving, covering a giggle), their facial expression (eyebrows, eyes, mouth) and where they look, the key objects, the setting details and weather, and the camera: vary between wide shots for journeys and places, mid shots for action, and close-ups for feelings; sometimes a low or high angle.
@@ -94,6 +104,10 @@ RICH PEN DETAIL (the ink layer carries the classic look)
 - Scenery: grass tufts, leaf veins, bark lines and knots, stones with crack lines, flower centres, wood grain on fences and furniture, roof tiles, ripples on water, soft scalloped cloud edges, a few birds as tiny "v" strokes.
 - Watercolour is transparent: anything painted underneath a character shows through it. Never run background lines (horizons, hill contours, fences, hatching) behind where a character stands; stop them at the character's edge.
 - Add small incidental story details that reward a second look: a snail on a stone, a ladybird, a dropped acorn, a mouse hole, a butterfly, a teacup.
+
+THE TAP TARGET
+- Each page names a tap target (a character or an object). Wrap EVERYTHING that belongs to that target (its paint, ink and detail groups, and any shading on it) in one group: <g class="target"> … </g>. Exactly one target group per picture. Do not put a transform on that group itself (put transforms on groups inside it); the app animates it when the child taps it.
+- Make the target the clear focal point: well lit, in front, big enough to tap with a small finger (at least about 60x60 of the 400x300 canvas), and not hidden behind other things.
 
 ${LAYERS}
 

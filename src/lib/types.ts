@@ -1,4 +1,5 @@
 import type { AgeId } from "./ages";
+import type { MotionId, SoundId } from "./actions";
 
 /** A character that appears in the book. */
 export interface CharacterDef {
@@ -12,8 +13,21 @@ export interface CharacterDef {
   svg?: string | null;
 }
 
+/** The one action or event a page is about. The picture's target can be tapped
+ *  to animate it, hear a sound effect and see/hear the word. */
+export interface PageAction {
+  /** The word to learn, as it appears in the text (e.g. "jump", "duck", "splash"). */
+  word: string;
+  /** What to tap: a character id ("hero", "duckling") or an object name ("puddle"). */
+  target: string;
+  sound: SoundId;
+  motion: MotionId;
+}
+
 export interface Page {
   text: string;
+  /** The page's key action/event and its tappable target. */
+  action?: PageAction | null;
   /** Narrator aside shown as a marginal note (used to steer silly requests). */
   aside: string | null;
   /** The illustrator's brief for this page: the exact moment to paint. */
@@ -81,7 +95,7 @@ export interface SegmentResponse {
 export interface IllustrateRequest {
   world: string;
   cast: CharacterDef[]; // characters in this picture (hero included when present)
-  page: Pick<Page, "text" | "picture" | "characters">;
+  page: Pick<Page, "text" | "picture" | "characters" | "action">;
   previous?: string | null; // previous page's picture brief, for continuity
 }
 

@@ -1,5 +1,6 @@
 import { AGES } from "@/lib/ages";
-import type { CharacterDef, IllustrateRequest, Page, Story, StoryRequest } from "@/lib/types";
+import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
+import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
@@ -18,11 +19,25 @@ export function cleanCharacter(c: unknown, fallbackId = "hero"): CharacterDef {
   };
 }
 
-const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "characters" | "aside"> => ({
+const cleanAction = (a: unknown): PageAction | null => {
+  const o = (a ?? null) as Partial<PageAction> | null;
+  if (!o || typeof o !== "object") return null;
+  const word = str(o.word, 30).trim();
+  if (!word) return null;
+  return {
+    word,
+    target: str(o.target, 40) || "hero",
+    sound: isSound(o.sound) ? o.sound : "twinkle",
+    motion: isMotion(o.motion) ? o.motion : "bounce",
+  };
+};
+
+const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "characters" | "aside" | "action"> => ({
   text: str(p.text, 800),
   picture: str(p.picture, 1200),
   characters: strs(p.characters, 6),
   aside: p.aside ? str(p.aside, 400) : null,
+  action: cleanAction(p.action),
 });
 
 /** Accept a story request from the browser, trimming anything oversized. */

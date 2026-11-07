@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PRESETS } from "@/lib/presets";
+import { MOTIONS, SOUNDS } from "@/lib/actions";
 
 const presetKeys = PRESETS.map((p) => p.key) as [string, ...string[]];
 
@@ -15,6 +16,18 @@ export const PageSchema = z.object({
       "Illustrator's brief for this page's full-page painting (2-4 sentences): the single most dynamic moment, what each character is physically doing with their whole body, their expressions, where they are looking, key objects, setting details, camera (close-up / mid / wide, low or high angle) and composition.",
     ),
   characters: z.array(z.string()).describe("Ids of characters visible in the picture ('hero' and/or side-character ids)"),
+  action: z
+    .object({
+      word: z
+        .string()
+        .describe("The page's key word, exactly as it appears in the text: one simple, concrete word a child can learn (a verb like 'jump' or a noun like 'duck'/'puddle')."),
+      target: z
+        .string()
+        .describe("What the child taps in the picture to act out the word: a character id ('hero' or a side-character id) or a short object name ('puddle', 'kite')."),
+      sound: z.enum(SOUNDS).describe("The sound effect that matches the action or object"),
+      motion: z.enum(MOTIONS).describe("How the target moves when tapped"),
+    })
+    .describe("The one action or event this page is about, made tappable in the picture."),
 });
 
 export const NewCharacterSchema = z.object({

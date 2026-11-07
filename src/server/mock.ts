@@ -2,7 +2,7 @@
 // whole app can be explored offline. Stories are templated, and pictures are
 // composed from the reference art rather than painted by Claude.
 import { ageById } from "@/lib/ages";
-import type { CharacterRequest, CharacterResponse, Page, SegmentResponse, StoryRequest } from "@/lib/types";
+import type { CharacterRequest, CharacterResponse, Page, PageAction, SegmentResponse, StoryRequest } from "@/lib/types";
 
 const DUCKLING = `<g class="paint"><ellipse cx="100" cy="191" rx="50" ry="6" fill="#CFC6AC" opacity="0.6"/>
 <ellipse cx="86" cy="186" rx="13" ry="5" fill="#D99447"/><ellipse cx="114" cy="187" rx="13" ry="5" fill="#D99447"/>
@@ -21,13 +21,21 @@ const DUCKLING = `<g class="paint"><ellipse cx="100" cy="191" rx="50" ry="6" fil
 
 const pick = <T,>(arr: T[], seed: number) => arr[Math.abs(seed) % arr.length];
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
-const page = (text: string, picture: string, characters: string[], aside: string | null = null): Page => ({
+const page = (
+  text: string,
+  picture: string,
+  characters: string[],
+  action: PageAction,
+  aside: string | null = null,
+): Page => ({
   text,
   picture,
   characters,
+  action,
   aside,
   svg: null,
 });
+const act = (word: string, target: string, sound: PageAction["sound"], motion: PageAction["motion"]): PageAction => ({ word, target, sound, motion });
 
 export function mockSegment(req: StoryRequest): SegmentResponse {
   const isStart = req.kind === "start";
@@ -57,21 +65,25 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
             s(`Up, up, up! ${n} is awake.`, `One bright morning, ${n} woke with a wiggle and a giggle. "Today feels like a wonderful kind of day!"`),
             `Close-up inside a cosy burrow bedroom: ${n} bounces out of a little bed mid-stretch, arms flung up, eyes squeezed shut in a huge yawn-giggle, blanket tumbling off. Morning light through a round window.`,
             ["hero"],
+            act(small ? "Up" : "wiggle", "hero", small ? "boing" : "giggle", small ? "bounce" : "wiggle"),
           ),
           page(
             s(`${n} runs outside. Hop, hop, hop!`, `${n} hopped out into the meadow, where the flowers nodded hello and a bumblebee hummed a very silly song.`),
             `Wide shot of a sunny meadow: ${n} leaps through tall grass mid-hop, body stretched, ears streaming back, looking up delightedly at a bumblebee looping overhead. Poppies and daisies in the foreground.`,
             ["hero"],
+            act("hop", "hero", "boing", "hop"),
           ),
           page(
             s(`Quack! Who is that?`, `Behind a bush, someone sneezed. "A-CHOO! Oh, excuse me," said a small duckling. "I'm Dilly. I'm looking for something wonderful, but I've forgotten what it is!"`),
             `Mid shot by a hedge: a duckling (Dilly) tumbles out of the bush backwards with a big sneeze, feathers flying; ${n} jumps back in surprise, eyes wide, one paw raised.`,
             ["hero", "duckling"],
+            act(small ? "Quack" : "duckling", "duckling", "quack", "wiggle"),
           ),
           page(
             s(`Where shall we look?`, `${n} tapped a chin and thought very hard. "Something wonderful could be anywhere," said ${n}. "Where shall we look first?"`),
             `Low-angle shot from the grass: ${n} crouches thoughtfully with a paw on chin, Dilly perched on a mushroom copying the pose exactly; a winding path leads off to a pond and a tall tree in the distance.`,
             ["hero", "duckling"],
+            act(small ? "look" : "thought", "hero", "ding", "nod"),
           ),
         ],
         choice: { prompt: `Where should ${n} and Dilly look?`, options: options(["The splashy pond", "The tall oak tree", "Under the rainbow"]) },
@@ -90,6 +102,7 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
     s(`Off they go! Wheee!`, `"Let's go!" cheered ${n}. Off they went, ${pond ? "splish-splashing down to the pond" : `skipping all the way to the ${place}`}, with Dilly flapping happily behind.`),
     `Wide shot: ${n} leaps ahead along a path toward the ${place}, legs stretched mid-bound, Dilly scurrying behind with wings flapping; dandelion seeds swirl in their wake.`,
     ["hero", "duckling"],
+    act(small ? "go" : "went", "hero", "whoosh", "zoom"),
     custom ? `Ooh, you want ${n} to ${choiceText.replace(/^to /i, "")}? What a fun idea! Let's see what happens…` : null,
   );
 
@@ -106,11 +119,13 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
             s(`Look! A little present!`, `And there, tucked under a dock leaf, was a little parcel tied with string. "THAT'S IT!" quacked Dilly. "The wonderful thing was a present… for my new friend!"`),
             `Close-up: ${n} kneels and lifts a dock leaf to discover a small parcel tied with string, face lit with surprise; Dilly hops up and down beside it, wings wide.`,
             ["hero", "duckling"],
+            act(small ? "present" : "parcel", "hero", "twinkle", "grow"),
           ),
           page(
             s(`Big hug. Night night, ${n}.`, `${n} gave Dilly the biggest, squishiest hug. As the stars came out, the two friends yawned together. "Same time tomorrow?" "Same time tomorrow." The End.`),
             `Night-time in the meadow under a big moon: ${n} and Dilly curl up asleep together in the long grass, Dilly tucked under ${n}'s arm, the opened parcel beside them; fireflies and stars.`,
             ["hero", "duckling"],
+            act(small ? "Hug" : "hug", "hero", "snore", "nod"),
           ),
         ],
       },
@@ -128,11 +143,13 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
           s(`Uh-oh! Splash!`, `Uh-oh! Dilly slipped on a wet leaf and landed (PLOP!) right on ${n}'s head. "Is it a hat?" giggled ${n}. "I'm a very fancy hat," said Dilly.`),
           `Mid shot by a puddle in light rain: Dilly lands on ${n}'s head with a splash, feet in the air; ${n} staggers, laughing with eyes squeezed shut, water droplets flying.`,
           ["hero", "duckling"],
+          act(small ? "Splash" : "PLOP", "duckling", "splash", "bounce"),
         ),
         page(
           s(`The rain stops. Look up!`, `The rain stopped and the sun peeped out. Far away, beyond the hill, something glittered. "Is that the wonderful thing?" whispered ${n}.`),
           `Wide shot from behind: ${n} and Dilly stand on a hilltop, ${n} pointing into the distance, Dilly on tiptoe; a soft rainbow over the fields and a glint of light far away.`,
           ["hero", "duckling"],
+          act(small ? "Look" : "glittered", "hero", "twinkle", "grow"),
         ),
       ],
       choice: { prompt: `How should they get there?`, options: options(["Race down the hill", "Float on a dandelion clock", "Follow the butterflies"]) },

@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Page, SegmentResponse, Story } from "@/lib/types";
+import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
 import { castFor, pageKey } from "@/lib/story-utils";
 import { shareUrl } from "@/lib/share";
 import { usePaintings } from "@/lib/usePaintings";
 import { composePainting } from "@/lib/art/compose";
-import { Painting, CharacterPortrait } from "./art/Painting";
+import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { StarRating } from "./StarRating";
 import { BrushIcon, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
@@ -44,6 +44,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   const storyRef = useRef(story);
   storyRef.current = story;
   const started = useRef(false);
+  const paintingRef = useRef<InteractivePaintingHandle>(null);
 
   const views: View[] = useMemo(() => {
     const v: View[] = [];
@@ -238,7 +239,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     const svg = done || partial || fallback;
     picture = (
       <>
-        {svg ? <Painting svg={svg} title={shown.page.picture || shown.page.text} className={partial && !done ? "painting live" : "painting"} /> : null}
+        {svg ? (
+          <InteractivePainting
+            ref={paintingRef}
+            svg={svg}
+            title={shown.page.picture || shown.page.text}
+            className={partial && !done ? "painting live" : "painting"}
+            live={Boolean(partial && !done)}
+            target={tapTarget(shown.page, [story.hero, ...story.cast])}
+          />
+        ) : null}
         {!svg && (
           <div className="picture-wait" aria-live="polite">
             <BrushIcon />
@@ -288,7 +298,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             <span>The storyteller says:</span> {view.page.aside}
           </p>
         )}
-        <p className={`story-text ${first ? "drop" : ""}`}>{view.page.text}</p>
+        <p className={`story-text ${first ? "drop" : ""}`}>
+          {withTappableWord(view.page.text, view.page.action?.word, () => paintingRef.current?.play())}
+        </p>
         <p className="folio">— {view.number} —</p>
       </div>
     );
@@ -430,5 +442,32 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       </nav>
       {toast && <div className="toast">{toast}</div>}
     </div>
+  );
+}
+
+/** The page's tappable moment, in the form the painting needs. */
+function tapTarget(page: Page, cast: CharacterDef[]): TapTarget | null {
+  const a = page.action;
+  if (!a) return null;
+  const who = cast.find((c) => c.id === a.target);
+  return { word: a.word, motion: a.motion, sound: a.sound, hint: who ? `Tap ${who.name}!` : `Tap the ${a.target}!` };
+}
+
+/** Render page text with the key word (and its endings: hop → hopped) as a tappable button. */
+function withTappableWord(text: string, word: string | undefined, onTap: () => void): React.ReactNode {
+  if (!word) return text;
+  const escaped = word.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m = new RegExp(`(^|[^\\p{L}])(${escaped}[\\p{L}']*)`, "iu").exec(text);
+  if (!m) return text;
+  const start = m.index + m[1].length;
+  const found = m[2];
+  return (
+    <>
+      {text.slice(0, start)}
+      <button type="button" className="word-tap" onClick={onTap} title={`Tap to hear “${found}”`}>
+        {found}
+      </button>
+      {text.slice(start + found.length)}
+    </>
   );
 }

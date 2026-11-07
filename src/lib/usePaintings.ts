@@ -38,7 +38,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           body: JSON.stringify({
             world: s.world,
             cast: castFor(s, page),
-            page: { text: page.text, picture: page.picture || page.text, characters: page.characters },
+            page: { text: page.text, picture: page.picture || page.text, characters: page.characters, action: page.action ?? null },
             previous: prev?.picture ?? null,
           }),
         });

@@ -76,7 +76,7 @@ function landscape(brief: string): { svg: string; ground: number; indoor: boolea
 }
 
 /** Compose a painting for a page from the brief and the characters' reference art. */
-export function composePainting(page: Pick<Page, "picture" | "text" | "characters">, cast: CharacterDef[]): string {
+export function composePainting(page: Pick<Page, "picture" | "text" | "characters" | "action">, cast: CharacterDef[]): string {
   const brief = `${page.picture} ${page.text}`;
   const { svg, ground } = landscape(brief);
   const present = page.characters.map((id) => cast.find((c) => c.id === id)).filter(Boolean) as CharacterDef[];
@@ -84,6 +84,8 @@ export function composePainting(page: Pick<Page, "picture" | "text" | "character
   const leap = has(brief, "leap", "jump", "hop", "bounce", "fly", "flying", "float", "swing");
   const sleepy = has(brief, "sleep", "asleep", "snooze", "nap", "curl");
   const run = has(brief, "run", "race", "chase", "dash", "hurr");
+  const wanted = page.action?.target;
+  const targetId = present.find((c) => c.id === wanted)?.id ?? present[0]?.id;
   const figures = present
     .map((c, i) => {
       const x = n === 1 ? 200 : 90 + (220 * i) / (n - 1);
@@ -97,7 +99,9 @@ export function composePainting(page: Pick<Page, "picture" | "text" | "character
       } else if (i === 0 && run) rot = 9;
       if (sleepy) rot = i % 2 ? 8 : -8;
       const flip = n > 1 && i === n - 1 ? ` translate(200 0) scale(-1 1)` : "";
-      return `<g transform="translate(${(x - 100 * s).toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)}) rotate(${rot} 100 190)${flip}">${characterArt(c)}</g>`;
+      const fig = `<g transform="translate(${(x - 100 * s).toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)}) rotate(${rot} 100 190)${flip}">${characterArt(c)}</g>`;
+      // The page's tap target (or, failing that, the main character) is tappable.
+      return c.id === targetId ? `<g class="target">${fig}</g>` : fig;
     })
     .join("");
   const motion =

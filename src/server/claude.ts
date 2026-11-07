@@ -4,12 +4,14 @@ import type { z } from "zod";
 import { ageById } from "@/lib/ages";
 import { characterArt, presetByKey } from "@/lib/presets";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { isMotion, isSound } from "@/lib/actions";
 import type {
   CharacterDef,
   CharacterRequest,
   CharacterResponse,
   IllustrateRequest,
   Page,
+  PageAction,
   SegmentResponse,
   StoryRequest,
 } from "@/lib/types";
@@ -127,6 +129,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     aside: p.aside?.trim() ? p.aside.trim() : null,
     picture: p.picture.trim().slice(0, 1200),
     characters: [...new Set(p.characters.map((id) => idMap[id] ?? id))].filter((id) => taken.has(id)).slice(0, 5),
+    action: cleanAction(p.action, p.text, idMap),
     svg: null,
   }));
 
@@ -147,6 +150,19 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
   };
 }
 
+function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text: string, idMap: Record<string, string>): PageAction | null {
+  if (!a) return null;
+  const word = a.word.trim().replace(/[^\p{L}\p{N}' -]/gu, "").slice(0, 30);
+  if (!word) return null;
+  return {
+    word,
+    target: (idMap[a.target] ?? a.target).trim().slice(0, 40) || "hero",
+    sound: isSound(a.sound) ? a.sound : "twinkle",
+    motion: isMotion(a.motion) ? a.motion : "bounce",
+  };
+  void text;
+}
+
 // ---------------------------------------------------------------- illustrations
 
 /** Streams the SVG markup of one painted page. */
@@ -164,6 +180,9 @@ export async function* paintPage(req: IllustrateRequest): AsyncGenerator<string>
     req.previous ? `PREVIOUS PAGE'S PICTURE (for continuity of place and light): ${req.previous}` : "",
     `THIS PAGE'S TEXT: ${req.page.text}`,
     `PAINT THIS MOMENT: ${req.page.picture}`,
+    req.page.action
+      ? `TAP TARGET: "${req.page.action.target}"${req.cast.some((c) => c.id === req.page.action!.target) ? " (the character with that id)" : ""}, acting out the word "${req.page.action.word}". Wrap it in <g class="target">.`
+      : "",
     `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the SVG markup now.`,
   ]
     .filter(Boolean)

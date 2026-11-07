@@ -28,6 +28,15 @@ A second call (`/api/illustrate`, `src/server/claude.ts → paintPage`) then pai
 
 **Fallback.** If a painting fails, the page offers "Paint this page again". In the meantime, and in demo mode, a simple composer (`src/lib/art/compose.ts`) builds a picture from the reference art.
 
+## Tap-to-learn moments
+
+Every page is built around one action or event (Claude fills `action` for each page: the key `word`, the tap `target`, a `sound` and a `motion`; see `src/lib/actions.ts`).
+- **In the picture:** the illustrator wraps the target character or object in `<g class="target">`. The app gives it a small hop every few seconds as a hint.
+- **On tap:** tapping it (or the underlined word in the text) plays the animation and a matching sound effect, and pops up and speaks the word.
+- **Why:** children connect the word, the picture and the sound.
+- **Sound effects** are synthesised in the browser with the Web Audio API (`src/lib/sfx.ts`), so there are no audio files.
+- **Animation code** is in `InteractivePainting` (`src/components/art/Painting.tsx`).
+
 ## Running it
 
 ```bash
