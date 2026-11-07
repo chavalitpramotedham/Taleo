@@ -41,7 +41,7 @@ export default function StorePage() {
     <div className="container">
       <header className="wizard-head">
         <p className="eyebrow">Open to everyone</p>
-        <h1>The story store</h1>
+        <h1>The library</h1>
         <p className="sub">Every finished story, painted and shared by families like yours.</p>
         {stories && stories.length > 1 && (
           <div className="filter-row">

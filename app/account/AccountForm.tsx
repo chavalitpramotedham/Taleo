@@ -14,25 +14,33 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
   const [nameError, setNameError] = useState<string | null>(null);
   const [nameSaved, setNameSaved] = useState(false);
   const [avatar, setAvatar] = useState(avatarKey);
+  const [draftAvatar, setDraftAvatar] = useState(avatarKey);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarSaved, setAvatarSaved] = useState(false);
   const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const pickAvatar = async (key: string) => {
-    if (key === avatar || busy) return;
-    const prev = avatar;
-    setAvatar(key);
+  const saveAvatar = async () => {
+    if (draftAvatar === avatar || busy) return;
     setBusy("avatar");
+    setAvatarError(null);
+    setAvatarSaved(false);
     try {
       const res = await fetch("/api/user/avatar", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ avatarKey: key }),
+        body: JSON.stringify({ avatarKey: draftAvatar }),
       });
-      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't save that picture.");
+      setAvatar(draftAvatar);
+      setAvatarSaved(true);
+      // Re-sync the session (every avatar shown via useSession, e.g. the nav
+      // icon) so the new picture appears everywhere without a manual reload.
       await update();
       router.refresh();
-    } catch {
-      setAvatar(prev);
+    } catch (e) {
+      setAvatarError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(null);
     }
@@ -97,22 +105,32 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
     <>
       <section className="panel">
         <h3>Profile picture</h3>
-        <p className="meta">Pick a face from the cast.</p>
+        <p className="meta">Pick a face from the cast, then save it.</p>
         <div className="avatar-picker">
           {AVATAR_KEYS.map((key) => (
             <button
               key={key}
               type="button"
-              className={`avatar-option ${avatar === key ? "selected" : ""}`}
-              onClick={() => pickAvatar(key)}
+              className={`avatar-option ${draftAvatar === key ? "selected" : ""}`}
+              onClick={() => {
+                setDraftAvatar(key);
+                setAvatarSaved(false);
+              }}
               disabled={Boolean(busy)}
               aria-label={presetByKey(key)?.name || key}
-              aria-pressed={avatar === key}
+              aria-pressed={draftAvatar === key}
             >
               <Avatar avatarKey={key} />
             </button>
           ))}
         </div>
+        <div className="field-row">
+          <button type="button" className="btn btn-primary" onClick={saveAvatar} disabled={draftAvatar === avatar || busy === "avatar"}>
+            {busy === "avatar" ? "Saving…" : "Save picture"}
+          </button>
+        </div>
+        {avatarSaved && <p className="meta">Saved.</p>}
+        {avatarError && <p className="error">{avatarError}</p>}
       </section>
 
       <section className="panel">

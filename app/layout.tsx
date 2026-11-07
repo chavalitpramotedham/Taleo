@@ -48,10 +48,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 New story
               </Link>
               <Link href="/my-stories" className="nav-link">
-                My stories
+                My bookshelf
               </Link>
               <Link href="/store" className="nav-link">
-                Story store
+                Library
               </Link>
               <AccountNav />
             </nav>

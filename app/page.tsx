@@ -17,7 +17,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <Link className="btn btn-soft" href="/my-stories">
-              My stories
+              My bookshelf
             </Link>
           </div>
         </div>

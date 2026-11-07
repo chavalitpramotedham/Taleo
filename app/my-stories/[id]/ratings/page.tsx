@@ -34,7 +34,7 @@ export default function StoryRatingsPage({ params }: { params: Promise<{ id: str
     <div className="container">
       <header className="wizard-head">
         <p className="eyebrow">
-          <Link href="/my-stories">← My stories</Link>
+          <Link href="/my-stories">← My bookshelf</Link>
         </p>
         <h1>Who rated this story</h1>
       </header>

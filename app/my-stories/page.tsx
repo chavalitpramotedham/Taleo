@@ -49,7 +49,7 @@ export default function MyStoriesPage() {
     <div className="container">
       <header className="wizard-head">
         <p className="eyebrow">Just yours</p>
-        <h1>My stories</h1>
+        <h1>My bookshelf</h1>
         {stories.length > 1 && (
           <div className="filter-row">
             <button className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => setSort("recent")}>
