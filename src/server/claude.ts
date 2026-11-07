@@ -171,7 +171,7 @@ export async function* paintPage(req: IllustrateRequest): AsyncGenerator<string>
 
   const stream = getClient().beta.messages.stream({
     model: ART_MODEL,
-    max_tokens: 20000,
+    max_tokens: 32000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
     system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],

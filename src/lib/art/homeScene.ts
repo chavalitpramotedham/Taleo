@@ -77,4 +77,34 @@ export const HOME_SCENE = `
 </g>
 <g class="detail"><circle cx="268" cy="155" r="3.3" fill="#2A1E15"/><circle cx="269" cy="154" r="1" fill="#fff"/><ellipse cx="288" cy="163" rx="2.6" ry="2" fill="#8E5A4A"/>
 <g fill="#B9CBD0"><circle cx="170" cy="230" r="2.4"/><circle cx="182" cy="226" r="1.8"/><circle cx="262" cy="232" r="2.2"/><circle cx="270" cy="238" r="1.6"/></g></g>
+<g class="paint">
+<ellipse cx="332" cy="266" rx="16" ry="7" fill="#C9C1AE"/>
+<circle cx="336" cy="256" r="6" fill="#C8A57A"/><path d="M326 262 C330 258 344 258 348 262 L348 264 L326 264Z" fill="#D9CBB0"/>
+<ellipse cx="58" cy="149" rx="6" ry="3.2" fill="#E7A99A" opacity="0.5"/><ellipse cx="94" cy="141" rx="6" ry="3.2" fill="#E7A99A" opacity="0.5"/>
+<ellipse cx="263" cy="168" rx="5" ry="2.8" fill="#E7A99A" opacity="0.5"/>
+<path d="M276 172 C280 179 288 178 291 170 C285 173 280 173 276 172Z" fill="#6E3B32"/>
+</g>
+<g class="ink" fill="none" stroke="#4F3A2A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+<path d="M56 128 q5 -5 11 -3 M78 121 q5 -5 11 -2" stroke-width="1.5"/>
+<path d="M262 147 q5 -5 11 -2" stroke-width="1.5"/>
+<path d="M276 172 C280 179 288 178 291 170"/>
+<path d="M286 182 l4 0 M286 186 l4 1 M278 204 l4 0 M276 208 l4 2" stroke-width="0.8"/>
+<path d="M50 135 q-2 4 0 6 M97 126 q2 4 0 6" stroke="#8FA7B5" stroke-width="1.2"/>
+<path d="M8 154 q4 -5 8 0 M18 142 q4 -5 8 0 M120 132 q4 -5 8 0 M140 140 q4 -5 8 0 M128 150 q4 -5 8 0" stroke="#4E5E38" stroke-width="0.9"/>
+<path d="M10 172 l3 -6 M16 173 l3 -6 M22 174 l3 -6 M28 174 l3 -6 M118 172 l3 -6 M124 171 l3 -6 M130 170 l3 -6 M136 168 l3 -6" stroke-width="0.8"/>
+<path d="M318 80 q4 -5 8 0 M336 70 q4 -5 8 0 M354 62 q4 -5 8 0 M376 66 q4 -5 8 0 M394 76 q4 -5 8 0 M330 102 q4 -5 8 0 M386 98 q4 -5 8 0 M310 128 q4 -5 8 0" stroke="#4E5E38" stroke-width="0.9"/>
+<path d="M362 128 l1 18 M368 136 l0 24 M364 164 q3 5 7 0 M358 176 l1 8 M372 170 l1 12" stroke="#5E4A3A" stroke-width="0.9"/>
+<path d="M352 186 l4 -6 M346 186 l4 -6 M380 186 l4 -6 M386 186 l4 -6" stroke-width="0.8"/>
+<path d="M300 70 C308 66 318 66 326 66 M304 66 l4 2 M312 64 l3 3 M318 64 l2 3" stroke="#7F3E26" stroke-width="0.8"/>
+<path d="M252 40 l16 0 M332 120 l12 -2" stroke="#7F3E26" stroke-width="0.7"/>
+<path d="M120 46 q5 -5 10 0 q5 -5 10 0 M148 34 q4 -4 8 0 q4 -4 8 0 M200 58 q3 -3 6 0 q3 -3 6 0" stroke-width="1"/>
+<path d="M34 262 l0 14 M52 270 l1 10 M368 258 l0 16 M34 270 q-6 -2 -8 -6 M368 268 q6 -2 8 -6" stroke="#5E6B40" stroke-width="1"/>
+<path d="M60 284 l-3 -10 M64 284 l0 -12 M68 284 l3 -9 M200 288 l-3 -10 M204 288 l0 -12 M208 288 l3 -9 M300 280 l-3 -10 M304 280 l0 -12 M308 280 l3 -9 M240 230 l-2 -8 M244 230 l0 -9 M110 214 l-2 -7 M114 214 l1 -8" stroke="#5E6B40" stroke-width="1"/>
+<path d="M36 252 l4 -6 M42 252 l4 -6 M48 252 l4 -6 M54 252 l4 -6 M96 252 l4 -6 M102 252 l4 -6 M108 252 l4 -6" stroke-width="0.8"/>
+<path d="M170 268 l4 -5 M178 270 l4 -5 M186 271 l4 -5 M240 270 l4 -5 M248 269 l4 -5" stroke-width="0.8"/>
+<path d="M190 256 q12 3 22 0 M226 262 q10 2 18 0" stroke="#6F8C94" stroke-width="0.8"/>
+<path d="M316 266 C320 260 344 260 348 266 M336 256 m-3 0 a3 3 0 1 1 3 3 a5 5 0 1 1 -5 -5" stroke-width="0.9"/>
+<path d="M326 262 C322 258 322 254 324 252 M324 252 l-2 -3 M324 252 l2 -3" stroke-width="0.8"/>
+</g>
+<g class="detail"><path d="M280 175 C282 177 286 177 288 175Z" fill="#C9786E"/><path d="M78 160 C80 162 84 162 86 160Z" fill="#C9786E"/></g>
 `;

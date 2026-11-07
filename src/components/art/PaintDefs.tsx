@@ -53,7 +53,7 @@ export function PaintDefs() {
           <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" result="d" />
           <feGaussianBlur in="d" stdDeviation="0.25" result="b" />
           <feComponentTransfer in="b">
-            <feFuncA type="linear" slope="0.8" />
+            <feFuncA type="linear" slope="0.9" />
           </feComponentTransfer>
         </filter>
 

@@ -59,7 +59,15 @@ function landscape(brief: string): { svg: string; ground: number; indoor: boolea
     for (const [x, c] of [[40, "#B2443A"], [64, "#D3A24F"], [354, "#A99BB5"], [376, "#B2443A"]] as const)
       paint.push(`<circle cx="${x}" cy="${268 + (x % 7)}" r="3.4" fill="${c}"/>`);
   }
-  ink.push(`<path d="M20 284 l3 -12 M26 286 l-2 -14 M370 280 l2 -12 M376 282 l-3 -12"/>`);
+  // Pen detail: hill contours, grass tufts, hatching, little birds.
+  ink.push(
+    `<path d="M-10 160 C20 150 40 146 60 144 M330 140 C360 138 390 138 410 136" stroke-width="0.9" opacity="0.7"/>`,
+  );
+  const tuft = (x: number, y: number) => `M${x} ${y} l-3 -9 M${x + 3} ${y} l0 -11 M${x + 6} ${y} l3 -8`;
+  ink.push(`<path d="${[[16, 284], [40, 270], [118, 290], [190, 282], [268, 288], [330, 272], [372, 284], [88, 246], [300, 232]].map(([x, y]) => tuft(x, y)).join(" ")}" stroke="${night ? "#2F3A2C" : "#5E6B40"}" stroke-width="1"/>`);
+  ink.push(`<path d="${Array.from({ length: 6 }, (_, i) => `M${30 + i * 5} 186 l4 -9`).join(" ")} ${Array.from({ length: 6 }, (_, i) => `M${330 + i * 5} 196 l4 -9`).join(" ")}" stroke-width="0.8"/>`);
+  if (!night && !snow) ink.push(`<path d="M120 46 q5 -5 10 0 q5 -5 10 0 M150 34 q4 -4 8 0 q4 -4 8 0" stroke-width="1"/>`);
+  if (woods) ink.push(`<path d="M28 180 l0 -40 M34 182 l1 -30 M318 182 l0 -36 M376 186 l1 -44" stroke="#5E4A3A" stroke-width="0.8"/>`);
   return {
     indoor: false,
     ground: 262,
