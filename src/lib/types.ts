@@ -86,6 +86,8 @@ export interface UserProfile {
   image: string | null;
   /** Chosen once, right after first sign-in; null until then. */
   username: string | null;
+  /** One of the preset character keys (see presets.ts); assigned a default on sign-up. */
+  avatarKey: string;
   isAdmin: boolean;
   createdAt: number;
 }

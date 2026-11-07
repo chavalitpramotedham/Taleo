@@ -2,17 +2,41 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { AVATAR_KEYS, presetByKey } from "@/lib/presets";
+import { Avatar } from "@/components/Avatar";
 
 const sanitize = (raw: string) => raw.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 20);
 
-export function AccountForm({ username, isAdmin }: { username: string; isAdmin: boolean }) {
+export function AccountForm({ username, avatarKey, isAdmin }: { username: string; avatarKey: string; isAdmin: boolean }) {
   const router = useRouter();
   const { update } = useSession();
   const [name, setName] = useState(username);
   const [nameError, setNameError] = useState<string | null>(null);
   const [nameSaved, setNameSaved] = useState(false);
-  const [busy, setBusy] = useState<"name" | "stories" | "account" | null>(null);
+  const [avatar, setAvatar] = useState(avatarKey);
+  const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const pickAvatar = async (key: string) => {
+    if (key === avatar || busy) return;
+    const prev = avatar;
+    setAvatar(key);
+    setBusy("avatar");
+    try {
+      const res = await fetch("/api/user/avatar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ avatarKey: key }),
+      });
+      if (!res.ok) throw new Error();
+      await update();
+      router.refresh();
+    } catch {
+      setAvatar(prev);
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const saveName = async () => {
     if (name.length < 3 || busy) return;
@@ -71,6 +95,26 @@ export function AccountForm({ username, isAdmin }: { username: string; isAdmin: 
 
   return (
     <>
+      <section className="panel">
+        <h3>Profile picture</h3>
+        <p className="meta">Pick a face from the cast.</p>
+        <div className="avatar-picker">
+          {AVATAR_KEYS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`avatar-option ${avatar === key ? "selected" : ""}`}
+              onClick={() => pickAvatar(key)}
+              disabled={Boolean(busy)}
+              aria-label={presetByKey(key)?.name || key}
+              aria-pressed={avatar === key}
+            >
+              <Avatar avatarKey={key} />
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="panel">
         <h3>Username</h3>
         <div className="field-row">

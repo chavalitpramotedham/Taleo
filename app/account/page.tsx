@@ -13,7 +13,7 @@ export default async function AccountPage() {
         <p className="eyebrow">Signed in as {session.user.email}</p>
         <h1>Manage account</h1>
       </header>
-      <AccountForm username={session.user.username} isAdmin={session.user.isAdmin} />
+      <AccountForm username={session.user.username} avatarKey={session.user.avatarKey || "star"} isAdmin={session.user.isAdmin} />
     </div>
   );
 }

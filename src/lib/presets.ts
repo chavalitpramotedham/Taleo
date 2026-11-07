@@ -31,6 +31,9 @@ export const PRESETS: Preset[] = [
 
 export const presetByKey = (key: string | null | undefined) => PRESETS.find((p) => p.key === key);
 
+/** All preset keys, in the same order as PRESETS — used for avatar pickers etc. */
+export const AVATAR_KEYS = PRESETS.map((p) => p.key);
+
 export const presetCharacter = (p: Preset, name?: string, id = "hero"): CharacterDef => ({
   id,
   name: name?.trim() || p.name,

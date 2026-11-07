@@ -1,4 +1,5 @@
 import type { UserProfile } from "@/lib/types";
+import { AVATAR_KEYS } from "@/lib/presets";
 import { readJson, writeJson } from "./store";
 
 const INDEX_PATH = "users/index.json";
@@ -13,9 +14,18 @@ const ADMIN_PROFILE: UserProfile = {
   name: "Taleo",
   image: null,
   username: "taleo",
+  avatarKey: "star",
   isAdmin: true,
   createdAt: 0,
 };
+
+/** A stable, deterministic pick so the same account always gets the same
+ *  default avatar even if re-upserted, but different accounts spread out. */
+function defaultAvatarFor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return AVATAR_KEYS[hash % AVATAR_KEYS.length];
+}
 
 async function listUsers(): Promise<UserProfile[]> {
   return (await readJson<UserProfile[]>(INDEX_PATH)) ?? [];
@@ -51,13 +61,21 @@ export async function upsertFromGoogle(input: { id: string; email: string; name:
       name: input.name,
       image: input.image,
       username: null,
+      avatarKey: defaultAvatarFor(input.id),
       isAdmin,
       createdAt: Date.now(),
     };
     await writeUsers([...users, profile]);
     return profile;
   }
-  const profile: UserProfile = { ...users[i], email: input.email, name: input.name, image: input.image, isAdmin: users[i].isAdmin || isAdmin };
+  const profile: UserProfile = {
+    ...users[i],
+    email: input.email,
+    name: input.name,
+    image: input.image,
+    avatarKey: users[i].avatarKey ?? defaultAvatarFor(input.id),
+    isAdmin: users[i].isAdmin || isAdmin,
+  };
   const next = [...users];
   next[i] = profile;
   await writeUsers(next);
@@ -81,6 +99,18 @@ export async function setUsername(id: string, raw: string): Promise<UserProfile>
   const i = users.findIndex((u) => u.id === id);
   if (i < 0) throw new Error("Sign in again and retry.");
   const profile: UserProfile = { ...users[i], username };
+  const next = [...users];
+  next[i] = profile;
+  await writeUsers(next);
+  return profile;
+}
+
+export async function setAvatar(id: string, key: string): Promise<UserProfile> {
+  if (!AVATAR_KEYS.includes(key)) throw new Error("Not a valid avatar.");
+  const users = await listUsers();
+  const i = users.findIndex((u) => u.id === id);
+  if (i < 0) throw new Error("Sign in again and retry.");
+  const profile: UserProfile = { ...users[i], avatarKey: key };
   const next = [...users];
   next[i] = profile;
   await writeUsers(next);

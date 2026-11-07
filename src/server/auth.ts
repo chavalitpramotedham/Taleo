@@ -23,6 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const profile = await getUser(token.uid as string);
         token.username = profile?.username ?? null;
         token.isAdmin = profile?.isAdmin ?? false;
+        token.avatarKey = profile?.avatarKey ?? null;
       }
       return token;
     },
@@ -31,6 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.uid as string;
         session.user.username = (token.username as string | null) ?? null;
         session.user.isAdmin = Boolean(token.isAdmin);
+        session.user.avatarKey = (token.avatarKey as string | null) ?? null;
       }
       return session;
     },

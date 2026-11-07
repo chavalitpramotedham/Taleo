@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { AccountIcon } from "./Icons";
+import { Avatar } from "./Avatar";
 
 export function AccountNav() {
   const { data: session, status } = useSession();
@@ -31,7 +32,7 @@ export function AccountNav() {
   return (
     <div className="account-menu" ref={ref}>
       <button type="button" className="icon-btn account-trigger" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
-        <AccountIcon />
+        {session.user.avatarKey ? <Avatar avatarKey={session.user.avatarKey} /> : <AccountIcon />}
       </button>
       {open && (
         <div className="account-dropdown" role="menu">
