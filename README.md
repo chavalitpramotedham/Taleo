@@ -34,6 +34,7 @@ Every page is built around one action or event (Claude fills `action` for each p
 - **In the picture:** the illustrator wraps the target character or object in `<g class="target">`. The app gives it a small hop every few seconds as a hint.
 - **On tap:** tapping it (or the underlined word in the text) plays the animation and a matching sound effect, and pops up and speaks the word.
 - **Why:** children connect the word, the picture and the sound.
+- **Animations grow with age** (`motionForAge` in `src/lib/actions.ts`). Each motion belongs to a family (travel, jump, up, turn, size, down, shake); the reader's age picks a gentler or bolder version and scales how far it moves. A toddler's car wiggles; a five-year-old's car zooms off the page and back. Ages 3+ also get a burst of painted sparkles.
 - **Sound effects** are synthesised in the browser with the Web Audio API (`src/lib/sfx.ts`), so there are no audio files.
 - **Animation code** is in `InteractivePainting` (`src/components/art/Painting.tsx`).
 

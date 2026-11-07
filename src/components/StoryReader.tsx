@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
 import { castFor, pageKey } from "@/lib/story-utils";
+import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
 import { usePaintings } from "@/lib/usePaintings";
 import { composePainting } from "@/lib/art/compose";
@@ -246,7 +247,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             title={shown.page.picture || shown.page.text}
             className={partial && !done ? "painting live" : "painting"}
             live={Boolean(partial && !done)}
-            target={tapTarget(shown.page, [story.hero, ...story.cast])}
+            target={tapTarget(shown.page, [story.hero, ...story.cast], story.age)}
           />
         ) : null}
         {!svg && (
@@ -446,11 +447,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
 }
 
 /** The page's tappable moment, in the form the painting needs. */
-function tapTarget(page: Page, cast: CharacterDef[]): TapTarget | null {
+function tapTarget(page: Page, cast: CharacterDef[], age: string): TapTarget | null {
   const a = page.action;
   if (!a) return null;
   const who = cast.find((c) => c.id === a.target);
-  return { word: a.word, motion: a.motion, sound: a.sound, hint: who ? `Tap ${who.name}!` : `Tap the ${a.target}!` };
+  return {
+    word: a.word,
+    // Gentle for toddlers, bigger and bolder as children get older.
+    motion: motionForAge(a.motion, age),
+    level: ageLevel(age),
+    sound: a.sound,
+    hint: who ? `Tap ${who.name}!` : `Tap the ${a.target}!`,
+  };
 }
 
 /** Render page text with the key word (and its endings: hop → hopped) as a tappable button. */

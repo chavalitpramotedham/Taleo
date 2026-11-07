@@ -2,7 +2,7 @@
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { sanitizeSvg, TARGET_CLASS } from "@/lib/svg-sanitize";
 import { playSound, sayWord } from "@/lib/sfx";
-import type { MotionId, SoundId } from "@/lib/actions";
+import { AMPLITUDE, type MotionId, type SoundId } from "@/lib/actions";
 import { characterArt } from "@/lib/presets";
 import type { CharacterDef } from "@/lib/types";
 
@@ -53,6 +53,8 @@ export interface TapTarget {
   word: string;
   motion: MotionId;
   sound: SoundId;
+  /** Reader's age level 1-5: scales how big and dramatic the animation is. */
+  level: number;
   /** "Tap Pip!" / "Tap the puddle!" */
   hint: string;
 }
@@ -74,6 +76,7 @@ export const InteractivePainting = forwardRef<
   const box = useRef<HTMLDivElement>(null);
   const [bubble, setBubble] = useState<{ word: string; x: number; y: number; key: number } | null>(null);
   const [tapped, setTapped] = useState(false);
+  const [sparks, setSparks] = useState<{ x: number; y: number; key: number; dots: { dx: number; dy: number; c: string; s: number; star: boolean }[] } | null>(null);
 
   const targetEl = useCallback(() => box.current?.querySelector<SVGGElement>(`.${TARGET_CLASS}`) ?? null, []);
 
@@ -117,6 +120,25 @@ export const InteractivePainting = forwardRef<
     x = Math.min(Math.max(x, 60), host.width - 60);
     y = Math.min(Math.max(y, 40), host.height - 30);
     setBubble({ word: target.word, x, y, key: Date.now() });
+    // Older readers get a burst of painted sparkles from the target.
+    const n = target.level >= 5 ? 16 : target.level >= 4 ? 11 : target.level >= 3 ? 6 : 0;
+    if (n && el) {
+      const r = el.getBoundingClientRect();
+      const cx = r.left - host.left + r.width / 2;
+      const cy = r.top - host.top + r.height / 2;
+      const colors = ["#B5653E", "#D3A24F", "#8FA77A", "#8FA7B5", "#B2443A", "#E8C766"];
+      const reach = 50 + target.level * 18;
+      setSparks({
+        x: cx,
+        y: cy,
+        key: Date.now(),
+        dots: Array.from({ length: n }, (_, i) => {
+          const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+          const d = reach * (0.6 + Math.random() * 0.5);
+          return { dx: Math.cos(a) * d, dy: Math.sin(a) * d, c: colors[i % colors.length], s: 7 + Math.random() * 7, star: i % 3 === 0 };
+        }),
+      });
+    }
     setTapped(true);
     playSound(target.sound);
     sayWord(target.word);
@@ -130,6 +152,12 @@ export const InteractivePainting = forwardRef<
     return () => window.clearTimeout(t);
   }, [bubble]);
 
+  useEffect(() => {
+    if (!sparks) return;
+    const t = window.setTimeout(() => setSparks(null), 1400);
+    return () => window.clearTimeout(t);
+  }, [sparks]);
+
   useEffect(() => setTapped(false), [svg]);
 
   const onClick = (e: React.MouseEvent) => {
@@ -142,8 +170,24 @@ export const InteractivePainting = forwardRef<
   };
 
   return (
-    <div ref={box} className={`interactive-painting ${target && !live ? "has-target" : ""}`} onClick={onClick}>
+    <div
+      ref={box}
+      className={`interactive-painting ${target && !live ? "has-target" : ""}`}
+      onClick={onClick}
+      style={{ ["--amp" as string]: AMPLITUDE[(target?.level ?? 3) - 1] ?? 1 }}
+    >
       <Painting svg={svg} title={title} className={className} />
+      {sparks && (
+        <span key={sparks.key} className="sparks" style={{ left: sparks.x, top: sparks.y }} aria-hidden>
+          {sparks.dots.map((d, i) => (
+            <span
+              key={i}
+              className={d.star ? "spark star" : "spark"}
+              style={{ ["--dx" as string]: `${d.dx}px`, ["--dy" as string]: `${d.dy}px`, ["--c" as string]: d.c, ["--s" as string]: `${d.s}px`, animationDelay: `${(i % 4) * 40}ms` }}
+            />
+          ))}
+        </span>
+      )}
       {bubble && (
         <span key={bubble.key} className="word-bubble" style={{ left: bubble.x, top: bubble.y }} aria-live="polite">
           {bubble.word}

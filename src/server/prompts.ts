@@ -54,7 +54,9 @@ ONE ACTION PER PAGE (the page's tappable moment)
   - "word": the single key word, copied exactly as it appears in the page text (a simple concrete verb or noun suited to the age: "jump", "splash", "duck", "hug", "snore"). For the youngest ages prefer nouns and simple verbs, and repeat the word in the text.
   - "target": who or what the child taps to act it out: the character doing it ("hero" or a side-character id) or the object at the centre of the event ("puddle", "balloon"). It must be clearly visible in the picture, so mention it in the picture brief.
   - "sound": the best matching sound effect from: ${SOUNDS.join(", ")}.
-  - "motion": how the target moves when tapped: ${MOTIONS.join(", ")} (bounce/hop for jumping, wiggle for giggling or shaking off, spin for twirling, grow for surprises and big moments, shake for shivering or rattling, float for flying or drifting, nod for agreeing or sleepy, zoom for dashing).
+  - "motion": how the target moves when tapped. Pick the one that best acts out the word: ${MOTIONS.join(", ")}.
+    jumping: bounce, hop, leap · going fast or driving away: zoom, dash · flying, drifting, floating up: float, fly · twirling, rolling, tumbling, giggling: wiggle, spin, tumble · surprises, growing, popping, big moments: grow, burst · splashing in, sinking, hiding, sleepy nods: nod, dive · shivering, rattling: shake.
+    Choose the most vivid fitting motion; the app automatically tones it down for the youngest readers and makes it bigger and more dramatic for older ones.
 - Vary the words, sounds and motions across the book.
 
 PICTURE BRIEFS (you art-direct every page)
