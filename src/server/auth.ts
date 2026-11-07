@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { getUser, upsertFromGoogle } from "./users";
+import { reassignLegacyStories } from "./gallery";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
@@ -24,6 +25,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.username = profile?.username ?? null;
         token.isAdmin = profile?.isAdmin ?? false;
         token.avatarKey = profile?.avatarKey ?? null;
+        // Belt-and-suspenders: stories published before accounts existed
+        // are credited to the legacy @taleo placeholder. Rather than
+        // depending on the admin remembering to click "claim" on the
+        // account page, sweep them onto the admin's own account the next
+        // time their session resolves - a no-op once none are left.
+        if (token.isAdmin && profile?.username) {
+          await reassignLegacyStories(token.uid as string, profile.username).catch(() => {});
+        }
       }
       return token;
     },
