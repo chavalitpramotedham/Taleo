@@ -570,6 +570,7 @@ main {
   border: 1px solid var(--page-edge);
   box-shadow: var(--shadow);
   position: relative;
+  perspective: 1800px;
 }
 .book-art {
   position: relative;
@@ -681,6 +682,44 @@ main {
 }
 .page-anim {
   animation: pageIn 0.5s ease both;
+}
+.flip-next,
+.flip-prev {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+}
+.flip-next {
+  transform-origin: left center;
+  animation: flipNext 0.45s cubic-bezier(0.3, 0, 0.3, 1) both;
+}
+.flip-prev {
+  transform-origin: right center;
+  animation: flipPrev 0.45s cubic-bezier(0.3, 0, 0.3, 1) both;
+}
+@keyframes flipNext {
+  0% {
+    transform: rotateY(-22deg);
+    filter: brightness(0.85);
+    box-shadow: -14px 0 24px -14px rgba(70, 50, 30, 0.45);
+  }
+  100% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+  }
+}
+@keyframes flipPrev {
+  0% {
+    transform: rotateY(22deg);
+    filter: brightness(0.85);
+    box-shadow: 14px 0 24px -14px rgba(70, 50, 30, 0.45);
+  }
+  100% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+  }
 }
 .reader-nav {
   display: flex;

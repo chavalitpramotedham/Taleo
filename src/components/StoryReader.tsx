@@ -174,7 +174,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   // ---------------------------------------------------------------- navigation
-  const go = useCallback((d: number) => setIndex((i) => Math.max(0, Math.min(lastIndex, i + d))), [lastIndex]);
+  const [flipDir, setFlipDir] = useState<1 | -1>(1);
+  const go = useCallback(
+    (d: number) => {
+      setFlipDir(d > 0 ? 1 : -1);
+      setIndex((i) => Math.max(0, Math.min(lastIndex, i + d)));
+    },
+    [lastIndex],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -463,8 +470,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       </div>
 
       <div className="book" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className="book-art">{picture}</div>
-        <div className="book-text">{words}</div>
+        <div key={`art-${index}`} className={`book-art flip-${flipDir > 0 ? "next" : "prev"}`}>
+          {picture}
+        </div>
+        <div key={`text-${index}`} className={`book-text flip-${flipDir > 0 ? "next" : "prev"}`}>
+          {words}
+        </div>
       </div>
 
       <nav className="reader-nav" aria-label="Turn the page">
