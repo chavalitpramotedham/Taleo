@@ -1,6 +1,6 @@
 import { allPages } from "@/lib/story-utils";
 import type { GalleryEntry, RatingRecord, Story } from "@/lib/types";
-import { readJson, writeJson } from "./store";
+import { deleteJson, readJson, writeJson } from "./store";
 import { ADMIN_USER_ID } from "./users";
 
 /** The public story store: every finished, published story lives here. */
@@ -101,4 +101,18 @@ export async function addRating(
 
 export function myRating(ratings: RatingRecord[], userId: string): RatingRecord | null {
   return ratings.find((r) => r.userId === userId) ?? null;
+}
+
+/** Removes every story this user published (and each one's ratings file).
+ *  Returns how many were deleted. */
+export async function deleteMyStories(authorId: string): Promise<number> {
+  const index = await listGallery();
+  const mine = index.filter((e) => e.authorId === authorId);
+  if (mine.length === 0) return 0;
+  const keep = index.filter((e) => e.authorId !== authorId);
+  await Promise.all([
+    writeJson(INDEX_PATH, keep),
+    ...mine.flatMap((e) => [deleteJson(storyPath(e.id)), deleteJson(ratingsPath(e.id))]),
+  ]);
+  return mine.length;
 }

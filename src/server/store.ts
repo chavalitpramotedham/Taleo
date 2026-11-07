@@ -48,5 +48,19 @@ async function blobWrite(pathname: string, data: unknown) {
   });
 }
 
+async function localDelete(pathname: string) {
+  try {
+    await fs.unlink(localFile(pathname));
+  } catch {}
+}
+
+async function blobDelete(pathname: string) {
+  const { list, del } = await import("@vercel/blob");
+  const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN, limit: 1 });
+  const blob = blobs.find((b) => b.pathname === pathname);
+  if (blob) await del(blob.url, { token: BLOB_TOKEN });
+}
+
 export const readJson = <T>(pathname: string) => (useBlob ? blobRead<T>(pathname) : localRead<T>(pathname));
 export const writeJson = (pathname: string, data: unknown) => (useBlob ? blobWrite(pathname, data) : localWrite(pathname, data));
+export const deleteJson = (pathname: string) => (useBlob ? blobDelete(pathname) : localDelete(pathname));

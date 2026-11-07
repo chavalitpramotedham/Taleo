@@ -86,3 +86,8 @@ export async function setUsername(id: string, raw: string): Promise<UserProfile>
   await writeUsers(next);
   return profile;
 }
+
+export async function deleteUser(id: string) {
+  const users = await listUsers();
+  await writeUsers(users.filter((u) => u.id !== id));
+}

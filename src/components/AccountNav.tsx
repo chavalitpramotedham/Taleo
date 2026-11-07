@@ -1,9 +1,22 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { AccountIcon } from "./Icons";
 
 export function AccountNav() {
   const { data: session, status } = useSession();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   if (status === "loading") return null;
 
@@ -16,11 +29,29 @@ export function AccountNav() {
   }
 
   return (
-    <span className="account-nav">
-      <span className="nav-link account-name">{session.user.username ? `@${session.user.username}` : session.user.name}</span>
-      <button type="button" className="nav-link account-signout" onClick={() => signOut({ callbackUrl: "/" })}>
-        Sign out
+    <div className="account-menu" ref={ref}>
+      <button type="button" className="icon-btn account-trigger" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
+        <AccountIcon />
       </button>
-    </span>
+      {open && (
+        <div className="account-dropdown" role="menu">
+          <p className="account-dropdown-name">@{session.user.username}</p>
+          <Link href="/account" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+            Manage account
+          </Link>
+          <button
+            type="button"
+            className="account-dropdown-item"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              signOut({ callbackUrl: "/" });
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

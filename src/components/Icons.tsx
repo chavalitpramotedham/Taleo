@@ -39,6 +39,16 @@ export const BrushIcon = () => (
   </svg>
 );
 
+/** A storybook take on the usual "person" icon: a head and shoulders, with
+ *  a small accent dot echoing the brand mark (the dot before "Taleo"). */
+export const AccountIcon = () => (
+  <svg {...base}>
+    <circle cx="12" cy="9" r="3.4" />
+    <path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5" />
+    <circle cx="17.5" cy="6" r="1.1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 export const Ornament = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 120 14" width="120" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
     <path d="M2 7h40M78 7h40" />
