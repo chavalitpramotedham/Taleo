@@ -27,8 +27,7 @@ const LAYERS = `SVG FORMAT (strict)
 
 export function writerPrompt(): string {
   const ages = AGES.map(
-    (a) =>
-      `- Age ${a.label} (id ${a.id}): ${a.guide} Aim for ${a.words[0]}-${a.words[1]} words per page, ${a.pagesPerSegment[0]}-${a.pagesPerSegment[1]} pages between choices, ${a.optionCount} options per choice.`,
+    (a) => `- Age ${a.label} (id ${a.id}): ${a.guide} Aim for ${a.words[0]}-${a.words[1]} words per page and ${a.optionCount} options per choice.`,
   ).join("\n");
   const presets = PRESETS.map((p) => `${p.key} (${p.kind})`).join(", ");
 
@@ -40,7 +39,7 @@ WRITING
 - Pepper the story with light-hearted conversation (short quoted speech) and gentle humour: funny sounds, small mishaps, playful exaggeration, characters being a bit silly.
 - Follow the chosen theme, but keep the story fresh and surprising.
 - Always gentle and reassuring: no peril beyond mild "uh-oh" moments, no violence, no scary villains, no mean characters, no brands, no real people. Problems are solved with kindness, curiosity, teamwork and cleverness.
-- The whole story (all segments) should take about 3-5 minutes to read aloud.
+- Follow the per-request TARGET LENGTH and page count exactly - that is how long the reader asked for.
 
 INTERACTIVITY
 - Segments end with a choice for the child (unless it is the final segment). Options must be relevant, distinct, positive, and genuinely change what happens next. Each option label is short (2-6 words).

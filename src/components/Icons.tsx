@@ -79,23 +79,24 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
  *  tumble real depth rather than a flat spin in place. Durations and
  *  delays differ per leaf so they drift in and out of phase instead of
  *  orbiting a shared centre in lockstep. Each leaf also keeps its own
- *  horizontal column (left/centre/right) so the three spread across the
- *  mark instead of stacking on one line. (The static base rotation is an
- *  SVG attribute on each leaf; the whirl itself is a separate wrapping
+ *  horizontal column (left/centre/right) AND its own vertical anchor, so
+ *  the three spread across the mark both ways instead of bunching at the
+ *  same height as they fall. (The static base rotation is an SVG
+ *  attribute on each leaf; the whirl itself is a separate wrapping
  *  group animated in CSS, so the two never fight.) */
 export const BrandMark = () => (
   <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <g transform="translate(6,12)">
+    <g transform="translate(6,9)">
       <g className="leaf-whirl leaf-whirl-a">
         <Leaf fill="#9C4F32" rotate={10} />
       </g>
     </g>
-    <g transform="translate(12,12)">
+    <g transform="translate(12,14)">
       <g className="leaf-whirl leaf-whirl-b">
         <Leaf fill="#6F7F52" rotate={130} />
       </g>
     </g>
-    <g transform="translate(18,12)">
+    <g transform="translate(18,11)">
       <g className="leaf-whirl leaf-whirl-c">
         <Leaf fill="#C49A3E" rotate={250} />
       </g>

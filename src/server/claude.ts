@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
-import { ageById } from "@/lib/ages";
+import { ageById, lengthProfile } from "@/lib/ages";
 import { characterArt, presetByKey } from "@/lib/presets";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { isMotion, isSound } from "@/lib/actions";
@@ -56,16 +56,19 @@ const modelSheet = (c: CharacterDef) =>
 export async function generateSegment(req: StoryRequest): Promise<SegmentResponse> {
   const isStart = req.kind === "start";
   const age = ageById(isStart ? req.age : req.story.age);
+  const minutes = isStart ? req.minutes : req.story.minutes;
+  const { choices, pagesPerSegment } = lengthProfile(age, minutes);
   const hero = isStart ? req.hero : req.story.hero;
   const cast = isStart ? [] : req.story.cast;
   const theme = isStart ? req.theme : req.story.theme;
   const segments = isStart ? [] : req.story.segments;
-  const totalSegments = age.choices + 1;
+  const totalSegments = choices + 1;
   const index = segments.length + 1;
   const isLast = index >= totalSegments;
 
   const parts: string[] = [];
   parts.push(`READER AGE: ${age.label} years (age id ${age.id}). Follow that age guide closely.`);
+  parts.push(`TARGET LENGTH: about ${minutes} minute${minutes === 1 ? "" : "s"} read aloud in total, across ${totalSegments} segments.`);
   parts.push(`THEME: ${theme}`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(`CHARACTERS SO FAR:\n${[hero, ...cast].map(modelSheet).join("\n")}`);
@@ -98,7 +101,7 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
     );
   }
   parts.push(
-    `Use ${age.pagesPerSegment[0]}-${age.pagesPerSegment[1]} pages, ${age.words[0]}-${age.words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
+    `Use ${pagesPerSegment[0]}-${pagesPerSegment[1]} pages, ${age.words[0]}-${age.words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
   );
 
   const out = await ask(SegmentSchema, writerPrompt(), parts.join("\n\n"));

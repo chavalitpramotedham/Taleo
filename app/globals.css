@@ -162,20 +162,22 @@ button {
    bottom so the loop's reset is never seen. The sway's extremes are also
    where the leaf would be edge-on to a side-on viewer, so a horizontal
    squash lands there too, timed to a continuous two-turn spin for a real
-   3D tumble instead of a flat spin in place. Durations differ per leaf so
-   they drift in and out of phase rather than circling a shared centre in
-   lockstep. */
+   3D tumble instead of a flat spin in place. Durations differ per leaf,
+   and the delays start them at well-spread points of the fall (not even
+   thirds, so they don't periodically re-sync), so they drift in and out
+   of phase - and stay spread vertically - rather than circling a shared
+   centre in lockstep. */
 .leaf-whirl-a {
   animation-duration: 4.2s;
-  animation-delay: -0.8s;
+  animation-delay: -0.2s;
 }
 .leaf-whirl-b {
   animation-duration: 5.3s;
-  animation-delay: -3.5s;
+  animation-delay: -2.1s;
 }
 .leaf-whirl-c {
   animation-duration: 3.5s;
-  animation-delay: -1.7s;
+  animation-delay: -2.6s;
 }
 @keyframes leaf-whirl {
   0% {
@@ -547,6 +549,60 @@ main {
 }
 .panel .meta {
   margin-bottom: 12px;
+}
+.length-panel {
+  margin-top: 18px;
+}
+.length-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  margin: 6px 0 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.length-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--page);
+  border: 2px solid var(--russet);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.length-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--page);
+  border: 2px solid var(--russet);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.length-slider::-moz-range-track {
+  height: 6px;
+  background: var(--rule);
+  border-radius: 3px;
+}
+.length-slider::-moz-range-progress {
+  height: 6px;
+  background: var(--russet);
+  border-radius: 3px;
+}
+.length-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1px;
+  color: var(--ink-faint);
+  font-family: var(--font-caps);
+  font-size: 0.85rem;
+}
+.length-tick.recommended {
+  color: var(--russet);
+  font-weight: 600;
 }
 .hero-panel {
   display: flex;
@@ -1089,6 +1145,12 @@ main {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-top: 10px;
+}
+.avatar-save-row {
+  margin-top: 16px;
+}
+.btn-block {
+  width: 100%;
 }
 @media (min-width: 520px) {
   .avatar-picker {

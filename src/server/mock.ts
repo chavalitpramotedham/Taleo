@@ -1,7 +1,7 @@
 // Demo-mode storyteller used when no ANTHROPIC_API_KEY is configured, so the
 // whole app can be explored offline. Stories are templated, and pictures are
 // composed from the reference art rather than painted by Claude.
-import { ageById } from "@/lib/ages";
+import { ageById, lengthProfile } from "@/lib/ages";
 import type { CharacterRequest, CharacterResponse, Page, PageAction, SegmentResponse, StoryRequest } from "@/lib/types";
 
 const DUCKLING = `<g class="paint"><ellipse cx="100" cy="191" rx="50" ry="6" fill="#CFC6AC" opacity="0.6"/>
@@ -41,6 +41,8 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
   const isStart = req.kind === "start";
   const ageId = isStart ? req.age : req.story.age;
   const age = ageById(ageId);
+  const minutes = isStart ? req.minutes : req.story.minutes;
+  const { choices } = lengthProfile(age, minutes);
   const hero = isStart ? req.hero : req.story.hero;
   const theme = isStart ? req.theme : req.story.theme;
   const segs = isStart ? [] : req.story.segments;
@@ -94,7 +96,7 @@ export function mockSegment(req: StoryRequest): SegmentResponse {
   const last = segs[segs.length - 1]?.chosen;
   const choiceText = last?.text ?? "explore";
   const custom = Boolean(last?.custom);
-  const total = age.choices + 1;
+  const total = choices + 1;
   const isLast = segs.length + 1 >= total;
   const pond = /pond|splash|water|swim/i.test(choiceText);
   const place = pond ? "pond" : /tree|oak|climb/i.test(choiceText) ? "wood" : "meadow";

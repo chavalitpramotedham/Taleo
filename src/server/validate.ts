@@ -1,9 +1,11 @@
-import { AGES } from "@/lib/ages";
+import { AGES, ageById, clampMinutes } from "@/lib/ages";
 import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
 import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
+// Back-compat: stories saved before the length slider existed have no `minutes`.
+const minutesFor = (v: unknown, ageId: string) => (typeof v === "number" && Number.isFinite(v) ? clampMinutes(v) : ageById(ageId).recommendedMinutes);
 const strs = (v: unknown, max: number, len = 40) =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, max).map((x) => x.slice(0, len)) : [];
 
@@ -47,7 +49,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
     const age = AGES.find((a) => a.id === b.age)?.id;
     const theme = str(b.theme, 200).trim();
     if (!age || !theme) return null;
-    return { kind: "start", age, theme, hero: cleanCharacter(b.hero) };
+    return { kind: "start", age, minutes: minutesFor(b.minutes, age), theme, hero: cleanCharacter(b.hero) };
   }
   if (b.kind === "continue") {
     const s = (b.story ?? {}) as Partial<Story>;
@@ -57,6 +59,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
       kind: "continue",
       story: {
         age,
+        minutes: minutesFor(s.minutes, age),
         title: str(s.title, 120),
         theme: str(s.theme, 200),
         world: str(s.world, 400),

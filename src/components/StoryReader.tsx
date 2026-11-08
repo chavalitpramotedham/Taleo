@@ -85,10 +85,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       setError(null);
       const body =
         s.segments.length === 0
-          ? { kind: "start", age: s.age, theme: s.theme, hero: s.hero }
+          ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero }
           : {
               kind: "continue",
-              story: { age: s.age, theme: s.theme, world: s.world, title: s.title, hero: s.hero, cast: s.cast, segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })) },
+              story: {
+                age: s.age,
+                minutes: s.minutes,
+                theme: s.theme,
+                world: s.world,
+                title: s.title,
+                hero: s.hero,
+                cast: s.cast,
+                segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })),
+              },
             };
       try {
         const res = await fetch("/api/story", {

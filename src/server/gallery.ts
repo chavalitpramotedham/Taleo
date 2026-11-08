@@ -116,22 +116,3 @@ export async function deleteMyStories(authorId: string): Promise<number> {
   ]);
   return mine.length;
 }
-
-/** Reassigns every story still attributed to the legacy admin placeholder
- *  (published before accounts existed, or backfilled to it since) to a real
- *  account - a one-off the admin runs to claim them as their own. Returns
- *  how many moved. */
-export async function reassignLegacyStories(toId: string, toUsername: string): Promise<number> {
-  const index = await listGallery();
-  const legacy = index.filter((e) => e.authorId === ADMIN_USER_ID);
-  if (legacy.length === 0) return 0;
-  const nextIndex = index.map((e) => (e.authorId === ADMIN_USER_ID ? { ...e, authorId: toId, authorUsername: toUsername } : e));
-  await Promise.all([
-    writeJson(INDEX_PATH, nextIndex),
-    ...legacy.map(async (e) => {
-      const full = await readJson<Story>(storyPath(e.id));
-      if (full) await writeJson(storyPath(e.id), { ...full, authorId: toId, authorUsername: toUsername });
-    }),
-  ]);
-  return legacy.length;
-}

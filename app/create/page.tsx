@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { AGES, type AgeId, ageById } from "@/lib/ages";
+import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter, type Preset } from "@/lib/presets";
 import type { CharacterDef, CharacterResponse, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
@@ -10,6 +10,7 @@ import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 
 const AGE_KEY = "taleo.age";
+const MINUTES_KEY = "taleo.minutes";
 type Step = 0 | 1 | 2;
 const GROUPS = [
   { key: "all", label: "Everyone" },
@@ -29,6 +30,7 @@ export default function CreatePage() {
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(0);
   const [age, setAge] = useState<AgeId | null>(null);
+  const [minutes, setMinutes] = useState<number | null>(null);
 
   const [group, setGroup] = useState<(typeof GROUPS)[number]["key"]>("all");
   const [presetKey, setPresetKey] = useState<string | null>(null);
@@ -46,6 +48,8 @@ export default function CreatePage() {
     try {
       const saved = localStorage.getItem(AGE_KEY) as AgeId | null;
       if (saved && AGES.some((a) => a.id === saved)) setAge(saved);
+      const savedMinutes = Number(localStorage.getItem(MINUTES_KEY));
+      if (Number.isFinite(savedMinutes) && savedMinutes >= MIN_MINUTES && savedMinutes <= MAX_MINUTES) setMinutes(savedMinutes);
     } catch {}
   }, []);
 
@@ -63,6 +67,8 @@ export default function CreatePage() {
 
   const theme = themeText.trim() || THEMES.find((t) => t.key === themeKey)?.line || "";
   const canNext = step === 0 ? Boolean(age) : step === 1 ? Boolean(hero) : Boolean(theme);
+  const recommendedMinutes = age ? ageById(age).recommendedMinutes : null;
+  const effectiveMinutes = minutes ?? recommendedMinutes ?? MIN_MINUTES;
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
   const drawCustom = async () => {
@@ -92,6 +98,7 @@ export default function CreatePage() {
     if (!age || !hero || !theme || !session?.user.username) return;
     try {
       localStorage.setItem(AGE_KEY, age);
+      localStorage.setItem(MINUTES_KEY, String(effectiveMinutes));
     } catch {}
     const story: Story = {
       id: newId(),
@@ -99,6 +106,7 @@ export default function CreatePage() {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       age,
+      minutes: effectiveMinutes,
       theme,
       world: "",
       hero: { ...hero, id: "hero" },
@@ -150,6 +158,38 @@ export default function CreatePage() {
             </button>
           ))}
         </div>
+      )}
+
+      {step === 0 && age && (
+        <section className="panel length-panel">
+          <h3>How long should it be?</h3>
+          <p className="meta">
+            {minutes === null
+              ? `Recommended for this age: about ${recommendedMinutes} minute${recommendedMinutes === 1 ? "" : "s"}. Slide to choose your own.`
+              : `About ${effectiveMinutes} minute${effectiveMinutes === 1 ? "" : "s"}, read aloud.`}
+          </p>
+          <input
+            type="range"
+            className="length-slider"
+            min={MIN_MINUTES}
+            max={MAX_MINUTES}
+            step={1}
+            value={effectiveMinutes}
+            onChange={(e) => setMinutes(Number(e.target.value))}
+            aria-label="Story length in minutes"
+            aria-valuetext={`${effectiveMinutes} minutes`}
+            style={{
+              background: `linear-gradient(to right, var(--russet) ${((effectiveMinutes - MIN_MINUTES) / (MAX_MINUTES - MIN_MINUTES)) * 100}%, var(--rule) 0%)`,
+            }}
+          />
+          <div className="length-ticks" aria-hidden>
+            {Array.from({ length: MAX_MINUTES - MIN_MINUTES + 1 }, (_, i) => MIN_MINUTES + i).map((m) => (
+              <span key={m} className={`length-tick ${m === recommendedMinutes ? "recommended" : ""}`}>
+                {m}
+              </span>
+            ))}
+          </div>
+        </section>
       )}
 
       {step === 1 && (

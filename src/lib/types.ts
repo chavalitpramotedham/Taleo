@@ -56,6 +56,8 @@ export interface Story {
   createdAt: number;
   updatedAt: number;
   age: AgeId;
+  /** Target read-aloud length in minutes (3-8), chosen alongside age. */
+  minutes: number;
   theme: string;
   /** Art direction for the whole book: place, season, light, palette. */
   world: string;
@@ -106,13 +108,14 @@ export interface RatingRecord {
 export interface StartRequest {
   kind: "start";
   age: AgeId;
+  minutes: number;
   theme: string;
   hero: CharacterDef;
 }
 
 export interface ContinueRequest {
   kind: "continue";
-  story: Pick<Story, "age" | "theme" | "world" | "hero" | "cast" | "segments" | "title">;
+  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "cast" | "segments" | "title">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;
