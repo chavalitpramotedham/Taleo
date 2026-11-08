@@ -20,6 +20,11 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   const inflight = useRef(new Set<string>());
   const storyRef = useRef(story);
   storyRef.current = story;
+  // Only the page on screen shows its painting as it streams in; the rest
+  // paint quietly in the background (no re-render per chunk), which keeps
+  // reading smooth while several pictures are being made at once.
+  const focusRef = useRef(focus);
+  focusRef.current = focus;
 
   const paint = useCallback(
     async (seg: number, idx: number) => {
@@ -50,7 +55,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           if (done) break;
           text += decoder.decode(value, { stream: true });
           const now = performance.now();
-          if (now - last > 120) {
+          if (now - last > 250 && focusRef.current === key) {
             last = now;
             setLive((l) => ({ ...l, [key]: extractSvgMarkup(text) }));
           }
