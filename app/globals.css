@@ -7226,3 +7226,10 @@ main:has(.reader) {
   padding: 0 20px;
   white-space: nowrap;
 }
+
+/* Buttons inside popups are soft rounded rectangles, in keeping with the
+   popup's own corners (as in the story preview) - not pills or circles. */
+.modal-panel .btn,
+.modal-panel .char-save-btn {
+  border-radius: 12px;
+}
