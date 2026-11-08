@@ -36,8 +36,9 @@ export default function Home() {
       <ol className="steps" aria-label="How it works">
         {STEPS.map((s) => (
           <li key={s.n} className="step">
-            <span className="numeral">{s.n}</span>
-            <h3>{s.title}</h3>
+            <h3>
+              <span className="numeral">{s.n}</span> {s.title}
+            </h3>
             <p>{s.text}</p>
           </li>
         ))}

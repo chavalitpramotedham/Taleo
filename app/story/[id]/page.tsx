@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import type { Story } from "@/lib/types";
 import { getStory, saveStory } from "@/lib/storage";
 import { StoryReader } from "@/components/StoryReader";
+import { PageLoading } from "@/components/PageLoading";
 
 export default function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,7 +23,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
     });
   }, []);
 
-  if (story === undefined) return null;
+  if (story === undefined) return <PageLoading label="Opening the story…" />;
   if (story === null)
     return (
       <div className="container empty">

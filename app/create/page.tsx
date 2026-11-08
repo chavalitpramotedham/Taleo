@@ -10,6 +10,7 @@ import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { MAX_CHARACTERS } from "@/lib/characters";
+import { PageLoading } from "@/components/PageLoading";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -141,7 +142,7 @@ export default function CreatePage() {
     } else start();
   };
 
-  if (status !== "authenticated" || !session?.user.username) return null;
+  if (status !== "authenticated" || !session?.user.username) return <PageLoading />;
 
   return (
     <div className="container wizard">

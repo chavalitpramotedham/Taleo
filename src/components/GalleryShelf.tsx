@@ -7,6 +7,7 @@ import { storeUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { Ornament, StarGlyph } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
+import { PageLoading } from "./PageLoading";
 
 export type GallerySort = "recent" | "rating";
 
@@ -70,7 +71,9 @@ export function GalleryShelf({
         {heading}
         {pills}
       </header>
-      {stories === null ? null : error ? (
+      {stories === null && !error ? (
+        <PageLoading label="Fetching stories…" compact />
+      ) : error ? (
         <div className="empty">
           <h2>The library couldn&apos;t open just now</h2>
           <p className="meta">Please try again in a moment.</p>

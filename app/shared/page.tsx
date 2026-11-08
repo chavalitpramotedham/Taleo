@@ -6,6 +6,7 @@ import type { Story } from "@/lib/types";
 import { decodeShared } from "@/lib/share";
 import { newId, saveStory } from "@/lib/storage";
 import { StoryReader } from "@/components/StoryReader";
+import { PageLoading } from "@/components/PageLoading";
 
 export default function SharedPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function SharedPage() {
     setStory(decodeShared(window.location.hash));
   }, []);
 
-  if (story === undefined) return null;
+  if (story === undefined) return <PageLoading label="Opening the story…" />;
   if (!story)
     return (
       <div className="container empty">

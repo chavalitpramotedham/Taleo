@@ -48,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="nav-row">
               <nav className="topnav">
                 <Link href="/create" className="nav-link">
-                  New story
+                  Begin a story
                 </Link>
                 <Link href="/store" className="nav-link">
                   Library

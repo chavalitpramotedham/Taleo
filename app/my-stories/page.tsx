@@ -8,6 +8,7 @@ import { storeUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { Ornament, StarGlyph } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
+import { PageLoading } from "@/components/PageLoading";
 
 type Sort = "recent" | "rating";
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
@@ -40,7 +41,7 @@ export default function MyStoriesPage() {
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  if (status !== "authenticated" || stories === null) return null;
+  if (status !== "authenticated" || stories === null) return <PageLoading label="Fetching your bookshelf…" />;
 
   return (
     <div className="container">

@@ -514,7 +514,7 @@ main {
 .step .numeral {
   font-family: var(--font-title);
   color: var(--russet);
-  font-size: 1.3rem;
+  margin-right: 4px;
 }
 .step h3 {
   margin: 0 0 2px;
@@ -553,11 +553,16 @@ main {
 }
 .wizard-head {
   text-align: center;
-  margin-bottom: 26px;
+  /* One consistent gap between every page header and its content. */
+  margin: 4px 0 clamp(24px, 4vw, 36px);
 }
 .wizard-head h1 {
   font-size: clamp(2rem, 4.6vw, 2.9rem);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+/* Tabs/pills under a page header sit clearly apart from the subtitle. */
+.wizard-head .filter-row {
+  margin: 18px 0 0;
 }
 .sub {
   color: var(--ink-soft);
@@ -2849,7 +2854,7 @@ main {
 }
 
 /* ---------- home on phones: everything above the fold that matters ----------
-   A shorter, wider crop of the picture, a two-line title sized to the
+   A slimmer frame round the picture, a two-line title sized to the
    screen, and tighter spacing, so the library starts much sooner. */
 @media (max-width: 760px) {
   .home {
@@ -2858,15 +2863,9 @@ main {
   .hero {
     gap: 14px;
   }
+  /* The whole painting, uncropped, in a slimmer frame. */
   .hero-art {
     padding: 6px;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-  }
-  .hero-art svg {
-    flex: none;
   }
   .hero h1 {
     line-height: 1.12;
@@ -2917,4 +2916,26 @@ main {
   background: var(--page);
   border: 1px solid var(--rule);
   padding: 3px 8px;
+}
+
+/* Waiting on data: centred brand leaves + a line of text, fading in after
+   a beat so instant loads never flash it. */
+.page-loading {
+  min-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease 0.25s both;
+}
+.page-loading.compact {
+  min-height: 0;
+  padding: 36px 16px;
+}
+.page-loading .meta {
+  margin: 0;
+  font-style: italic;
 }

@@ -7,6 +7,7 @@ import { MAX_CHARACTERS } from "@/lib/characters";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { CharacterCreatorModal, CharacterNotesField } from "@/components/CharacterCreatorModal";
 import { LeafLoader } from "@/components/Icons";
+import { PageLoading } from "@/components/PageLoading";
 
 export default function MyCharactersPage() {
   const { status } = useSession();
@@ -27,7 +28,7 @@ export default function MyCharactersPage() {
       .catch(() => setCharacters([]));
   }, [status]);
 
-  if (status !== "authenticated" || characters === null) return null;
+  if (status !== "authenticated" || characters === null) return <PageLoading label="Gathering your characters…" />;
 
   return (
     <div className="container">

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { LeafLoader } from "@/components/Icons";
+import { PageLoading } from "@/components/PageLoading";
 import {
   CONTACT_MAX_FILES,
   CONTACT_MAX_FILE_MB,
@@ -41,7 +42,7 @@ export default function ContactPage() {
   filesRef.current = files;
   useEffect(() => () => filesRef.current.forEach((f) => URL.revokeObjectURL(f.preview)), []);
 
-  if (status !== "authenticated" || !session) return null;
+  if (status !== "authenticated" || !session) return <PageLoading />;
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;

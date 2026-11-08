@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { RatingRecord } from "@/lib/types";
 import { StarRating } from "@/components/StarRating";
+import { PageLoading } from "@/components/PageLoading";
 
 export default function StoryRatingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -28,7 +29,7 @@ export default function StoryRatingsPage({ params }: { params: Promise<{ id: str
       .catch(() => setError(true));
   }, [status, id]);
 
-  if (status !== "authenticated" || ratings === undefined) return null;
+  if (status !== "authenticated" || ratings === undefined) return <PageLoading />;
 
   return (
     <div className="container">
