@@ -5940,3 +5940,13 @@ html[data-night] .reader-tools .music-control.playing {
   margin: 6px 0 0;
   font-style: italic;
 }
+
+/* The title's falling leaves wait (resting in place) while the page loads
+   and while night/day switches, then carry on - so they never stutter
+   against the work the page is doing. See NightModeProvider. */
+.leaf-whirl {
+  animation-play-state: paused;
+}
+html.brand-live .leaf-whirl {
+  animation-play-state: running;
+}

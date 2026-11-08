@@ -39,6 +39,18 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
   const [veil, setVeil] = useState<{ colour: string; phase: "in" | "out" } | null>(null);
   const busy = useRef(false);
 
+  // The title's leaves start falling once the page has settled.
+  useEffect(() => {
+    const root = document.documentElement;
+    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
+    let t = 0;
+    const idle = ric(() => (t = window.setTimeout(() => root.classList.add("brand-live"), 500)), { timeout: 2000 }) as number;
+    return () => {
+      (window.cancelIdleCallback ?? clearTimeout)(idle);
+      window.clearTimeout(t);
+    };
+  }, []);
+
   // Pick up what the pre-paint script applied.
   useEffect(() => {
     if (document.documentElement.dataset.night === "1") {
@@ -59,6 +71,10 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
   const toggle = useCallback(async () => {
     if (busy.current) return;
     busy.current = true;
+    // Rest the title's leaves through the switch; they carry on after.
+    const root = document.documentElement;
+    root.classList.remove("brand-live");
+    const resume = () => window.setTimeout(() => root.classList.add("brand-live"), 600);
     const next = !night;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
@@ -66,6 +82,7 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
       setSettled(true);
       setNight(next);
       busy.current = false;
+      resume();
       return;
     }
     if (!next) {
@@ -83,6 +100,7 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     await sleep(560);
     setVeil(null);
     busy.current = false;
+    resume();
   }, [night]);
 
   return (
