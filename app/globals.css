@@ -470,8 +470,13 @@ main {
 .music-control-mute {
   border-radius: 0 999px 999px 0;
 }
-.music-control-mute[aria-pressed="true"] {
+/* Music playing = active: the speaker and the whole pill's outline in
+   rust. Muted: a plain speaker with its X, in the normal ink. */
+.music-control.playing .music-control-mute {
   color: var(--russet);
+}
+.music-control-mute[aria-pressed="true"] {
+  color: var(--ink-soft);
 }
 .music-dropdown {
   position: absolute;
@@ -5897,4 +5902,13 @@ html[data-night] .reader-tools .music-control-tune {
   .book-stage.opening .book {
     animation-duration: 0.01s;
   }
+}
+
+.music-control.playing,
+.reader-tools .music-control.playing,
+html[data-night] .reader-tools .music-control.playing {
+  border-color: color-mix(in srgb, var(--russet) 70%, transparent);
+}
+.reader-tools .music-control.playing .music-control-tune {
+  border-right-color: color-mix(in srgb, var(--russet) 35%, transparent);
 }

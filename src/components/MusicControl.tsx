@@ -70,7 +70,7 @@ export function MusicControl() {
   const trackName = trackById(trackId).name;
 
   return (
-    <div className="music-control" ref={ref}>
+    <div className={`music-control ${muted ? "" : "playing"}`} ref={ref}>
       <button
         type="button"
         className="music-control-half music-control-tune"
