@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
+import { blobUrl } from "./store";
 
 /**
  * Neural read-aloud voice, so stories are read in a calm, well-spoken
@@ -106,11 +107,10 @@ const cacheKey = (text: string, kind: TtsKind) =>
 async function readCache(key: string): Promise<Buffer | null> {
   try {
     if (BLOB_TOKEN) {
-      const { list } = await import("@vercel/blob");
-      const { blobs } = await list({ prefix: key, token: BLOB_TOKEN, limit: 1 });
-      const blob = blobs.find((b) => b.pathname === key);
-      if (!blob) return null;
-      const res = await fetch(blob.url);
+      // Straight from its public address: no list() operation per clip.
+      const url = blobUrl(key);
+      if (!url) return null;
+      const res = await fetch(url);
       return res.ok ? Buffer.from(await res.arrayBuffer()) : null;
     }
     return await fs.readFile(path.join(process.cwd(), ".data", key));

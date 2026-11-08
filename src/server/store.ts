@@ -40,12 +40,21 @@ async function localWrite(pathname: string, data: unknown) {
   await fs.writeFile(file, JSON.stringify(data));
 }
 
+/** A public blob's address, worked out from the store id in the token
+ *  ("vercel_blob_rw_<storeId>_<secret>"). Reading it directly costs no
+ *  Blob operation at all - unlike list(), an "advanced" operation with a
+ *  small monthly allowance, which used to run before every single read. */
+export function blobUrl(pathname: string): string | null {
+  const storeId = BLOB_TOKEN?.split("_")[3];
+  return storeId ? `https://${storeId.toLowerCase()}.public.blob.vercel-storage.com/${pathname}` : null;
+}
+
 async function blobRead<T>(pathname: string): Promise<T | null> {
-  const { list } = await import("@vercel/blob");
-  const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN, limit: 1 });
-  const blob = blobs.find((b) => b.pathname === pathname);
-  if (!blob) return null;
-  const res = await fetch(blob.url, { cache: "no-store" });
+  const url = blobUrl(pathname);
+  if (!url) throw new Error("Blob token is malformed.");
+  // Served from Blob's CDN (a cache hit costs nothing); overwriting a file
+  // refreshes the cached copy within about a minute.
+  const res = await fetch(url, { cache: "no-store" });
   if (res.status === 404) return null;
   // Anything else (403 when the store is suspended or over its limits,
   // 5xx...) is a real failure - never pretend the file is simply missing.
