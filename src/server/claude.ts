@@ -77,6 +77,8 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   parts.push(`READER AGE: ${age.label} years (age id ${age.id}). Follow that age guide closely.`);
   parts.push(`TARGET LENGTH: about ${minutes} minute${minutes === 1 ? "" : "s"} read aloud in total, across ${totalSegments} segments.`);
   parts.push(`THEME: ${theme}`);
+  const moral = isStart ? "" : req.story.moral?.trim();
+  if (moral) parts.push(`THE STORY'S HEART (the lesson this book builds to and lands at the end): ${moral}`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(
     `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
@@ -94,7 +96,7 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   if (isStart) {
     const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
     parts.push(
-      `Write segment 1 of ${totalSegments}: give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening, set up the theme, and end on an exciting moment with a choice for the child.`,
+      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end. Then give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening that hooks the child straight away, plant the situation that will test the heart of the story, and end on an exciting moment with a choice for the child.`,
     );
   } else {
     const story = segments
@@ -115,8 +117,8 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
     }
     parts.push(
       isLast
-        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, then bring the story to a warm, satisfying ending (a cosy, happy last page). Set choice to null and ending to true. Leave title and world empty.`
-        : `Write segment ${index} of ${totalSegments}: show the result of the choice, add a fun new twist, and end with a new choice for the child. Set ending to false. Leave title and world empty.`,
+        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words before a cosy last page. Set choice to null and ending to true. Leave title, world and moral empty.`
+        : `Write segment ${index} of ${totalSegments}: show the result of the choice, add a fun new twist that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world and moral empty.`,
     );
   }
   parts.push(
@@ -166,6 +168,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
   return {
     title: out.title?.trim() || undefined,
     world: out.world?.trim() || undefined,
+    moral: out.moral?.trim().slice(0, 200) || undefined,
     newCharacters,
     segment: { pages, choice, chosen: null },
     ending: opts.isLast || (!choice && out.ending),

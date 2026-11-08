@@ -83,6 +83,9 @@ export interface Story {
   theme: string;
   /** Art direction for the whole book: place, season, light, palette. */
   world: string;
+  /** The story's heart: the one lesson the book builds to and lands at the
+   *  end (chosen when the story starts, then kept for every later part). */
+  moral?: string;
   hero: CharacterDef;
   /** Up to 2 more central characters chosen alongside the hero (ids
    *  "companion1", "companion2") - together with hero, up to 3 protagonists
@@ -144,7 +147,7 @@ export interface StartRequest {
 
 export interface ContinueRequest {
   kind: "continue";
-  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title">;
+  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;
@@ -152,6 +155,7 @@ export type StoryRequest = StartRequest | ContinueRequest;
 export interface SegmentResponse {
   title?: string;
   world?: string;
+  moral?: string;
   newCharacters: CharacterDef[];
   segment: Segment;
   ending: boolean;

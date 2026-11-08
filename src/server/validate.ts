@@ -71,6 +71,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
         title: str(s.title, 120),
         theme: str(s.theme, 200),
         world: str(s.world, 400),
+        moral: str(s.moral, 200),
         hero: cleanCharacter(s.hero),
         companions: cleanCompanions(s.companions),
         cast: (Array.isArray(s.cast) ? s.cast : []).slice(0, 10).map((c, i) => cleanCharacter(c, `friend${i}`)),

@@ -44,6 +44,11 @@ export const SegmentSchema = z.object({
   world: z
     .string()
     .describe("First segment only (empty afterwards): art direction for the whole book in 1-2 sentences: place, season, time of day, light, signature colours"),
+  moral: z
+    .string()
+    .describe(
+      "First segment only (empty afterwards): the story's heart - the one warm lesson this whole book builds to and lands at the end, as a short sentence a small child understands, e.g. 'Sharing makes the fun bigger' or 'It's brave to ask for help'",
+    ),
   newCharacters: z.array(NewCharacterSchema).describe("Side characters introduced in this segment (empty if none)"),
   pages: z.array(PageSchema),
   choice: z
