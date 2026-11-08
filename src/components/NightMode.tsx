@@ -136,11 +136,16 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       if (!sw || !bar || !el) return;
       const s = sw.getBoundingClientRect();
       const b = bar.getBoundingClientRect();
-      const x = s.left - 20 + window.scrollX;
+      // On a phone the content runs edge to edge, so the lantern (a little
+      // smaller) hangs in the right-hand margin instead of over headings.
+      const phone = window.innerWidth < 640;
+      const w = phone ? 20 : 28;
+      const x = (phone ? document.documentElement.clientWidth - 13 : s.left - 20) + window.scrollX;
       const top = b.bottom + window.scrollY;
+      el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
       el.style.setProperty("--bar-y", `${top}px`);
-      el.style.setProperty("--lamp-y", `${top + 14 + 64 * 0.65}px`);
+      el.style.setProperty("--lamp-y", `${top + 14 + ((64 * w) / 28) * 0.65}px`);
     };
     // Re-measure whenever the menu could have moved - not just on window
     // resize but when the bar or its tools change size (the avatar or
