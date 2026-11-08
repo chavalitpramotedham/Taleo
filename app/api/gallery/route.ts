@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { listGallery, publishStory } from "@/server/gallery";
+import { privateUserIds } from "@/server/users";
 import type { Story } from "@/lib/types";
 
 const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? e.ratingSum / e.ratingCount : 0);
@@ -15,7 +16,9 @@ export async function GET(req: Request) {
   const limit = Math.min(200, Math.max(0, Number(url.searchParams.get("limit")) || 0));
   let stories;
   try {
-    stories = await listGallery();
+    const [all, hidden] = await Promise.all([listGallery(), privateUserIds().catch(() => new Set<string>())]);
+    // People who've made their bookshelf private don't appear in the library.
+    stories = hidden.size ? all.filter((e) => !hidden.has(e.authorId)) : all;
   } catch (err) {
     // Never cache (or show) an "empty library" when storage is unreachable.
     console.error("[gallery] couldn't read the library", err);

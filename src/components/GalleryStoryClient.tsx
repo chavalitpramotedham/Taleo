@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import type { Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
 import { StoryReader } from "./StoryReader";
@@ -9,6 +10,12 @@ import { fetchGalleryStory } from "@/lib/gallery-client";
 
 export function GalleryStoryClient({ story: initial, partial = false }: { story: Story | null; partial?: boolean }) {
   const router = useRouter();
+  const { status } = useSession();
+  const signedIn = status === "authenticated";
+  // Reading is open to everyone; keeping a copy (like making or rating a
+  // story) needs an account - signed out, the button leads to sign-in and
+  // back here.
+  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`);
   // The page arrives with only the opening paintings; fetch the full story
   // (every painting) in the background and swap it in once it lands.
   const [story, setStory] = useState(initial);
@@ -46,5 +53,5 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
     router.push(`/story/${copy.id}`);
   };
 
-  return <StoryReader story={story} readOnly onSaveCopy={saveCopy} picturesPending={partial && story === initial} />;
+  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep this story"} picturesPending={partial && story === initial} />;
 }

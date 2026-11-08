@@ -23,6 +23,22 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
   const name = decodeURIComponent(username);
   const profile = await getUserByUsername(name, { cacheSeconds: revalidate }).catch(() => null);
   const shown = profile?.username || name;
+  if (profile?.visibility === "private") {
+    return (
+      <div className="container">
+        <header className="wizard-head">
+          <h1>Bookshelf</h1>
+          <p className="sub">
+            by <b className="author-handle">@{shown}</b>
+          </p>
+        </header>
+        <div className="empty">
+          <h2>This bookshelf is private</h2>
+          <p className="meta">@{shown} keeps their stories to themselves.</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="container">
       <GalleryShelf

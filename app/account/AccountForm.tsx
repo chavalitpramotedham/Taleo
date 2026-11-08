@@ -1,4 +1,5 @@
 "use client";
+import type { ContentVisibility } from "@/lib/types";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -7,7 +8,38 @@ import { Avatar } from "@/components/Avatar";
 
 const sanitize = (raw: string) => raw.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 20);
 
-export function AccountForm({ username, avatarKey, isAdmin }: { username: string; avatarKey: string; isAdmin: boolean }) {
+export function AccountForm({
+  username,
+  avatarKey,
+  isAdmin,
+  visibility: initialVisibility,
+  canGoPrivate,
+}: {
+  username: string;
+  avatarKey: string;
+  isAdmin: boolean;
+  visibility: ContentVisibility;
+  /** Private bookshelves are built but not offered yet. */
+  canGoPrivate: boolean;
+}) {
+  const [visibility, setVisibility] = useState<ContentVisibility>(initialVisibility);
+  const [visibilityError, setVisibilityError] = useState<string | null>(null);
+  const chooseVisibility = async (v: ContentVisibility) => {
+    if (v === visibility || (v === "private" && !canGoPrivate)) return;
+    const before = visibility;
+    setVisibility(v);
+    setVisibilityError(null);
+    const res = await fetch("/api/user/visibility", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibility: v }),
+    }).catch(() => null);
+    if (!res?.ok) {
+      setVisibility(before);
+      const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
+      setVisibilityError(data?.error || "Couldn't save that. Please try again.");
+    }
+  };
   const router = useRouter();
   const { update } = useSession();
   const [name, setName] = useState(username);
@@ -155,6 +187,36 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
         <p className="meta">3-20 letters, numbers or underscores.</p>
         {nameSaved && <p className="meta">Saved.</p>}
         {nameError && <p className="error">{nameError}</p>}
+      </section>
+
+      <section className="panel">
+        <h3>Who can see your stories</h3>
+        <div className="visibility-options" role="radiogroup" aria-label="Who can see your stories">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={visibility === "public"}
+            className={`visibility-option ${visibility === "public" ? "selected" : ""}`}
+            onClick={() => void chooseVisibility("public")}
+          >
+            <b>Public</b>
+            <span>Your finished stories appear in the library and on your bookshelf page, for anyone to read.</span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={visibility === "private"}
+            aria-disabled={!canGoPrivate}
+            className={`visibility-option ${visibility === "private" ? "selected" : ""} ${canGoPrivate ? "" : "unavailable"}`}
+            onClick={() => void chooseVisibility("private")}
+          >
+            <b>
+              Private {!canGoPrivate && <span className="soon-pill">Coming soon</span>}
+            </b>
+            <span>Only you can see your stories. They stay off the library and your bookshelf page.</span>
+          </button>
+        </div>
+        {visibilityError && <p className="error">{visibilityError}</p>}
       </section>
 
       <section className="panel">

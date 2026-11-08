@@ -1,4 +1,4 @@
-import type { UserProfile } from "@/lib/types";
+import type { ContentVisibility, UserProfile } from "@/lib/types";
 import { AVATAR_KEYS } from "@/lib/presets";
 import { readJson, writeJson } from "./store";
 
@@ -122,4 +122,27 @@ export async function setAvatar(id: string, key: string): Promise<UserProfile> {
 export async function deleteUser(id: string) {
   const users = await listUsers();
   await writeUsers(users.filter((u) => u.id !== id));
+}
+
+/** Private profiles are built but not offered yet (a likely paid feature):
+ *  until TALEO_ALLOW_PRIVATE=1, everyone stays public. */
+export const privateProfilesAvailable = () => process.env.TALEO_ALLOW_PRIVATE === "1";
+
+export async function setVisibility(id: string, visibility: ContentVisibility): Promise<UserProfile> {
+  if (visibility !== "public" && visibility !== "private") throw new Error("Not a valid setting.");
+  if (visibility === "private" && !privateProfilesAvailable()) throw new Error("Private bookshelves aren't available yet.");
+  const users = await listUsers();
+  const i = users.findIndex((u) => u.id === id);
+  if (i < 0) throw new Error("Sign in again and retry.");
+  const profile: UserProfile = { ...users[i], visibility };
+  const next = [...users];
+  next[i] = profile;
+  await writeUsers(next);
+  return profile;
+}
+
+/** Ids of people whose stories are hidden from others (private profiles). */
+export async function privateUserIds(opts: { cacheSeconds?: number } = {}): Promise<Set<string>> {
+  const users = await listUsers(opts);
+  return new Set(users.filter((u) => u.visibility === "private").map((u) => u.id));
 }

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import type { Story } from "@/lib/types";
 import { decodeShared } from "@/lib/share";
@@ -11,6 +12,12 @@ import { MapleMark } from "@/components/Icons";
 
 export default function SharedPage() {
   const router = useRouter();
+  const { status } = useSession();
+  const signedIn = status === "authenticated";
+  // Reading is open to everyone; keeping a copy (like making or rating a
+  // story) needs an account - signed out, the button leads to sign-in and
+  // back here.
+  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`);
   const [story, setStory] = useState<Story | null | undefined>(undefined);
 
   useEffect(() => {
@@ -36,5 +43,5 @@ export default function SharedPage() {
     router.push(`/story/${copy.id}`);
   };
 
-  return <StoryReader story={story} readOnly onSaveCopy={saveCopy} />;
+  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep this story"} />;
 }

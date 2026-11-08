@@ -37,12 +37,14 @@ interface Props {
   update?: (fn: (s: Story) => Story) => void;
   readOnly?: boolean;
   onSaveCopy?: () => void;
+  /** The keep-a-copy button's words, when not the usual "Keep this story". */
+  saveCopyLabel?: string;
   /** Read-only stories whose later paintings are still loading in the
    *  background: show a gentle placeholder for those pages, not a sketch. */
   picturesPending?: boolean;
 }
 
-export function StoryReader({ story, update, readOnly = false, onSaveCopy, picturesPending = false }: Props) {
+export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveCopyLabel, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
   // A brand-new story starts as a closed book (see BookCover): its cover
   // fills in while the first page is written and painted, then it swings
@@ -690,7 +692,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
             ? onSaveCopy && (
                 <button className="btn btn-primary end-main" onClick={onSaveCopy}>
                   <MapleMark />
-                  Keep this story
+                  {saveCopyLabel ?? "Keep this story"}
                 </button>
               )
             : (

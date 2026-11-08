@@ -6429,3 +6429,47 @@ html.brand-live .leaf-whirl {
 .admin-links li {
   margin: 6px 0;
 }
+
+/* Manage account: public / private stories. */
+.visibility-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.visibility-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--rule-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.visibility-option span {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.visibility-option.selected {
+  border-color: var(--russet);
+  box-shadow: inset 0 0 0 1px var(--russet);
+}
+.visibility-option.unavailable {
+  cursor: default;
+  opacity: 0.6;
+}
+.soon-pill {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-family: var(--font-caps);
+  font-size: 0.75rem !important;
+  letter-spacing: 0.04em;
+  color: var(--russet) !important;
+  border: 1px solid color-mix(in srgb, var(--russet) 40%, transparent);
+  vertical-align: 2px;
+}

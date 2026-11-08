@@ -132,7 +132,12 @@ export interface UserProfile {
   avatarKey: string;
   isAdmin: boolean;
   createdAt: number;
+  /** Who can find this person's stories in the library and on their
+   *  bookshelf page. Missing means "public" (the default for everyone). */
+  visibility?: ContentVisibility;
 }
+
+export type ContentVisibility = "public" | "private";
 
 /** One reader's rating (and optional comment) on a published story. One per user per story. */
 export interface RatingRecord {
