@@ -16,9 +16,9 @@ export default function AboutPage() {
         {/* Bedtime reading, faded into the page with the same painted edge
             as the story illustrations. */}
         <figure className="about-hero">
-          <svg viewBox="0 0 400 400" role="img" aria-label="A dad reading a picture book to his laughing baby at bedtime, the moon outside the window">
-            <image href="/about/bedtime-story.jpg" width="400" height="400" mask="url(#tl-vignette-square)" preserveAspectRatio="xMidYMid slice" />
-            <rect className="paint-dim" width="400" height="400" mask="url(#tl-vignette-square)" />
+          <svg viewBox="0 0 400 400" className="painted-edge-square" role="img" aria-label="A dad reading a picture book to his laughing baby at bedtime, the moon outside the window">
+            <image href="/about/bedtime-story.jpg" width="400" height="400" preserveAspectRatio="xMidYMid slice" />
+            <rect className="paint-dim" width="400" height="400" />
           </svg>
         </figure>
         <h1>Why I made Taleo</h1>

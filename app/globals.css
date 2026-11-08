@@ -1372,33 +1372,60 @@ main {
 }
 .flip-shade-next {
   left: 0;
+  width: 100%;
   box-shadow: 22px 0 34px -10px rgba(60, 40, 20, 0.5);
   animation-name: shadeSweep;
 }
 .flip-shade-prev {
   right: 0;
+  width: 100%;
   box-shadow: -22px 0 34px -10px rgba(60, 40, 20, 0.5);
-  animation-name: shadeSweep;
+  animation-name: shadeSweepBack;
 }
+/* The shadow's edge follows the leaf toward the hinge by sliding (a
+   transform the GPU moves for free) rather than shrinking its width,
+   which would re-lay-out and repaint the page on every frame of a turn. */
 @keyframes shadeSweep {
   0% {
-    width: 100%;
+    transform: translateX(0);
     opacity: 0;
   }
   18% {
-    width: 98%;
+    transform: translateX(-2%);
     opacity: 1;
   }
   50% {
-    width: 74%;
+    transform: translateX(-26%);
     opacity: 1;
   }
   80% {
-    width: 31%;
+    transform: translateX(-69%);
     opacity: 0.7;
   }
   100% {
-    width: 0%;
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+@keyframes shadeSweepBack {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  18% {
+    transform: translateX(2%);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(26%);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(69%);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(100%);
     opacity: 0;
   }
 }
@@ -5000,7 +5027,7 @@ html[data-night] .topbar {
 .page-enter {
   /* no fill-mode: once finished nothing lingers, so the page doesn't keep
      its own stacking layer (pop-ups inside it must stack normally) */
-  animation: pageEnter 0.32s ease-out;
+  animation: pageEnter 0.2s ease-out;
 }
 @keyframes pageEnter {
   from {
@@ -5316,5 +5343,42 @@ html[data-night] .gender-opt.open.on {
       0 0 0 1px rgba(255, 196, 120, 0.06),
       0 20px 34px -16px rgba(0, 0, 0, 0.85),
       0 0 26px -10px rgba(255, 186, 104, 0.22);
+  }
+}
+
+/* ---------- the watercolour edge, as a pre-drawn mask ---------- */
+/* Every painting's soft, ragged border comes from one small image (drawn
+   once from the same watercolour filter) used as a mask by the GPU, so
+   pictures cost almost nothing to show, scroll, open or re-theme. */
+.painted-edge,
+.painted-edge-square {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+.painted-edge {
+  -webkit-mask-image: url(/art/paint-edge.png);
+  mask-image: url(/art/paint-edge.png);
+}
+.painted-edge-square {
+  -webkit-mask-image: url(/art/paint-edge-square.png);
+  mask-image: url(/art/paint-edge-square.png);
+}
+
+/* ---------- snappier on phones ---------- */
+/* Live background blur is costly on phones (and the cover chips are on
+   every card in a scrolling list): on touch screens the chips use a
+   slightly firmer tint instead - same look at a glance, no blur work. */
+@media (hover: none) {
+  .cover-time,
+  .story-preview-close {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 252, 244, 0.78);
+  }
+  html[data-night] .cover-time,
+  html[data-night] .story-preview-close {
+    background: rgba(22, 17, 24, 0.72);
   }
 }

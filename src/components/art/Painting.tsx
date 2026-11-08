@@ -24,14 +24,22 @@ export const Painting = memo(function Painting({
 }) {
   const clean = useMemo(() => sanitizeSvg(svg), [svg]);
   return (
-    <svg viewBox="0 0 400 300" className={className} role="img" aria-label={title} preserveAspectRatio="xMidYMid meet">
-      {/* Night only (see .paint-paper / .paint-dim): lamplit paper under the
-          paint and a soft dimming over it, both cut by the same watercolour
-          vignette as the paint - so the picture's edges stay the paint's
-          own soft, dreamy edges, never a rectangle. */}
-      {vignette && <rect className="paint-paper" width="400" height="300" mask="url(#tl-vignette)" />}
-      <g mask={vignette ? "url(#tl-vignette)" : undefined} dangerouslySetInnerHTML={{ __html: clean }} />
-      {vignette && <rect className="paint-dim" width="400" height="300" mask="url(#tl-vignette)" pointerEvents="none" />}
+    <svg
+      viewBox="0 0 400 300"
+      className={`${className || ""}${vignette ? " painted-edge" : ""}`}
+      role="img"
+      aria-label={title}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {/* The soft, ragged watercolour edge is a pre-drawn mask image on the
+          whole picture (.painted-edge) - drawn once, applied by the GPU -
+          rather than a texture filter recomputed for every painting on
+          every repaint. Night only (.paint-paper / .paint-dim): lamplit
+          paper under the paint and a soft dimming over it, inside the same
+          edge, so the picture never shows a rectangle. */}
+      {vignette && <rect className="paint-paper" width="400" height="300" />}
+      <g dangerouslySetInnerHTML={{ __html: clean }} />
+      {vignette && <rect className="paint-dim" width="400" height="300" pointerEvents="none" />}
       <rect width="400" height="300" filter="url(#tl-paper)" style={{ mixBlendMode: "multiply" }} pointerEvents="none" />
     </svg>
   );
