@@ -135,24 +135,53 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     }
   }, [story, readOnly, generate]);
 
+  // ---------------------------------------------------------------- page turning
+  // Every page change goes through turnTo, so each one - buttons, arrow
+  // keys, swipes, the page-jump grid, "Read it again", and the automatic
+  // turns when a segment starts loading or lands - plays the page-turn.
+  // A snapshot of the page being left is laid over the book as a single
+  // leaf that turns away, revealing the new page (already rendered
+  // beneath it).
+  const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; dir: 1 | -1; n: number } | null>(null);
+  const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode }>({ picture: null, words: null });
+  const indexRef = useRef(index);
+  indexRef.current = index;
+  /** True while sitting on a choice the child hasn't answered: no reading ahead. */
+  const forwardBlockedRef = useRef(false);
+  const flipCount = useRef(0);
+  const turnTo = useCallback(
+    (target: number, opts: { force?: boolean } = {}) => {
+      const from = indexRef.current;
+      const to = Math.max(0, Math.min(lastIndex, target));
+      if (to === from) return;
+      if (to > from && forwardBlockedRef.current && !opts.force) return;
+      flipCount.current += 1;
+      setOutgoing({ ...currentContentRef.current, dir: to > from ? 1 : -1, n: flipCount.current });
+      indexRef.current = to;
+      setIndex(to);
+    },
+    [lastIndex],
+  );
+  const go = useCallback((d: number) => turnTo(indexRef.current + d), [turnTo]);
+
   // When a new segment lands, turn to its first page.
   const segCount = story.segments.length;
   const prevSegCount = useRef(segCount);
   useEffect(() => {
     if (segCount > prevSegCount.current) {
       const firstNew = views.findIndex((v) => v.kind === "page" && v.seg === segCount - 1);
-      if (firstNew >= 0) setIndex(firstNew);
+      if (firstNew >= 0) turnTo(firstNew, { force: true });
     }
     prevSegCount.current = segCount;
-  }, [segCount, views]);
+  }, [segCount, views, turnTo]);
 
   useEffect(() => {
     if (busy) {
-      setIndex(views.length - 1);
+      turnTo(views.length - 1, { force: true });
       const t = window.setInterval(() => setLoadingLine((n) => (n + 1) % LOADING_LINES.length), 2600);
       return () => window.clearInterval(t);
     }
-  }, [busy, views.length]);
+  }, [busy, views.length, turnTo]);
 
   // Once a story is finished and every page is painted, it joins the public
   // story store - or, if it was already published early (to share or rate
@@ -180,17 +209,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   // ---------------------------------------------------------------- navigation
-  // A snapshot of the page being left, so it can flip away on top while the
-  // new page (already rendered beneath it) is revealed underneath.
-  const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; dir: 1 | -1 } | null>(null);
-  const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode }>({ picture: null, words: null });
-  const go = useCallback(
-    (d: number) => {
-      setOutgoing({ ...currentContentRef.current, dir: d > 0 ? 1 : -1 });
-      setIndex((i) => Math.max(0, Math.min(lastIndex, i + d)));
-    },
-    [lastIndex],
-  );
+  // The page-jump strip opens with the page you're on centred in it.
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!overviewOpen) return;
+    const strip = stripRef.current;
+    const current = strip?.querySelector<HTMLElement>(".overview-item.current");
+    if (strip && current) strip.scrollLeft = current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2;
+  }, [overviewOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -207,13 +233,30 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     window.scrollTo({ top: 0 });
   }, [index]);
 
-  const touchX = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => (touchX.current = e.touches[0].clientX);
+  // Swipe to turn: right-to-left = next page, left-to-right = previous.
+  // Only a clearly sideways, single-finger swipe counts, so scrolling a
+  // tall page or pinching never turns it by accident.
+  const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const el = e.target as HTMLElement;
+    if (e.touches.length !== 1 || el.closest("input, textarea, select")) {
+      touchStart.current = null;
+      return;
+    }
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) touchStart.current = null;
+  };
   const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchX.current;
-    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-    touchX.current = null;
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    const fast = Date.now() - start.t < 300;
+    if (Math.abs(dx) < (fast ? 30 : 50) || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    go(dx < 0 ? 1 : -1);
   };
 
   // ---------------------------------------------------------------- read aloud
@@ -410,7 +453,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
         <p className="end-title">The End</p>
         <Ornament className="ornament" />
         <div className="end-actions">
-          <button className="btn btn-soft" onClick={() => setIndex(0)}>
+          <button className="btn btn-soft" onClick={() => turnTo(0, { force: true })}>
             Read it again
           </button>
           <button className="btn btn-soft" onClick={copyLink}>
@@ -437,6 +480,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   }
 
   const atChoiceUnanswered = view?.kind === "choice" && !story.segments[view.seg].chosen;
+  forwardBlockedRef.current = atChoiceUnanswered;
   const canBack = index > 0;
   const canForward = index < lastIndex && !atChoiceUnanswered;
   const position = view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
@@ -477,23 +521,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
         </div>
       </div>
 
-      <div className="book" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div className="book-art">
-          {picture}
-          {outgoing && (
-            <div className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`} onAnimationEnd={() => setOutgoing(null)}>
-              {outgoing.picture}
+      <div className="book" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+        <div className="book-art">{picture}</div>
+        <div className="book-text">{words}</div>
+        {outgoing && (
+          <>
+            <div key={`shade-${outgoing.n}`} className={`flip-shade flip-shade-${outgoing.dir > 0 ? "next" : "prev"}`} aria-hidden />
+            <div
+              key={`leaf-${outgoing.n}`}
+              className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`}
+              aria-hidden
+              onAnimationEnd={(e) => e.target === e.currentTarget && setOutgoing(null)}
+            >
+              <div className="book-art">{outgoing.picture}</div>
+              <div className="book-text">{outgoing.words}</div>
             </div>
-          )}
-        </div>
-        <div className="book-text">
-          {words}
-          {outgoing && (
-            <div className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`} aria-hidden>
-              {outgoing.words}
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       <nav className="reader-nav" aria-label="Turn the page">
@@ -509,14 +553,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       </nav>
       {overviewOpen && (
         <div className="modal-backdrop" onClick={() => setOverviewOpen(false)}>
-          <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
+          <div className="modal-panel overview-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
             <div className="modal-head">
               <h3>Jump to a page</h3>
               <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
                 ✕
               </button>
             </div>
-            <div className="overview-grid">
+            <div className="overview-strip" ref={stripRef}>
               {jumpable.map(({ v, i }) => {
                 const svg = v.kind === "page" ? v.page.svg || composePainting(v.page, castFor(story, v.page)) : null;
                 return (
@@ -524,9 +568,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
                     key={i}
                     type="button"
                     className={`overview-item ${i === index ? "current" : ""}`}
+                    aria-current={i === index ? "page" : undefined}
                     onClick={() => {
-                      setIndex(i);
                       setOverviewOpen(false);
+                      turnTo(i, { force: true });
                     }}
                   >
                     {svg ? (

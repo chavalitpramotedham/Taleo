@@ -1,4 +1,5 @@
 "use client";
+import { resumeMusic } from "./music";
 // Small, gentle cartoon sound effects synthesised with the Web Audio API, so
 // no audio files are needed. Each page's tap-target names one of these.
 
@@ -209,6 +210,8 @@ export function playSound(id: SoundId | null | undefined) {
   if (!c) return;
   try {
     PLAYERS[id](c, out(c));
+    // In case the effect knocked the background music off on this device.
+    window.setTimeout(resumeMusic, 1200);
   } catch {
     /* audio is a nicety; never break the page */
   }

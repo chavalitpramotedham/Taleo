@@ -1140,76 +1140,157 @@ main {
 .page-anim {
   animation: pageIn 0.5s ease both;
 }
-/* The outgoing page sits on top, already showing the old content, and
-   flips away like a real leaf turning to reveal the new page (already
-   rendered beneath it) as it goes. */
+/* ---------- the page turn ----------
+   The page being left is laid over the whole book as one leaf (picture and
+   words together, like a real sheet of paper) and turns away on its hinge:
+   for "next" the left edge, so the right edge lifts and swings off, and
+   "prev" is the mirror. It lifts slowly, then falls away. Light falls
+   across it as it turns (darker as it faces away, a bright rim on the
+   lifting edge), and it casts a moving shadow on the page it reveals. */
 .book-text {
   position: relative;
 }
 .flip-leaf {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 6;
+  display: grid;
+  grid-template-rows: inherit;
+  grid-template-columns: inherit;
   overflow: hidden;
   background: var(--page);
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   pointer-events: none;
+  will-change: transform;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.42, 0, 0.5, 1);
+  animation-fill-mode: both;
 }
-.book-text .flip-leaf {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(20px, 4vw, 48px) clamp(22px, 5vw, 56px) clamp(16px, 3vw, 28px);
+/* the leaf's own shading, drawn over its content */
+.flip-leaf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: leafShade 0.8s cubic-bezier(0.42, 0, 0.5, 1) both;
 }
 .flip-leaf-next {
   transform-origin: left center;
-  animation: flipLeafNext 0.85s cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+  animation-name: leafTurnNext;
+}
+.flip-leaf-next::after {
+  background: linear-gradient(
+    to left,
+    rgba(255, 252, 244, 0.55) 0,
+    rgba(255, 252, 244, 0) 7%,
+    rgba(60, 40, 20, 0) 35%,
+    rgba(60, 40, 20, 0.5) 100%
+  );
 }
 .flip-leaf-prev {
   transform-origin: right center;
-  animation: flipLeafPrev 0.85s cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+  animation-name: leafTurnPrev;
 }
-/* "next": hinged on the left, the right edge lifts and swings away,
-   unveiling the new page from the right. "prev" is the mirror image. */
-@keyframes flipLeafNext {
+.flip-leaf-prev::after {
+  background: linear-gradient(
+    to right,
+    rgba(255, 252, 244, 0.55) 0,
+    rgba(255, 252, 244, 0) 7%,
+    rgba(60, 40, 20, 0) 35%,
+    rgba(60, 40, 20, 0.5) 100%
+  );
+}
+@keyframes leafTurnNext {
   0% {
     transform: rotateY(0deg);
-    filter: brightness(1);
-    box-shadow: 26px 0 44px -6px rgba(70, 50, 30, 0.55);
   }
-  45% {
-    filter: brightness(0.85);
-  }
-  88% {
-    filter: brightness(0.55);
-    box-shadow: -10px 0 30px -10px rgba(70, 50, 30, 0.2);
+  18% {
+    transform: rotateY(-10deg);
   }
   100% {
-    transform: rotateY(-100deg);
-    filter: brightness(0.5);
-    box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+    transform: rotateY(-92deg);
   }
 }
-@keyframes flipLeafPrev {
+@keyframes leafTurnPrev {
   0% {
     transform: rotateY(0deg);
-    filter: brightness(1);
-    box-shadow: -26px 0 44px -6px rgba(70, 50, 30, 0.55);
   }
-  45% {
-    filter: brightness(0.85);
-  }
-  88% {
-    filter: brightness(0.55);
-    box-shadow: 10px 0 30px -10px rgba(70, 50, 30, 0.2);
+  18% {
+    transform: rotateY(10deg);
   }
   100% {
-    transform: rotateY(100deg);
-    filter: brightness(0.5);
-    box-shadow: 0 0 0 rgba(70, 50, 30, 0);
+    transform: rotateY(92deg);
+  }
+}
+@keyframes leafShade {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/* The shadow the turning leaf throws onto the newly revealed page: it
+   tracks the leaf's lifting edge as that edge sweeps toward the hinge. */
+.flip-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+  pointer-events: none;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.42, 0, 0.5, 1);
+  animation-fill-mode: both;
+}
+.flip-shade-next {
+  left: 0;
+  box-shadow: 22px 0 34px -10px rgba(60, 40, 20, 0.5);
+  animation-name: shadeSweep;
+}
+.flip-shade-prev {
+  right: 0;
+  box-shadow: -22px 0 34px -10px rgba(60, 40, 20, 0.5);
+  animation-name: shadeSweep;
+}
+@keyframes shadeSweep {
+  0% {
+    width: 100%;
+    opacity: 0;
+  }
+  18% {
+    width: 98%;
+    opacity: 1;
+  }
+  50% {
+    width: 74%;
+    opacity: 1;
+  }
+  80% {
+    width: 31%;
+    opacity: 0.7;
+  }
+  100% {
+    width: 0%;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-leaf {
+    animation-name: leafFade;
+    animation-duration: 0.25s;
+  }
+  .flip-leaf::after,
+  .flip-shade {
+    display: none;
+  }
+}
+@keyframes leafFade {
+  to {
+    opacity: 0;
   }
 }
 /* Turning the page is always reachable, even deep into a tall page on a
@@ -1381,10 +1462,26 @@ main {
 /* Tapping the reader's floating index opens a grid of every page/choice
    written so far, each a little picture of that page, to jump straight
    to one. */
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+.overview-panel {
+  max-width: 760px;
+}
+/* One sideways-scrolling row of every page so far, snapping each card to
+   the centre; it opens centred on the page being read. */
+.overview-strip {
+  position: relative; /* offsetParent for centring the current card */
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding: 4px calc(50% - 90px) 10px;
+  margin: 0 calc(-1 * clamp(16px, 4vw, 28px));
+  scrollbar-width: thin;
+}
+.overview-strip .overview-item {
+  flex: 0 0 180px;
+  scroll-snap-align: center;
 }
 .overview-item {
   display: flex;

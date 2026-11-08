@@ -1,4 +1,5 @@
 "use client";
+import { holdMusic } from "./music";
 // Shared browser text-to-speech: picks a warmer, more expressive voice instead
 // of the flat system default, and works around two common mobile issues:
 //  - voice lists load asynchronously (getVoices() is often [] on first call,
@@ -68,6 +69,9 @@ export interface SpeakOptions {
 }
 
 /** Speak text with a warmer voice. Safe to call from a timeout/effect once unlockSpeech() has run. */
+let speechTimer: number | undefined;
+let speechToken = 0;
+
 export function speakText(text: string, { rate = 0.92, pitch = 1.12, lang = "en-US" }: SpeakOptions = {}) {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return;
   try {
@@ -78,10 +82,31 @@ export function speakText(text: string, { rate = 0.92, pitch = 1.12, lang = "en-
     u.lang = lang;
     const voice = pickVoice(lang);
     if (voice) u.voice = voice;
+    // Speaking can pause background music on some phones: hold the music
+    // while we speak and let it resume after. (Our own flag, not
+    // speechSynthesis.speaking, which some browsers leave stuck on true.)
+    // The timer is a safety net in case onend never fires.
+    holdMusic("speech", true);
+    window.clearTimeout(speechTimer);
+    const token = ++speechToken;
+    // Only the latest utterance may release the hold (cancelling an older
+    // one fires its onerror after the new one has started).
+    const release = () => {
+      if (token !== speechToken) return;
+      window.clearTimeout(speechTimer);
+      holdMusic("speech", false);
+    };
+    speechTimer = window.setTimeout(release, Math.min(60000, 2500 + text.length * 120));
+    u.onend = release;
+    u.onerror = release;
     window.speechSynthesis.speak(u);
   } catch {}
 }
 
 export function cancelSpeech() {
-  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (typeof window === "undefined") return;
+  speechToken++;
+  window.clearTimeout(speechTimer);
+  holdMusic("speech", false);
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }

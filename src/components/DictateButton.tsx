@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { MicIcon } from "./Icons";
+import { holdMusic } from "@/lib/music";
 
 // Minimal typing for the (still vendor-prefixed) Web Speech API.
 interface SpeechRecognitionLike {
@@ -29,7 +30,10 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
 
   useEffect(() => {
     setSupported(Boolean(getRecognition()));
-    return () => recRef.current?.stop();
+    return () => {
+      recRef.current?.stop();
+      holdMusic("mic", false);
+    };
   }, []);
 
   if (!supported) return null;
@@ -45,11 +49,22 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
     rec.interimResults = true;
     rec.continuous = false;
     rec.onresult = (e) => onText(Array.from(e.results).map((r) => r[0]?.transcript ?? "").join(" ").trim());
-    rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
+    // The mic can knock background music off; hold it while listening and
+    // let it pick straight back up afterwards.
+    const done = () => {
+      setListening(false);
+      holdMusic("mic", false);
+    };
+    rec.onend = done;
+    rec.onerror = done;
     recRef.current = rec;
     setListening(true);
-    rec.start();
+    holdMusic("mic", true);
+    try {
+      rec.start();
+    } catch {
+      done();
+    }
   };
 
   return (

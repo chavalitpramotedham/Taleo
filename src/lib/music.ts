@@ -25,6 +25,55 @@ let el: HTMLAudioElement | null = null;
 let wanted = false;
 let retryArmed = false;
 
+// ---- staying alive through other sounds ----
+// Opening the microphone for dictation, or speaking a word / reading aloud,
+// can make the browser (iOS especially) pause other media and never resume
+// it. The music only ever stops when the reader stops it, so any other
+// pause is treated as an interruption: a watchdog keeps trying to resume
+// it - but holds off while the mic is open or speech is playing, so it
+// never fights those for the speaker (which could cut dictation short).
+const holds = new Set<string>();
+let watchdog: number | null = null;
+
+function stopWatchdog() {
+  if (watchdog != null) window.clearInterval(watchdog);
+  watchdog = null;
+}
+
+function ensurePlaying() {
+  const p = el;
+  if (!wanted || !p) return stopWatchdog();
+  if (!p.paused) return stopWatchdog();
+  if (holds.size) return; // try again on the next tick
+  p.play().catch(armRetry);
+}
+
+function startWatchdog() {
+  if (watchdog != null || typeof window === "undefined") return;
+  watchdog = window.setInterval(ensurePlaying, 800);
+}
+
+/** Pause-proofing hold: while held (e.g. the mic is open), the music isn't
+ *  forced back on; releasing resumes it straight away if it was knocked off. */
+export function holdMusic(reason: string, on: boolean) {
+  if (on) holds.add(reason);
+  else {
+    holds.delete(reason);
+    if (wanted && el?.paused) {
+      startWatchdog();
+      ensurePlaying();
+    }
+  }
+}
+
+/** Nudge: some other sound just finished, resume now if it was interrupted. */
+export function resumeMusic() {
+  if (wanted && el?.paused) {
+    startWatchdog();
+    ensurePlaying();
+  }
+}
+
 function player(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null;
   if (!el) {
@@ -32,6 +81,9 @@ function player(): HTMLAudioElement | null {
     el.loop = true;
     el.preload = "auto";
     el.volume = VOLUME;
+    el.addEventListener("pause", () => wanted && startWatchdog());
+    el.addEventListener("playing", stopWatchdog);
+    document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && resumeMusic());
   }
   return el;
 }
@@ -45,7 +97,8 @@ function armRetry() {
     retryArmed = false;
     window.removeEventListener("pointerdown", retry);
     window.removeEventListener("keydown", retry);
-    if (wanted) void player()?.play().catch(() => {});
+    // Not while the mic is open: grabbing the speaker could end dictation.
+    if (wanted && !holds.has("mic")) void player()?.play().catch(() => {});
   };
   window.addEventListener("pointerdown", retry, { once: true });
   window.addEventListener("keydown", retry, { once: true });
@@ -72,6 +125,7 @@ export function playMusic(track: MusicTrack) {
 
 export function stopMusic() {
   wanted = false;
+  stopWatchdog();
   if (el) {
     el.pause();
     el.currentTime = 0;
