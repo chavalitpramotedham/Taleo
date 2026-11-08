@@ -14,10 +14,9 @@ export default function SharedPage() {
   const router = useRouter();
   const { status } = useSession();
   const signedIn = status === "authenticated";
-  // Reading is open to everyone; keeping a copy (like making or rating a
-  // story) needs an account - signed out, the button leads to sign-in and
-  // back here.
-  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`);
+  // Reading is open to everyone; signed out, the end page invites you to
+  // sign in and create your own story instead of keeping a copy.
+  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent("/create")}`);
   const [story, setStory] = useState<Story | null | undefined>(undefined);
 
   useEffect(() => {
@@ -43,5 +42,5 @@ export default function SharedPage() {
     router.push(`/story/${copy.id}`);
   };
 
-  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep a copy"} />;
+  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to create your own"} />;
 }

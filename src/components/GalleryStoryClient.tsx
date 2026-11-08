@@ -12,10 +12,9 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
   const router = useRouter();
   const { status } = useSession();
   const signedIn = status === "authenticated";
-  // Reading is open to everyone; keeping a copy (like making or rating a
-  // story) needs an account - signed out, the button leads to sign-in and
-  // back here.
-  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)}`);
+  // Reading is open to everyone; signed out, the end page invites you to
+  // sign in and create your own story instead of keeping a copy.
+  const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent("/create")}`);
   // The page arrives with only the opening paintings; fetch the full story
   // (every painting) in the background and swap it in once it lands.
   const [story, setStory] = useState(initial);
@@ -53,5 +52,5 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
     router.push(`/story/${copy.id}`);
   };
 
-  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep a copy"} picturesPending={partial && story === initial} />;
+  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to create your own"} picturesPending={partial && story === initial} />;
 }
