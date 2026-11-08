@@ -175,7 +175,13 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                   <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} />
                   <span className="plate-label">{c.name}</span>
                   <span className="plate-sub">
-                    {confirming ? <LeafLoader size={16} /> : "Replace this one"}
+                    {confirming ? (
+                      <>
+                        <LeafLoader size={16} /> Saving…
+                      </>
+                    ) : (
+                      "Replace this one"
+                    )}
                   </span>
                 </button>
               ))}

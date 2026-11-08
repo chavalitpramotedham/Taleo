@@ -94,7 +94,13 @@ export function CharacterManager() {
                     Rename
                   </button>
                   <button type="button" className="btn btn-soft btn-sm" onClick={() => remove(c.id)} disabled={busyId === c.id}>
-                    {busyId === c.id ? <LeafLoader size={14} /> : "Delete"}
+                    {busyId === c.id ? (
+                      <>
+                        <LeafLoader size={14} /> Deleting…
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
                   </button>
                 </div>
               </div>
