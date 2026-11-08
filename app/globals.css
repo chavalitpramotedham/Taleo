@@ -3724,11 +3724,19 @@ html[data-night] .modal-backdrop {
   }
 }
 @keyframes hpDraw {
+  /* (a pen line with a filled shape - Bobo's open, laughing mouth - keeps
+     its fill hidden until the line has mostly drawn on, so the mouth never
+     shows up before the bear) */
   from {
     stroke-dashoffset: 1;
+    fill-opacity: 0;
+  }
+  60% {
+    fill-opacity: 0;
   }
   to {
     stroke-dashoffset: 0;
+    fill-opacity: 1;
   }
 }
 
