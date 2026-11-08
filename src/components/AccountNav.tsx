@@ -54,6 +54,11 @@ export function AccountNav() {
           <Link href="/account" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
             Manage account
           </Link>
+          {session.user.isAdmin && (
+            <Link href="/admin" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+              Dashboard
+            </Link>
+          )}
           <button
             type="button"
             className="account-dropdown-item"

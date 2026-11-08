@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { recordAi, streamUsageTracker, type AiFeature } from "./metrics";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import { ageById, lengthProfile } from "@/lib/ages";
@@ -38,7 +39,14 @@ const getClient = () => (client ??= new Anthropic());
 
 export class StoryRefusal extends Error {}
 
-async function ask<T extends z.ZodType>(schema: T, system: string, user: string, maxTokens = 16000, effort: Effort = STORY_EFFORT): Promise<z.infer<T>> {
+async function ask<T extends z.ZodType>(
+  schema: T,
+  system: string,
+  user: string,
+  maxTokens = 16000,
+  effort: Effort = STORY_EFFORT,
+  feature: AiFeature = "story",
+): Promise<z.infer<T>> {
   const response = await getClient().beta.messages.parse({
     model: STORY_MODEL,
     max_tokens: maxTokens,
@@ -48,6 +56,7 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string,
     messages: [{ role: "user", content: user }],
     output_config: { effort, format: betaZodOutputFormat(schema) },
   });
+  recordAi(feature, response.model, response.usage);
   if (response.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (response.stop_reason === "max_tokens" || !response.parsed_output) {
     throw new Error("The story came out jumbled. Please try again.");
@@ -220,7 +229,10 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   let text = "";
   let sent = 0;
   let titleSent = false;
+  const usage = streamUsageTracker("story", STORY_MODEL);
+  try {
   for await (const event of stream) {
+    usage.see(event);
     // A new text block starts the JSON afresh (e.g. after a server-side
     // fallback to another model mid-reply).
     if (event.type === "content_block_start" && event.content_block.type === "text") {
@@ -263,6 +275,9 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
     }
   }
 
+  } finally {
+    usage.finish();
+  }
   const final = await stream.finalMessage();
   if (final.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (final.stop_reason === "max_tokens") throw new Error("The story came out jumbled. Please try again.");
@@ -366,8 +381,14 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     output_config: { effort: req.quick ? "low" : ART_EFFORT },
   }, { signal });
 
-  for await (const event of stream) {
-    if (event.type === "content_block_delta" && event.delta.type === "text_delta") yield event.delta.text;
+  const usage = streamUsageTracker("painting", ART_MODEL);
+  try {
+    for await (const event of stream) {
+      usage.see(event);
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") yield event.delta.text;
+    }
+  } finally {
+    usage.finish();
   }
   const final = await stream.finalMessage();
   if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
@@ -380,7 +401,7 @@ export async function designCharacter(req: CharacterRequest): Promise<CharacterR
     req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
   }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
   // (more room than other requests: high effort thinks longer before it paints)
-  const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 20000, CHARACTER_EFFORT);
+  const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 20000, CHARACTER_EFFORT, "character");
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

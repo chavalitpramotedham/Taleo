@@ -4,6 +4,7 @@ import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
 import { guard } from "@/server/limits";
+import { count, withMetricsUser } from "@/server/metrics";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
   const stop = new AbortController();
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
-  const body = new ReadableStream<Uint8Array>({
+  const body = withMetricsUser(g.session.user.id, () => new ReadableStream<Uint8Array>({
     cancel() {
       stop.abort();
     },
@@ -46,7 +47,9 @@ export async function POST(req: Request) {
           for await (const delta of paintPage(parsed, stop.signal)) send(delta);
         }
         send("\n<!--taleo:done-->");
+        if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
       } catch (err) {
+        if (!stop.signal.aborted) count({ paintings_failed: 1 });
         console.error("illustration failed", err);
         if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("painting", err);
         send("\n<!--taleo:error-->");
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
         } catch {}
       }
     },
-  });
+  }));
 
   return new Response(body, {
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },

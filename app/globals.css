@@ -6282,3 +6282,150 @@ html.brand-live .leaf-whirl {
   text-align: center;
   margin: -2px 0 0;
 }
+.author-handle {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---------- admin dashboard (owner only) ---------- */
+.admin .wizard-head {
+  margin-bottom: 8px;
+}
+.admin-note {
+  background: color-mix(in srgb, var(--ochre) 12%, var(--page));
+  border: 1px solid color-mix(in srgb, var(--ochre) 35%, transparent);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  font-size: 0.98rem;
+}
+.admin-section {
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 16px 0 0;
+  min-width: 0;
+}
+.admin-section h2 {
+  font-size: 1.3rem;
+  margin: 0 0 12px;
+}
+.admin-section h3 {
+  font-size: 1.05rem;
+  margin: 16px 0 6px;
+  color: var(--ink-soft);
+}
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 0 16px;
+  align-items: start;
+}
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.admin-tile {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.admin-tile p {
+  margin: 0;
+}
+.admin-tile-label {
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.admin-tile-value {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.admin-tile-note {
+  font-size: 0.85rem;
+  color: var(--ink-faint, var(--ink-soft));
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+}
+.admin-table th,
+.admin-table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--rule);
+  text-align: right;
+  vertical-align: top;
+}
+.admin-table tbody th,
+.admin-table thead th:first-child {
+  text-align: left;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.admin-table thead th {
+  font-family: var(--font-caps);
+  letter-spacing: 0.03em;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+.admin-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 160px;
+  padding-top: 6px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+.admin-bar-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+.admin-bar {
+  flex: 1;
+  min-height: 1px;
+  border-radius: 3px 3px 0 0;
+}
+.admin-bar-cost,
+.admin-key-cost {
+  background: var(--russet);
+}
+.admin-bar-stories,
+.admin-key-stories {
+  background: var(--sage, #6f7f52);
+}
+.admin-legend {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+}
+.admin-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-left: 6px;
+}
+.admin-links {
+  margin: 0;
+  padding-left: 18px;
+}
+.admin-links li {
+  margin: 6px 0;
+}

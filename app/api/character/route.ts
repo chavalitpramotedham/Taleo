@@ -3,6 +3,7 @@ import { designCharacter, hasApiKey } from "@/server/claude";
 import { mockCharacter } from "@/server/mock";
 import { errorResponse } from "@/server/errors";
 import { guard } from "@/server/limits";
+import { count, withMetricsUser } from "@/server/metrics";
 
 export const runtime = "nodejs";
 // High-effort character design can take a couple of minutes.
@@ -18,7 +19,9 @@ export async function POST(req: Request) {
 
   if (!hasApiKey()) return NextResponse.json(mockCharacter({ description, name }));
   try {
-    return NextResponse.json(await designCharacter({ description, name }));
+    const made = await withMetricsUser(g.session.user.id, () => designCharacter({ description, name }));
+    withMetricsUser(g.session.user.id, () => count({ characters: 1 }));
+    return NextResponse.json(made);
   } catch (err) {
     await g.release();
     return errorResponse(err);

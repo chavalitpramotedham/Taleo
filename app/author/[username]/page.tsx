@@ -34,7 +34,9 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
               {profile?.avatarKey && <Avatar avatarKey={profile.avatarKey} className="author-avatar" />}
               Bookshelf
             </h1>
-            <p className="sub">@{shown}</p>
+            <p className="sub">
+              by <b className="author-handle">@{shown}</b>
+            </p>
           </>
         }
       />

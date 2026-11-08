@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cachedClip, speechClip, ttsEnabled, type TtsKind } from "@/server/tts";
 import { auth } from "@/server/auth";
 import { guard } from "@/server/limits";
+import { count } from "@/server/metrics";
 import { getGalleryStory } from "@/server/gallery";
 
 export const runtime = "nodejs";
@@ -54,14 +55,19 @@ export async function GET(req: Request) {
 
   try {
     const existing = await cachedClip(text, kind);
-    if (existing) return audio(existing);
+    if (existing) {
+      count({ tts_cached: 1 });
+      return audio(existing);
+    }
 
     const session = await auth();
     if (session?.user?.id) {
       const g = await guard("tts");
       if (!g.ok) return g.response;
       try {
-        return audio(await speechClip(text, kind));
+        const clip = await speechClip(text, kind);
+        count({ tts_clips: 1, tts_chars: text.length });
+        return audio(clip);
       } catch (e) {
         await g.release();
         throw e;
@@ -74,7 +80,9 @@ export async function GET(req: Request) {
     if (!allowed?.has(norm(text))) {
       return NextResponse.json({ error: "Sign in to hear this read aloud." }, { status: 401 });
     }
-    return audio(await speechClip(text, kind));
+    const clip = await speechClip(text, kind);
+    count({ tts_clips: 1, tts_chars: text.length });
+    return audio(clip);
   } catch (e) {
     console.error("[tts]", e);
     return NextResponse.json({ error: "Couldn't make that clip." }, { status: 502 });

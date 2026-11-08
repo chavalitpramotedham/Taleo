@@ -6,6 +6,7 @@ import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
 import { guard, isUnlimited, LIMIT_MESSAGES, minutesText, peekLimit } from "@/server/limits";
+import { count, withMetricsUser } from "@/server/metrics";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
   const stop = new AbortController();
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
-  const body = new ReadableStream<Uint8Array>({
+  const body = withMetricsUser(g.session.user.id, () => new ReadableStream<Uint8Array>({
     cancel() {
       stop.abort();
     },
@@ -66,7 +67,19 @@ export async function POST(req: Request) {
           }
           send({ type: "done", response: { ...seg, demo: true } });
         } else {
-          for await (const event of streamSegment(parsed, stop.signal)) send(event);
+          for await (const event of streamSegment(parsed, stop.signal)) {
+            send(event);
+            if (event.type === "done") {
+              const pages = event.response.segment.pages;
+              count({
+                stories_started: parsed.kind === "start" ? 1 : 0,
+                segments: 1,
+                pages: pages.length,
+                words: pages.reduce((n, p) => n + p.text.split(/\s+/).filter(Boolean).length, 0),
+                stories_finished: event.response.ending ? 1 : 0,
+              });
+            }
+          }
         }
       } catch (err) {
         if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("story writing", err, { kind: parsed.kind });
@@ -79,7 +92,7 @@ export async function POST(req: Request) {
         } catch {}
       }
     },
-  });
+  }));
   return new Response(body, {
     headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
   });

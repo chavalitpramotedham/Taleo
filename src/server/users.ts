@@ -27,7 +27,7 @@ function defaultAvatarFor(id: string): string {
   return AVATAR_KEYS[hash % AVATAR_KEYS.length];
 }
 
-async function listUsers(opts: { cacheSeconds?: number } = {}): Promise<UserProfile[]> {
+export async function listUsers(opts: { cacheSeconds?: number } = {}): Promise<UserProfile[]> {
   return (await readJson<UserProfile[]>(INDEX_PATH, opts)) ?? [];
 }
 
