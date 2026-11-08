@@ -74,6 +74,10 @@ html {
 html,
 body {
   overflow-x: clip;
+  /* No elastic overscroll: pulling past the top would drag the whole page
+     (menu bar included) away from the screen-pinned lantern. Our own
+     pull-to-refresh handles the pull instead, below the bar. */
+  overscroll-behavior-y: none;
 }
 .meta {
   color: var(--ink-soft);

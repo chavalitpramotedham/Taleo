@@ -64,7 +64,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <PaintDefs />
-          <PullToRefresh />
           <AudioUnlock />
           <header className="topbar">
             <Link href="/" className="brand" aria-label="Taleo home">
@@ -88,7 +87,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
           </header>
-          <main>{children}</main>
+          <main>
+            {/* opens at the top of the page content, below the fixed bar */}
+            <PullToRefresh />
+            {children}
+          </main>
         </Providers>
       </body>
     </html>
