@@ -66,6 +66,30 @@ export function holdMusic(reason: string, on: boolean) {
   }
 }
 
+// ---- softening under the voice ----
+const ducks = new Set<string>();
+const DUCKED = 0.1;
+let fade: number | undefined;
+
+/** Softens the music (smoothly) while something else - the read-aloud
+ *  voice - needs to be heard, and brings it back up afterwards. (iOS
+ *  ignores <audio> volume, so there it simply plays on underneath.) */
+export function duckMusic(reason: string, on: boolean) {
+  if (on) ducks.add(reason);
+  else ducks.delete(reason);
+  const p = el;
+  if (!p) return;
+  const target = ducks.size ? DUCKED : VOLUME;
+  window.clearInterval(fade);
+  fade = window.setInterval(() => {
+    const next = p.volume + Math.sign(target - p.volume) * 0.03;
+    if (Math.abs(target - p.volume) <= 0.03) {
+      p.volume = target;
+      window.clearInterval(fade);
+    } else p.volume = Math.min(1, Math.max(0, next));
+  }, 25);
+}
+
 /** Nudge: some other sound just finished, resume now if it was interrupted. */
 export function resumeMusic() {
   if (wanted && el?.paused) {
@@ -80,7 +104,7 @@ function player(): HTMLAudioElement | null {
     el = new Audio();
     el.loop = true;
     el.preload = "auto";
-    el.volume = VOLUME;
+    el.volume = ducks.size ? DUCKED : VOLUME;
     el.addEventListener("pause", () => wanted && startWatchdog());
     el.addEventListener("playing", stopWatchdog);
     document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && resumeMusic());

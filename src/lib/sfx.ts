@@ -4,41 +4,11 @@ import { resumeMusic } from "./music";
 // no audio files are needed. Each page's tap-target names one of these.
 
 import type { SoundId } from "./actions";
-import { speakText, unlockSpeech } from "./speech";
+import { prefetchSpeech, speakText, unlockSpeech } from "./speech";
+import { getAudioContext } from "./audio-context";
 
-let ctx: AudioContext | null = null;
-function getCtor() {
-  return window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-}
-
-function audio(): AudioContext | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const Ctor = getCtor();
-    if (!Ctor) return null;
-    ctx ??= new Ctor();
-    if (ctx.state === "suspended") void ctx.resume();
-    return ctx;
-  } catch {
-    return null;
-  }
-}
-
-/** Call synchronously inside a real tap/click handler (ideally the very first
- *  one on the page) to get the AudioContext running on iOS Safari, where it's
- *  otherwise created in a "suspended" state and its first sound can be lost
- *  while resume() is still pending. Safe to call repeatedly. */
-export function unlockAudio() {
-  const c = audio();
-  if (!c) return;
-  try {
-    const buf = c.createBuffer(1, 1, 22050);
-    const src = c.createBufferSource();
-    src.buffer = buf;
-    src.connect(c.destination);
-    src.start(0);
-  } catch {}
-}
+export { unlockAudio } from "./audio-context";
+const audio = getAudioContext;
 
 const MASTER = 0.35;
 
@@ -219,10 +189,12 @@ export function playSound(id: SoundId | null | undefined) {
 
 /** Say a single word slowly and clearly (for word association). */
 export function sayWord(word: string, delayMs = 650) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || !word) return;
+  if (typeof window === "undefined" || !word) return;
   // Unlock synchronously now, inside the tap's call stack, so the delayed
-  // speak() below isn't silently dropped by iOS Safari's gesture rule.
+  // speech below isn't silently dropped by iOS Safari's gesture rule - and
+  // start fetching the voice clip so it's ready when the sound effect ends.
   unlockSpeech();
-  window.setTimeout(() => speakText(word, { rate: 0.8, pitch: 1.18 }), delayMs);
+  prefetchSpeech(word, "word");
+  window.setTimeout(() => speakText(word, { kind: "word" }), delayMs);
 }
 

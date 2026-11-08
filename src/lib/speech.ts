@@ -1,14 +1,65 @@
 "use client";
-import { holdMusic } from "./music";
-// Shared browser text-to-speech: picks a warmer, more expressive voice instead
-// of the flat system default, and works around two common mobile issues:
-//  - voice lists load asynchronously (getVoices() is often [] on first call,
-//    especially on phones), so we cache and refresh on "voiceschanged";
-//  - iOS Safari only allows speechSynthesis.speak() as a direct result of a
-//    user gesture. Any call made from a setTimeout/effect (even a few ms
-//    later) is silently dropped. We "unlock" speech once per page with a
-//    synchronous speak() inside the real click/tap handler, after which
-//    later calls in that session are allowed through.
+import { getAudioContext } from "./audio-context";
+import { duckMusic, holdMusic } from "./music";
+
+// Read-aloud for the stories and the tappable words, in a calm, well-spoken
+// British woman's voice.
+//
+//  1. Neural voice (preferred): when the server has a text-to-speech key,
+//     each phrase comes from /api/tts as an MP3 (cached server-side and by
+//     the browser) and plays through the shared Web Audio context - the same
+//     natural voice on every device, and no gesture problems on iOS once
+//     that context is unlocked.
+//  2. Browser voice (fallback): speechSynthesis with the best British female
+//     voice the device has, at a natural pitch and unhurried pace.
+//
+// Background music is softened while speaking, so the voice sits on top.
+
+export type SpeechKind = "page" | "word";
+
+// ---------------------------------------------------------------- neural voice
+
+let neuralOn: Promise<boolean> | null = null;
+function neuralEnabled(): Promise<boolean> {
+  neuralOn ??= fetch("/api/tts")
+    .then((r) => (r.ok ? r.json() : { enabled: false }))
+    .then((d: { enabled?: boolean }) => Boolean(d.enabled))
+    .catch(() => false);
+  return neuralOn;
+}
+
+const clips = new Map<string, Promise<AudioBuffer | null>>();
+const clipKey = (text: string, kind: SpeechKind) => `${kind}\n${text}`;
+
+function loadClip(text: string, kind: SpeechKind): Promise<AudioBuffer | null> {
+  const key = clipKey(text, kind);
+  const have = clips.get(key);
+  if (have) return have;
+  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}`)
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((buf) => {
+      const c = getAudioContext();
+      return buf && c ? c.decodeAudioData(buf) : null;
+    })
+    .catch(() => null);
+  clips.set(key, p);
+  // A failed clip shouldn't stay cached; keep the memory cache small.
+  void p.then((b) => b || clips.delete(key));
+  if (clips.size > 80) clips.delete(clips.keys().next().value!);
+  return p;
+}
+
+/** Start fetching a phrase's clip early (e.g. the page that's about to be
+ *  read, or a word as it's tapped) so it plays without a pause. */
+export function prefetchSpeech(text: string, kind: SpeechKind = "page") {
+  const t = clean(text);
+  if (!t || typeof window === "undefined") return;
+  void neuralEnabled().then((on) => {
+    if (on) void loadClip(t, kind);
+  });
+}
+
+// ---------------------------------------------------------------- browser voice
 
 let voices: SpeechSynthesisVoice[] = [];
 let unlocked = false;
@@ -24,31 +75,38 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   window.speechSynthesis.addEventListener?.("voiceschanged", refreshVoices);
 }
 
-// Roughly best-to-worst, checked by name since the Web Speech API exposes no
-// "expressiveness" signal. Covers the common warm, natural-sounding voices
-// on iOS/macOS (Apple), Chrome/Android (Google) and Edge/Windows (Microsoft).
-const PREFERRED = [
-  /enhanced|premium|natural/i,
-  /samantha/i,
-  /karen|moira|tessa/i,
-  /google us english/i,
+// Calm, well-spoken British women's voices, best first, matched by name
+// (the Web Speech API exposes no gender or quality). Covers Edge's neural
+// "Online (Natural)" voices, Apple's premium/enhanced voices, Chrome's
+// Google UK voice and the standard Apple/Microsoft ones.
+const BRITISH_FEMALE = [
+  /(sonia|libby|maisie|abbi|hollie|bella|olivia).*natural/i,
+  /(serena|kate|stephanie|martha|fiona).*(premium|enhanced)/i,
   /google uk english female/i,
-  /aria|jenny/i,
-  /female/i,
-  /google/i,
+  /\b(serena|kate|stephanie|martha|sonia|libby|hazel|susan)\b/i,
+  /\bshelley\b/i,
+  /\b(flo|sandy)\b/i,
 ];
+const MALE = /\b(daniel|arthur|oliver|george|ryan|thomas|reed|rocko|eddy|grandpa|male)\b/i;
+// If there's no British voice at all: a soft female voice from nearby.
+const NEARBY_FEMALE = [/(karen|moira|tessa|catherine|natasha).*(premium|enhanced)?/i, /female/i];
 
-function pickVoice(lang?: string): SpeechSynthesisVoice | undefined {
+function pickVoice(): SpeechSynthesisVoice | undefined {
   refreshVoices();
   if (!voices.length) return undefined;
-  const base = (lang || "en").slice(0, 2).toLowerCase();
-  const inLang = voices.filter((v) => v.lang.toLowerCase().startsWith(base));
-  const pool = inLang.length ? inLang : voices;
-  for (const re of PREFERRED) {
-    const match = pool.find((v) => re.test(v.name));
-    if (match) return match;
+  const gb = voices.filter((v) => /^en[-_]gb/i.test(v.lang));
+  for (const re of BRITISH_FEMALE) {
+    const v = gb.find((x) => re.test(x.name)) ?? voices.find((x) => re.test(x.name) && /^en/i.test(x.lang));
+    if (v) return v;
   }
-  return pool.find((v) => v.localService) ?? pool[0];
+  const anyGb = gb.find((v) => !MALE.test(v.name));
+  if (anyGb) return anyGb;
+  const en = voices.filter((v) => /^en/i.test(v.lang));
+  for (const re of NEARBY_FEMALE) {
+    const v = en.find((x) => re.test(x.name) && !MALE.test(x.name));
+    if (v) return v;
+  }
+  return gb[0] ?? en.find((v) => v.default) ?? en[0];
 }
 
 /** Call synchronously inside a real click/tap handler to allow later speech on iOS. */
@@ -62,51 +120,91 @@ export function unlockSpeech() {
   } catch {}
 }
 
-export interface SpeakOptions {
-  rate?: number;
-  pitch?: number;
-  lang?: string;
+function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, done: () => void) {
+  if (!("speechSynthesis" in window)) return done();
+  const ss = window.speechSynthesis;
+  const u = new SpeechSynthesisUtterance(text);
+  const voice = pickVoice();
+  u.lang = voice?.lang || "en-GB";
+  if (voice) u.voice = voice;
+  // Natural pitch (raising it is what made the old voice sound robotic),
+  // and an unhurried pace; single words a touch slower and clearer.
+  u.pitch = 1;
+  u.rate = kind === "word" ? 0.8 : 0.9;
+  u.onend = done;
+  u.onerror = done;
+  // Hold the music watchdog while the system voice speaks (on some phones
+  // forcing music back on mid-sentence would cut the voice off).
+  holdMusic("speech", true);
+  // Some browsers get stuck "speaking" - e.g. after the silent unlock
+  // utterance never finishes - and then silently drop anything queued
+  // behind it. Reset first; if it was busy, give it a beat to settle.
+  const busy = ss.speaking || ss.pending || ss.paused;
+  ss.cancel();
+  ss.resume();
+  if (busy) window.setTimeout(() => isCurrent() && ss.speak(u), 120);
+  else ss.speak(u);
 }
 
-/** Speak text with a warmer voice. Safe to call from a timeout/effect once unlockSpeech() has run. */
-let speechTimer: number | undefined;
-let speechToken = 0;
+// ---------------------------------------------------------------- speaking
 
-export function speakText(text: string, { rate = 0.92, pitch = 1.12, lang = "en-US" }: SpeakOptions = {}) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return;
-  try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = rate;
-    u.pitch = pitch;
-    u.lang = lang;
-    const voice = pickVoice(lang);
-    if (voice) u.voice = voice;
-    // Speaking can pause background music on some phones: hold the music
-    // while we speak and let it resume after. (Our own flag, not
-    // speechSynthesis.speaking, which some browsers leave stuck on true.)
-    // The timer is a safety net in case onend never fires.
-    holdMusic("speech", true);
-    window.clearTimeout(speechTimer);
-    const token = ++speechToken;
-    // Only the latest utterance may release the hold (cancelling an older
-    // one fires its onerror after the new one has started).
-    const release = () => {
-      if (token !== speechToken) return;
-      window.clearTimeout(speechTimer);
-      holdMusic("speech", false);
-    };
-    speechTimer = window.setTimeout(release, Math.min(60000, 2500 + text.length * 120));
-    u.onend = release;
-    u.onerror = release;
-    window.speechSynthesis.speak(u);
-  } catch {}
+let token = 0;
+let stopCurrent: (() => void) | null = null;
+let safety: number | undefined;
+
+const clean = (text: string) => text.replace(/\s+/g, " ").trim();
+
+/** Read some text aloud ("page" for story text, "word" for a single
+ *  tapped word). Interrupts anything already being spoken. */
+export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind } = {}) {
+  const t = clean(text);
+  if (!t || typeof window === "undefined") return;
+  cancelSpeech();
+  const my = ++token;
+  const isCurrent = () => my === token;
+  const done = () => {
+    if (!isCurrent()) return;
+    window.clearTimeout(safety);
+    stopCurrent = null;
+    duckMusic("speech", false);
+    holdMusic("speech", false);
+  };
+  duckMusic("speech", true);
+  // Safety net in case an end event never arrives.
+  safety = window.setTimeout(done, Math.min(90000, 4000 + t.length * 110));
+
+  void (async () => {
+    if (await neuralEnabled()) {
+      const buf = await loadClip(t, kind);
+      if (!isCurrent()) return;
+      const c = getAudioContext();
+      if (buf && c) {
+        if (c.state === "suspended") await c.resume().catch(() => {});
+        const src = c.createBufferSource();
+        src.buffer = buf;
+        src.connect(c.destination);
+        src.onended = done;
+        src.start();
+        stopCurrent = () => {
+          src.onended = null;
+          try {
+            src.stop();
+          } catch {}
+        };
+        return;
+      }
+    }
+    if (isCurrent()) browserSpeak(t, kind, isCurrent, done);
+  })();
 }
 
 export function cancelSpeech() {
   if (typeof window === "undefined") return;
-  speechToken++;
-  window.clearTimeout(speechTimer);
+  token++;
+  window.clearTimeout(safety);
+  stopCurrent?.();
+  stopCurrent = null;
+  duckMusic("speech", false);
   holdMusic("speech", false);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }

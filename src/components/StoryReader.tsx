@@ -7,7 +7,7 @@ import { ageLevel, motionForAge } from "@/lib/actions";
 import { storeUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
-import { cancelSpeech, speakText, unlockSpeech } from "@/lib/speech";
+import { cancelSpeech, prefetchSpeech, speakText, unlockSpeech } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -260,7 +260,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   // ---------------------------------------------------------------- read aloud
-  const speak = useCallback((text: string) => speakText(text, { rate: 0.92, pitch: 1.1 }), []);
+  const speak = useCallback((text: string) => speakText(text, { kind: "page" }), []);
 
   useEffect(() => {
     if (!readAloud || !view) return;
@@ -271,6 +271,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     }
     if (view.kind === "end") speak("The end.");
   }, [readAloud, view, speak, story.segments]);
+
+  // Have the voice ready before it's needed: this page's tappable word, and
+  // (when reading aloud) the next page's text.
+  useEffect(() => {
+    if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word");
+    const nextView = views[index + 1];
+    if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "));
+  }, [view, views, index, readAloud]);
 
   useEffect(() => () => cancelSpeech(), []);
 
