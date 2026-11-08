@@ -1,9 +1,10 @@
 "use client";
+import Link from "next/link";
 import { useEffect } from "react";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
-import { ClockIcon, StarGlyph } from "./Icons";
+import { ClockIcon, MapleMark, ShareIcon, StarGlyph } from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -106,10 +107,31 @@ export function StoryPreview({
             )}
             Ages <b>{story.ageLabel}</b>
           </p>
-          <p className="meta story-preview-by">by @{story.author}</p>
+          <p className="meta story-preview-by">
+            by{" "}
+            <Link className="story-preview-author" href={`/author/${encodeURIComponent(story.author)}`}>
+              @{story.author}
+            </Link>
+          </p>
           {children}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** The preview's buttons: the main "read" button, left, taking the room,
+ *  with a small round share button beside it. */
+export function PreviewButtons({ href, label, onShare, onRead }: { href: string; label: string; onShare: () => void; onRead?: () => void }) {
+  return (
+    <div className="story-preview-buttons">
+      <Link className="btn btn-primary" href={href} onClick={onRead}>
+        <MapleMark />
+        {label}
+      </Link>
+      <button type="button" className="icon-btn story-preview-share" onClick={onShare} aria-label="Share story" title="Share">
+        <ShareIcon />
+      </button>
     </div>
   );
 }

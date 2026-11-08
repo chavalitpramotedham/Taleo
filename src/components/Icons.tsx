@@ -75,10 +75,12 @@ export const LinkIcon = () => (
   </svg>
 );
 
+/** The familiar iPhone "share": an open-topped box with an arrow rising out of it. */
 export const ShareIcon = () => (
   <svg {...base}>
-    <path d="M4 7.5h16v11H4z" />
-    <path d="M4 8l8 6 8-6" />
+    <path d="M12 3.5v11" />
+    <path d="M8.2 7.2L12 3.4l3.8 3.8" />
+    <path d="M8.5 10.5H6.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2" />
   </svg>
 );
 

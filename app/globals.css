@@ -6046,3 +6046,78 @@ html.brand-live .leaf-whirl {
 .modal-panel {
   border-radius: 18px;
 }
+
+/* Story preview: the main "read" button on the left, taking the room, and
+   a small round share button beside it; your rating (if you gave one)
+   sits quietly underneath. */
+.story-preview-buttons {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+}
+.story-preview-buttons .btn-primary {
+  flex: 1;
+  min-width: 0;
+}
+.story-preview-share {
+  flex: none;
+  /* as tall as the read button beside it; flat like the popup's other
+     buttons (a press dims it) */
+  width: 52px;
+  height: auto;
+  color: var(--russet);
+  transition: opacity 0.15s;
+}
+.story-preview-share:active {
+  opacity: 0.82;
+}
+.my-rating-note {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  gap: 4px;
+}
+.story-preview-ratings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 2px 0 0;
+}
+.story-preview-ratings svg {
+  width: 15px;
+  height: 15px;
+  color: var(--ochre);
+}
+/* Inside the rounded popup, the pair are soft rounded rectangles (not a
+   pill and a circle), matching the popup's own corners. */
+.story-preview-buttons .btn-primary,
+.story-preview-share {
+  border-radius: 12px;
+}
+
+/* The author's name in a story preview: bold, and a link to their bookshelf. */
+.story-preview-author {
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-strong);
+}
+@media (hover: hover) {
+  .story-preview-author:hover {
+    color: var(--russet);
+    border-bottom-color: var(--russet);
+  }
+}
+/* An author's bookshelf: their avatar beside their @name under the title. */
+.author-sub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.author-avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+}

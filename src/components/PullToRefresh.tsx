@@ -2,11 +2,14 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
-/** Only pages that show a list of content (which can change while you're
- *  away) offer pull-to-refresh. Never a story: a stray pull mid-read
- *  mustn't reload the book. */
-const LIST_PAGES = ["/store", "/library", "/my-stories", "/my-characters"];
-const isListPage = (path: string) => LIST_PAGES.includes(path.replace(/\/$/, "") || "/");
+/** Every page offers pull-to-refresh, except where a reload would lose
+ *  something: setting up a story (/create) and reading one (/story/<id>,
+ *  a library story at /store/<id>, a shared link at /shared) - a stray
+ *  pull mid-read mustn't reload the book. */
+const canPullToRefresh = (path: string) => {
+  const p = path.replace(/\/$/, "") || "/";
+  return !(p.startsWith("/create") || p.startsWith("/story/") || p.startsWith("/store/") || p.startsWith("/shared"));
+};
 
 // A deliberate pull is needed to reload (about 130px of finger travel), so
 // an ordinary scroll back to the top never reloads by accident.
@@ -28,7 +31,7 @@ const FADE_MS = 450; // fade-out before the reload
 export function PullToRefresh() {
   const spinner = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
-  const enabled = isListPage(usePathname());
+  const enabled = canPullToRefresh(usePathname());
 
   useEffect(() => {
     if (!enabled) return;

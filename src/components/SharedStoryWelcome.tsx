@@ -2,8 +2,8 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapleMark } from "./Icons";
-import { StoryPreview, type StorySummary } from "./StoryPreview";
+import { PreviewButtons, StoryPreview, type StorySummary } from "./StoryPreview";
+import { shareStory, shareUrl } from "@/lib/share";
 
 export type SharedStorySummary = StorySummary;
 
@@ -25,10 +25,12 @@ export function SharedStoryWelcome({ story }: { story: SharedStorySummary }) {
   return (
     <StoryPreview story={story} eyebrow="From one parent to another" onClose={close}>
       <div className="story-preview-actions">
-        <Link className="btn btn-primary btn-block" href={`/store/${story.id}`} onClick={() => setOpen(false)}>
-          <MapleMark />
-          Start reading
-        </Link>
+        <PreviewButtons
+          href={`/store/${story.id}`}
+          label="Start reading"
+          onRead={() => setOpen(false)}
+          onShare={() => shareStory(story.title || "A Taleo story", shareUrl(story.id, window.location.origin), () => {})}
+        />
         <button type="button" className="btn btn-ghost btn-block" onClick={close}>
           Look around first
         </button>

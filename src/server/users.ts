@@ -27,8 +27,8 @@ function defaultAvatarFor(id: string): string {
   return AVATAR_KEYS[hash % AVATAR_KEYS.length];
 }
 
-async function listUsers(): Promise<UserProfile[]> {
-  return (await readJson<UserProfile[]>(INDEX_PATH)) ?? [];
+async function listUsers(opts: { cacheSeconds?: number } = {}): Promise<UserProfile[]> {
+  return (await readJson<UserProfile[]>(INDEX_PATH, opts)) ?? [];
 }
 
 async function writeUsers(users: UserProfile[]) {
@@ -41,10 +41,10 @@ export async function getUser(id: string): Promise<UserProfile | null> {
   return users.find((u) => u.id === id) ?? null;
 }
 
-export async function getUserByUsername(username: string): Promise<UserProfile | null> {
+export async function getUserByUsername(username: string, opts: { cacheSeconds?: number } = {}): Promise<UserProfile | null> {
   const name = username.trim().toLowerCase();
   if (name === ADMIN_PROFILE.username) return ADMIN_PROFILE;
-  const users = await listUsers();
+  const users = await listUsers(opts);
   return users.find((u) => u.username?.toLowerCase() === name) ?? null;
 }
 

@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { MapleMark } from "@/components/Icons";
+import { MapleMark, StarGlyph } from "@/components/Icons";
 import { StoryCard } from "@/components/StoryCard";
-import { StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
+import { PreviewButtons, StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "@/components/PageLoading";
 
@@ -85,26 +85,22 @@ export default function MyStoriesPage() {
       {open && (
         <StoryPreview story={summaryFromEntry(open)} eyebrow="On your bookshelf" onClose={() => setOpenId(null)}>
           <div className="story-preview-actions">
-            <Link className="btn btn-primary btn-block" href={`/store/${open.id}`}>
-              <MapleMark />
-              Read the story
-            </Link>
-            <div className="story-preview-row">
-              <button
-                type="button"
-                className="btn btn-soft"
-                onClick={() =>
-                  shareStory(open.title || "An untitled story", shareUrl(open.id, window.location.origin), () =>
-                    flash("Link copied. Paste it anywhere to share."),
-                  )
-                }
-              >
-                Share
-              </button>
-              <Link className="btn btn-soft" href={`/my-stories/${open.id}/ratings`}>
-                See ratings
-              </Link>
-            </div>
+            <PreviewButtons
+              href={`/store/${open.id}`}
+              label="Read the story"
+              onShare={() =>
+                shareStory(open.title || "An untitled story", shareUrl(open.id, window.location.origin), () =>
+                  flash("Link copied. Paste it anywhere to share."),
+                )
+              }
+            />
+            {open.ratingCount > 0 && (
+              <p className="meta story-preview-ratings">
+                <StarGlyph /> {avg(open).toFixed(1)} from {open.ratingCount} {open.ratingCount === 1 ? "rating" : "ratings"}
+                <span aria-hidden> · </span>
+                <Link href={`/my-stories/${open.id}/ratings`}>See ratings</Link>
+              </p>
+            )}
           </div>
         </StoryPreview>
       )}

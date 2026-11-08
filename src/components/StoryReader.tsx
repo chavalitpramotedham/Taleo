@@ -695,7 +695,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
               )
             : (
                 <button className="btn btn-primary end-main" onClick={share}>
-                  <MapleMark />
+                  <ShareIcon />
                   Share
                 </button>
               )}

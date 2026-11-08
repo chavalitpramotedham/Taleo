@@ -7,8 +7,8 @@ import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
 import { StoryCard } from "./StoryCard";
-import { StoryPreview, summaryFromEntry } from "./StoryPreview";
-import { InlineRating } from "./InlineRating";
+import { PreviewButtons, StoryPreview, summaryFromEntry } from "./StoryPreview";
+import { MyRatingNote } from "./InlineRating";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "./PageLoading";
 
@@ -34,10 +34,13 @@ export function SortPills({ sort, onChange }: { sort: GallerySort; onChange: (s:
  *  Newest toggle. `limit` shows just the top few (home page). */
 export function GalleryShelf({
   limit,
+  author,
   heading,
   headClass,
 }: {
   limit?: number;
+  /** Only this author's stories (their bookshelf page). */
+  author?: string;
   /** Shown above the shelf, with the sort pills underneath. */
   heading: React.ReactNode;
   headClass: string;
@@ -62,7 +65,8 @@ export function GalleryShelf({
     }
     let live = true;
     fetchGallery(limit ? { sort, limit } : {})
-      .then((list) => {
+      .then((all) => {
+        const list = author ? all.filter((e) => e.authorUsername?.toLowerCase() === author.toLowerCase()) : all;
         byOrder.current[key] = list;
         if (live) setStories(list);
       })
@@ -70,7 +74,7 @@ export function GalleryShelf({
     return () => {
       live = false;
     };
-  }, [limit, sort]);
+  }, [limit, sort, author]);
 
   const sorted = useMemo(() => {
     if (!stories) return [];
@@ -106,8 +110,8 @@ export function GalleryShelf({
       ) : sorted.length === 0 ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
-          <h2>The library is empty, for now</h2>
-          <p className="meta">Finished stories appear here for anyone to read.</p>
+          <h2>{author ? "No stories here yet" : "The library is empty, for now"}</h2>
+          <p className="meta">{author ? `Stories @${author} shares will appear here.` : "Finished stories appear here for anyone to read."}</p>
           <Link className="btn btn-primary" href="/create">
             <MapleMark />
             Begin the first story
@@ -122,11 +126,7 @@ export function GalleryShelf({
       )}
       {open && (
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)}>
-          <LibraryActions
-            entry={open}
-            onCopied={() => flash("Link copied. Paste it anywhere to share.")}
-            onRated={(agg) => setStories((cur) => cur?.map((e) => (e.id === open.id ? { ...e, ...agg } : e)) ?? cur)}
-          />
+          <LibraryActions entry={open} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
         </StoryPreview>
       )}
       {toast && <div className="toast">{toast}</div>}
@@ -134,33 +134,25 @@ export function GalleryShelf({
   );
 }
 
-/** A library story's preview actions: read it, share it, or rate it right here. */
+/** A library story's preview actions: read it (the main button) with a
+ *  small share button beside it, and - only if you've rated it - your
+ *  rating underneath. (Rating itself happens at the end of the story.) */
 function LibraryActions({
   entry,
   onCopied,
-  onRated,
 }: {
   entry: GalleryEntry;
   onCopied: () => void;
-  onRated: (agg: { ratingSum: number; ratingCount: number }) => void;
 }) {
-  const [rating, setRating] = useState(false);
   const title = entry.title || "An untitled story";
   return (
     <div className="story-preview-actions">
-      <Link className="btn btn-primary btn-block" href={`/store/${entry.id}`}>
-        <MapleMark />
-        Read the story
-      </Link>
-      <div className="story-preview-row">
-        <button type="button" className="btn btn-soft" onClick={() => shareStory(title, shareUrl(entry.id, window.location.origin), onCopied)}>
-          Share
-        </button>
-        <button type="button" className={`btn btn-soft ${rating ? "on" : ""}`} onClick={() => setRating((r) => !r)} aria-expanded={rating}>
-          {rating ? "Hide rating" : "Rate"}
-        </button>
-      </div>
-      {rating && <InlineRating storyId={entry.id} initial={{ ratingSum: entry.ratingSum, ratingCount: entry.ratingCount }} onRated={onRated} />}
+      <PreviewButtons
+        href={`/store/${entry.id}`}
+        label="Read the story"
+        onShare={() => shareStory(title, shareUrl(entry.id, window.location.origin), onCopied)}
+      />
+      <MyRatingNote storyId={entry.id} initial={{ ratingSum: entry.ratingSum, ratingCount: entry.ratingCount }} />
     </div>
   );
 }

@@ -98,3 +98,16 @@ export function InlineRating({
     </div>
   );
 }
+
+/** Your own rating of a story, if you've given one - nothing otherwise. */
+export function MyRatingNote({ storyId, initial }: { storyId: string; initial: RatingAggregate }) {
+  const { mine } = useRating(storyId, initial);
+  if (!mine) return null;
+  return (
+    <div className="inline-rating my-rating-note">
+      <p className="meta">You rated this story</p>
+      <StarRating value={mine.rating} />
+      {mine.comment && <p className="my-comment">&ldquo;{mine.comment}&rdquo;</p>}
+    </div>
+  );
+}
