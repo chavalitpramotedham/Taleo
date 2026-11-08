@@ -2328,7 +2328,9 @@ main {
     padding: 14px 16px;
   }
   .steps {
-    grid-auto-columns: 44%;
+    /* A fixed width (the text doesn't scale with the screen), wide enough
+       that every step's subtitle stays within two lines on any phone. */
+    grid-auto-columns: 186px;
     gap: 12px;
     margin-left: -16px;
     margin-right: -16px;
