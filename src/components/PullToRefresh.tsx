@@ -1,5 +1,12 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+
+/** Only pages that show a list of content (which can change while you're
+ *  away) offer pull-to-refresh. Never a story: a stray pull mid-read
+ *  mustn't reload the book. */
+const LIST_PAGES = ["/store", "/library", "/my-stories", "/my-characters"];
+const isListPage = (path: string) => LIST_PAGES.includes(path.replace(/\/$/, "") || "/");
 
 // A deliberate pull is needed to reload (about 130px of finger travel), so
 // an ordinary scroll back to the top never reloads by accident.
@@ -21,8 +28,10 @@ const FADE_MS = 450; // fade-out before the reload
 export function PullToRefresh() {
   const spinner = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
+  const enabled = isListPage(usePathname());
 
   useEffect(() => {
+    if (!enabled) return;
     const spin = spinner.current;
     const circle = ring.current;
     const content = () => document.querySelector<HTMLElement>("main > .page-enter");
@@ -101,8 +110,9 @@ export function PullToRefresh() {
       window.removeEventListener("touchend", onEnd);
       window.removeEventListener("touchcancel", onEnd);
     };
-  }, []);
+  }, [enabled]);
 
+  if (!enabled) return null;
   return (
     <div className="pull-refresh" aria-hidden>
       <div className="pull-refresh-spin" ref={spinner}>

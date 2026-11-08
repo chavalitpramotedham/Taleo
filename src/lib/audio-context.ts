@@ -16,7 +16,10 @@ export function getAudioContext(): AudioContext | null {
     const Ctor = getCtor();
     if (!Ctor) return null;
     ctx ??= new Ctor();
-    if (ctx.state === "suspended") void ctx.resume();
+    // "suspended" (not yet unlocked / backgrounded) or Safari's
+    // "interrupted" (another sound - e.g. the phone's own voice - took the
+    // speaker): either way, ask for it back.
+    if (ctx.state !== "running" && ctx.state !== "closed") void ctx.resume().catch(() => {});
     return ctx;
   } catch {
     return null;

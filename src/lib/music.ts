@@ -43,12 +43,25 @@ function stopWatchdog() {
   watchdog = null;
 }
 
+/** Is the music actually audible? Not if the element is paused - and,
+ *  when it plays through Web Audio, not if that context was suspended or
+ *  "interrupted" (iOS does this when the phone's own voice speaks), even
+ *  though the element itself still reports playing. */
+function silenced(p: HTMLAudioElement) {
+  return p.paused || (gain !== null && gain.context.state !== "running");
+}
+
 function ensurePlaying() {
   const p = el;
   if (!wanted || !p) return stopWatchdog();
-  if (!p.paused) return stopWatchdog();
+  if (!silenced(p)) return stopWatchdog();
   if (holds.size) return; // try again on the next tick
-  p.play().catch(armRetry);
+  if (gain) getAudioContext(); // asks a suspended/interrupted context to resume
+  if (p.paused) p.play().catch(armRetry);
+  else if (gain && gain.context.state !== "running") {
+    // still not back: try again on the next tap, which iOS always allows
+    armRetry();
+  }
 }
 
 function startWatchdog() {
@@ -66,7 +79,7 @@ export function holdMusic(reason: string, on: boolean, opts: { pause?: boolean }
     if (opts.pause && el && !el.paused) el.pause();
   } else {
     holds.delete(reason);
-    if (wanted && el?.paused) {
+    if (wanted && el && silenced(el)) {
       startWatchdog();
       ensurePlaying();
     }
@@ -124,7 +137,7 @@ export function duckMusic(reason: string, on: boolean) {
 
 /** Nudge: some other sound just finished, resume now if it was interrupted. */
 export function resumeMusic() {
-  if (wanted && el?.paused) {
+  if (wanted && el && silenced(el)) {
     startWatchdog();
     ensurePlaying();
   }
@@ -161,6 +174,11 @@ function player(): HTMLAudioElement | null {
     }
     if (!gain) el.volume = level();
     el.addEventListener("pause", () => wanted && startWatchdog());
+    if (gain) {
+      gain.context.addEventListener("statechange", () => {
+        if (wanted && gain && gain.context.state !== "running") startWatchdog();
+      });
+    }
     el.addEventListener("playing", stopWatchdog);
     document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && resumeMusic());
   }
@@ -177,7 +195,10 @@ function armRetry() {
     window.removeEventListener("pointerdown", retry);
     window.removeEventListener("keydown", retry);
     // Not while the mic is open: grabbing the speaker could end dictation.
-    if (wanted && !holds.has("mic")) void player()?.play().catch(() => {});
+    if (wanted && !holds.has("mic")) {
+      if (gain) getAudioContext();
+      void player()?.play().catch(() => {});
+    }
   };
   window.addEventListener("pointerdown", retry, { once: true });
   window.addEventListener("keydown", retry, { once: true });
