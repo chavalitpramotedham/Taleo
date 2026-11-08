@@ -5045,3 +5045,12 @@ html[data-night] .keyword-pill {
 .hero-art .hero-brush .hero-brush-shadow svg {
   filter: brightness(0) blur(2.5px);
 }
+
+/* The painting's "what's being painted" label: dark smoked glass at night
+   (its light pill kept cream lettering on cream). */
+html[data-night] .hero-stage {
+  background: rgba(22, 17, 24, 0.62);
+  border-color: rgba(255, 236, 205, 0.2);
+  box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.7);
+  color: #f0e3c9;
+}
