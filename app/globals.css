@@ -6533,3 +6533,46 @@ html.brand-live .leaf-whirl {
   font-style: italic;
   cursor: pointer;
 }
+/* Dashboard tiles: a small 30-day chart under each number. */
+.admin-tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+.admin-change {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.admin-change.good,
+.admin-spark.good {
+  color: #4f8a4a;
+}
+.admin-change.bad,
+.admin-spark.bad {
+  color: #b5533a;
+}
+.admin-change.flat,
+.admin-spark.flat {
+  color: var(--ink-soft);
+}
+.admin-spark {
+  display: block;
+  width: 100%;
+  height: 34px;
+  margin: 6px 0 4px;
+}
+.admin-spark-empty {
+  border-bottom: 1px dashed var(--rule-strong);
+  height: 18px;
+  margin-bottom: 20px;
+}
+html[data-night] .admin-change.good,
+html[data-night] .admin-spark.good {
+  color: #8fc082;
+}
+html[data-night] .admin-change.bad,
+html[data-night] .admin-spark.bad {
+  color: #e08a6c;
+}

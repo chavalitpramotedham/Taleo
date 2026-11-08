@@ -69,6 +69,25 @@ export default async function AdminPage() {
     active: d.activeUsers,
     cost: costs?.days.find((c) => c.day === d.day)?.usd ?? features.reduce((t, f) => t + (d.counts[`${f}:usd_micro`] ?? 0) / 1e6, 0),
   }));
+  // Daily series for the tiles' little charts (oldest first).
+  const dayList = Array.from({ length: DAYS }, (_, i) => new Date(now - (DAYS - 1 - i) * 86_400_000).toISOString().slice(0, 10));
+  const endOf = (day: string) => Date.parse(`${day}T23:59:59.999Z`);
+  const byDay = (key: string) => dayList.map((d) => days.find((x) => x.day === d)?.counts[key] ?? 0);
+  const series = {
+    accounts: dayList.map((d) => users.filter((u) => u.createdAt <= endOf(d)).length),
+    active: dayList.map((d) => days.find((x) => x.day === d)?.activeUsers ?? 0),
+    stories: byDay("stories_started"),
+    library: dayList.map((d) => gallery.filter((e) => e.createdAt <= endOf(d)).length),
+    cost: dayList.map((d) => costs?.days.find((c) => c.day === d)?.usd ?? features.reduce((t, f) => t + (days.find((x) => x.day === d)?.counts[`${f}:usd_micro`] ?? 0) / 1e6, 0)),
+    paintings: byDay("paintings"),
+    words: byDay("words"),
+    tokens: dayList.map((d) => {
+      const c = days.find((x) => x.day === d)?.counts ?? {};
+      return features.reduce((t, f) => t + (c[`${f}:in`] ?? 0) + (c[`${f}:out`] ?? 0) + (c[`${f}:cache_read`] ?? 0) + (c[`${f}:cache_write`] ?? 0), 0);
+    }),
+  };
+  const costPerStory = series.cost.map((c, i) => (series.stories[i] ? c / series.stories[i] : 0));
+  const totalTokens = series.tokens.reduce((a, b) => a + b, 0);
   const maxCost = Math.max(0.01, ...perDay.map((d) => d.cost));
   const maxStories = Math.max(1, ...perDay.map((d) => d.stories));
 
@@ -94,12 +113,21 @@ export default async function AdminPage() {
       <section className="admin-section">
         <h2>At a glance</h2>
         <div className="admin-tiles">
-          <Tile label="Accounts" value={n(users.length)} note={`+${signups7} this week · +${signups30} in 30 days`} />
-          <Tile label="Active users" value={active7 === null ? "-" : n(active7)} note={active30 === null ? "needs tracking" : `${n(active30)} in 30 days`} />
-          <Tile label="Stories started" value={metrics ? n(started) : "-"} note={metrics ? `${n(finished)} finished (${started ? Math.round((finished / started) * 100) : 0}%)` : "needs tracking"} />
-          <Tile label="In the library" value={n(gallery.length)} note={`+${published30} in 30 days`} />
-          <Tile label={actualTotal !== null ? "API cost (actual)" : "API cost (estimate)"} value={usd(spend)} note={actualTotal !== null ? (metrics ? `estimate was ${usd(estTotal)}` : "Anthropic's report") : "from token counts"} />
-          <Tile label="Cost per story" value={started ? usd(spend / started) : "-"} note={paintings && started ? `${(paintings / started).toFixed(1)} paintings per story` : "stories started"} />
+          <Tile label="Accounts" value={n(users.length)} note={`+${signups7} this week · +${signups30} in 30 days`} data={series.accounts} />
+          <Tile label="Active users" value={active7 === null ? "-" : n(active7)} note={active30 === null ? "needs tracking" : `this week · ${n(active30)} in 30 days`} data={metrics ? series.active : undefined} />
+          <Tile label="Stories started" value={metrics ? n(started) : "-"} note={metrics ? `${n(finished)} finished (${started ? Math.round((finished / started) * 100) : 0}%)` : "needs tracking"} data={metrics ? series.stories : undefined} />
+          <Tile label="In the library" value={n(gallery.length)} note={`+${published30} in 30 days`} data={series.library} />
+          <Tile
+            label={actualTotal !== null ? "API cost (actual)" : "API cost (estimate)"}
+            value={usd(spend)}
+            note={actualTotal !== null ? (metrics ? `estimate was ${usd(estTotal)}` : "Anthropic's report") : "from token counts"}
+            data={metrics || costs ? series.cost : undefined}
+            invert
+          />
+          <Tile label="Cost per story" value={started ? usd(spend / started) : "-"} note={paintings && started ? `${(paintings / started).toFixed(1)} paintings per story` : "per story started"} data={metrics ? costPerStory : undefined} invert />
+          <Tile label="Paintings" value={metrics ? n(paintings) : "-"} note={metrics ? `${n(sum(days, "paintings_failed"))} failed` : "needs tracking"} data={metrics ? series.paintings : undefined} />
+          <Tile label="Words written" value={metrics ? n(sum(days, "words")) : "-"} note={metrics ? `${n(sum(days, "pages"))} pages` : "needs tracking"} data={metrics ? series.words : undefined} />
+          <Tile label="Tokens" value={metrics ? tokens(totalTokens) : "-"} note={metrics && totalIn ? `${Math.round((cacheRead / totalIn) * 100)}% from cache` : "needs tracking"} data={metrics ? series.tokens : undefined} invert />
         </div>
       </section>
 
@@ -235,13 +263,54 @@ export default async function AdminPage() {
   );
 }
 
-function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
+/** A metric with a small, zoomed-out chart of its last 30 days - like a
+ *  stock widget: a line with a soft fill, green when the second half of the
+ *  period beats the first (red for costs, where up is worse). */
+function Tile({ label, value, note, data, invert = false }: { label: string; value: string; note?: string; data?: number[]; invert?: boolean }) {
+  let trend: "up" | "down" | "flat" = "flat";
+  let change: string | null = null;
+  if (data && data.length > 3) {
+    const half = Math.floor(data.length / 2);
+    const a = data.slice(0, half).reduce((x, y) => x + y, 0);
+    const b = data.slice(half).reduce((x, y) => x + y, 0);
+    if (b > a) trend = "up";
+    else if (b < a) trend = "down";
+    if (a > 0) change = `${b >= a ? "+" : ""}${Math.round(((b - a) / a) * 100)}%`;
+  }
+  const good = trend === "flat" ? "flat" : (trend === "up") !== invert ? "good" : "bad";
   return (
     <div className="admin-tile">
-      <p className="admin-tile-label">{label}</p>
+      <div className="admin-tile-head">
+        <p className="admin-tile-label">{label}</p>
+        {change && <span className={`admin-change ${good}`}>{change}</span>}
+      </div>
       <p className="admin-tile-value">{value}</p>
+      {data ? <Spark data={data} tone={good} /> : <div className="admin-spark admin-spark-empty" />}
       {note && <p className="admin-tile-note">{note}</p>}
     </div>
+  );
+}
+
+function Spark({ data, tone }: { data: number[]; tone: "good" | "bad" | "flat" }) {
+  const w = 120;
+  const h = 34;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const span = max - min || 1;
+  const pts = data.map((v, i) => [(i / Math.max(1, data.length - 1)) * w, h - 2 - ((v - min) / span) * (h - 4)] as const);
+  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const id = `sp-${Math.random().toString(36).slice(2, 8)}`;
+  return (
+    <svg className={`admin-spark ${tone}`} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.28" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line} L${w} ${h} L0 ${h} Z`} fill={`url(#${id})`} />
+      <path d={line} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }
 
