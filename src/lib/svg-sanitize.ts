@@ -25,8 +25,26 @@ export const TARGET_CLASS = "tl-target";
 const KNOWN_FILTERS = new Set(Object.values(LAYER_FILTER));
 const SAFE_VALUE =/^[#a-zA-Z0-9\s.,\-+()%]*$/;
 
+// The same pictures are cleaned again and again (every library cover on
+// every visit, avatars, the homepage scene...), so remember recent results.
+const cleaned = new Map<string, string>();
+const CLEANED_MAX = 96;
+
 export function sanitizeSvg(input: string | null | undefined, maxLength = 80000): string {
   if (!input) return "";
+  const key = `${maxLength}:${input}`;
+  const hit = cleaned.get(key);
+  if (hit !== undefined) return hit;
+  const out = sanitizeSvgUncached(input, maxLength);
+  // Streaming paintings change on every chunk - only remember finished-size ones.
+  if (input.length > 400) {
+    cleaned.set(key, out);
+    if (cleaned.size > CLEANED_MAX) cleaned.delete(cleaned.keys().next().value!);
+  }
+  return out;
+}
+
+function sanitizeSvgUncached(input: string, maxLength: number): string {
   const src = input.slice(0, maxLength * 2).replace(/<!--[\s\S]*?(-->|$)/g, "");
   const out: string[] = [];
   const stack: string[] = [];

@@ -4648,17 +4648,17 @@ html[data-night] .modal-backdrop {
   animation: veilIn 0.34s ease-in forwards;
 }
 .night-veil.out {
-  opacity: 0.94;
+  opacity: 1;
   animation: veilOut 0.56s ease-out forwards;
 }
 @keyframes veilIn {
   to {
-    opacity: 0.94;
+    opacity: 1;
   }
 }
 @keyframes veilOut {
   from {
-    opacity: 0.94;
+    opacity: 1;
   }
   to {
     opacity: 0;
@@ -4928,4 +4928,23 @@ html[data-night] .topbar {
   35% { transform: translate(18px, 26px); }
   70% { transform: translate(-16px, 12px); }
   100% { transform: translate(-4px, -30px); }
+}
+
+/* ---------- page changes ---------- */
+/* Each new page fades softly in instead of popping. Opacity only (no
+   transform), so fixed popups and buttons inside pages stay put. */
+.page-enter {
+  /* no fill-mode: once finished nothing lingers, so the page doesn't keep
+     its own stacking layer (pop-ups inside it must stack normally) */
+  animation: pageEnter 0.32s ease-out;
+}
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
 }
