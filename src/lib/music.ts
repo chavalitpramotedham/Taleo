@@ -91,11 +91,11 @@ export function holdMusic(reason: string, on: boolean, opts: { pause?: boolean }
 }
 
 // ---- softening under the voice ----
-// A gentle dip, not a cut: the music eases down to about half its volume
+// A gentle dip, not a cut: the music eases down to about a third of its volume
 // over roughly a second while the voice speaks, and drifts back up a
 // little more slowly afterwards.
 const ducks = new Set<string>();
-const DUCKED = VOLUME * 0.5;
+const DUCKED = VOLUME * 0.34; // a bit softer under the voice - never silent
 const DOWN_S = 0.32; // time constant easing down (~1s to settle)
 const UP_S = 0.5; // ... and back up (~1.5s)
 let gain: GainNode | null = null;
