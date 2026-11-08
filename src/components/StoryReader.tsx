@@ -447,7 +447,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
             <span>The illustrator is painting this page…</span>
           </div>
         )}
-        {!done && partial && <div className="painting-badge">Painting…</div>}
+        {!done && partial && (
+          <div className="painting-badge" role="status">
+            <LeafLoader size={21} />
+            Painting…
+          </div>
+        )}
         {!done && !readOnly && failed[key] && !painting(key) && (
           <button className="painting-badge retry" onClick={() => retry(key)}>
             Paint this page again

@@ -5122,3 +5122,24 @@ html {
 .modal-panel {
   overscroll-behavior: contain;
 }
+
+/* "Painting..." on a page whose picture is still coming: a soft rounded
+   chip with the falling-leaves loader, so it's clearly still working. */
+.painting-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 9px;
+  border-radius: 999px;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 252, 244, 0.82);
+  box-shadow: 0 2px 8px -3px rgba(60, 40, 20, 0.25);
+}
+.painting-badge .leaf-loader {
+  flex: none;
+}
+html[data-night] .painting-badge {
+  background: rgba(22, 17, 24, 0.7);
+  border-color: rgba(255, 236, 205, 0.2);
+  color: #f0e3c9;
+}
