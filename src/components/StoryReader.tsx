@@ -12,7 +12,7 @@ import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { RateAndComment } from "./RateAndComment";
-import { BrushIcon, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
+import { LeafLoader, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -294,7 +294,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
         ) : null}
         {!svg && (
           <div className="picture-wait" aria-live="polite">
-            <BrushIcon />
+            <LeafLoader size={36} />
             <span>The illustrator is painting this page…</span>
           </div>
         )}
@@ -314,10 +314,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     words = (
       <div className="loading" aria-live="polite">
         <p className="once">{story.segments.length === 0 ? "Once upon a time…" : "And then…"}</p>
+        <LeafLoader size={48} />
         <p className="meta">{LOADING_LINES[loadingLine]}</p>
-        <div className="quill" aria-hidden>
-          <span />
-        </div>
       </div>
     );
   } else if (view.kind === "error") {

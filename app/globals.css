@@ -155,6 +155,11 @@ button {
   animation-name: leaf-whirl;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  /* A soft, down-and-right shadow (light from the upper-left) - it rides
+     along with each leaf's own scale/opacity as it falls, so it reads as
+     closer and sharper when the leaf is near, fainter when far, rather
+     than a flat cutout. */
+  filter: drop-shadow(0.8px 1.6px 1px rgba(47, 34, 20, 0.45));
 }
 /* A whirlwind's own circling (around a vertical axis) reads, seen from the
    side, as side-to-side sway rather than a visible circle - so each leaf
@@ -759,11 +764,6 @@ main {
   text-align: center;
   padding: 20px;
 }
-.picture-wait svg {
-  width: 30px;
-  height: 30px;
-  animation: brush 1.6s ease-in-out infinite;
-}
 .wait-portrait {
   width: min(220px, 50%) !important;
   height: auto !important;
@@ -1020,22 +1020,6 @@ main {
   font-size: clamp(1.7rem, 3.6vw, 2.4rem);
   margin: 0;
 }
-.quill {
-  width: 160px;
-  height: 2px;
-  background: var(--rule);
-  position: relative;
-  overflow: hidden;
-  margin-top: 8px;
-}
-.quill span {
-  position: absolute;
-  inset: 0;
-  background: var(--russet);
-  transform-origin: left;
-  animation: write 2.2s ease-in-out infinite;
-}
-
 /* the end */
 .the-end {
   display: flex;
@@ -1422,27 +1406,6 @@ main {
   }
   50% {
     opacity: 0.82;
-  }
-}
-@keyframes brush {
-  0%,
-  100% {
-    transform: rotate(-10deg);
-  }
-  50% {
-    transform: rotate(12deg) translateX(3px);
-  }
-}
-@keyframes write {
-  0% {
-    transform: scaleX(0);
-  }
-  60% {
-    transform: scaleX(1);
-  }
-  100% {
-    transform: scaleX(1);
-    opacity: 0;
   }
 }
 @keyframes pulse {

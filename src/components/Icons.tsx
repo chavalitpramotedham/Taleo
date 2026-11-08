@@ -32,13 +32,6 @@ export const ShareIcon = () => (
   </svg>
 );
 
-export const BrushIcon = () => (
-  <svg {...base}>
-    <path d="M19.5 4.5c-3 1.5-7.5 6-9 8.5l1.5 1.5c2.5-1.5 7-6 8.5-9z" />
-    <path d="M10.5 13c-2 0-3.5 1.5-3.5 3.5 0 1.2-.8 2.3-2 2.5 3 1.2 7 .3 7-3.5" />
-  </svg>
-);
-
 /** A storybook take on the usual "person" icon: a head and shoulders, with
  *  a small accent dot echoing the brand mark (the dot before "Taleo"). */
 export const AccountIcon = () => (
@@ -84,8 +77,8 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
  *  same height as they fall. (The static base rotation is an SVG
  *  attribute on each leaf; the whirl itself is a separate wrapping
  *  group animated in CSS, so the two never fight.) */
-export const BrandMark = () => (
-  <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+const LeafTrio = () => (
+  <>
     <g transform="translate(6,9)">
       <g className="leaf-whirl leaf-whirl-a">
         <Leaf fill="#9C4F32" rotate={10} />
@@ -101,6 +94,22 @@ export const BrandMark = () => (
         <Leaf fill="#C49A3E" rotate={250} />
       </g>
     </g>
+  </>
+);
+
+export const BrandMark = () => (
+  <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+    <LeafTrio />
+  </svg>
+);
+
+/** The brand mark's falling-leaf whirl, sized up as a standard "please
+ *  wait" indicator - so every busy moment in the app (writing, painting,
+ *  saving) shares the same bit of visual language instead of a generic
+ *  spinner. */
+export const LeafLoader = ({ size = 40, className }: { size?: number; className?: string }) => (
+  <svg className={`leaf-loader ${className || ""}`} viewBox="0 0 24 24" width={size} height={size} role="img" aria-label="Loading">
+    <LeafTrio />
   </svg>
 );
 
