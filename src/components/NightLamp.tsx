@@ -19,25 +19,32 @@ export function NightLamp({ leaving = false }: { leaving?: boolean }) {
       </div>
       <div className={`night-lamp ${leaving ? "leaving" : ""}`} aria-hidden>
         <div className="night-lamp-sway">
-          {/* A little storybook lantern, painted in the same watercolour and
-              wobbly sepia pen as the illustrations (the global tl-paint and
-              tl-ink filters), with a candle glowing behind its glass. */}
-          <svg viewBox="0 0 200 460" className="night-lamp-svg">
+          {/* Performance: everything that moves (halo, flame) lives in its own
+              light, filter-free layer, animated only with transform/opacity,
+              so the browser never has to re-run the painted lantern's
+              watercolour and pen filters - it just rotates one cached
+              picture as the lantern sways. */}
+          <svg viewBox="0 0 200 460" className="night-lamp-layer night-lamp-halo" aria-hidden>
             <defs>
               <radialGradient id="nl-halo">
                 <stop offset="0" stopColor="#ffd58a" stopOpacity="0.7" />
                 <stop offset="0.45" stopColor="#ffbf6b" stopOpacity="0.2" />
                 <stop offset="1" stopColor="#ffb055" stopOpacity="0" />
               </radialGradient>
+            </defs>
+            <circle cx="100" cy="300" r="105" fill="url(#nl-halo)" />
+          </svg>
+          {/* A little storybook lantern, painted in the same watercolour and
+              wobbly sepia pen as the illustrations (the global tl-paint and
+              tl-ink filters), with a candle glowing behind its glass. */}
+          <svg viewBox="0 0 200 460" className="night-lamp-svg">
+            <defs>
               <radialGradient id="nl-glass" cx="0.5" cy="0.55" r="0.65">
                 <stop offset="0" stopColor="#fff3c8" />
                 <stop offset="0.55" stopColor="#ffd27c" />
                 <stop offset="1" stopColor="#e8a24c" />
               </radialGradient>
             </defs>
-
-            {/* warm glow around the glass */}
-            <circle className="night-lamp-halo" cx="100" cy="300" r="105" fill="url(#nl-halo)" />
 
             {/* the cord it hangs from - a lighter sepia so it reads in the dark */}
             <path d="M100 0C98 50 102 110 100 196" stroke="#a48b6c" strokeWidth="4" strokeLinecap="round" fill="none" filter="url(#tl-ink)" />
@@ -51,12 +58,6 @@ export function NightLamp({ leaving = false }: { leaving?: boolean }) {
               <path d="M56 254C62 226 82 212 100 212C118 212 138 226 144 254Z" fill="#7A6A58" />
               <path d="M58 338H142L132 356H68Z" fill="#6B5C4C" />
               <circle cx="100" cy="206" r="7" fill="#8A7862" />
-            </g>
-
-            {/* the flame */}
-            <g className="night-flame">
-              <path d="M100 262C111 278 112 290 100 298C88 290 89 278 100 262Z" fill="#FFF6D8" />
-              <path d="M100 276C105 284 105 290 100 294C95 290 95 284 100 276Z" fill="#FFC85A" />
             </g>
 
             {/* pen linework, sepia like the paintings */}
@@ -78,6 +79,10 @@ export function NightLamp({ leaving = false }: { leaving?: boolean }) {
               <path d="M70 238C80 228 92 223 104 222" strokeWidth="2.4" opacity="0.6" />
               <path d="M76 350H124" strokeWidth="2.2" opacity="0.5" />
             </g>
+          </svg>
+          <svg viewBox="0 0 200 460" className="night-lamp-layer night-flame" aria-hidden>
+            <path d="M100 262C111 278 112 290 100 298C88 290 89 278 100 262Z" fill="#FFF6D8" />
+            <path d="M100 276C105 284 105 290 100 294C95 290 95 284 100 276Z" fill="#FFC85A" />
           </svg>
         </div>
       </div>

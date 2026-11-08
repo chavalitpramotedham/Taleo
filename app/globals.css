@@ -3404,8 +3404,13 @@ html[data-night] .book::after {
   background: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(255, 220, 170, 0.05));
 }
 /* Illustrations stay visible - just softened, as if lamplit. */
-html[data-night] .book-art {
-  filter: brightness(0.9) saturate(0.92);
+html[data-night] .book-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: rgba(14, 9, 16, 0.12);
 }
 html[data-night] .story-text {
   text-shadow: 0 0 22px rgba(255, 196, 120, 0.08);
@@ -3459,15 +3464,17 @@ html[data-night] .modal-backdrop {
   inset: 0;
   background: radial-gradient(
     circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 214, 142, 0.46) 0,
-    rgba(255, 198, 116, 0.32) 46px,
-    rgba(255, 186, 102, 0.19) 120px,
-    rgba(255, 178, 94, 0.1) 240px,
-    rgba(255, 172, 90, 0.04) 400px,
+    rgba(255, 214, 142, 0.4) 0,
+    rgba(255, 198, 116, 0.27) 46px,
+    rgba(255, 186, 102, 0.16) 120px,
+    rgba(255, 178, 94, 0.085) 240px,
+    rgba(255, 172, 90, 0.035) 400px,
     rgba(255, 170, 90, 0) 600px
   );
-  mix-blend-mode: screen;
+  /* Ordinary blending (no blend mode) on its own GPU layer, animated only
+     by transform and opacity - smooth even on modest phones. */
   transform-origin: var(--lamp-x) var(--lamp-y);
+  will-change: transform, opacity;
   animation: lanternBreathe 3.6s ease-in-out infinite;
 }
 .night-pool-shimmer {
@@ -3488,8 +3495,18 @@ html[data-night] .modal-backdrop {
     rgba(8, 5, 10, 0.22) 380px,
     rgba(8, 5, 10, 0.5) 820px
   );
-  transform-origin: var(--lamp-x) var(--lamp-y);
-  animation: lanternBreathe 3.6s ease-in-out infinite reverse;
+  will-change: opacity;
+  animation: shadowBreathe 3.6s ease-in-out infinite;
+}
+@keyframes shadowBreathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  30%,
+  75% {
+    opacity: 0.88;
+  }
 }
 @keyframes lanternBreathe {
   0%,
@@ -3539,9 +3556,9 @@ html[data-night] .modal-backdrop {
   }
 }
 /* The candle flame flickers in step with the light. */
-.night-flame {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+.night-lamp-layer.night-flame {
+  /* the flame's base, in the lantern's 200 x 460 drawing */
+  transform-origin: 50% 64.8%;
   animation: flameFlicker 1.7s ease-in-out infinite;
 }
 @keyframes flameFlicker {
@@ -3579,6 +3596,7 @@ html[data-night] .modal-backdrop {
 }
 .night-mote {
   position: absolute;
+  will-change: transform, opacity;
   width: 3px;
   height: 3px;
   border-radius: 50%;
@@ -3626,19 +3644,30 @@ html[data-night] .modal-backdrop {
   animation: lampDrop 1s cubic-bezier(0.3, 1.35, 0.5, 1) both;
 }
 .night-lamp-sway {
+  position: relative;
   transform-origin: 50% 0;
+  will-change: transform;
   animation: lampSway 7s ease-in-out 1s infinite;
 }
 .night-lamp-svg {
+  position: relative;
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
   filter: drop-shadow(-6px 10px 8px rgba(0, 0, 0, 0.55));
 }
+.night-lamp-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  will-change: transform, opacity;
+}
 .night-lamp-halo {
+  transform-origin: 50% 65.2%;
   animation: haloPulse 3.6s ease-in-out infinite;
-  transform-origin: 100px 300px;
 }
 .night-lamp.leaving {
   animation: lampRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
