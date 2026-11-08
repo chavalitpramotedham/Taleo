@@ -4344,6 +4344,11 @@ html[data-night] .modal-backdrop {
   line-height: 1.7;
   color: var(--ink);
   text-wrap: pretty;
+  /* justified like a printed book; hyphenation keeps narrow phone lines
+     from opening up wide gaps between words */
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 .about-story .about-lead::first-letter {
   font-family: var(--font-title);
