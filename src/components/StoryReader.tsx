@@ -13,7 +13,6 @@ import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaint
 import { DictateButton } from "./DictateButton";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
-import { MoonIcon, NightLamp } from "./NightLamp";
 import { LeafLoader, Ornament, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
 
 type View =
@@ -49,47 +48,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   const [toast, setToast] = useState<string | null>(null);
   const [readAloud, setReadAloud] = useState(false);
 
-  // ---------------------------------------------------------------- night mode
-  // A cosy, dim bedtime theme for the storybook (remembered on this device).
-  // It darkens the whole page while the reader is open; a little lamp drops
-  // in over the book. Switching off lets the lamp rise away first.
-  const [night, setNight] = useState(false);
-  const [lampLeaving, setLampLeaving] = useState(false);
-  useEffect(() => {
-    try {
-      if (localStorage.getItem("taleo.night") === "1") setNight(true);
-    } catch {}
-  }, []);
-  useEffect(() => {
-    const root = document.documentElement;
-    if (night) root.dataset.night = "1";
-    else delete root.dataset.night;
-    return () => {
-      delete root.dataset.night;
-    };
-  }, [night]);
-  const fadeTheme = () => {
-    const root = document.documentElement;
-    root.classList.add("theme-fading");
-    window.setTimeout(() => root.classList.remove("theme-fading"), 900);
-  };
-  const toggleNight = () => {
-    if (lampLeaving) return;
-    try {
-      localStorage.setItem("taleo.night", night ? "0" : "1");
-    } catch {}
-    if (!night) {
-      fadeTheme();
-      setNight(true);
-      return;
-    }
-    setLampLeaving(true);
-    window.setTimeout(() => {
-      fadeTheme();
-      setNight(false);
-      setLampLeaving(false);
-    }, 420);
-  };
+
   const [loadingLine, setLoadingLine] = useState(0);
   const [overviewOpen, setOverviewOpen] = useState(false);
   const storyRef = useRef(story);
@@ -625,15 +584,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
         <div className="reader-tools">
           <MusicControl />
           <button
-            className={`icon-btn ${night ? "on" : ""}`}
-            onClick={toggleNight}
-            aria-pressed={night}
-            aria-label={night ? "Turn off night mode" : "Turn on night mode"}
-            title={night ? "Night mode on" : "Night mode"}
-          >
-            <MoonIcon on={night} />
-          </button>
-          <button
             className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
               if (readAloud) cancelSpeech();
@@ -671,7 +621,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
             </div>
           </>
         )}
-        {night && <NightLamp leaving={lampLeaving} />}
       </div>
 
       <nav className="reader-nav" aria-label="Turn the page">

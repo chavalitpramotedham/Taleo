@@ -232,29 +232,20 @@ html {
   }
 }
 .nav-row {
+  /* Links flush left after the brand; the night switch, a hairline
+     divider and the profile button on the right. */
+  flex: 1;
   display: flex;
   align-items: center;
-  /* The links, then a clear gap, a hairline divider and the profile
-     button - so the account reads as its own group, not a fourth link
-     jammed against the last one. */
+  justify-content: space-between;
   gap: 18px;
+  margin-left: clamp(16px, 3vw, 36px);
 }
 .topnav {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 18px;
-}
-.topnav::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  height: 22px;
-  width: 1px;
-  transform: translateY(-50%);
-  background: var(--rule);
+  gap: 6px;
 }
 .nav-link {
   font-family: var(--font-caps);
@@ -2280,13 +2271,13 @@ main {
     border-top: 1px solid var(--rule);
     padding: 8px clamp(10px, 3vw, 24px);
     gap: 10px;
+    margin-left: 0;
   }
   .topnav {
     flex: 1;
     min-width: 0;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 2px;
-    padding-right: 10px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -3187,9 +3178,6 @@ main {
   .nav-row {
     gap: 8px;
   }
-  .topnav {
-    padding-right: 8px;
-  }
 }
 
 /* Contact us: "Send message" lives outside the form box. On phones and
@@ -3396,11 +3384,6 @@ html[data-night] .topbar {
   background: linear-gradient(to bottom, rgba(22, 18, 26, 0.85), rgba(22, 18, 26, 0));
 }
 /* Switching themes: colours glide rather than snap. */
-html.theme-fading *,
-html.theme-fading body {
-  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease, box-shadow 0.8s ease, fill 0.8s ease !important;
-}
-
 /* The book: lit from a lamp above its top-right corner, so it throws a
    long soft shadow down and to the left, with a faint warm rim. */
 html[data-night] .book {
@@ -3452,72 +3435,11 @@ html[data-night] .modal-backdrop {
 }
 
 /* ---------- the lamp's light ---------- */
-.night-light {
-  position: absolute;
-  inset: 0;
-  z-index: 7;
-  pointer-events: none;
-  overflow: hidden;
-  /* Where the light comes from: the lantern's glowing glass (its x along
-     the book, and how far down from the book's top edge the glass hangs). */
-  --lamp-x: 86%;
-  --lamp-y: 94px;
-  animation: lightOn 1.1s ease 0.35s both;
-}
 /* The lantern's light: brightest right around the glass and falling off
    fast and then gently with distance - like real light - in fixed pixel
    distances, so it stays anchored to the lantern on any size of book.
    Two layers move it: a slow breathing pulse and a quick, faint shimmer,
    like a candle behind glass. */
-.night-pool {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 214, 142, 0.4) 0,
-    rgba(255, 198, 116, 0.27) 46px,
-    rgba(255, 186, 102, 0.16) 120px,
-    rgba(255, 178, 94, 0.085) 240px,
-    rgba(255, 172, 90, 0.035) 400px,
-    rgba(255, 170, 90, 0) 600px
-  );
-  /* Ordinary blending (no blend mode) on its own GPU layer, animated only
-     by transform and opacity - smooth even on modest phones. */
-  transform-origin: var(--lamp-x) var(--lamp-y);
-  will-change: transform, opacity;
-  animation: lanternBreathe 3.6s ease-in-out infinite;
-}
-.night-pool-shimmer {
-  background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 226, 160, 0.22) 0,
-    rgba(255, 206, 128, 0.1) 70px,
-    rgba(255, 196, 116, 0) 210px
-  );
-  animation: lanternShimmer 1.7s steps(1, end) infinite;
-}
-.night-dark {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
-    rgba(8, 5, 10, 0) 150px,
-    rgba(8, 5, 10, 0.22) 380px,
-    rgba(8, 5, 10, 0.5) 820px
-  );
-  will-change: opacity;
-  animation: shadowBreathe 3.6s ease-in-out infinite;
-}
-@keyframes shadowBreathe {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  30%,
-  75% {
-    opacity: 0.88;
-  }
-}
 @keyframes lanternBreathe {
   0%,
   100% {
@@ -3560,11 +3482,6 @@ html[data-night] .modal-backdrop {
     opacity: 0.85;
   }
 }
-@media (max-width: 760px) {
-  .night-light {
-    --lamp-y: 76px;
-  }
-}
 /* The candle flame flickers in step with the light. */
 .night-lamp-layer.night-flame {
   /* the flame's base, in the lantern's 200 x 460 drawing */
@@ -3586,9 +3503,6 @@ html[data-night] .modal-backdrop {
     transform: scale(0.95, 1.06) skewX(2deg);
   }
 }
-.night-light.leaving {
-  animation: lightOff 0.4s ease both;
-}
 @keyframes lightOn {
   from {
     opacity: 0;
@@ -3600,59 +3514,7 @@ html[data-night] .modal-backdrop {
   }
 }
 /* Motes drifting up through the lamplight. */
-.night-motes {
-  position: absolute;
-  inset: 0;
-}
-.night-mote {
-  position: absolute;
-  will-change: transform, opacity;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #ffe3a6;
-  box-shadow: 0 0 6px 2px rgba(255, 200, 112, 0.55);
-  opacity: 0;
-  animation: moteDrift 9s ease-in-out infinite;
-}
-.night-mote.m0 { left: 78%; top: 30%; animation-delay: 0s; }
-.night-mote.m1 { left: 88%; top: 46%; animation-delay: 1.3s; animation-duration: 11s; }
-.night-mote.m2 { left: 70%; top: 52%; animation-delay: 2.6s; }
-.night-mote.m3 { left: 92%; top: 24%; animation-delay: 3.8s; animation-duration: 10s; }
-.night-mote.m4 { left: 64%; top: 36%; animation-delay: 5.1s; animation-duration: 12s; }
-.night-mote.m5 { left: 82%; top: 62%; animation-delay: 6.2s; }
-.night-mote.m6 { left: 74%; top: 18%; animation-delay: 7.4s; animation-duration: 10.5s; width: 2px; height: 2px; }
-.night-mote.m7 { left: 58%; top: 26%; animation-delay: 4.4s; animation-duration: 13s; width: 2px; height: 2px; }
-.night-mote.m8 { left: 95%; top: 58%; animation-delay: 8.3s; animation-duration: 11.5s; width: 2px; height: 2px; }
-@keyframes moteDrift {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-  20% {
-    opacity: 0.85;
-  }
-  60% {
-    opacity: 0.6;
-    transform: translate(-10px, -34px);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(6px, -70px);
-  }
-}
-
 /* ---------- the lamp itself ---------- */
-.night-lamp {
-  position: absolute;
-  z-index: 8;
-  top: -2px;
-  right: calc(100% - var(--lamp-x, 86%));
-  width: 64px;
-  margin-right: -32px;
-  pointer-events: none;
-  animation: lampDrop 1s cubic-bezier(0.3, 1.35, 0.5, 1) both;
-}
 .night-lamp-sway {
   position: relative;
   transform-origin: 50% 0;
@@ -3678,9 +3540,6 @@ html[data-night] .modal-backdrop {
 .night-lamp-halo {
   transform-origin: 50% 65.2%;
   animation: haloPulse 3.6s ease-in-out infinite;
-}
-.night-lamp.leaving {
-  animation: lampRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
 }
 @keyframes lampDrop {
   0% {
@@ -3721,24 +3580,18 @@ html[data-night] .modal-backdrop {
     transform: scale(1.06);
   }
 }
-@media (max-width: 760px) {
-  .night-lamp {
-    width: 52px;
-    margin-right: -26px;
-    top: -2px;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .night-lamp,
+  .nav-lantern,
   .night-lamp-sway,
   .night-lamp-halo,
-  .night-pool,
-  .night-dark,
   .night-flame,
-  .night-light {
+  .night-ambience,
+  .night-glow *,
+  .firefly,
+  .firefly-light {
     animation: none !important;
   }
-  .night-mote {
+  .fireflies {
     display: none;
   }
 }
@@ -3749,6 +3602,9 @@ html[data-night] .modal-backdrop {
    stroke - it reads as dabs of paint and stays light on phones. */
 .hero-paint-canvas {
   position: relative;
+  /* The brush layer moves as a whole and would otherwise poke past the
+     picture (and widen the page); it only ever visits inside the frame. */
+  overflow: hidden;
 }
 .hero-paint-canvas > svg {
   transition: opacity 1s ease;
@@ -4502,4 +4358,345 @@ html[data-night] .modal-backdrop {
   border-top: 1px solid var(--rule);
   border-radius: 0;
   padding: 14px 0 0;
+}
+
+
+/* =====================================================================
+   NIGHT MODE, SITE-WIDE: the menu bar, the switch with its lantern, the
+   switching veil, and the room's light and fireflies.
+   ===================================================================== */
+
+/* ---------- menu ---------- */
+/* "Begin a story" is the primary action: a small rust pill with the gold
+   leaf. Library and About stay quiet text links. */
+.nav-link.nav-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 15px 7px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--russet-dark);
+  background: var(--russet);
+  color: #fbf4e6;
+  box-shadow: 0 2px 0 var(--russet-dark);
+  margin-right: 6px;
+}
+.nav-link.nav-primary .maple-mark {
+  width: 1.2em;
+  height: 1.2em;
+  margin: -0.1em 0;
+}
+@media (hover: hover) {
+  .nav-link.nav-primary:hover {
+    color: #fbf4e6;
+    background: var(--russet-dark);
+    border-bottom-color: var(--russet-dark);
+  }
+}
+.nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+.nav-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--rule);
+}
+.night-switch {
+  position: relative;
+  display: inline-flex;
+}
+.night-toggle {
+  width: 34px;
+  height: 34px;
+}
+.night-toggle svg {
+  width: 19px;
+  height: 19px;
+}
+@media (max-width: 640px) {
+  .nav-link.nav-primary {
+    padding: 5px 12px 6px 9px;
+    margin-right: 4px;
+  }
+  .nav-tools {
+    gap: 9px;
+  }
+}
+@media (max-width: 440px) {
+  /* Phones: everything fits on one row without scrolling. */
+  .nav-row {
+    gap: 6px;
+  }
+  .nav-link {
+    padding: 6px 4px;
+    font-size: 0.9rem;
+  }
+  .nav-link.nav-primary .maple-mark {
+    display: none;
+  }
+  .nav-link.nav-primary {
+    padding: 4px 8px 5px;
+    margin-right: 2px;
+  }
+  .nav-tools {
+    gap: 6px;
+  }
+  .night-toggle {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* ---------- switching: one veil, nothing else animating ---------- */
+.night-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+}
+.night-veil.in {
+  animation: veilIn 0.34s ease-in forwards;
+}
+.night-veil.out {
+  opacity: 0.94;
+  animation: veilOut 0.56s ease-out forwards;
+}
+@keyframes veilIn {
+  to {
+    opacity: 0.94;
+  }
+}
+@keyframes veilOut {
+  from {
+    opacity: 0.94;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- the lantern, hanging beside its switch ---------- */
+.nav-lantern {
+  position: absolute;
+  right: calc(100% + 6px);
+  bottom: -28px;
+  width: 28px;
+  z-index: 3;
+  pointer-events: none;
+  animation: lampDrop 1s cubic-bezier(0.3, 1.35, 0.5, 1) both;
+}
+.nav-lantern.settled {
+  animation: none;
+}
+.nav-lantern.leaving {
+  animation: lampRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
+}
+/* the rest of the cord, up to the top of the bar */
+.nav-lantern::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - 2px);
+  width: 1.5px;
+  height: 60px;
+  translate: -50% 0;
+  background: linear-gradient(to top, #a48b6c, rgba(164, 139, 108, 0));
+}
+
+/* ---------- the room at night ---------- */
+.night-ambience {
+  /* Covers the top screen of the page (where the lantern hangs) and clips
+     to it, so it never adds scroll space; the room and fireflies inside
+     are fixed to the screen. */
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 30;
+  animation: lightOn 1.2s ease 0.2s both;
+}
+.night-ambience.leaving {
+  animation: lightOff 0.4s ease both;
+}
+/* Soft dimming toward the edges of the screen. */
+.night-room {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 120% 95% at 70% 0%, rgba(6, 4, 10, 0) 48%, rgba(6, 4, 10, 0.34) 100%);
+}
+/* The lantern's light, anchored to it in the menu bar (page coordinates,
+   so it stays with the top of the page). A wide halo breathing slowly, a
+   brighter core pulsing like a candle, and a quick shimmer. */
+.night-glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  --lamp-x: 85%;
+  --lamp-y: 60px;
+}
+.night-glow > * {
+  position: absolute;
+  inset: 0;
+  transform-origin: var(--lamp-x) var(--lamp-y);
+  will-change: transform, opacity;
+}
+.night-glow-halo {
+  background: radial-gradient(
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(255, 190, 110, 0.22) 0,
+    rgba(255, 172, 92, 0.11) 220px,
+    rgba(255, 160, 82, 0.045) 480px,
+    rgba(255, 160, 82, 0) 780px
+  );
+  animation: haloBreathe 7s ease-in-out infinite;
+}
+.night-glow-core {
+  background: radial-gradient(
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(255, 224, 150, 0.5) 0,
+    rgba(255, 204, 124, 0.3) 34px,
+    rgba(255, 188, 104, 0.14) 100px,
+    rgba(255, 180, 96, 0) 230px
+  );
+  animation: lanternBreathe 3.6s ease-in-out infinite;
+}
+.night-glow-shimmer {
+  background: radial-gradient(
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(255, 232, 170, 0.24) 0,
+    rgba(255, 210, 132, 0.1) 60px,
+    rgba(255, 200, 120, 0) 170px
+  );
+  animation: lanternShimmer 1.7s steps(1, end) infinite;
+}
+@keyframes haloBreathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* ---------- fireflies ---------- */
+.fireflies {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.firefly {
+  position: absolute;
+  width: 0;
+  height: 0;
+  will-change: transform;
+  animation: wanderA 19s ease-in-out infinite alternate;
+}
+.firefly-light {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff1b8;
+  box-shadow:
+    0 0 6px 2px rgba(255, 220, 120, 0.75),
+    0 0 16px 6px rgba(255, 196, 92, 0.28);
+  opacity: 0;
+  will-change: opacity;
+  animation: twinkle 3.6s ease-in-out infinite;
+}
+.firefly:nth-child(3n + 1) {
+  animation-name: wanderB;
+  animation-duration: 23s;
+}
+.firefly:nth-child(3n + 2) {
+  animation-name: wanderC;
+  animation-duration: 16s;
+}
+.firefly:nth-child(4n) .firefly-light {
+  width: 3px;
+  height: 3px;
+  left: -1.5px;
+  top: -1.5px;
+  animation-duration: 4.8s;
+}
+.firefly:nth-child(5n + 2) .firefly-light {
+  width: 5px;
+  height: 5px;
+  left: -2.5px;
+  top: -2.5px;
+  animation-duration: 2.9s;
+}
+.firefly.f0 { left: 8%; top: 22%; animation-delay: -3s; }
+.firefly.f1 { left: 18%; top: 64%; animation-delay: -11s; }
+.firefly.f2 { left: 27%; top: 38%; animation-delay: -7s; }
+.firefly.f3 { left: 36%; top: 82%; animation-delay: -15s; }
+.firefly.f4 { left: 44%; top: 18%; animation-delay: -2s; }
+.firefly.f5 { left: 52%; top: 56%; animation-delay: -9s; }
+.firefly.f6 { left: 61%; top: 30%; animation-delay: -13s; }
+.firefly.f7 { left: 69%; top: 74%; animation-delay: -5s; }
+.firefly.f8 { left: 77%; top: 44%; animation-delay: -17s; }
+.firefly.f9 { left: 86%; top: 86%; animation-delay: -1s; }
+.firefly.f10 { left: 92%; top: 26%; animation-delay: -12s; }
+.firefly.f11 { left: 12%; top: 88%; animation-delay: -6s; }
+.firefly.f12 { left: 33%; top: 9%; animation-delay: -14s; }
+.firefly.f13 { left: 58%; top: 92%; animation-delay: -4s; }
+.firefly.f14 { left: 73%; top: 12%; animation-delay: -10s; }
+.firefly.f15 { left: 95%; top: 58%; animation-delay: -8s; }
+.firefly.f1 .firefly-light { animation-delay: -1.2s; }
+.firefly.f2 .firefly-light { animation-delay: -2.4s; }
+.firefly.f3 .firefly-light { animation-delay: -0.6s; }
+.firefly.f5 .firefly-light { animation-delay: -3.1s; }
+.firefly.f6 .firefly-light { animation-delay: -1.8s; }
+.firefly.f7 .firefly-light { animation-delay: -2.9s; }
+.firefly.f9 .firefly-light { animation-delay: -0.9s; }
+.firefly.f10 .firefly-light { animation-delay: -2.2s; }
+.firefly.f11 .firefly-light { animation-delay: -3.4s; }
+.firefly.f13 .firefly-light { animation-delay: -1.5s; }
+.firefly.f14 .firefly-light { animation-delay: -2.6s; }
+.firefly.f15 .firefly-light { animation-delay: -0.3s; }
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  45% {
+    opacity: 0.95;
+  }
+  60% {
+    opacity: 0.7;
+  }
+}
+@keyframes wanderA {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(26px, -18px); }
+  50% { transform: translate(8px, -42px); }
+  75% { transform: translate(-22px, -24px); }
+  100% { transform: translate(-6px, 10px); }
+}
+@keyframes wanderB {
+  0% { transform: translate(0, 0); }
+  30% { transform: translate(-30px, -14px); }
+  60% { transform: translate(-12px, 22px); }
+  100% { transform: translate(24px, -8px); }
+}
+@keyframes wanderC {
+  0% { transform: translate(0, 0); }
+  35% { transform: translate(18px, 26px); }
+  70% { transform: translate(-16px, 12px); }
+  100% { transform: translate(-4px, -30px); }
 }

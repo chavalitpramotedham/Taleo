@@ -3,6 +3,8 @@ import Link from "next/link";
 import { EB_Garamond, IM_Fell_English, IM_Fell_English_SC } from "next/font/google";
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { BrandMark } from "@/components/Icons";
+import { NavBegin } from "@/components/NavBegin";
+import { NightToggle } from "@/components/NightMode";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
 import { AccountNav } from "@/components/AccountNav";
@@ -50,7 +52,15 @@ const fellSC = IM_Fell_English_SC({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable}`}>
+    <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Apply night mode before the first paint (no flash of the light theme). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("taleo.night")==="1")document.documentElement.dataset.night="1"}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <Providers>
           <PaintDefs />
@@ -63,9 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <div className="nav-row">
               <nav className="topnav">
-                <Link href="/create" className="nav-link">
-                  Begin a story
-                </Link>
+                <NavBegin />
                 <Link href="/store" className="nav-link">
                   Library
                 </Link>
@@ -73,7 +81,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   About
                 </Link>
               </nav>
-              <AccountNav />
+              <div className="nav-tools">
+                <NightToggle />
+                <span className="nav-divider" aria-hidden />
+                <AccountNav />
+              </div>
             </div>
           </header>
           <main>{children}</main>
