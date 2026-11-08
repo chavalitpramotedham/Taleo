@@ -6039,3 +6039,10 @@ html.brand-live .leaf-whirl {
     translate: none;
   }
 }
+
+/* Every popup (previews, editors, confirmations, the page list) gets
+   softer, rounder corners, in keeping with the pills and rounded cards
+   elsewhere. Its contents (e.g. a preview's painting) are clipped to them. */
+.modal-panel {
+  border-radius: 18px;
+}
