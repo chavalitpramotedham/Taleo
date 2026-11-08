@@ -101,23 +101,31 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
       resume();
       return;
     }
-    // 1. The page below the menu fades out (and the lantern rises away,
-    //    going to day); the menu bar itself stays.
+    // 1. Straight after the tap: the page below the menu starts fading out
+    //    (quickly), the old backgrounds are laid over the page, and the
+    //    lantern starts rising away (going to day).
     root.classList.add("theme-switching", "theme-hidden");
-    if (!next) setLeaving(true);
-    await sleep(next ? 240 : 420);
-    // 2. Flip the theme behind the old backgrounds, which then melt away.
     setFadeFrom(next ? "day" : "night");
-    await sleep(30);
+    if (!next) setLeaving(true);
+    await sleep(110);
+    // 2. The theme flips while the old contents are nearly gone: the menu
+    //    bar's colours and the backgrounds slide over to the new theme.
     apply(next);
-    setSettled(false);
-    setNight(next);
-    setLeaving(false);
     root.classList.add("theme-melting");
-    // 3. The contents fade back in over the new backgrounds.
-    await sleep(260);
+    if (next) {
+      setSettled(false);
+      setNight(true);
+    }
+    // 3. Once the colours have mostly settled, the new contents fade in.
+    await sleep(300);
     root.classList.remove("theme-hidden");
-    await sleep(520);
+    if (!next) {
+      // the lantern has risen away by now
+      setNight(false);
+      setLeaving(false);
+      setSettled(false);
+    }
+    await sleep(400);
     root.classList.remove("theme-switching", "theme-melting");
     setFadeFrom(null);
     busy.current = false;

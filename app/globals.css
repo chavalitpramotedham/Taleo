@@ -4777,14 +4777,14 @@ html[data-night] .modal-backdrop {
 /* (see NightProvider) The contents fade out, the theme flips, the old
    backgrounds melt into the new ones, and the contents fade back in. */
 html.theme-switching main {
-  transition: opacity 0.24s ease;
+  transition: opacity 0.12s ease-out;
   will-change: opacity;
 }
 html.theme-hidden main {
   opacity: 0;
 }
 html.theme-switching:not(.theme-hidden) main {
-  transition-duration: 0.45s;
+  transition: opacity 0.38s ease-out;
 }
 /* The menu bar stays put through the switch: its colours blend from one
    theme to the other (the theme colours are registered below so they can
@@ -4801,17 +4801,17 @@ html.theme-switching:not(.theme-hidden) main {
 @property --ochre { syntax: "<color>"; inherits: true; initial-value: #c49a3e; }
 html.theme-switching .topbar {
   transition:
-    --ink 0.7s ease-in-out,
-    --ink-soft 0.7s ease-in-out,
-    --ink-faint 0.7s ease-in-out,
-    --page 0.7s ease-in-out,
-    --rule 0.7s ease-in-out,
-    --rule-strong 0.7s ease-in-out,
-    --russet 0.7s ease-in-out,
-    --russet-dark 0.7s ease-in-out,
-    --ochre 0.7s ease-in-out,
-    border-color 0.7s ease-in-out,
-    box-shadow 0.7s ease-in-out;
+    --ink 0.42s ease-out,
+    --ink-soft 0.42s ease-out,
+    --ink-faint 0.42s ease-out,
+    --page 0.42s ease-out,
+    --rule 0.42s ease-out,
+    --rule-strong 0.42s ease-out,
+    --russet 0.42s ease-out,
+    --russet-dark 0.42s ease-out,
+    --ochre 0.42s ease-out,
+    border-color 0.42s ease-out,
+    box-shadow 0.42s ease-out;
 }
 
 /* The theme being left, held over the new one and dissolved: the page's
@@ -4851,7 +4851,7 @@ html.theme-switching:has(.theme-fade.from-night) .topbar::before {
 }
 html.theme-melting .theme-fade,
 html.theme-melting .topbar::before {
-  animation: themeMelt 0.75s ease-in-out forwards;
+  animation: themeMelt 0.42s ease-out forwards;
 }
 @keyframes themeMelt {
   from {
