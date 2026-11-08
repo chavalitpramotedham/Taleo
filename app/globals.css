@@ -5304,3 +5304,17 @@ html[data-night] .gender-opt.open.on {
     border-color: color-mix(in srgb, var(--g) 60%, transparent);
   }
 }
+
+/* Story cards at night: lifted into the lamplight - a faint warm edge and a
+   deep shadow (the daytime white top highlight glared on a dark card, and
+   its brown shadow vanished). */
+@media (hover: hover) {
+  html[data-night] .story-card:hover {
+    border-color: color-mix(in srgb, var(--russet) 38%, var(--page-edge));
+    box-shadow:
+      0 1px 0 rgba(255, 214, 160, 0.08) inset,
+      0 0 0 1px rgba(255, 196, 120, 0.06),
+      0 20px 34px -16px rgba(0, 0, 0, 0.85),
+      0 0 26px -10px rgba(255, 186, 104, 0.22);
+  }
+}
