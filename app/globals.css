@@ -2033,13 +2033,32 @@ main {
   width: 100%;
   margin-top: 8px;
 }
+/* Empty / not-found states: picture, heading, a line of text and the
+   call to action, stacked on one even rhythm and centred. */
 .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 30px 16px;
+  gap: 10px;
+  padding: clamp(16px, 4vw, 36px) 16px clamp(28px, 5vw, 48px);
+}
+.empty > * {
+  margin: 0;
+}
+.empty h2 {
+  font-size: clamp(1.5rem, 3.4vw, 1.9rem);
+}
+.empty .meta {
+  max-width: 32em;
+}
+.empty .btn {
+  margin-top: 12px;
 }
 .empty-portrait {
-  width: 180px;
-  height: 180px;
+  width: 168px;
+  height: 168px;
+  margin-bottom: 6px;
 }
 
 /* ---------- motion ---------- */
