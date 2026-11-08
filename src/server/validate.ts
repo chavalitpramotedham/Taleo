@@ -34,6 +34,10 @@ const cleanAction = (a: unknown): PageAction | null => {
   };
 };
 
+// Up to 2 extra central characters (ids "companion1", "companion2"), independent of the hero.
+const cleanCompanions = (v: unknown): CharacterDef[] =>
+  (Array.isArray(v) ? v : []).slice(0, 2).map((c, i) => cleanCharacter(c, `companion${i + 1}`));
+
 const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "characters" | "aside" | "action"> => ({
   text: str(p.text, 800),
   picture: str(p.picture, 1200),
@@ -49,7 +53,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
     const age = AGES.find((a) => a.id === b.age)?.id;
     const theme = str(b.theme, 200).trim();
     if (!age || !theme) return null;
-    return { kind: "start", age, minutes: minutesFor(b.minutes, age), theme, hero: cleanCharacter(b.hero) };
+    return { kind: "start", age, minutes: minutesFor(b.minutes, age), theme, hero: cleanCharacter(b.hero), companions: cleanCompanions(b.companions) };
   }
   if (b.kind === "continue") {
     const s = (b.story ?? {}) as Partial<Story>;
@@ -64,6 +68,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
         theme: str(s.theme, 200),
         world: str(s.world, 400),
         hero: cleanCharacter(s.hero),
+        companions: cleanCompanions(s.companions),
         cast: (Array.isArray(s.cast) ? s.cast : []).slice(0, 10).map((c, i) => cleanCharacter(c, `friend${i}`)),
         segments: s.segments.map((seg) => ({
           pages: (Array.isArray(seg.pages) ? seg.pages : []).slice(0, 8).map((p) => ({ ...cleanPage(p), svg: null })),

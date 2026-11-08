@@ -476,6 +476,41 @@ main {
   color: var(--russet);
   font-size: 1.15rem;
 }
+/* On a multi-select character plate, the badge is the pick's order (1st =
+   hero, 2nd/3rd = companions) rather than a plain checkmark. Same
+   specificity as the rule above, so source order makes this one win. */
+.char-plate.selected::after {
+  content: attr(data-order);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 8px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--russet);
+  color: #fbf4e6;
+  font-family: var(--font-caps);
+  font-size: 0.95rem;
+}
+.char-plate:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.char-plate:disabled:hover {
+  transform: none;
+  outline-color: var(--rule);
+}
+.selection-count {
+  margin: -4px 0 16px;
+}
+.chars.highlight {
+  padding: 16px;
+  background: var(--sage-soft);
+  border: 1px dashed var(--rule-strong);
+  margin-bottom: 4px;
+}
 .plate-label {
   font-family: var(--font-title);
   font-size: 1.45rem;
@@ -623,6 +658,35 @@ main {
 .hero-name {
   flex: 1 1 260px;
 }
+.saved-characters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0;
+}
+.saved-character {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.saved-character-portrait {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+}
+.saved-character-body {
+  flex: 1;
+  min-width: 0;
+}
+.replace-plate {
+  padding: 10px 8px;
+}
+.replace-plate .plate-sub {
+  color: var(--russet);
+}
 .field-row {
   display: flex;
   gap: 10px;
@@ -704,7 +768,7 @@ main {
 .reader {
   display: flex;
   flex-direction: column;
-  padding: clamp(10px, 2.5vw, 28px) clamp(10px, 3vw, 36px) 16px;
+  padding: clamp(10px, 2.5vw, 28px) clamp(10px, 3vw, 36px) calc(90px + env(safe-area-inset-bottom));
   gap: 12px;
   max-width: 1360px;
   margin: 0 auto;
@@ -913,17 +977,20 @@ main {
     box-shadow: 0 0 0 rgba(70, 50, 30, 0);
   }
 }
+/* Turning the page is always reachable, even deep into a tall page on a
+   small screen, so prev/next and the page index float fixed to the
+   viewport instead of scrolling away with the content. .reader-nav itself
+   stays in flow but renders nothing visible - it's just a landmark - so it
+   takes no layout space; .reader reserves room at the bottom instead so
+   these never cover the last lines of text. */
 .reader-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: env(safe-area-inset-bottom);
+  display: contents;
 }
-.position {
-  font-family: var(--font-caps);
-  letter-spacing: 0.06em;
-  color: var(--ink-soft);
+.nav-btn,
+.reader-index {
+  position: fixed;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 40;
 }
 .nav-btn {
   width: 56px;
@@ -938,7 +1005,12 @@ main {
   padding-bottom: 6px;
   cursor: pointer;
   box-shadow: var(--shadow);
-  flex: none;
+}
+.nav-btn-prev {
+  left: 18px;
+}
+.nav-btn-next {
+  right: 18px;
 }
 .nav-btn:not(:disabled):hover {
   border-color: var(--russet);
@@ -948,6 +1020,97 @@ main {
   opacity: 0.35;
   cursor: default;
   box-shadow: none;
+}
+.reader-index {
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  box-shadow: var(--shadow);
+  padding: 0 20px;
+  height: 40px;
+  font-family: var(--font-caps);
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.reader-index:not(:disabled):hover {
+  border-color: var(--russet);
+  color: var(--russet);
+}
+.reader-index:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Tapping the floating index opens a grid of every page/choice written so
+   far, to jump straight to one. */
+.overview-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(47, 34, 20, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  padding: 0;
+}
+.overview-panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 72dvh;
+  background: var(--page);
+  border: 1px solid var(--page-edge);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  padding: 18px clamp(16px, 4vw, 28px) calc(18px + env(safe-area-inset-bottom));
+}
+.overview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.overview-head h3 {
+  margin: 0;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+}
+.overview-item {
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-caps);
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+.overview-item:hover {
+  border-color: var(--russet);
+  color: var(--russet);
+}
+.overview-item.current {
+  border: 2px solid var(--russet);
+  color: var(--russet);
+  background: #fffaf0;
+}
+
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .overview-backdrop {
+    align-items: center;
+  }
+  .overview-panel {
+    max-height: 70dvh;
+  }
 }
 
 /* choices */
@@ -1545,6 +1708,17 @@ main {
     width: 50px;
     height: 50px;
   }
+  .nav-btn-prev {
+    left: 12px;
+  }
+  .nav-btn-next {
+    right: 12px;
+  }
+  .reader-index {
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    padding: 0 14px;
+    font-size: 0.88rem;
+  }
   .options {
     grid-template-columns: 1fr;
   }
@@ -1568,7 +1742,8 @@ main {
 @media print {
   .topbar,
   .reader-nav,
-  .reader-tools {
+  .reader-tools,
+  .overview-backdrop {
     display: none !important;
   }
 }

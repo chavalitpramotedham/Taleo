@@ -13,6 +13,17 @@ export interface CharacterDef {
   svg?: string | null;
 }
 
+/** A custom character a signed-in user has saved to their own roster (up to
+ *  5), so it can be reused across stories without redrawing it each time. */
+export interface SavedCharacter {
+  id: string;
+  name: string;
+  look: string;
+  svg: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
 /** The one action or event a page is about. The picture's target can be tapped
  *  to animate it, hear a sound effect and see/hear the word. */
 export interface PageAction {
@@ -62,7 +73,11 @@ export interface Story {
   /** Art direction for the whole book: place, season, light, palette. */
   world: string;
   hero: CharacterDef;
-  cast: CharacterDef[]; // side characters
+  /** Up to 2 more central characters chosen alongside the hero (ids
+   *  "companion1", "companion2") - together with hero, up to 3 protagonists
+   *  the story gives real page-time to. */
+  companions: CharacterDef[];
+  cast: CharacterDef[]; // side characters, introduced by the story itself
   segments: Segment[];
   status: "new" | "in-progress" | "complete";
   /** @deprecated superseded by per-user RatingRecord; kept only so very old local drafts still load. */
@@ -111,11 +126,12 @@ export interface StartRequest {
   minutes: number;
   theme: string;
   hero: CharacterDef;
+  companions: CharacterDef[];
 }
 
 export interface ContinueRequest {
   kind: "continue";
-  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "cast" | "segments" | "title">;
+  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;

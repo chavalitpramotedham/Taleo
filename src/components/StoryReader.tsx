@@ -44,6 +44,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   const [toast, setToast] = useState<string | null>(null);
   const [readAloud, setReadAloud] = useState(false);
   const [loadingLine, setLoadingLine] = useState(0);
+  const [overviewOpen, setOverviewOpen] = useState(false);
   const storyRef = useRef(story);
   storyRef.current = story;
   const started = useRef(false);
@@ -85,7 +86,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       setError(null);
       const body =
         s.segments.length === 0
-          ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero }
+          ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
           : {
               kind: "continue",
               story: {
@@ -95,6 +96,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
                 world: s.world,
                 title: s.title,
                 hero: s.hero,
+                companions: s.companions,
                 cast: s.cast,
                 segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })),
               },
@@ -189,13 +191,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement)?.tagName === "INPUT") return;
+      if (e.key === "Escape" && overviewOpen) return setOverviewOpen(false);
+      if ((e.target as HTMLElement)?.tagName === "INPUT" || overviewOpen) return;
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go]);
+  }, [go, overviewOpen]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -289,7 +292,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             title={shown.page.picture || shown.page.text}
             className={partial && !done ? "painting live" : "painting"}
             live={Boolean(partial && !done)}
-            target={tapTarget(shown.page, [story.hero, ...story.cast], story.age)}
+            target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
           />
         ) : null}
         {!svg && (
@@ -437,6 +440,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   const canBack = index > 0;
   const canForward = index < lastIndex && !atChoiceUnanswered;
   const position = view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
+  const jumpable = views
+    .map((v, i) => ({ v, i }))
+    .filter((x): x is { v: Extract<View, { kind: "page" | "choice" | "end" }>; i: number } => x.v.kind === "page" || x.v.kind === "choice" || x.v.kind === "end");
+  const jumpLabel = (v: Extract<View, { kind: "page" | "choice" | "end" }>) =>
+    v.kind === "page" ? `Page ${v.number}` : v.kind === "choice" ? "Your turn" : "The End";
 
   // Remember what's on the page right now, so the next go() can hand a
   // snapshot of it to the outgoing flip layer.
@@ -488,14 +496,43 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       </div>
 
       <nav className="reader-nav" aria-label="Turn the page">
-        <button className="nav-btn" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
+        <button className="nav-btn nav-btn-prev" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
           ‹
         </button>
-        <span className="position">{position}</span>
-        <button className="nav-btn" onClick={() => go(1)} disabled={!canForward} aria-label="Next page">
+        <button className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 2}>
+          {position}
+        </button>
+        <button className="nav-btn nav-btn-next" onClick={() => go(1)} disabled={!canForward} aria-label="Next page">
           ›
         </button>
       </nav>
+      {overviewOpen && (
+        <div className="overview-backdrop" onClick={() => setOverviewOpen(false)}>
+          <div className="overview-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
+            <div className="overview-head">
+              <h3>Jump to a page</h3>
+              <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <div className="overview-grid">
+              {jumpable.map(({ v, i }) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`overview-item ${i === index ? "current" : ""}`}
+                  onClick={() => {
+                    setIndex(i);
+                    setOverviewOpen(false);
+                  }}
+                >
+                  {jumpLabel(v)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {toast && <div className="toast">{toast}</div>}
     </div>
   );

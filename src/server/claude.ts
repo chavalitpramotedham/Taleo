@@ -59,6 +59,8 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   const minutes = isStart ? req.minutes : req.story.minutes;
   const { choices, pagesPerSegment } = lengthProfile(age, minutes);
   const hero = isStart ? req.hero : req.story.hero;
+  const companions = isStart ? req.companions : req.story.companions;
+  const heroes = [hero, ...companions];
   const cast = isStart ? [] : req.story.cast;
   const theme = isStart ? req.theme : req.story.theme;
   const segments = isStart ? [] : req.story.segments;
@@ -71,11 +73,15 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   parts.push(`TARGET LENGTH: about ${minutes} minute${minutes === 1 ? "" : "s"} read aloud in total, across ${totalSegments} segments.`);
   parts.push(`THEME: ${theme}`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
-  parts.push(`CHARACTERS SO FAR:\n${[hero, ...cast].map(modelSheet).join("\n")}`);
+  parts.push(
+    `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(modelSheet).join("\n")}`,
+  );
+  if (cast.length) parts.push(`SUPPORTING CAST SO FAR:\n${cast.map(modelSheet).join("\n")}`);
 
   if (isStart) {
+    const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
     parts.push(
-      `Write segment 1 of ${totalSegments}: give the story a short, charming title and the book's art direction ("world"), introduce ${hero.name} (id "hero") in a lively opening, set up the theme, and end on an exciting moment with a choice for the child.`,
+      `Write segment 1 of ${totalSegments}: give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening, set up the theme, and end on an exciting moment with a choice for the child.`,
     );
   } else {
     const story = segments
@@ -105,7 +111,7 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   );
 
   const out = await ask(SegmentSchema, writerPrompt(), parts.join("\n\n"));
-  return normalizeSegment(out, { isLast, existingIds: ["hero", ...cast.map((c) => c.id)], optionCount: age.optionCount });
+  return normalizeSegment(out, { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount });
 }
 
 function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; optionCount: number }): SegmentResponse {

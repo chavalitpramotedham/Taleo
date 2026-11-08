@@ -40,6 +40,7 @@ WRITING
 - Follow the chosen theme, but keep the story fresh and surprising.
 - Always gentle and reassuring: no peril beyond mild "uh-oh" moments, no violence, no scary villains, no mean characters, no brands, no real people. Problems are solved with kindness, curiosity, teamwork and cleverness.
 - Follow the per-request TARGET LENGTH and page count exactly - that is how long the reader asked for.
+- There may be 1-3 CENTRAL CHARACTERS given in the request, all protagonists of equal standing (not a hero-and-sidekick split). Across the book, give each one genuine page-time, dialogue, and a moment where they personally matter to the plot - never let any of them fade into the background.
 
 INTERACTIVITY
 - Segments end with a choice for the child (unless it is the final segment). Options must be relevant, distinct, positive, and genuinely change what happens next. Each option label is short (2-6 words).

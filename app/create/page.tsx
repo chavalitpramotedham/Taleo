@@ -3,14 +3,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages";
-import { PRESETS, THEMES, presetCharacter, type Preset } from "@/lib/presets";
-import type { CharacterDef, CharacterResponse, Story } from "@/lib/types";
+import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
+import type { CharacterDef, CharacterResponse, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
+import { LeafLoader } from "@/components/Icons";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
+const MAX_CENTRAL = 3;
 type Step = 0 | 1 | 2;
 const GROUPS = [
   { key: "all", label: "Everyone" },
@@ -21,7 +23,7 @@ const GROUPS = [
 const STEP_TITLES = ["Who is the story for?", "Who shall it be about?", "What shall happen?"];
 const STEP_NOTES = [
   "The words, the length and the choices will suit your little one's age.",
-  "Choose a friend from the shelf, or invent a brand-new one together.",
+  "Pick up to 3 characters to be central to the story, or invent a brand-new one together.",
   "Pick a kind of story, or describe your own idea in a line.",
 ];
 
@@ -33,12 +35,12 @@ export default function CreatePage() {
   const [minutes, setMinutes] = useState<number | null>(null);
 
   const [group, setGroup] = useState<(typeof GROUPS)[number]["key"]>("all");
-  const [presetKey, setPresetKey] = useState<string | null>(null);
   const [heroName, setHeroName] = useState("");
   const [customDesc, setCustomDesc] = useState("");
   const [custom, setCustom] = useState<CharacterDef | null>(null);
-  const [useCustom, setUseCustom] = useState(false);
   const [drawing, setDrawing] = useState(false);
+  const [saved, setSaved] = useState<SavedCharacter[]>([]);
+  const [selectedUids, setSelectedUids] = useState<string[]>([]);
 
   const [themeKey, setThemeKey] = useState<string | null>(null);
   const [themeText, setThemeText] = useState("");
@@ -46,8 +48,8 @@ export default function CreatePage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(AGE_KEY) as AgeId | null;
-      if (saved && AGES.some((a) => a.id === saved)) setAge(saved);
+      const savedAge = localStorage.getItem(AGE_KEY) as AgeId | null;
+      if (savedAge && AGES.some((a) => a.id === savedAge)) setAge(savedAge);
       const savedMinutes = Number(localStorage.getItem(MINUTES_KEY));
       if (Number.isFinite(savedMinutes) && savedMinutes >= MIN_MINUTES && savedMinutes <= MAX_MINUTES) setMinutes(savedMinutes);
     } catch {}
@@ -58,12 +60,33 @@ export default function CreatePage() {
     else if (status === "authenticated" && !session?.user.username) router.replace("/welcome?next=/create");
   }, [status, session, router]);
 
-  const preset: Preset | undefined = PRESETS.find((p) => p.key === presetKey);
-  const hero: CharacterDef | null = useCustom
-    ? custom && { ...custom, name: heroName.trim() || custom.name }
-    : preset
-      ? presetCharacter(preset, heroName)
-      : null;
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/characters")
+      .then((r) => r.json())
+      .then((d: { characters?: SavedCharacter[] }) => setSaved(d.characters ?? []))
+      .catch(() => {});
+  }, [status]);
+
+  const defForUid = (uid: string): CharacterDef | null => {
+    if (uid === "custom") return custom;
+    if (uid.startsWith("saved:")) {
+      const c = saved.find((s) => s.id === uid.slice(6));
+      return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg } : null;
+    }
+    if (uid.startsWith("preset:")) {
+      const p = PRESETS.find((pp) => pp.key === uid.slice(7));
+      return p ? presetCharacter(p) : null;
+    }
+    return null;
+  };
+  const selectedDefs = selectedUids.map(defForUid).filter((d): d is CharacterDef => Boolean(d));
+  const hero: CharacterDef | null = selectedDefs[0] ? { ...selectedDefs[0], id: "hero" } : null;
+  const companions: CharacterDef[] = selectedDefs.slice(1).map((d, i) => ({ ...d, id: `companion${i + 1}` }));
+  const atCap = selectedUids.length >= MAX_CENTRAL;
+  const toggleSelect = (uid: string) => {
+    setSelectedUids((cur) => (cur.includes(uid) ? cur.filter((u) => u !== uid) : cur.length >= MAX_CENTRAL ? cur : [...cur, uid]));
+  };
 
   const theme = themeText.trim() || THEMES.find((t) => t.key === themeKey)?.line || "";
   const canNext = step === 0 ? Boolean(age) : step === 1 ? Boolean(hero) : Boolean(theme);
@@ -84,8 +107,7 @@ export default function CreatePage() {
       const data = (await res.json()) as CharacterResponse & { error?: string };
       if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
       setCustom(data.character);
-      setUseCustom(true);
-      setPresetKey(null);
+      setSelectedUids((cur) => (cur.includes("custom") ? cur : cur.length >= MAX_CENTRAL ? cur : [...cur, "custom"]));
       if (!heroName) setHeroName(data.character.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -109,7 +131,8 @@ export default function CreatePage() {
       minutes: effectiveMinutes,
       theme,
       world: "",
-      hero: { ...hero, id: "hero" },
+      hero,
+      companions,
       cast: [],
       segments: [],
       status: "new",
@@ -194,6 +217,12 @@ export default function CreatePage() {
 
       {step === 1 && (
         <>
+          <p className="meta selection-count">
+            {selectedUids.length === 0
+              ? `Choose up to ${MAX_CENTRAL} central characters.`
+              : `${selectedUids.length} of ${MAX_CENTRAL} chosen${atCap ? " - that's the limit for one story" : ""}.`}
+          </p>
+
           <section className="panel panel-invent">
             <h3>Dream up a hero</h3>
             <p className="meta">Say it out loud, or type it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
@@ -209,10 +238,38 @@ export default function CreatePage() {
                 aria-label="Describe your character"
               />
               <button type="button" className="btn btn-primary" onClick={drawCustom} disabled={!customDesc.trim() || drawing}>
-                {drawing ? "Painting…" : "Paint them"}
+                {drawing ? <LeafLoader size={18} /> : "Paint them"}
               </button>
             </div>
           </section>
+
+          {saved.length > 0 && (
+            <>
+              <p className="divider-label">Your characters</p>
+              <div className="grid chars highlight">
+                {saved.map((c) => {
+                  const uid = `saved:${c.id}`;
+                  const selected = selectedUids.includes(uid);
+                  const order = selectedUids.indexOf(uid) + 1;
+                  return (
+                    <button
+                      key={uid}
+                      type="button"
+                      className={`plate char-plate ${selected ? "selected" : ""}`}
+                      aria-pressed={selected}
+                      data-order={selected ? order : undefined}
+                      disabled={!selected && atCap}
+                      onClick={() => toggleSelect(uid)}
+                    >
+                      <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} />
+                      <span className="plate-label">{c.name}</span>
+                      <span className="plate-sub">yours</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <p className="divider-label">Or choose a friend from the shelf</p>
 
@@ -225,25 +282,32 @@ export default function CreatePage() {
           </div>
           <div className="grid chars">
             {custom && (
-              <button type="button" className={`plate char-plate ${useCustom ? "selected" : ""}`} aria-pressed={useCustom} onClick={() => setUseCustom(true)}>
+              <button
+                type="button"
+                className={`plate char-plate ${selectedUids.includes("custom") ? "selected" : ""}`}
+                aria-pressed={selectedUids.includes("custom")}
+                data-order={selectedUids.includes("custom") ? selectedUids.indexOf("custom") + 1 : undefined}
+                disabled={!selectedUids.includes("custom") && atCap}
+                onClick={() => toggleSelect("custom")}
+              >
                 <CharacterPortrait character={custom} />
                 <span className="plate-label">{custom.name}</span>
                 <span className="plate-sub">your own</span>
               </button>
             )}
             {visiblePresets.map((p) => {
-              const selected = !useCustom && presetKey === p.key;
+              const uid = `preset:${p.key}`;
+              const selected = selectedUids.includes(uid);
+              const order = selectedUids.indexOf(uid) + 1;
               return (
                 <button
-                  key={p.key}
+                  key={uid}
                   type="button"
                   className={`plate char-plate ${selected ? "selected" : ""}`}
                   aria-pressed={selected}
-                  onClick={() => {
-                    setPresetKey(p.key);
-                    setUseCustom(false);
-                    setHeroName("");
-                  }}
+                  data-order={selected ? order : undefined}
+                  disabled={!selected && atCap}
+                  onClick={() => toggleSelect(uid)}
                 >
                   <CharacterPortrait character={presetCharacter(p)} />
                   <span className="plate-label">{p.name}</span>
@@ -252,26 +316,6 @@ export default function CreatePage() {
               );
             })}
           </div>
-
-          {hero && (
-            <section className="panel hero-panel">
-              <CharacterPortrait character={hero} className="hero-portrait" />
-              <div className="hero-name">
-                <h3>And their name is…</h3>
-                <div className="field-row">
-                  <input
-                    className="input"
-                    value={heroName}
-                    maxLength={30}
-                    placeholder={useCustom ? custom?.name : preset?.name}
-                    onChange={(e) => setHeroName(e.target.value)}
-                    aria-label="Character name"
-                  />
-                  <DictateButton onText={setHeroName} label="Say a name" />
-                </div>
-              </div>
-            </section>
-          )}
         </>
       )}
 
@@ -327,7 +371,7 @@ export default function CreatePage() {
         </button>
         <span className="meta foot-summary">
           {age && step > 0 ? `Age ${ageById(age).label}` : ""}
-          {hero && step > 1 ? ` · ${hero.name}` : ""}
+          {selectedDefs.length > 0 && step > 1 ? ` · ${selectedDefs.map((d) => d.name).join(" & ")}` : ""}
         </span>
         <button type="button" className="btn btn-primary" onClick={next} disabled={!canNext}>
           {step === 2 ? "Begin the story" : "Next ›"}

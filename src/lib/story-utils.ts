@@ -3,8 +3,8 @@ import type { CharacterDef, Page, Story } from "./types";
 export const allPages = (story: Pick<Story, "segments">): Page[] => story.segments.flatMap((s) => s.pages);
 
 /** Characters appearing on a page, as full definitions. */
-export const castFor = (story: Pick<Story, "hero" | "cast">, page: Pick<Page, "characters">): CharacterDef[] => {
-  const all = [story.hero, ...story.cast];
+export const castFor = (story: Pick<Story, "hero" | "companions" | "cast">, page: Pick<Page, "characters">): CharacterDef[] => {
+  const all = [story.hero, ...story.companions, ...story.cast];
   return page.characters.map((id) => all.find((c) => c.id === id)).filter((c): c is CharacterDef => Boolean(c));
 };
 
