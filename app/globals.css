@@ -510,6 +510,10 @@ main {
   grid-template-columns: 1fr 1.15fr;
   gap: clamp(24px, 5vw, 64px);
   align-items: center;
+  padding-top: clamp(4px, 1.5vw, 18px);
+}
+.hero .lead {
+  margin-top: 14px;
 }
 .hero h1 {
   /* Always two balanced lines: sized to its own column (container units),
@@ -2256,9 +2260,6 @@ main {
   .hero {
     grid-template-columns: 1fr;
   }
-  .hero-art {
-    order: -1;
-  }
 }
 
 /* Two-tier navbar: a title line, then a scrollable strip of nav links below
@@ -2995,46 +2996,59 @@ main {
   margin: 0;
 }
 
-/* ---------- home on phones: everything above the fold that matters ----------
-   A slimmer frame round the picture, a two-line title sized to the
-   screen, and tighter spacing, so the library starts much sooner. */
+/* ---------- home on phones ----------
+   Opens with the message: the "By parents, for parents" badge and the title
+   come first, then the painting as the showcase, then the intro line and
+   the steps - each part given room to breathe. (.hero-copy steps aside with
+   display: contents so its pieces can sit either side of the painting.) */
 @media (max-width: 760px) {
   .home {
-    padding-top: 12px;
+    padding-top: 22px;
   }
   .hero {
-    gap: 14px;
+    gap: 0;
+    container-type: inline-size;
   }
-  /* The whole painting, uncropped, in a slimmer frame. */
-  .hero-art {
-    padding: 6px;
+  .hero-copy {
+    display: contents;
+  }
+  .hero-badge {
+    order: 1;
+    justify-self: start;
+    margin-bottom: 12px;
   }
   .hero h1 {
-    line-height: 1.12;
-    margin-bottom: 8px;
+    order: 2;
+    line-height: 1.14;
+    margin: 0 0 20px;
   }
-  .hero .eyebrow {
-    font-size: 0.85rem;
-    margin-bottom: 4px;
+  .hero-art {
+    order: 3;
+    padding: 6px;
   }
   .hero .lead {
-    font-size: 1.02rem;
-    margin: 0;
+    order: 4;
+    font-size: 1.04rem;
+    margin: 20px 0 0;
+  }
+  .hero-actions {
+    order: 5;
   }
   .steps {
-    margin-top: 18px;
+    margin-top: 30px;
   }
   .step {
-    padding: 10px 14px 12px;
+    padding: 12px 14px 14px;
   }
   .step h3 {
     font-size: 1.08rem;
+    margin-bottom: 4px;
   }
   .step p {
     font-size: 0.92rem;
   }
-  .home-shelf {
-    margin-top: 26px;
+  .home-divider {
+    margin: 34px auto 26px;
   }
 }
 
