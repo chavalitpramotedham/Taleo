@@ -191,53 +191,6 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     };
   }, []);
 
-  // Scrolling drifts the fireflies past at their own depths (nearer ones
-  // faster), like a little parallax, instead of them sitting still on the
-  // glass. One that leaves the screen wraps round, out of sight, to come in
-  // from the other edge. Uses the separate `translate` property, so their
-  // wandering animation (on `transform`) carries on untouched.
-  const flies = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!alive) return;
-    const box = flies.current;
-    if (!box || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const els = Array.from(box.children) as HTMLElement[];
-    const depth = els.map((_, i) => 0.18 + ((i * 7) % 16) / 16 * 0.5); // 0.18-0.68
-    const M = 40; // wrap margin, beyond the edge of the screen
-    let base: number[] = [];
-    let h = 0;
-    const measure = () => {
-      h = box.clientHeight;
-      els.forEach((el) => (el.style.translate = ""));
-      base = els.map((el) => el.offsetTop);
-    };
-    let raf = 0;
-    const draw = () => {
-      raf = 0;
-      const y = window.scrollY;
-      const span = h + 2 * M;
-      els.forEach((el, i) => {
-        const at = (((base[i] - y * depth[i] + M) % span) + span) % span - M;
-        el.style.translate = `0 ${(at - base[i]).toFixed(1)}px`;
-      });
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(draw);
-    };
-    const onResize = () => {
-      measure();
-      draw();
-    };
-    measure();
-    draw();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [alive]);
 
   return (
     <div className={`night-ambience ${leaving ? "leaving" : ""}`} ref={root} aria-hidden>
@@ -258,7 +211,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
         </>
       )}
       {alive && (
-        <div className="fireflies" ref={flies}>
+        <div className="fireflies">
           {Array.from({ length: FIREFLIES }, (_, i) => (
             <span key={i} className={`firefly f${i}`}>
               <span className="firefly-light" />

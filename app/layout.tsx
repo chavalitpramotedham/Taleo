@@ -83,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   Library
                 </Link>
                 <Link href="/about" className="nav-link">
-                  About
+                  About us
                 </Link>
               </nav>
               <div className="nav-tools">

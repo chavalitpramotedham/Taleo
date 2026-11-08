@@ -3,7 +3,7 @@ import { ContactForm } from "@/components/ContactForm";
 import { OrnamentRule } from "@/components/Icons";
 
 export const metadata: Metadata = {
-  title: "About · Taleo",
+  title: "About us · Taleo",
   description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
 };
 

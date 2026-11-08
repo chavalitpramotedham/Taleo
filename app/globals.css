@@ -5382,3 +5382,28 @@ html[data-night] .gender-opt.open.on {
     background: rgba(22, 17, 24, 0.72);
   }
 }
+
+/* Phones: keep the fireflies down near the ground - all in roughly the
+   bottom fifth of the screen, and the risers only climb about a third of
+   the way up before fading. */
+@media (max-width: 640px) {
+  .firefly.f1 { top: 84%; }
+  .firefly.f3 { top: 86%; }
+  .firefly.f6 { top: 82%; }
+  .firefly.f8 { top: 85%; }
+  .firefly.f10 { top: 80%; }
+  .firefly.f11 { top: 88%; }
+  .firefly.f12 { top: 83%; }
+  .firefly.f13,
+  .firefly.f14,
+  .firefly.f15 {
+    animation-name: fireflyRiseLow;
+  }
+}
+@keyframes fireflyRiseLow {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(16px, -12vh); }
+  70% { transform: translate(-10px, -24vh); opacity: 0.7; }
+  100% { transform: translate(6px, -34vh); opacity: 0; }
+}
