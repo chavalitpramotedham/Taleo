@@ -5083,3 +5083,38 @@ html[data-night] .contact-file-remove {
   background: rgba(22, 17, 24, 0.85);
   color: var(--ink);
 }
+
+/* ---------- the story preview popup ---------- */
+/* Who it stars and the ages, then the author underneath. */
+.story-preview-meta {
+  margin: 2px 0 2px !important;
+}
+.story-preview-by {
+  margin: 0 0 14px !important;
+}
+/* Flat buttons in the popup: the raised edge reads oddly on a floating
+   card, so no lip or drop shadow - a press just dims slightly instead. */
+.story-preview .btn,
+.story-preview .btn:active:not(:disabled) {
+  box-shadow: none;
+  transform: none;
+}
+.story-preview .btn:active:not(:disabled) {
+  opacity: 0.82;
+}
+
+/* ---------- pop-ups lock the page behind them ---------- */
+/* While any pop-up (preview, character creator, page overview, welcome) is
+   open, the page underneath doesn't scroll; only the pop-up itself does,
+   and its scrolling never spills through to the page. */
+html:has(.modal-backdrop) {
+  overflow: hidden;
+}
+/* (keep the scrollbar's space reserved, so locking never shifts the page) */
+html {
+  scrollbar-gutter: stable;
+}
+.modal-backdrop,
+.modal-panel {
+  overscroll-behavior: contain;
+}

@@ -95,7 +95,6 @@ export function StoryPreview({
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           {story.keyword && <KeywordPill keyword={story.keyword} />}
           <h2 id="story-preview-title">{story.title}</h2>
-          <p className="meta story-preview-by">by @{story.author}</p>
           <p className="story-preview-meta">
             {story.starring.length > 0 && (
               <>
@@ -107,6 +106,7 @@ export function StoryPreview({
             )}
             Ages <b>{story.ageLabel}</b>
           </p>
+          <p className="meta story-preview-by">by @{story.author}</p>
           {children}
         </div>
       </div>
