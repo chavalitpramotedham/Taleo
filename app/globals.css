@@ -4756,7 +4756,7 @@ html[data-night] .modal-backdrop {
 }
 .nav-lantern-drop {
   position: absolute;
-  top: 14px;
+  top: var(--lamp-cord, 12px);
   left: 0;
   width: var(--lamp-w, 28px);
   will-change: transform;

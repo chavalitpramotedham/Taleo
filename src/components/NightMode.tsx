@@ -171,7 +171,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   // Hang the lantern from the menu bar's bottom edge under the switch, and
   // centre the light on its glass. Measured from things
   // that never animate (the bar and the switch), using the lantern's
-  // resting geometry (CSS: a 14px cord, then 64px of lantern with the
+  // resting geometry (CSS: a --lamp-cord cord, then 64px-per-28px-wide of lantern with the
   // glass at 65%) - so it's right even mid drop-in.
   useLayoutEffect(() => {
     const place = () => {
@@ -183,14 +183,18 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       const b = bar.getBoundingClientRect();
       // Always hangs straight down from the switch; sized to the screen
       // (small on a phone, never more than 28px wide).
-      const w = Math.round(Math.min(28, Math.max(18, window.innerWidth / 46)));
+      // A touch bigger than it used to be, but on a shorter cord, so it still
+      // hangs no lower than about the homepage title's "bedtime" line.
+      const w = Math.round(Math.min(34, Math.max(22, window.innerWidth / 32)));
+      const cord = w <= 24 ? 6 : 12;
       // Screen coordinates: the bar is fixed to the top, and so is this layer.
       const x = s.left + s.width / 2;
       const top = b.bottom;
       el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
       el.style.setProperty("--bar-y", `${top}px`);
-      el.style.setProperty("--lamp-y", `${top + 14 + ((64 * w) / 28) * 0.65}px`);
+      el.style.setProperty("--lamp-cord", `${cord}px`);
+      el.style.setProperty("--lamp-y", `${top + cord + ((64 * w) / 28) * 0.65}px`);
     };
     // Re-measure whenever the menu could have moved - not just on window
     // resize but when the bar or its tools change size (the avatar or
