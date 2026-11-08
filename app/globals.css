@@ -2896,3 +2896,25 @@ main {
     margin-top: 26px;
   }
 }
+
+/* Mic button wrapper: keeps the button's own size in field rows, with a
+   small note underneath if voice typing can't start (e.g. no permission). */
+.mic-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+.mic-hint {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: 240px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--russet);
+  background: var(--page);
+  border: 1px solid var(--rule);
+  padding: 3px 8px;
+}

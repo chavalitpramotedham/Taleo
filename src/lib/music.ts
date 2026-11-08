@@ -54,10 +54,14 @@ function startWatchdog() {
 }
 
 /** Pause-proofing hold: while held (e.g. the mic is open), the music isn't
- *  forced back on; releasing resumes it straight away if it was knocked off. */
-export function holdMusic(reason: string, on: boolean) {
-  if (on) holds.add(reason);
-  else {
+ *  forced back on (with `pause`, it's actively paused for the duration);
+ *  releasing resumes it straight away if it was playing before. */
+export function holdMusic(reason: string, on: boolean, opts: { pause?: boolean } = {}) {
+  if (on) {
+    holds.add(reason);
+    // e.g. the mic: on phones, music playing can stop it from starting.
+    if (opts.pause && el && !el.paused) el.pause();
+  } else {
     holds.delete(reason);
     if (wanted && el?.paused) {
       startWatchdog();
