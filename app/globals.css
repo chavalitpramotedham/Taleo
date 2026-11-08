@@ -4254,7 +4254,7 @@ g[filter="url(#tl-wash)"].hp-in {
   }
 }
 
-/* Reading time, overlaid on a cover's top-right corner (hourglass + minutes;
+/* Reading time, overlaid on a cover's top-right corner (clock + minutes;
    the preview adds pages). */
 .cover-time {
   position: absolute;
@@ -4266,8 +4266,14 @@ g[filter="url(#tl-wash)"].hp-in {
   gap: 4px;
   padding: 3px 9px 3px 7px;
   border-radius: 999px;
-  background: rgba(35, 22, 12, 0.6);
-  color: #fbf4e6;
+  /* Frosted glass: a translucent light tint that blurs the painting behind
+     it, with a soft bright edge - light and airy rather than a dark badge. */
+  background: rgba(255, 252, 244, 0.42);
+  -webkit-backdrop-filter: blur(8px) saturate(1.3);
+  backdrop-filter: blur(8px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px -3px rgba(60, 40, 20, 0.25);
+  color: var(--ink);
   font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.2;

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
-import { HourglassIcon, StarGlyph } from "./Icons";
+import { ClockIcon, StarGlyph } from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -77,7 +77,7 @@ export function StoryPreview({
         <div className="story-preview-cover">
           {story.cover && <Painting svg={story.cover} title={story.title} />}
           <span className="cover-time" aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} pages` : ""}`}>
-            <HourglassIcon /> {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
+            <ClockIcon /> {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
           </span>
           <span className="cover-meta">
             <span className="cover-rating">

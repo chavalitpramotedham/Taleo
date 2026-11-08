@@ -1,7 +1,7 @@
 "use client";
 import { Painting } from "@/components/art/Painting";
 import type { GalleryEntry } from "@/lib/types";
-import { HourglassIcon, StarGlyph } from "./Icons";
+import { ClockIcon, StarGlyph } from "./Icons";
 import { ageById } from "@/lib/ages";
 import { KeywordPill } from "./KeywordPill";
 
@@ -18,7 +18,7 @@ export function StoryCard({ entry: s, onOpen }: { entry: GalleryEntry; onOpen: (
       <span className="cover">
         {s.cover ? <Painting svg={s.cover} title={title} /> : null}
         <span className="cover-time" aria-label={`About ${minutes} minutes to read`}>
-          <HourglassIcon /> {minutes} min
+          <ClockIcon /> {minutes} min
         </span>
         <span className="cover-meta">
           <span className="cover-rating">
