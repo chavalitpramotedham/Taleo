@@ -7112,8 +7112,9 @@ html[data-night] .text-size button + button {
   background: color-mix(in srgb, var(--page) 62%, transparent);
 }
 .char-picture-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
   animation: fadeIn 0.18s ease both;
 }
@@ -7205,4 +7206,23 @@ main {
 }
 main:has(.reader) {
   padding-bottom: 0;
+}
+/* Save is a compact icon button (the main action), Redraw a quiet one. */
+.char-save-btn {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.char-save-btn svg {
+  width: 20px;
+  height: 20px;
+}
+.char-redraw-btn {
+  height: 46px;
+  padding: 0 20px;
+  white-space: nowrap;
 }

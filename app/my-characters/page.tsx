@@ -10,7 +10,7 @@ import { MAX_CHARACTERS } from "@/lib/characters";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { CharacterCreatorModal, CharacterNotesField } from "@/components/CharacterCreatorModal";
 import { GenderPicker } from "@/components/GenderPicker";
-import { LeafLoader, MapleMark } from "@/components/Icons";
+import { DownloadIcon, LeafLoader, MapleMark } from "@/components/Icons";
 import { PageLoading } from "@/components/PageLoading";
 
 export default function MyCharactersPage() {
@@ -259,16 +259,10 @@ function CharacterEditModal({
         </button>
         {stage === "menu" && (
           <div className="char-picture-actions">
-            <button type="button" className="btn btn-soft" onClick={() => void saveImage()} disabled={saving}>
-              {saving ? (
-                <>
-                  <LeafLoader size={16} /> Saving…
-                </>
-              ) : (
-                "Save image"
-              )}
+            <button type="button" className="btn btn-primary char-save-btn" onClick={() => void saveImage()} disabled={saving} aria-label="Save image" title="Save image">
+              {saving ? <LeafLoader size={18} /> : <DownloadIcon />}
             </button>
-            <button type="button" className="btn btn-soft" onClick={() => setStage("redraw")}>
+            <button type="button" className="btn btn-soft btn-sm char-redraw-btn" onClick={() => setStage("redraw")}>
               Redraw look
             </button>
           </div>

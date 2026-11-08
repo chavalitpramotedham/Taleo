@@ -88,6 +88,15 @@ export const LinkIcon = () => (
   </svg>
 );
 
+/** Download / save: an arrow down into a tray. */
+export const DownloadIcon = () => (
+  <svg {...base}>
+    <path d="M12 3.5v11" />
+    <path d="M8 10.8l4 4 4-4" />
+    <path d="M5 15.5v3a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-3" />
+  </svg>
+);
+
 /** The familiar iPhone "share": an open-topped box with an arrow rising out of it. */
 export const ShareIcon = () => (
   <svg {...base}>
