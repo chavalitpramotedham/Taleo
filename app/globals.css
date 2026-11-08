@@ -4554,8 +4554,14 @@ html[data-night] .modal-backdrop {
 .nav-begin-pill {
   /* Flat and quiet: a soft rust tint with rust lettering - clearly the
      thing to press, without a raised button in the menu. */
+  /* Fixed height with a 1-line box, so the leaf and lettering centre on
+     the pill exactly (the small-caps face otherwise sits low in its tall
+     line box); the sides balance the leaf's own empty margin. */
+  box-sizing: border-box;
+  height: 30px;
   gap: 5px;
-  padding: 3px 12px 4px 8px;
+  padding: 0 8.5px 0 12px;
+  line-height: 1;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--russet) 34%, transparent);
   background: color-mix(in srgb, var(--russet) 11%, transparent);
@@ -4564,7 +4570,16 @@ html[data-night] .modal-backdrop {
   font-family: var(--font-caps);
   font-size: 0.98rem;
   letter-spacing: 0.04em;
-  line-height: 1.4;
+}
+.nav-begin-pill .maple-mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+/* the face's capitals sit high in its line box - drop them onto centre */
+.nav-begin-pill span {
+  position: relative;
+  top: 2px;
 }
 @media (hover: hover) {
   .nav-begin-pill:hover {

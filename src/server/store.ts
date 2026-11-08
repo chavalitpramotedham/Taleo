@@ -46,7 +46,11 @@ async function blobRead<T>(pathname: string): Promise<T | null> {
   const blob = blobs.find((b) => b.pathname === pathname);
   if (!blob) return null;
   const res = await fetch(blob.url, { cache: "no-store" });
-  return res.ok ? ((await res.json()) as T) : null;
+  if (res.status === 404) return null;
+  // Anything else (403 when the store is suspended or over its limits,
+  // 5xx...) is a real failure - never pretend the file is simply missing.
+  if (!res.ok) throw new Error(`Blob storage refused the read (${res.status} ${res.statusText}) for ${pathname}`);
+  return (await res.json()) as T;
 }
 
 async function blobWrite(pathname: string, data: unknown) {

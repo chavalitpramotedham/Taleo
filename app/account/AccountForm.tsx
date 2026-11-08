@@ -161,9 +161,12 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
         <h3>Danger zone</h3>
         <p className="meta">These can&apos;t be undone.</p>
         <div className="card-actions">
-          <button type="button" className="btn btn-soft" onClick={deleteStories} disabled={Boolean(busy)}>
-            {busy === "stories" ? "Deleting…" : "Delete all my stories"}
-          </button>
+          {/* The admin account owns the whole legacy library - no bulk delete. */}
+          {!isAdmin && (
+            <button type="button" className="btn btn-soft" onClick={deleteStories} disabled={Boolean(busy)}>
+              {busy === "stories" ? "Deleting…" : "Delete all my stories"}
+            </button>
+          )}
           {!isAdmin && (
             <button type="button" className="btn btn-soft" onClick={deleteAccount} disabled={Boolean(busy)}>
               {busy === "account" ? "Deleting…" : "Delete my account"}
