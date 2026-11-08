@@ -384,14 +384,33 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     return spoken.at - (page.aside ? page.aside.length + 1 : 0);
   };
 
+  // A new page waits for the page turn to settle, plus a breath, before
+  // the reading starts (the previous page's reading stops at once);
+  // switching read-aloud on starts almost straight away.
+  const readFor = useRef<string | null>(null);
+  const readTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(readTimer.current), []);
   useEffect(() => {
-    if (!readAloud || !view) return;
-    if (view.kind === "page") speak([view.page.aside, view.page.text].filter(Boolean).join(" "));
+    if (!readAloud || !view) {
+      readFor.current = null;
+      window.clearTimeout(readTimer.current);
+      return;
+    }
+    let text = "";
+    if (view.kind === "page") text = [view.page.aside, view.page.text].filter(Boolean).join(" ");
     if (view.kind === "choice") {
       const c = story.segments[view.seg].choice;
-      if (c) speak(`${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?`);
+      if (c) text = `${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?`;
     }
-    if (view.kind === "end") speak("The end.");
+    if (view.kind === "end") text = "The end.";
+    // Only when the words to read change (the page re-renders for other
+    // reasons too, e.g. a painting arriving - that mustn't restart it).
+    if (!text || text === readFor.current) return;
+    const turned = readFor.current !== null;
+    readFor.current = text;
+    if (turned) cancelSpeech();
+    window.clearTimeout(readTimer.current);
+    readTimer.current = window.setTimeout(() => speak(text), turned ? 1100 : 250);
   }, [readAloud, view, speak, story.segments]);
 
   // Have the voice ready before it's needed: this page's tappable word, and
