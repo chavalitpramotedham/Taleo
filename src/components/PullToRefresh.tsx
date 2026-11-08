@@ -3,13 +3,12 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { LeafLoader } from "./Icons";
 
-/** Every page offers pull-to-refresh, except where a reload would lose
- *  something: setting up a story (/create) and reading one (/story/<id>,
- *  a library story at /store/<id>, a shared link at /shared) - a stray
- *  pull mid-read mustn't reload the book. */
+/** Every page offers pull-to-refresh, story pages included (a pull has to
+ *  be deliberate - well past a normal scroll to the top). Only story setup
+ *  (/create) leaves it out: a reload there would lose what's been chosen. */
 const canPullToRefresh = (path: string) => {
   const p = path.replace(/\/$/, "") || "/";
-  return !(p.startsWith("/create") || p.startsWith("/story/") || p.startsWith("/store/") || p.startsWith("/shared"));
+  return !p.startsWith("/create");
 };
 
 // A deliberate pull is needed to reload (about 130px of finger travel), so
@@ -34,9 +33,9 @@ function inOwnScroller(el: Element | null): boolean {
 /**
  * The page's ends feel alive rather than dead-stopped. Pulled past the top,
  * a page reloads (pull-to-refresh, needed because installed/standalone PWAs
- * lose the browser's own) - except on story pages, where a stray pull
- * mustn't reload the book: there it just stretches and springs back. Pulled
- * past the bottom, every page stretches a little and springs back.
+ * lose the browser's own; on story setup it only stretches and springs
+ * back). Pulled past the bottom, every page stretches a little and springs
+ * back.
  *
  * Built to keep up with the finger: the content slides with a transform (no
  * re-layout), the loader is revealed behind it, and each move is applied at
