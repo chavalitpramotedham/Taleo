@@ -1,6 +1,6 @@
 "use client";
 import Link, { useLinkStatus } from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
@@ -57,6 +57,19 @@ export function StoryPreview({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  // The popup appears the moment the card is tapped; the cover painting
+  // (the slow part: its watercolour is drawn fresh at this size) follows a
+  // frame later, with the falling leaves holding its place until then.
+  const [showArt, setShowArt] = useState(false);
+  useEffect(() => {
+    let b = 0;
+    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => setShowArt(true))));
+    return () => {
+      cancelAnimationFrame(a);
+      cancelAnimationFrame(b);
+    };
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -76,7 +89,13 @@ export function StoryPreview({
           ✕
         </button>
         <div className="story-preview-cover">
-          {story.cover && <Painting svg={story.cover} title={story.title} />}
+          {story.cover && showArt ? (
+            <Painting svg={story.cover} title={story.title} className="story-preview-art" />
+          ) : (
+            <span className="story-preview-wait" aria-hidden>
+              <LeafLoader size={40} />
+            </span>
+          )}
           <span className="cover-time" aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} pages` : ""}`}>
             <ClockIcon /> {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
           </span>

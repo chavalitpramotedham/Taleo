@@ -61,10 +61,24 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // The menu bar's height, for layouts that sit just under it (the story
+  // reader, the theme switch's fading backgrounds).
+  useEffect(() => {
+    const bar = document.querySelector<HTMLElement>(".topbar");
+    if (!bar) return;
+    const set = () => document.documentElement.style.setProperty("--topbar-h", `${Math.round(bar.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
+
   const apply = (on: boolean) => {
     const root = document.documentElement;
     if (on) root.dataset.night = "1";
     else delete root.dataset.night;
+    // The browser's own bar and the iPhone's status-bar area follow too.
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = on ? "#131017" : "#F3ECDC"));
     try {
       localStorage.setItem(KEY, on ? "1" : "0");
     } catch {}

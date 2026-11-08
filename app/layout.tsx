@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Apply night mode before the first paint (no flash of the light theme). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("taleo.night")==="1")document.documentElement.dataset.night="1"}catch(e){}`,
+            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}`,
           }}
         />
       </head>

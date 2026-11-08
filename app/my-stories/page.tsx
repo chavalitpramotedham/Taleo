@@ -11,7 +11,7 @@ import { StoryCard } from "@/components/StoryCard";
 import { PreviewButtons, StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { CategoryFilter, categoriesOf, matchesCategory } from "@/components/CategoryFilter";
-import { PageLoading } from "@/components/PageLoading";
+import { ShelfSkeleton } from "@/components/ShelfSkeleton";
 
 type Sort = "recent" | "rating";
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
@@ -54,7 +54,16 @@ export default function MyStoriesPage() {
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  if (status !== "authenticated" || stories === null) return <PageLoading label="Fetching your bookshelf…" />;
+  if (status !== "authenticated" || stories === null)
+    return (
+      <div className="container">
+        <header className="wizard-head">
+          <p className="eyebrow">Just yours</p>
+          <h1>My bookshelf</h1>
+        </header>
+        <ShelfSkeleton label="Fetching your bookshelf…" />
+      </div>
+    );
 
   return (
     <div className="container">

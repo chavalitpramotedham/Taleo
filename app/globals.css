@@ -3413,7 +3413,7 @@ main {
   overflow: hidden;
 }
 .story-preview-cover .painting,
-.story-preview-cover svg {
+.story-preview-cover > svg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -4819,7 +4819,9 @@ html.theme-switching .topbar {
    ::before, under its contents). */
 .theme-fade {
   position: fixed;
-  inset: 0;
+  /* starts under the menu bar: nothing temporary ever sits at the very top
+     of the screen, where iPhone Safari picks its status-bar colour from */
+  inset: var(--topbar-h, 64px) 0 0 0;
   z-index: -1;
   pointer-events: none;
   will-change: opacity;
@@ -6834,4 +6836,48 @@ html[data-night] .skeleton-card::after {
   border: 1px solid #e4c27c;
   outline: 3px solid var(--cloth-b, #5a2321);
   outline-offset: -1px;
+}
+
+/* Story preview: the leaves hold the cover's place for the frame before
+   its painting is drawn, then the painting fades in. */
+.story-preview-wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--rule) 30%, var(--page));
+}
+.story-preview-art {
+  animation: fadeIn 0.25s ease both;
+}
+/* Cards press in under the finger, so a tap visibly registers at once. */
+.story-card:active {
+  transform: scale(0.97);
+  transition-duration: 0.05s;
+}
+
+/* The page's own root colour per theme (what Safari shows above and below
+   the page, and in the status-bar area). */
+html {
+  background-color: #f3ecdc;
+}
+html[data-night] {
+  background-color: #0f0c12;
+}
+/* Opening a library story: its closed cover, not yet filled in. */
+.reader-loading .book-cover {
+  margin-top: 12px;
+}
+.skeleton-cover-title {
+  width: 70%;
+  height: 1.2em;
+  min-height: 0;
+  margin: 10px auto 14px;
+  border-radius: 999px;
+  background: rgba(228, 194, 124, 0.18);
+}
+.skeleton-cover-oval {
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.12);
 }
