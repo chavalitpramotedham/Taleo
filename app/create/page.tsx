@@ -9,6 +9,7 @@ import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
+import { MAX_CHARACTERS } from "@/lib/characters";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -16,7 +17,6 @@ const MAX_CENTRAL = 3;
 type Step = 0 | 1 | 2;
 const GROUPS = [
   { key: "all", label: "All" },
-  { key: "mine", label: "My creations" },
   { key: "animal", label: "Animals" },
   { key: "food", label: "Foodies" },
   { key: "object", label: "Curiosities" },
@@ -198,13 +198,49 @@ export default function CreatePage() {
               : `${selectedUids.length} of ${MAX_CENTRAL} chosen${atCap ? " - that's the limit for one story" : ""}.`}
           </p>
 
-          <section className="panel panel-invent">
-            <h3>Dream up a hero</h3>
-            <p className="meta">Paint a brand-new character - once you confirm them, they're saved to your roster for any story.</p>
-            <div className="field-row">
-              <button type="button" className="btn btn-primary" onClick={() => setCreatingCharacter(true)}>
-                Dream up a character
-              </button>
+          <section className="panel panel-invent hero-maker">
+            <div className="hero-maker-head">
+              <h3>Dream up a hero</h3>
+              <span className="meta">
+                {saved.length}/{MAX_CHARACTERS}
+                {saved.length >= MAX_CHARACTERS && (
+                  <>
+                    {" · "}
+                    <button type="button" className="link-btn" onClick={() => setCreatingCharacter(true)}>
+                      Replace one
+                    </button>
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="hero-slots">
+              {Array.from({ length: MAX_CHARACTERS }, (_, i) => {
+                const c = saved[i];
+                if (!c) {
+                  return (
+                    <button key={`empty-${i}`} type="button" className="hero-slot hero-slot-empty" onClick={() => setCreatingCharacter(true)} aria-label="Create a new character">
+                      <span className="hero-slot-art">+</span>
+                      <span className="hero-slot-name">New</span>
+                    </button>
+                  );
+                }
+                const uid = `saved:${c.id}`;
+                const selected = selectedUids.includes(uid);
+                return (
+                  <button
+                    key={uid}
+                    type="button"
+                    className={`hero-slot ${selected ? "selected" : ""}`}
+                    aria-pressed={selected}
+                    data-order={selected ? selectedUids.indexOf(uid) + 1 : undefined}
+                    disabled={!selected && atCap}
+                    onClick={() => toggleSelect(uid)}
+                  >
+                    <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} className="hero-slot-art" />
+                    <span className="hero-slot-name">{c.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -233,61 +269,35 @@ export default function CreatePage() {
                 type="button"
                 role="tab"
                 aria-selected={group === g.key}
-                className={`chip ${group === g.key ? "on" : ""} ${g.key === "mine" ? "chip-strong" : ""}`}
+                className={`chip ${group === g.key ? "on" : ""}`}
                 onClick={() => setGroup(g.key)}
               >
                 {g.label}
               </button>
             ))}
           </div>
-          {group === "mine" && saved.length === 0 ? (
-            <p className="meta">You haven&apos;t created a character yet - try &ldquo;Dream up a character&rdquo; above.</p>
-          ) : (
-            <div className="grid chars">
-              {(group === "all" || group === "mine") &&
-                saved.map((c) => {
-                  const uid = `saved:${c.id}`;
-                  const selected = selectedUids.includes(uid);
-                  const order = selectedUids.indexOf(uid) + 1;
-                  return (
-                    <button
-                      key={uid}
-                      type="button"
-                      className={`plate char-plate ${selected ? "selected" : ""}`}
-                      aria-pressed={selected}
-                      data-order={selected ? order : undefined}
-                      disabled={!selected && atCap}
-                      onClick={() => toggleSelect(uid)}
-                    >
-                      <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} />
-                      <span className="plate-label">{c.name}</span>
-                      <span className="plate-sub">yours</span>
-                    </button>
-                  );
-                })}
-              {group !== "mine" &&
-                visiblePresets.map((p) => {
-                const uid = `preset:${p.key}`;
-                const selected = selectedUids.includes(uid);
-                const order = selectedUids.indexOf(uid) + 1;
-                return (
-                  <button
-                    key={uid}
-                    type="button"
-                    className={`plate char-plate ${selected ? "selected" : ""}`}
-                    aria-pressed={selected}
-                    data-order={selected ? order : undefined}
-                    disabled={!selected && atCap}
-                    onClick={() => toggleSelect(uid)}
-                  >
-                    <CharacterPortrait character={presetCharacter(p)} />
-                    <span className="plate-label">{p.name}</span>
-                    <span className="plate-sub">the {p.kind}</span>
-                  </button>
-                );
-                })}
-            </div>
-          )}
+          <div className="grid chars">
+            {visiblePresets.map((p) => {
+              const uid = `preset:${p.key}`;
+              const selected = selectedUids.includes(uid);
+              const order = selectedUids.indexOf(uid) + 1;
+              return (
+                <button
+                  key={uid}
+                  type="button"
+                  className={`plate char-plate ${selected ? "selected" : ""}`}
+                  aria-pressed={selected}
+                  data-order={selected ? order : undefined}
+                  disabled={!selected && atCap}
+                  onClick={() => toggleSelect(uid)}
+                >
+                  <CharacterPortrait character={presetCharacter(p)} />
+                  <span className="plate-label">{p.name}</span>
+                  <span className="plate-sub">the {p.kind}</span>
+                </button>
+              );
+            })}
+          </div>
         </>
       )}
 

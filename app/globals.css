@@ -644,12 +644,6 @@ main {
   color: var(--ink);
   border-bottom-color: var(--russet);
 }
-/* "My creations": always bold, so the user's own characters stand out
-   among the shelf categories whether or not that tab is selected. */
-.chip-strong {
-  font-weight: 700;
-  color: var(--ink-soft);
-}
 .panel {
   background: var(--page);
   border: 1px solid var(--rule);
@@ -662,6 +656,111 @@ main {
   border-color: var(--rule-strong);
   border-style: dashed;
   background: var(--sage-soft);
+}
+/* "Dream up a hero": a compact strip of the user's 5 character slots -
+   filled ones are selectable like any other character, empty ones open
+   the character creator. */
+.hero-maker {
+  padding: 14px 16px 16px;
+}
+.hero-maker-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.hero-maker-head h3 {
+  margin: 0;
+}
+.hero-maker-head .meta {
+  margin: 0;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+.hero-slots {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 520px;
+}
+.hero-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  min-width: 0;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  color: var(--ink);
+}
+.hero-slot:hover:not(:disabled) {
+  border-color: var(--rule-strong);
+}
+.hero-slot-art {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+}
+.hero-slot-empty {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--rule-strong);
+  color: var(--ink-faint);
+}
+.hero-slot-empty .hero-slot-art {
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.hero-slot-empty:hover {
+  color: var(--russet);
+  border-color: var(--russet);
+}
+.hero-slot-name {
+  max-width: 100%;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-slot.selected {
+  border: 2px solid var(--russet);
+  padding: 5px 3px;
+  background: #fffaf0;
+}
+.hero-slot.selected::after {
+  content: attr(data-order);
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--russet);
+  color: #fbf4e6;
+  font-family: var(--font-caps);
+  font-size: 0.8rem;
+}
+.hero-slot:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--russet);
+  text-decoration: underline;
+  cursor: pointer;
 }
 .divider-label {
   display: flex;
@@ -2273,5 +2372,23 @@ main {
   }
   .filter-row .chip:last-child {
     margin-right: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-maker {
+    padding: 12px 12px 14px;
+  }
+  .hero-slots {
+    gap: 6px;
+  }
+  .hero-slot {
+    padding: 4px 2px;
+  }
+  .hero-slot.selected {
+    padding: 3px 1px;
+  }
+  .hero-slot-name {
+    font-size: 0.74rem;
   }
 }
