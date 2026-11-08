@@ -58,9 +58,10 @@ Without an `ANTHROPIC_API_KEY` the app runs in **demo mode**: a templated storyt
 | `RESEND_API_KEY` | – | Emails "Contact us" messages (via [Resend](https://resend.com)). Without it, messages are still saved under `contact/` in storage |
 | `CONTACT_EMAIL` | `taleostories.dev@gmail.com` | Where "Contact us" messages go |
 | `CONTACT_FROM` | `Taleo <onboarding@resend.dev>` | Sender. The default only delivers to the address that owns the Resend account, so sign up to Resend with `CONTACT_EMAIL` (or verify a domain in Resend and use an address on it) |
-| `AZURE_SPEECH_KEY` | – | Neural read-aloud voice (Azure AI Speech). Without it, the browser's best British female voice is used |
-| `AZURE_SPEECH_REGION` | `uksouth` | Region of the Azure Speech resource |
-| `TTS_VOICE` | `en-GB-SoniaNeural` | Also good: `en-GB-LibbyNeural`, `en-GB-AbbiNeural`, `en-GB-HollieNeural` |
+| `ELEVENLABS_API_KEY` | – | Neural read-aloud voice via ElevenLabs (most natural; default voice "Lily", warm British). Used first if set |
+| `OPENAI_API_KEY` | – | Neural read-aloud voice via OpenAI `gpt-4o-mini-tts` (cheapest; calm British tone set by instruction) |
+| `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` | – / `uksouth` | Neural read-aloud voice via Azure AI Speech |
+| `TTS_VOICE` | per provider | ElevenLabs voice id (default Lily `pFZP5JQG7iQjIQuC4Bku`), OpenAI voice name (default `sage`), or Azure voice (default `en-GB-SoniaNeural`). Without any voice key, the browser's best British female voice is used. Each phrase is generated once and cached |
 
 ## Architecture
 
