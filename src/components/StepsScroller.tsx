@@ -34,7 +34,9 @@ export function StepsScroller({ steps }: { steps: StepItem[] }) {
     const el = ref.current;
     const box = el?.querySelector("li");
     if (!el || !box) return;
-    el.scrollBy({ left: box.getBoundingClientRect().width + 12, behavior: "smooth" });
+    // One step along - but never past the end.
+    const to = Math.min(el.scrollWidth - el.clientWidth, el.scrollLeft + box.getBoundingClientRect().width + 12);
+    el.scrollTo({ left: to, behavior: "smooth" });
   };
 
   return (

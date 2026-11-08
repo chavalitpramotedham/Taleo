@@ -22,6 +22,9 @@ export function GrowingInput({
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
+    // Empty: one line (rows=1), however long the hint is - it's cut off
+    // with "…" in CSS rather than growing the box.
+    if (!value) return;
     el.style.height = `${el.scrollHeight + 2}px`;
   }, [value]);
   return (

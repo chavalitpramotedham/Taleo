@@ -5989,3 +5989,26 @@ html.brand-live .leaf-whirl {
   box-shadow: 0 1px 0 var(--rule-strong), 0 4px 8px -6px rgba(70, 50, 30, 0.5);
   cursor: progress;
 }
+
+/* "How it works" steps: like the characters row, the slide stops at the
+   last step - no rubber-banding past it, and no snapping back from it. */
+.steps {
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+.steps > .step:last-child {
+  scroll-snap-align: end;
+}
+
+/* An empty growing box stays one line: a long hint is cut off with "…"
+   rather than wrapping (it only grows for what's actually typed). */
+.growing-input:placeholder-shown {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.growing-input::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
