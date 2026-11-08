@@ -149,9 +149,8 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Hang the lantern from the menu bar's bottom edge just left of the
-  // switch, and centre the light on its glass - in page coordinates, so
-  // both stay with the top of the page as you scroll. Measured from things
+  // Hang the lantern from the menu bar's bottom edge under the switch, and
+  // centre the light on its glass. Measured from things
   // that never animate (the bar and the switch), using the lantern's
   // resting geometry (CSS: a 14px cord, then 64px of lantern with the
   // glass at 65%) - so it's right even mid drop-in.
@@ -166,8 +165,9 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       // Always hangs straight down from the switch; sized to the screen
       // (small on a phone, never more than 28px wide).
       const w = Math.round(Math.min(28, Math.max(18, window.innerWidth / 46)));
-      const x = s.left + s.width / 2 + window.scrollX;
-      const top = b.bottom + window.scrollY;
+      // Screen coordinates: the bar is fixed to the top, and so is this layer.
+      const x = s.left + s.width / 2;
+      const top = b.bottom;
       el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
       el.style.setProperty("--bar-y", `${top}px`);

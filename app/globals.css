@@ -68,6 +68,13 @@ button {
 html {
   -webkit-tap-highlight-color: transparent;
 }
+/* Nothing may ever make the page wider than the screen (on iPhone that
+   leaves the whole page shifted or zoomed). clip, not hidden, so the
+   sticky menu bar keeps working. */
+html,
+body {
+  overflow-x: clip;
+}
 .meta {
   color: var(--ink-soft);
   font-size: 0.95rem;
@@ -4716,9 +4723,13 @@ html[data-night] .modal-backdrop {
 /* The menu bar sits a little above the page (and above the night layer),
    with a soft shadow beneath it - the lantern hangs from underneath. */
 .topbar {
-  position: relative;
+  /* Stays at the top of the screen as the page scrolls (with the night
+     lantern hanging from it). */
+  position: sticky;
+  top: 0;
   z-index: 35;
-  background: linear-gradient(to bottom, rgba(251, 247, 238, 0.97), rgba(247, 241, 228, 0.94));
+  /* solid: the page scrolls underneath it */
+  background: linear-gradient(to bottom, #fbf7ee, #f7f1e4);
   box-shadow: 0 8px 18px -14px rgba(70, 50, 30, 0.45);
 }
 html[data-night] .nav-begin-pill,
@@ -4726,17 +4737,17 @@ html[data-night] .nav-begin-pill:hover {
   color: var(--russet);
 }
 html[data-night] .topbar {
-  background: linear-gradient(to bottom, rgba(24, 20, 28, 0.96), rgba(19, 16, 23, 0.92));
+  background: linear-gradient(to bottom, #18141c, #131017);
   border-bottom-color: #2e2730;
   box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.85);
 }
 
 /* ---------- the room at night ---------- */
 .night-ambience {
-  /* Covers the top screen of the page (where the lantern hangs) and clips
-     to it, so it never adds scroll space; the room and fireflies inside
-     are fixed to the screen. */
-  position: absolute;
+  /* Pinned to the screen, like the menu bar the lantern hangs from: the
+     lantern, its light, the room and the fireflies all stay put as the
+     page scrolls (and it never adds scroll space). */
+  position: fixed;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -5037,10 +5048,17 @@ html[data-night] .keyword-pill {
    unrotated wrapper, so the shadow falls the same way whichever hand holds
    the brush). Drawn once and only moved, like the brush itself. */
 .hero-brush-shadow {
+  /* The tip touches the paper, so the shadow starts right at the tip and
+     falls further away the higher up the handle it is. The handle always
+     points upward, so a screen-space shear around the tip (the layer's
+     origin) does it for either hand: each point is pushed right and down
+     in proportion to how far above the tip it is. */
   position: absolute;
-  left: 11px;
-  top: 16px;
-  opacity: 0.4;
+  left: 0.5px;
+  top: 1px;
+  transform-origin: 0 0;
+  transform: matrix(1, 0, -0.3, 0.72, 0, 0);
+  opacity: 0.38;
 }
 .hero-art .hero-brush .hero-brush-shadow svg {
   filter: brightness(0) blur(2.5px);
