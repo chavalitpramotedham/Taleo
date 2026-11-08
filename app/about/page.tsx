@@ -4,7 +4,7 @@ import { OrnamentRule } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: "About · Taleo",
-  description: "Why a young dad built Taleo: storytelling is one of the most meaningful ways to bond with our children - and it should be fun for parents too.",
+  description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
 };
 
 /** About Taleo: the founder's story, and the "Say hello" form. */
@@ -18,33 +18,38 @@ export default function AboutPage() {
 
       <article className="about-story">
         <p className="about-lead">
-          I&apos;m a young dad, and by day a product manager in tech. Somewhere between raising my kids and swapping stories with
-          other parents, I realised that some of the most meaningful moments we share with our children happen inside a story.
-          Stories are how we bond with them, and how life&apos;s most important lessons quietly find their way in.
+          I am a young dad. By day I work in tech as a product manager, and by night I&apos;m mostly negotiating
+          bedtimes. Some of my favourite moments with my kids happen with a book open between us. It&apos;s where we laugh at
+          the same silly things, and where a lot of the important stuff gets said without it ever feeling like a lecture.
         </p>
 
         <p>
-          But I also noticed that many parents feel the same quiet pain I did. Our children adore their favourite books, and we
-          love that they do. Yet reading the same story over and over again can make parenting a little less fun than it should
-          be.
+          I genuinely believe we&apos;re the first generation of parents where mums and dads are equally in it. Both of us
+          want a close bond with our children. Both of us want to be the one teaching them what&apos;s right, and helping
+          them find their way in the world. Taleo is my way of acting on that, as a dad.
         </p>
 
         <p>
-          So I started to wonder: what if parents and children could create meaningful stories <em>together</em>, with the
-          characters they dream up and the adventures they choose?
+          If you&apos;re a parent, you&apos;ll know the other side of bedtime stories too. Kids have their favourite book,
+          and they want it again. And again. I love that they love it, but by the fiftieth reading even the best story starts
+          to drag, for me at least.
         </p>
 
         <p>
-          I know that many of us carry a real fear that artificial intelligence may do our children more harm than good. I
-          understand that fear, and it&apos;s exactly why I believe it matters to build this the right way: gently, carefully,
-          and with parents at its heart. Because I&apos;ve seen how, used well, generative AI can unlock our children&apos;s
-          dreams and creativity. It can give them the freedom to tell the stories they want, the way they want, and help them
-          learn life&apos;s lessons and language more vividly than we ever could before.
+          So I started wondering what it would be like to make the stories <em>together</em>. My kids pick the hero and
+          decide what happens next, and I get to weave in the lesson I&apos;d like them to take away.
+        </p>
+
+        <p>
+          I know a lot of parents are wary of AI around their children. Honestly, so am I, and I think that&apos;s a healthy
+          instinct. But I&apos;ve also seen how much it means to a child when something they imagined shows up on the page,
+          painted and read back to them. Used with care, I think it can help kids dream bigger, find their own words, and
+          pick up a few of life&apos;s lessons along the way. That&apos;s what I&apos;m trying to build, as a parent first.
         </p>
 
         <p className="about-sign">
-          For parents like us, we hope Taleo brings a little more wonder to your bedtimes. If you have any suggestions, or run
-          into any issues, we&apos;d love to hear from you through the form below.
+          If you&apos;re a parent like us, I hope Taleo makes bedtime a little more fun in your home. If you have an idea, or
+          something isn&apos;t working, please tell me using the form below. I&apos;d really love to hear from you.
         </p>
       </article>
 
