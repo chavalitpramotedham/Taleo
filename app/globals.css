@@ -3377,8 +3377,9 @@ html[data-night] {
 }
 html[data-night] body {
   background-color: #0f0c12;
-  background-image: radial-gradient(ellipse 70% 55% at 82% -8%, rgba(255, 186, 104, 0.12), transparent 70%),
-    radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
+  /* (no warm patch baked in here: the lantern's own light, which follows
+     the lantern, is the only warm light on the page) */
+  background-image: radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
 }
 /* Switching themes: colours glide rather than snap. */
 /* The book: lit from a lamp above its top-right corner, so it throws a
@@ -4754,7 +4755,8 @@ html[data-night] .topbar {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 120% 95% at 70% 0%, rgba(6, 4, 10, 0) 48%, rgba(6, 4, 10, 0.34) 100%);
+  /* centred under the lantern, so the room is brightest where it hangs */
+  background: radial-gradient(ellipse 120% 95% at var(--lamp-x, 85%) 0%, rgba(6, 4, 10, 0) 48%, rgba(6, 4, 10, 0.34) 100%);
 }
 /* The lantern's light, anchored to it in the menu bar (page coordinates,
    so it stays with the top of the page). A wide halo breathing slowly, a
@@ -4766,8 +4768,9 @@ html[data-night] .topbar {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  --lamp-x: 85%;
-  --lamp-y: 60px;
+  /* --lamp-x / --lamp-y are inherited from .night-ambience, where the
+     lantern's measured position is set (don't redefine them here, or the
+     glow stops following the lantern). */
 }
 .night-glow > * {
   position: absolute;
