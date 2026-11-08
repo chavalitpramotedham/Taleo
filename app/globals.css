@@ -442,7 +442,7 @@ main {
   z-index: 40;
   display: flex;
   justify-content: center;
-  padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+  padding: 0 16px calc(22px + env(safe-area-inset-bottom));
   pointer-events: none;
 }
 .floating-cta-btn {
@@ -1103,6 +1103,8 @@ main {
   box-shadow: none;
 }
 .reader-index {
+  /* Centred on the same line as the 56px circles (40px tall: +8px). */
+  bottom: calc(30px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   border-radius: 999px;
@@ -1125,30 +1127,48 @@ main {
   cursor: default;
   opacity: 0.7;
 }
-/* A wider, pill-shaped variant of .nav-btn for a labelled call to action
-   (e.g. "Begin the story") where a bare arrow glyph wouldn't say enough -
-   same floating position and family, just not a plain circle. */
-.nav-btn-cta {
-  width: auto;
+/* The story setup wizard's floating nav: one centred primary button, with
+   a round Back beside it on the left once there's a step to go back to. */
+.wizard-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.wizard-nav > * {
+  pointer-events: auto;
+}
+.wizard-back {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 2rem;
+  line-height: 1;
+  padding-bottom: 6px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.wizard-back:hover {
+  border-color: var(--russet);
+  color: var(--russet);
+}
+.wizard-cta {
+  min-width: 200px;
   height: 56px;
   border-radius: 999px;
-  padding: 0 26px;
-  background: var(--russet);
-  color: #fbf4e6;
-  border-color: var(--russet-dark);
   box-shadow: 0 2px 0 var(--russet-dark), var(--shadow);
-  font-family: var(--font-caps);
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
-}
-.nav-btn-cta:not(:disabled):hover {
-  background: var(--russet-dark);
-  color: #fbf4e6;
-}
-.nav-btn-cta:disabled {
-  background: #c9b5a2;
-  border-color: #b9a38e;
-  box-shadow: none;
 }
 
 /* Generic popup shell - the reader's page-jump overview, the character
@@ -1526,9 +1546,14 @@ main {
 }
 .toast {
   position: fixed;
-  left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  /* Centred with left/right + auto margins rather than translateX(-50%),
+     which the pageIn animation's own transform would overwrite. */
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  /* Above the floating nav row, never on top of its buttons. */
+  bottom: calc(96px + env(safe-area-inset-bottom));
   background: var(--ink);
   color: var(--page);
   padding: 10px 20px;
@@ -1843,13 +1868,8 @@ main {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-  .nav-btn,
-  .reader-index {
-    /* Same bottom offset as .nav-btn, kept equal so the circles and the
-       pill line up instead of sitting at two different heights. */
-    bottom: calc(18px + env(safe-area-inset-bottom));
-  }
   .nav-btn {
+    bottom: calc(18px + env(safe-area-inset-bottom));
     width: 50px;
     height: 50px;
   }
@@ -1860,8 +1880,26 @@ main {
     right: 16px;
   }
   .reader-index {
+    /* 40px tall vs the 50px circles: offset by half the difference so all
+       three controls share one centre line. */
+    bottom: calc(23px + env(safe-area-inset-bottom));
     padding: 0 14px;
     font-size: 0.88rem;
+  }
+  .floating-cta {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .wizard-nav {
+    bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .wizard-back {
+    width: 50px;
+    height: 50px;
+  }
+  .wizard-cta {
+    height: 50px;
+    min-width: 0;
+    flex: 0 1 240px;
   }
   .options {
     grid-template-columns: 1fr;

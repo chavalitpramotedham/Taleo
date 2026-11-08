@@ -43,7 +43,6 @@ export default function CreatePage() {
   const [themeKey, setThemeKey] = useState<string | null>(null);
   const [themeText, setThemeText] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [overviewOpen, setOverviewOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -66,13 +65,6 @@ export default function CreatePage() {
       .then((d: { characters?: SavedCharacter[] }) => setSaved(d.characters ?? []))
       .catch(() => {});
   }, [status]);
-
-  useEffect(() => {
-    if (!overviewOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOverviewOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [overviewOpen]);
 
   const defForUid = (uid: string): CharacterDef | null => {
     if (uid.startsWith("saved:")) {
@@ -341,49 +333,16 @@ export default function CreatePage() {
 
       {error && <p className="error">{error}</p>}
 
-      <nav className="reader-nav" aria-label="Move between steps">
-        <button
-          type="button"
-          className="nav-btn nav-btn-prev"
-          onClick={() => (step === 0 ? router.push("/") : setStep((s) => (s - 1) as Step))}
-          aria-label="Back"
-        >
-          ‹
-        </button>
-        <button type="button" className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a step">
-          Step {step + 1} of 3
-        </button>
-        <button type="button" className="nav-btn nav-btn-next nav-btn-cta" onClick={next} disabled={!canNext} aria-label={step === 2 ? "Begin the story" : "Next"}>
+      <nav className="wizard-nav" aria-label="Move between steps">
+        {step > 0 && (
+          <button type="button" className="wizard-back" onClick={() => setStep((s) => (s - 1) as Step)} aria-label="Back">
+            ‹
+          </button>
+        )}
+        <button type="button" className="btn btn-primary wizard-cta" onClick={next} disabled={!canNext}>
           {step === 2 ? "Begin the story" : "Next ›"}
         </button>
       </nav>
-      {overviewOpen && (
-        <div className="modal-backdrop" onClick={() => setOverviewOpen(false)}>
-          <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a step">
-            <div className="modal-head">
-              <h3>Jump to a step</h3>
-              <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
-                ✕
-              </button>
-            </div>
-            <div className="overview-grid">
-              {STEP_TITLES.map((title, s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`overview-item ${s === step ? "current" : ""}`}
-                  onClick={() => {
-                    setStep(s as Step);
-                    setOverviewOpen(false);
-                  }}
-                >
-                  <span className="overview-thumb overview-thumb-label">{title}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
