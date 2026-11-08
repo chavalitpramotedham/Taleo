@@ -6881,3 +6881,97 @@ html[data-night] {
   place-items: center;
   background: rgba(0, 0, 0, 0.12);
 }
+
+/* ---------- story screen: title row, full-height pane, floating buttons ---------- */
+/* Title and tools share one line when they fit (title left, tools right);
+   when they don't, the tools drop to their own line beneath, on the left. */
+.reader-top {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 16px;
+  row-gap: 10px;
+}
+.reader-title {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* The pane runs right down to the bottom of the screen; the page-turn
+   buttons float over it, and the words keep clear of them. */
+.reader > .reader-nav {
+  display: contents;
+}
+.reader {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+.book-text {
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
+.reader .nav-btn,
+.reader .reader-index {
+  position: fixed;
+  z-index: 40;
+}
+.reader .nav-btn {
+  width: 56px;
+  height: 56px;
+  font-size: 2rem;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+}
+.reader .reader-index {
+  bottom: calc(30px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+}
+.reader .nav-btn-prev {
+  left: max(18px, calc(50vw - 680px + 18px));
+}
+.reader .nav-btn-next {
+  right: max(18px, calc(50vw - 680px + 18px));
+}
+@media (max-width: 520px) {
+  .reader .nav-btn {
+    width: 50px;
+    height: 50px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .reader .reader-index {
+    bottom: calc(23px + env(safe-area-inset-bottom));
+  }
+  .reader .nav-btn-prev {
+    left: 16px;
+  }
+  .reader .nav-btn-next {
+    right: 16px;
+  }
+}
+/* Wide screens: the book fills the screen under the menu down to the
+   bottom edge, buttons floating over its lower edge. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .reader .nav-btn-prev {
+    left: max(24px, calc(50vw - 680px + 24px));
+  }
+  .reader .nav-btn-next {
+    right: max(24px, calc(50vw - 680px + 24px));
+  }
+}
+/* Next is always the main way forward: the primary colour, raised. */
+.reader .nav-btn-next:not(:disabled) {
+  background: var(--russet);
+  border-color: var(--russet);
+  color: var(--paper);
+  box-shadow: 0 4px 0 var(--russet-dark), 0 10px 18px -10px rgba(70, 50, 30, 0.55);
+}
+.reader .nav-btn-next:not(:disabled):active,
+.reader .nav-btn-next.waiting {
+  box-shadow: 0 1px 0 var(--russet-dark), 0 4px 8px -6px rgba(70, 50, 30, 0.5);
+}
+@media (hover: hover) {
+  .reader .nav-btn-next:not(:disabled):hover {
+    background: var(--russet-dark);
+    border-color: var(--russet-dark);
+    color: var(--paper);
+  }
+}
