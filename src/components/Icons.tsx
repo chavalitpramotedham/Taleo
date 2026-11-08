@@ -115,44 +115,45 @@ const Leaf = ({ fill, rotate }: { fill: string; rotate: number }) => (
 );
 
 /** Three maple leaves, each falling through the mark on its own loop - like
- *  ash sinking through a whirlwind, seen side-on: the funnel's actual
- *  circling (around a vertical axis) reads from this angle as side-to-side
- *  sway, so each leaf sways as it falls, fading in at the top and out at
- *  the bottom so the loop's reset is never seen. A continuous two-turn
- *  spin, paired with a periodic horizontal squash timed to the sway's
- *  extremes (the moment it would be edge-on to the viewer), gives the
- *  tumble real depth rather than a flat spin in place. Durations and
- *  delays differ per leaf so they drift in and out of phase instead of
- *  orbiting a shared centre in lockstep. Each leaf also keeps its own
- *  horizontal column (left/centre/right) AND its own vertical anchor, so
- *  the three spread across the mark both ways instead of bunching at the
- *  same height as they fall. (The static base rotation is an SVG
- *  attribute on each leaf; the whirl itself is a separate wrapping
- *  group animated in CSS, so the two never fight.) */
-const LeafTrio = () => (
+ *  ash sinking through a whirlwind, seen side-on: each leaf sways as it
+ *  falls (the funnel's circling, seen from the side), spinning two turns
+ *  with a squash at the sway's extremes for a real 3D tumble, fading in at
+ *  the top and out at the bottom so the loop's reset is never seen.
+ *  Durations and delays differ per leaf so they drift in and out of phase.
+ *
+ *  Performance: each leaf is drawn ONCE, as a still picture on its own
+ *  layer, and only that layer is moved (transform + opacity in CSS) - the
+ *  graphics card slides, turns and fades the finished picture, so the
+ *  animation needs no drawing or layout work per frame, at any size, and
+ *  stays crisp (no fixed-size GIF). The soft shadow sits on the leaf's
+ *  still parent, so it always falls straight down. Coordinates are in the
+ *  mark's 24-unit grid; 1 unit = 1em of the stage's font size. */
+const LEAVES = [
+  { key: "a", x: 6, y: 9, fill: "#9C4F32", rotate: 10 },
+  { key: "b", x: 12, y: 14, fill: "#6F7F52", rotate: 130 },
+  { key: "c", x: 18, y: 11, fill: "#C49A3E", rotate: 250 },
+] as const;
+
+const LeafTrio = ({ originX = 0, originY = 0 }: { originX?: number; originY?: number }) => (
   <>
-    <g transform="translate(6,9)">
-      <g className="leaf-whirl leaf-whirl-a">
-        <Leaf fill="#9C4F32" rotate={10} />
-      </g>
-    </g>
-    <g transform="translate(12,14)">
-      <g className="leaf-whirl leaf-whirl-b">
-        <Leaf fill="#6F7F52" rotate={130} />
-      </g>
-    </g>
-    <g transform="translate(18,11)">
-      <g className="leaf-whirl leaf-whirl-c">
-        <Leaf fill="#C49A3E" rotate={250} />
-      </g>
-    </g>
+    {LEAVES.map((l) => (
+      <span key={l.key} className="leaf-pos" style={{ left: `${l.x - originX}em`, top: `${l.y - originY}em` }}>
+        <span className={`leaf-whirl leaf-whirl-${l.key}`}>
+          <svg viewBox="-10 -10 20 20" aria-hidden>
+            <Leaf fill={l.fill} rotate={l.rotate} />
+          </svg>
+        </span>
+      </span>
+    ))}
   </>
 );
 
 export const BrandMark = () => (
-  <svg className="brand-mark" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
-    <LeafTrio />
-  </svg>
+  <span className="brand-mark leaf-stage-host" aria-hidden>
+    <span className="leaf-stage" style={{ fontSize: `${18 / 24}px` }}>
+      <LeafTrio />
+    </span>
+  </span>
 );
 
 /** The brand mark's falling-leaf whirl, sized up as a standard "please
@@ -160,23 +161,22 @@ export const BrandMark = () => (
  *  saving) shares the same bit of visual language instead of a generic
  *  spinner. */
 // The leaves fall from well above the 24x24 mark to well below it and sway
-// sideways as they go, so the loader's canvas is enlarged to hold every
-// leaf's whole path (and its soft shadow); otherwise they're clipped at
-// the box edges. `size` is still the size of the 24-unit mark, so the
-// leaves look the same size as before - the extra room is just margin.
+// sideways as they go, so the loader's box is enlarged to hold every leaf's
+// whole path (and its soft shadow). `size` is still the size of the 24-unit
+// mark, so the leaves look the same size whatever the box.
 const LOADER_BOX = { x: -8, y: -10, w: 40, h: 45 };
 
 export const LeafLoader = ({ size = 40, className }: { size?: number; className?: string }) => (
-  <svg
-    className={`leaf-loader ${className || ""}`}
-    viewBox={`${LOADER_BOX.x} ${LOADER_BOX.y} ${LOADER_BOX.w} ${LOADER_BOX.h}`}
-    width={(size * LOADER_BOX.w) / 24}
-    height={(size * LOADER_BOX.h) / 24}
+  <span
+    className={`leaf-loader leaf-stage-host ${className || ""}`}
+    style={{ width: (size * LOADER_BOX.w) / 24, height: (size * LOADER_BOX.h) / 24 }}
     role="img"
     aria-label="Loading"
   >
-    <LeafTrio />
-  </svg>
+    <span className="leaf-stage" style={{ fontSize: `${size / 24}px` }}>
+      <LeafTrio originX={LOADER_BOX.x} originY={LOADER_BOX.y} />
+    </span>
+  </span>
 );
 
 /** A single filled star, sized by its parent's font-size - for compact

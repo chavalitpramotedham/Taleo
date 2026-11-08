@@ -184,29 +184,48 @@ html.pull-reloading main {
      leaves it looking low; nudge it up to match the text optically. */
   transform: translateY(-2px);
 }
+/* The falling leaves (brand mark and loader): see LeafTrio in Icons.tsx.
+   Each leaf is a still picture on its own GPU layer; only transform and
+   opacity animate, so no frame needs any drawing. */
+.leaf-stage-host {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+.leaf-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.leaf-pos {
+  position: absolute;
+  width: 0;
+  height: 0;
+  /* the leaf's soft shadow, cast straight down whichever way it turns */
+  filter: drop-shadow(0.1em 1.6em 1em rgba(47, 34, 20, 0.25));
+}
 .leaf-whirl {
-  transform-box: fill-box;
+  position: absolute;
+  left: -10em;
+  top: -10em;
+  width: 20em;
+  height: 20em;
   transform-origin: center;
+  will-change: transform, opacity;
   animation-name: leaf-whirl;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  /* A soft shadow cast mostly straight down (light from directly above) -
-     it rides along with each leaf's own scale/opacity as it falls, so it
-     reads as closer and sharper when the leaf is near, fainter when far,
-     rather than a flat cutout. */
-  filter: drop-shadow(0.1px 1.6px 1px rgba(47, 34, 20, 0.25));
 }
-/* A whirlwind's own circling (around a vertical axis) reads, seen from the
-   side, as side-to-side sway rather than a visible circle - so each leaf
-   sways as it falls through the mark, fading in at the top and out at the
-   bottom so the loop's reset is never seen. The sway's extremes are also
-   where the leaf would be edge-on to a side-on viewer, so a horizontal
-   squash lands there too, timed to a continuous two-turn spin for a real
-   3D tumble instead of a flat spin in place. Durations differ per leaf,
-   and the delays start them at well-spread points of the fall (not even
-   thirds, so they don't periodically re-sync), so they drift in and out
-   of phase - and stay spread vertically - rather than circling a shared
-   centre in lockstep. */
+.leaf-whirl > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* Durations differ per leaf, and the delays start them at well-spread
+   points of the fall (not even thirds, so they don't periodically
+   re-sync), so they drift in and out of phase rather than circling a
+   shared centre in lockstep. */
 .leaf-whirl-a {
   animation-duration: 4.2s;
   animation-delay: -0.2s;
@@ -221,19 +240,19 @@ html.pull-reloading main {
 }
 @keyframes leaf-whirl {
   0% {
-    transform: translate(0, -9px) rotate(0deg) scale(0.8, 0.8);
+    transform: translate(0, -9em) rotate(0deg) scale(0.8, 0.8);
     opacity: 0;
   }
   12.5% {
-    transform: translate(3px, -6.75px) rotate(90deg) scale(0.27, 0.9);
+    transform: translate(3em, -6.75em) rotate(90deg) scale(0.27, 0.9);
     opacity: 0.85;
   }
   25% {
-    transform: translate(0, -4.5px) rotate(180deg) scale(1, 1);
+    transform: translate(0, -4.5em) rotate(180deg) scale(1, 1);
     opacity: 1;
   }
   37.5% {
-    transform: translate(-3px, -2.25px) rotate(270deg) scale(0.315, 1.05);
+    transform: translate(-3em, -2.25em) rotate(270deg) scale(0.315, 1.05);
     opacity: 1;
   }
   50% {
@@ -241,19 +260,19 @@ html.pull-reloading main {
     opacity: 1;
   }
   62.5% {
-    transform: translate(3px, 2.25px) rotate(450deg) scale(0.315, 1.05);
+    transform: translate(3em, 2.25em) rotate(450deg) scale(0.315, 1.05);
     opacity: 1;
   }
   75% {
-    transform: translate(0, 4.5px) rotate(540deg) scale(1, 1);
+    transform: translate(0, 4.5em) rotate(540deg) scale(1, 1);
     opacity: 1;
   }
   87.5% {
-    transform: translate(-3px, 6.75px) rotate(630deg) scale(0.27, 0.9);
+    transform: translate(-3em, 6.75em) rotate(630deg) scale(0.27, 0.9);
     opacity: 0.85;
   }
   100% {
-    transform: translate(0, 9px) rotate(720deg) scale(0.8, 0.8);
+    transform: translate(0, 9em) rotate(720deg) scale(0.8, 0.8);
     opacity: 0;
   }
 }
