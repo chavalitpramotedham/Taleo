@@ -11,6 +11,12 @@ export interface CharacterDef {
   preset: string | null;
   /** Custom reference painting: layered SVG in a 200x200 canvas. */
   svg?: string | null;
+  /** Freeform notes from the family: personality, likes, and especially
+   *  relationships ("Pip's big sister", "Grandma's cat"). Fed to the story
+   *  writer, never the illustrator. */
+  notes?: string | null;
+  /** The SavedCharacter this came from, if it's one of the user's own. */
+  savedId?: string | null;
 }
 
 /** A custom character a signed-in user has saved to their own roster (up to
@@ -20,6 +26,11 @@ export interface SavedCharacter {
   name: string;
   look: string;
   svg: string | null;
+  /** Optional freeform description / relationships (see CharacterDef.notes). */
+  notes: string | null;
+  /** Ids of the stories this character has starred in, oldest first. Not
+   *  shown yet - kept so future stories can recall shared adventures. */
+  storyIds: string[];
   createdAt: number;
   updatedAt: number;
 }

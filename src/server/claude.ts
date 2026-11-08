@@ -53,6 +53,11 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string,
 const modelSheet = (c: CharacterDef) =>
   `- id "${c.id}": ${c.name}: ${c.look}${c.preset ? ` (preset: ${c.preset})` : ""}`;
 
+/** A central character's model sheet plus the family's notes about them
+ *  (personality, relationships), which only the writer sees. */
+const centralSheet = (c: CharacterDef) =>
+  `${modelSheet(c)}${c.notes ? `\n  FAMILY NOTES about ${c.name}: "${c.notes.replace(/\s+/g, " ").trim()}"` : ""}`;
+
 export async function generateSegment(req: StoryRequest): Promise<SegmentResponse> {
   const isStart = req.kind === "start";
   const age = ageById(isStart ? req.age : req.story.age);
@@ -74,8 +79,13 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
   parts.push(`THEME: ${theme}`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(
-    `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(modelSheet).join("\n")}`,
+    `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
   );
+  if (heroes.some((h) => h.notes)) {
+    parts.push(
+      "Honour the FAMILY NOTES above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together.",
+    );
+  }
   if (cast.length) parts.push(`SUPPORTING CAST SO FAR:\n${cast.map(modelSheet).join("\n")}`);
 
   if (isStart) {

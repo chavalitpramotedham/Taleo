@@ -2628,3 +2628,26 @@ main {
     margin: 6px auto 0;
   }
 }
+
+/* Optional "About them" notes on a custom character. */
+.notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.notes-label {
+  font-family: var(--font-caps);
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+.notes-label .meta {
+  font-family: var(--font-body);
+  letter-spacing: 0;
+  font-style: italic;
+}
+.notes-input {
+  max-width: none;
+  flex: none;
+  height: 84px;
+}

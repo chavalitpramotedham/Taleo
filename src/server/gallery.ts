@@ -1,5 +1,5 @@
 import { allPages } from "@/lib/story-utils";
-import type { GalleryEntry, RatingRecord, Story } from "@/lib/types";
+import type { CharacterDef, GalleryEntry, RatingRecord, Story } from "@/lib/types";
 import { deleteJson, readJson, writeJson } from "./store";
 import { ADMIN_USER_ID } from "./users";
 
@@ -57,7 +57,17 @@ export async function publishStory(story: Story, author: { id: string; username:
     authorUsername,
   };
   const next = [entry, ...index.filter((e) => e.id !== story.id)];
-  await Promise.all([writeJson(INDEX_PATH, next), writeJson(storyPath(story.id), { ...story, ratingSum, ratingCount, authorId, authorUsername })]);
+  // Family notes about a character (and the link back to the author's
+  // private roster) never go public with the story.
+  const strip = (c: CharacterDef): CharacterDef => {
+    const { notes: _notes, savedId: _savedId, ...rest } = c;
+    return rest;
+  };
+  const publicStory: Story = { ...story, hero: strip(story.hero), companions: (story.companions ?? []).map(strip) };
+  await Promise.all([
+    writeJson(INDEX_PATH, next),
+    writeJson(storyPath(story.id), { ...publicStory, ratingSum, ratingCount, authorId, authorUsername }),
+  ]);
   return entry;
 }
 

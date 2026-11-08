@@ -4,7 +4,7 @@ import type { CharacterDef, CharacterResponse, SavedCharacter } from "@/lib/type
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { LeafLoader } from "@/components/Icons";
-import { MAX_CHARACTERS } from "@/lib/characters";
+import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
 
 interface Props {
   onClose: () => void;
@@ -22,6 +22,7 @@ interface Props {
 export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props) {
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
+  const [notes, setNotes] = useState("");
   const [drafted, setDrafted] = useState<CharacterDef | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -64,7 +65,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg }, replaceId }),
+        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null }, replaceId }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string; limitReached?: boolean };
       if (!res.ok || !data.character) {
@@ -147,6 +148,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 )}
               </button>
             </div>
+            <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || drafted.name} disabled={confirming} />
             <div className="field-row">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={confirming}>
                 Cancel
@@ -197,5 +199,36 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
         {error && <p className="error">{error}</p>}
       </div>
     </div>
+  );
+}
+
+/** Optional freeform "about them" box: personality, and especially how
+ *  they relate to other characters or people. Shared by the creator and
+ *  the My characters edit popup. */
+export function CharacterNotesField({
+  value,
+  onChange,
+  name,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  name: string;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="notes-field">
+      <span className="notes-label">
+        About {name || "them"} <span className="meta">(optional)</span>
+      </span>
+      <textarea
+        className="input comment-input notes-input"
+        value={value}
+        maxLength={NOTES_MAX}
+        disabled={disabled}
+        placeholder="Anything that matters: who they are, what they love, and how they know the others (e.g. Pip's big sister, always looks out for him)."
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
   );
 }

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import type { SavedCharacter } from "@/lib/types";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
+import { CharacterCreatorModal, CharacterNotesField } from "@/components/CharacterCreatorModal";
 import { LeafLoader } from "@/components/Icons";
 
 export default function MyCharactersPage() {
@@ -35,7 +35,7 @@ export default function MyCharactersPage() {
         <p className="eyebrow">Just yours</p>
         <h1>My characters</h1>
         <p className="sub">
-          {characters.length} of {MAX_CHARACTERS} slots used. Tap a character to rename or delete them.
+          {characters.length} of {MAX_CHARACTERS} slots used. Tap a character to edit or delete them.
         </p>
       </header>
 
@@ -86,7 +86,7 @@ export default function MyCharactersPage() {
         <CharacterEditModal
           character={editing}
           onClose={() => setEditing(null)}
-          onRenamed={(updated) => {
+          onSaved={(updated) => {
             setCharacters((cur) => (cur ?? []).map((c) => (c.id === updated.id ? updated : c)));
             setEditing(null);
           }}
@@ -103,16 +103,20 @@ export default function MyCharactersPage() {
 function CharacterEditModal({
   character,
   onClose,
-  onRenamed,
+  onSaved,
   onDeleted,
 }: {
   character: SavedCharacter;
   onClose: () => void;
-  onRenamed: (c: SavedCharacter) => void;
+  onSaved: (c: SavedCharacter) => void;
   onDeleted: (id: string) => void;
 }) {
   const [name, setName] = useState(character.name);
-  const [busy, setBusy] = useState<"rename" | "delete" | null>(null);
+  const [notes, setNotes] = useState(character.notes ?? "");
+  const [busy, setBusy] = useState<"save" | "delete" | null>(null);
+  const nameChanged = name.trim() !== character.name;
+  const notesChanged = notes.trim() !== (character.notes ?? "");
+  const canSave = Boolean(name.trim()) && (nameChanged || notesChanged) && !busy;
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -121,20 +125,19 @@ function CharacterEditModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const rename = async () => {
-    const next = name.trim();
-    if (!next || next === character.name || busy) return;
-    setBusy("rename");
+  const save = async () => {
+    if (!canSave) return;
+    setBusy("save");
     setError(null);
     try {
       const res = await fetch(`/api/characters/${character.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: next }),
+        body: JSON.stringify({ ...(nameChanged ? { name: name.trim() } : {}), ...(notesChanged ? { notes: notes.trim() || null } : {}) }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string };
-      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't rename that character.");
-      onRenamed(data.character);
+      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't save those changes.");
+      onSaved(data.character);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setBusy(null);
@@ -170,16 +173,17 @@ function CharacterEditModal({
           value={name}
           maxLength={40}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && rename()}
+          onKeyDown={(e) => e.key === "Enter" && save()}
           aria-label="Character name"
         />
-        <button type="button" className="btn btn-primary btn-block" onClick={rename} disabled={!name.trim() || name.trim() === character.name || Boolean(busy)}>
-          {busy === "rename" ? (
+        <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || character.name} disabled={Boolean(busy)} />
+        <button type="button" className="btn btn-primary btn-block" onClick={save} disabled={!canSave}>
+          {busy === "save" ? (
             <>
               <LeafLoader size={18} /> Saving…
             </>
           ) : (
-            "Rename"
+            "Save changes"
           )}
         </button>
         <button type="button" className="btn btn-soft btn-block" onClick={remove} disabled={Boolean(busy)}>

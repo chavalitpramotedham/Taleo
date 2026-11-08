@@ -2,6 +2,8 @@ import { AGES, ageById, clampMinutes } from "@/lib/ages";
 import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
 import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { NOTES_MAX } from "@/lib/characters";
+
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
 // Back-compat: stories saved before the length slider existed have no `minutes`.
@@ -18,6 +20,8 @@ export function cleanCharacter(c: unknown, fallbackId = "hero"): CharacterDef {
     look: str(o.look, 600) || str(o.description, 600),
     preset: typeof o.preset === "string" ? o.preset.slice(0, 30) : null,
     svg: sanitizeSvg(str(o.svg, 40000), 30000) || null,
+    notes: str(o.notes, NOTES_MAX).trim() || null,
+    savedId: str(o.savedId, 40) || null,
   };
 }
 

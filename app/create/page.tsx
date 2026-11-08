@@ -69,7 +69,7 @@ export default function CreatePage() {
   const defForUid = (uid: string): CharacterDef | null => {
     if (uid.startsWith("saved:")) {
       const c = saved.find((s) => s.id === uid.slice(6));
-      return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg } : null;
+      return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg, notes: c.notes, savedId: c.id } : null;
     }
     if (uid.startsWith("preset:")) {
       const p = PRESETS.find((pp) => pp.key === uid.slice(7));
@@ -118,6 +118,17 @@ export default function CreatePage() {
     if (!saveStory(story)) {
       setError("This device's storage is full. Remove an old story from your bookshelf and try again.");
       return;
+    }
+    // Remember which of the user's own characters starred in this story
+    // (fire-and-forget; keepalive lets it finish across the navigation).
+    const savedIds = [hero, ...companions].map((c) => c.savedId).filter((x): x is string => Boolean(x));
+    if (savedIds.length) {
+      fetch("/api/characters/link", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ storyId: story.id, characterIds: savedIds }),
+        keepalive: true,
+      }).catch(() => {});
     }
     router.push(`/story/${story.id}`);
   };
