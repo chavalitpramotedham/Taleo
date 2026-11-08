@@ -1130,10 +1130,39 @@ main {
   cursor: pointer;
 }
 .mic.listening {
+  position: relative;
   color: #fbf4e6;
   background: var(--russet);
   border-color: var(--russet);
-  animation: pulse 1.2s infinite;
+}
+/* A soft ring swelling out from the mic while it listens: a separate layer
+   that only scales and fades (GPU work), rather than an animated
+   box-shadow, which would be redrawn every frame. */
+.mic.listening::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(156, 79, 50, 0.5);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: micRing 1.2s ease-out infinite;
+}
+@keyframes micRing {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.42);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mic.listening::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 .error {
   border-left: 3px solid var(--russet);
@@ -2303,15 +2332,7 @@ main {
     opacity: 0.82;
   }
 }
-@keyframes pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(156, 79, 50, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(156, 79, 50, 0);
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -3709,11 +3730,24 @@ html[data-night] .modal-backdrop {
      picture (and widen the page); it only ever visits inside the frame. */
   overflow: hidden;
 }
-.hero-paint-canvas > svg {
+.hero-layers {
+  position: relative;
+  aspect-ratio: 4 / 3;
   transition: opacity 1s ease;
 }
-.hero-paint-pending > svg,
-.hero-paint-fade > svg {
+.hero-art .hero-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* The pre-painted layers only ever fade: each is its own GPU layer. */
+.hero-layers img.hp-g {
+  will-change: opacity;
+}
+.hero-paint-pending .hero-layers,
+.hero-paint-fade .hero-layers {
   opacity: 0;
 }
 /* Each part of the scene fades in (or, for pen lines, draws on) on its own
@@ -3726,7 +3760,7 @@ html[data-night] .modal-backdrop {
 .hero-paint-canvas.playing .hp-g-detail {
   animation: hpFade var(--dur) ease-out var(--d) both;
 }
-.hero-paint-canvas.playing .hp-g-ink * {
+.hero-paint-canvas.playing .hp-g-ink > g > * {
   stroke-dasharray: 1;
   animation: hpDraw var(--dur) ease-in-out var(--d) both;
 }
@@ -5133,8 +5167,7 @@ html[data-night] .keyword-pill {
    the parchment behind it, hover states) don't force the painting itself
    to be redrawn - the already-drawn picture is simply reused. */
 .book-card .cover > svg,
-.story-preview-cover > svg,
-.hero-paint-canvas > svg {
+.story-preview-cover > svg {
   will-change: transform;
 }
 
@@ -5603,9 +5636,23 @@ html[data-night] .story-text .reading {
 
 /* The read-aloud button's sound waves pulse outward while a page is being
    read, and settle when it's done (the button stays on). */
+.speech-icon {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 0;
+}
+.speech-icon svg {
+  display: block;
+}
+.speech-waves,
 .speech-icon .wave {
-  transform-box: fill-box;
-  transform-origin: right center;
+  position: absolute;
+  inset: 0;
+}
+.speech-icon.speaking .wave {
+  will-change: transform, opacity;
 }
 .speech-icon.speaking .wave {
   animation: speechWave 1.2s ease-in-out infinite;

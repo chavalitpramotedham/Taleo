@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Painting } from "@/components/art/Painting";
-import { HOME_SCENE } from "@/lib/art/homeScene";
+import { HOME_LAYERS } from "@/lib/art/homeLayers";
+
+const TITLE = "Pip the rabbit leaps over a puddle after a falling leaf while Bobo the bear laughs";
 
 const CAPTION = "“Wait for me!” laughed Bobo, as Pip leapt clean over the puddle.";
 
-type Kind = "wash" | "paint" | "ink" | "detail";
 
 /** When each part of the sample scene starts painting in, and how long it
  *  takes - in the scene's own order (sky and hills, the meadow, Bobo, Pip,
@@ -52,26 +52,11 @@ export function HeroPainting() {
 
   useEffect(() => {
     const root = wrap.current;
-    const svg = root?.querySelector("svg");
-    if (!root || !svg) return;
+    if (!root) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       root.classList.remove("hero-paint-pending");
       return;
     }
-
-    // Tag each top-level part of the scene with its kind and schedule.
-    // (Cleaned markup marks layers by their watercolour filter.)
-    const holder = svg.querySelector(":scope > g");
-    const groups = Array.from(holder?.children ?? []).filter((el): el is SVGGElement => el.tagName.toLowerCase() === "g");
-    groups.forEach((g, i) => {
-      const filter = g.getAttribute("filter") || "";
-      const kind: Kind = filter.includes("tl-wash") ? "wash" : filter.includes("tl-paint") ? "paint" : filter.includes("tl-ink") ? "ink" : "detail";
-      const slot = SCHEDULE[i] ?? { start: Math.min(PAINT_MS - 1500, 1000 * i), dur: 1500, stage: "Finishing touches…" };
-      g.classList.add("hp-g", `hp-g-${kind}`);
-      g.style.setProperty("--d", `${slot.start}ms`);
-      g.style.setProperty("--dur", `${slot.dur}ms`);
-      if (kind === "ink") g.querySelectorAll("*").forEach((p) => p.setAttribute("pathLength", "1"));
-    });
     root.style.setProperty("--paint-ms", `${PAINT_MS}ms`);
 
     // Start (or restart) the painting.
@@ -85,7 +70,11 @@ export function HeroPainting() {
     // the rest of the page, the theme), then begin painting on blank paper,
     // so entering the page never competes with the painting's first frames.
     let stop: (() => void) | null = null;
-    const start = () => {
+    let cancelled = false;
+    const start = async () => {
+      // Every pre-painted layer decoded first, so none pops in late.
+      await Promise.all(Array.from(root.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
+      if (cancelled) return;
       root.classList.remove("hero-paint-pending");
       play();
       stop = run();
@@ -95,7 +84,7 @@ export function HeroPainting() {
     setLive(true);
     const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
     let wait = 0;
-    const idle = ric(() => (wait = window.setTimeout(start, 500)), { timeout: 1500 }) as number;
+    const idle = ric(() => (wait = window.setTimeout(() => void start(), 500)), { timeout: 1500 }) as number;
 
     const run = () => {
       // A light clock that only advances while the picture is on screen,
@@ -162,6 +151,7 @@ export function HeroPainting() {
     };
 
     return () => {
+      cancelled = true;
       (window.cancelIdleCallback ?? clearTimeout)(idle);
       clearTimeout(wait);
       stop?.();
@@ -171,7 +161,36 @@ export function HeroPainting() {
   return (
     <figure className="hero-art hero-paint">
       <div ref={wrap} className="hero-paint-canvas hero-paint-pending">
-        <Painting svg={HOME_SCENE} title="Pip the rabbit leaps over a puddle after a falling leaf while Bobo the bear laughs" />
+        {/* The scene as a stack of layers, one per part, in paint order:
+            pre-painted images (see scripts/render-home-layers.cjs) that only
+            fade in, and pen lines that draw on as live SVG - so playing the
+            painting never re-runs the watercolour filters. */}
+        <div className="hero-layers painted-edge" role="img" aria-label={TITLE}>
+          <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
+            <rect className="paint-paper" width="400" height="300" />
+          </svg>
+          {HOME_LAYERS.map((l, i) => {
+            const slot = SCHEDULE[i] ?? { start: Math.min(PAINT_MS - 1500, 1000 * i), dur: 1500 };
+            const style = { "--d": `${slot.start}ms`, "--dur": `${slot.dur}ms` } as React.CSSProperties;
+            return l.kind === "ink" ? (
+              <svg
+                key={i}
+                viewBox="0 0 400 300"
+                className="hero-layer hp-g hp-g-ink"
+                style={style}
+                aria-hidden
+                dangerouslySetInnerHTML={{ __html: l.svg }}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={l.src} alt="" className={`hero-layer hp-g hp-g-${l.kind}`} style={style} decoding="async" />
+            );
+          })}
+          <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
+            <rect className="paint-dim" width="400" height="300" />
+            <rect width="400" height="300" filter="url(#tl-paper)" style={{ mixBlendMode: "multiply" }} />
+          </svg>
+        </div>
         <p className={`hero-stage ${stage ? "on" : ""}`} aria-hidden>
           {stage}
         </p>
