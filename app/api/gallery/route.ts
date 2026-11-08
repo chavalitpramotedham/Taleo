@@ -13,7 +13,14 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const sort = url.searchParams.get("sort");
   const limit = Math.min(200, Math.max(0, Number(url.searchParams.get("limit")) || 0));
-  let stories = await listGallery();
+  let stories;
+  try {
+    stories = await listGallery();
+  } catch (err) {
+    // Never cache (or show) an "empty library" when storage is unreachable.
+    console.error("[gallery] couldn't read the library", err);
+    return NextResponse.json({ error: "The library can't be reached right now." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   if (sort === "rating") stories = [...stories].sort((a, b) => avg(b) - avg(a) || b.createdAt - a.createdAt);
   else if (sort === "recent") stories = [...stories].sort((a, b) => b.createdAt - a.createdAt);
   if (limit) stories = stories.slice(0, limit);

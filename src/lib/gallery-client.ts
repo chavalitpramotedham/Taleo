@@ -6,7 +6,8 @@ export async function fetchGallery(opts: { sort?: "rating" | "recent"; limit?: n
   if (opts.sort) q.set("sort", opts.sort);
   if (opts.limit) q.set("limit", String(opts.limit));
   const res = await fetch(`/api/gallery${q.size ? `?${q}` : ""}`);
-  if (!res.ok) return [];
+  // A failure is an error, not "an empty library".
+  if (!res.ok) throw new Error(`Library unavailable (${res.status})`);
   const data = (await res.json()) as { stories?: GalleryEntry[] };
   return data.stories ?? [];
 }

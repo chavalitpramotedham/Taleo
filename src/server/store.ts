@@ -11,6 +11,18 @@ import path from "path";
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const useBlob = Boolean(BLOB_TOKEN);
 
+// On Vercel there is no writable disk, so running without the Blob token
+// means every read looks empty (an "empty" library) and every write fails
+// (sign-in can't save a profile). Fail loudly instead of quietly.
+const onVercel = Boolean(process.env.VERCEL);
+function assertStorage() {
+  if (!useBlob && onVercel) {
+    const msg = "[store] BLOB_READ_WRITE_TOKEN is not set for this deployment: connect the Blob store to the project and redeploy.";
+    console.error(msg);
+    throw new Error(msg);
+  }
+}
+
 const DATA_DIR = path.join(process.cwd(), ".data");
 const localFile = (pathname: string) => path.join(DATA_DIR, pathname);
 
@@ -61,6 +73,15 @@ async function blobDelete(pathname: string) {
   if (blob) await del(blob.url, { token: BLOB_TOKEN });
 }
 
-export const readJson = <T>(pathname: string) => (useBlob ? blobRead<T>(pathname) : localRead<T>(pathname));
-export const writeJson = (pathname: string, data: unknown) => (useBlob ? blobWrite(pathname, data) : localWrite(pathname, data));
-export const deleteJson = (pathname: string) => (useBlob ? blobDelete(pathname) : localDelete(pathname));
+export const readJson = async <T>(pathname: string) => {
+  assertStorage();
+  return useBlob ? blobRead<T>(pathname) : localRead<T>(pathname);
+};
+export const writeJson = async (pathname: string, data: unknown) => {
+  assertStorage();
+  return useBlob ? blobWrite(pathname, data) : localWrite(pathname, data);
+};
+export const deleteJson = async (pathname: string) => {
+  assertStorage();
+  return useBlob ? blobDelete(pathname) : localDelete(pathname);
+};
