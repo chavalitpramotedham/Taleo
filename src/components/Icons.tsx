@@ -206,3 +206,12 @@ export const MapleMark = () => (
     <path d="M0,1.5 C0,2.9 0,4.3 0.3,6.2" stroke="#7A5420" strokeWidth="0.6" strokeLinecap="round" fill="none" />
   </svg>
 );
+
+/** Reading time: a little hourglass, sand gathering at the bottom. */
+export const HourglassIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M6.5 3h11M6.5 21h11" />
+    <path d="M7.5 3c0 4.2 4.5 5.6 4.5 9s-4.5 4.8-4.5 9M16.5 3c0 4.2-4.5 5.6-4.5 9s4.5 4.8 4.5 9" />
+    <path d="M9.5 19.2c.9-1.3 1.7-1.8 2.5-1.8s1.6.5 2.5 1.8Z" fill="currentColor" stroke="none" />
+  </svg>
+);

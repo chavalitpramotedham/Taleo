@@ -1,7 +1,8 @@
 "use client";
 import { Painting } from "@/components/art/Painting";
 import type { GalleryEntry } from "@/lib/types";
-import { StarGlyph } from "./Icons";
+import { HourglassIcon, StarGlyph } from "./Icons";
+import { ageById } from "@/lib/ages";
 import { KeywordPill } from "./KeywordPill";
 
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
@@ -11,10 +12,14 @@ const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 
  *  target that opens the story's preview (no buttons on the card itself). */
 export function StoryCard({ entry: s, onOpen }: { entry: GalleryEntry; onOpen: () => void }) {
   const title = s.title || "An untitled story";
+  const minutes = s.minutes || ageById(s.age).recommendedMinutes;
   return (
     <button type="button" className="book-card story-card" onClick={onOpen} aria-haspopup="dialog" aria-label={`${title} - open preview`}>
       <span className="cover">
         {s.cover ? <Painting svg={s.cover} title={title} /> : null}
+        <span className="cover-time" aria-label={`About ${minutes} minutes to read`}>
+          <HourglassIcon /> {minutes} min
+        </span>
         <span className="cover-meta">
           <span className="cover-rating">
             {s.ratingCount ? (

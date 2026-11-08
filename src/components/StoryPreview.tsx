@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
-import { Ornament, StarGlyph } from "./Icons";
+import { HourglassIcon, StarGlyph } from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -74,17 +74,28 @@ export function StoryPreview({
         <button type="button" className="icon-btn story-preview-close" onClick={onClose} aria-label="Close">
           ✕
         </button>
-        {story.cover && (
-          <div className="story-preview-cover">
-            <Painting svg={story.cover} title={story.title} />
-          </div>
-        )}
+        <div className="story-preview-cover">
+          {story.cover && <Painting svg={story.cover} title={story.title} />}
+          <span className="cover-time" aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} pages` : ""}`}>
+            <HourglassIcon /> {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
+          </span>
+          <span className="cover-meta">
+            <span className="cover-rating">
+              {story.ratingAvg != null ? (
+                <>
+                  <StarGlyph /> {story.ratingAvg.toFixed(1)} ({story.ratingCount})
+                </>
+              ) : (
+                "Not yet rated"
+              )}
+            </span>
+          </span>
+        </div>
         <div className="story-preview-body">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           {story.keyword && <KeywordPill keyword={story.keyword} />}
           <h2 id="story-preview-title">{story.title}</h2>
           <p className="meta story-preview-by">by @{story.author}</p>
-          <Ornament className="ornament small" />
           <ul className="story-preview-facts">
             {story.starring.length > 0 && (
               <li>
@@ -93,22 +104,8 @@ export function StoryPreview({
               </li>
             )}
             <li>
-              <span>For ages</span>
+              <span>Ages</span>
               {story.ageLabel}
-            </li>
-            <li>
-              <span>Reading time</span>
-              About {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
-            </li>
-            <li>
-              <span>Rating</span>
-              {story.ratingAvg != null ? (
-                <span className="story-preview-rating">
-                  <StarGlyph /> {story.ratingAvg.toFixed(1)} ({story.ratingCount})
-                </span>
-              ) : (
-                "Not yet rated"
-              )}
             </li>
           </ul>
           {children}

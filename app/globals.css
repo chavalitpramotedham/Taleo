@@ -4214,9 +4214,105 @@ g[filter="url(#tl-wash)"].hp-in {
   max-width: none;
 }
 
-/* Profile button placeholder while sign-in status loads: same footprint,
-   softly faded, so the menu keeps its shape. */
+/* Profile button placeholder while sign-in status loads: same footprint
+   (so the menu keeps its shape), softly faded, with a gentle shine drifting
+   diagonally across it now and then - clearly "loading", not "signed out". */
 .account-trigger-pending {
-  opacity: 0.45;
+  position: relative;
+  overflow: hidden;
   pointer-events: none;
+}
+.account-trigger-pending svg {
+  opacity: 0.4;
+}
+.account-trigger-pending::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 252, 244, 0) 38%,
+    rgba(255, 252, 244, 0.75) 50%,
+    rgba(255, 252, 244, 0) 62%
+  );
+  transform: translate(-60%, -60%);
+  animation: avatarShine 1.8s ease-in-out infinite;
+}
+@keyframes avatarShine {
+  0% {
+    transform: translate(-60%, -60%);
+  }
+  60%,
+  100% {
+    transform: translate(60%, 60%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-trigger-pending::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Reading time, overlaid on a cover's top-right corner (hourglass + minutes;
+   the preview adds pages). */
+.cover-time {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  background: rgba(35, 22, 12, 0.6);
+  color: #fbf4e6;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+/* (beats the cover rules that size the painting to fill its frame) */
+.book-card .cover .cover-time svg,
+.story-preview-cover .cover-time svg {
+  position: static;
+  inset: auto;
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+/* Compact preview: time and rating live on the cover; just one short row of
+   details below the title. */
+.story-preview-cover .cover-time {
+  top: 12px;
+  right: 56px; /* clear of the close button */
+  font-size: 0.86rem;
+  padding: 4px 11px 4px 9px;
+}
+.story-preview-cover .cover-meta {
+  padding: 26px 14px 10px;
+}
+.story-preview-cover .cover-rating svg {
+  position: static;
+  inset: auto;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: #e8c468;
+  stroke: #e8c468;
+}
+.story-preview-body {
+  padding: 14px clamp(16px, 5vw, 26px) 18px;
+  gap: 4px;
+}
+.story-preview-facts {
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin: 8px 0 14px;
+}
+.story-preview-facts li {
+  padding: 6px 10px;
 }
