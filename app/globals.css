@@ -5180,3 +5180,65 @@ html[data-night] .painting-badge {
   border-color: rgba(255, 236, 205, 0.2);
   color: #f0e3c9;
 }
+
+/* ---------- floating controls fit the screen's rounded corners ---------- */
+/* On phones with a home bar (rounded screen corners of ~48px), every
+   floating control at the bottom keeps the same gap from the bottom as from
+   the sides - 20px - and is 56px tall, so its 28px rounding runs parallel
+   to the screen's corner curve (48 - 20 = 28): pills along the bottom, round
+   buttons tucked into the corners. Elsewhere (no inset reported) the gap is
+   a plain 16px. */
+:root {
+  --edge: max(16px, calc(env(safe-area-inset-bottom) - 14px));
+}
+/* In landscape the notch sits at a side: keep content clear of it. */
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+@media (max-width: 640px) {
+  .floating-cta {
+    padding: 0 var(--edge) var(--edge);
+  }
+  .floating-cta-btn {
+    max-width: none;
+    min-height: 56px;
+    border-radius: 999px;
+  }
+  .wizard-nav {
+    bottom: var(--edge);
+    padding: 0 var(--edge);
+  }
+  .wizard-cta,
+  .wizard-back {
+    height: 56px;
+  }
+  .wizard-back {
+    width: 56px;
+  }
+  .contact-send {
+    padding: 0 var(--edge) var(--edge);
+  }
+  .contact-send > * {
+    max-width: none;
+  }
+  .contact-send-btn {
+    min-height: 56px;
+    border-radius: 999px;
+  }
+  .nav-btn {
+    bottom: var(--edge);
+    width: 56px;
+    height: 56px;
+  }
+  .nav-btn-prev {
+    left: var(--edge);
+  }
+  .nav-btn-next {
+    right: var(--edge);
+  }
+  .reader-index {
+    /* 40px tall, centred on the 56px circles' line */
+    bottom: calc(var(--edge) + 8px);
+  }
+}

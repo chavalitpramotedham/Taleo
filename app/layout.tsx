@@ -24,6 +24,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets the page see the iPhone's screen insets (home indicator, notch),
+  // so floating buttons can sit neatly in the rounded corners.
+  viewportFit: "cover",
   themeColor: "#F3ECDC",
 };
 

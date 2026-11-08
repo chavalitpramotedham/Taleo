@@ -586,7 +586,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
           </Link>
         ) : (
           <Link className="end-back" href="/my-stories">
-            Find it on your bookshelf
+            Return to my bookshelf
           </Link>
         )}
         {story.demo && <p className="demo-note">Demo story: add an Anthropic API key for stories written and painted by Claude.</p>}
