@@ -11,7 +11,7 @@ import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakTe
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
-import { BookCover } from "./BookCover";
+import { BookCover, coverStyle } from "./BookCover";
 import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
@@ -49,7 +49,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // A brand-new story starts as a closed book (see BookCover): its cover
   // fills in while the first page is written and painted, then it swings
   // open into the story.
-  const [cover, setCover] = useState<"closed" | "opening" | "open">(() => (!readOnly && story.segments.length === 0 ? "closed" : "open"));
+  // Every story starts on its cover (a new one stays there while it's
+  // written and painted, then opens by itself; any other is opened with
+  // Next, a swipe or the button). It's the page before page 1: Previous
+  // from page 1, or "Cover" in the page list, closes the book again.
+  const [cover, setCover] = useState<"closed" | "opening" | "open">("closed");
+  const [isNew] = useState(() => !readOnly && story.segments.length === 0);
+  const [hasOpened, setHasOpened] = useState(false);
+  useEffect(() => {
+    if (cover === "open") setHasOpened(true);
+  }, [cover]);
   // Revisiting (a finished story reopened, or someone else's): sharing is
   // always to hand at the top. While a story is first being made, it's
   // offered at the end instead.
@@ -128,6 +137,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const openBook = useCallback(() => {
     setCover((c) => (c === "closed" ? "opening" : c));
   }, []);
+  const closeBook = useCallback(() => {
+    cancelSpeech();
+    setCover("closed");
+  }, []);
   useEffect(() => {
     if (cover !== "opening") return;
     const t = window.setTimeout(() => setCover("open"), 1250);
@@ -136,12 +149,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // Open by itself once the first page is painted (a moment to see the
   // painting on the cover first), or if something went wrong.
   useEffect(() => {
-    if (cover !== "closed") return;
+    if (cover !== "closed" || !isNew || hasOpened) return;
     if (error) return openBook();
     if (!firstPage?.svg) return;
     const t = window.setTimeout(openBook, 900);
     return () => window.clearTimeout(t);
-  }, [cover, firstPage?.svg, error, openBook]);
+  }, [cover, firstPage?.svg, error, openBook, isNew, hasOpened]);
 
   // ---------------------------------------------------------------- writing
   // Leaving the story cancels a segment still being written: it couldn't be
@@ -304,8 +317,20 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [pendingNext, setPendingNext] = useState(false);
   const viewsRef = useRef(views);
   viewsRef.current = views;
+  const coverRef = useRef(cover);
+  coverRef.current = cover;
   const go = useCallback(
     (d: number) => {
+      // The cover is the page before page 1.
+      if (coverRef.current !== "open") {
+        if (d > 0 && coverRef.current === "closed" && storyRef.current.segments[0]?.pages[0]) {
+          indexRef.current = 0;
+          setIndex(0);
+          openBook();
+        }
+        return;
+      }
+      if (d < 0 && indexRef.current === 0) return closeBook();
       const target = indexRef.current + d;
       if (d > 0 && !forwardBlockedRef.current && viewsRef.current[target]?.kind === "loading" && indexRef.current < target) {
         setPendingNext(true);
@@ -314,7 +339,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       setPendingNext(false);
       turnTo(target);
     },
-    [turnTo],
+    [turnTo, openBook, closeBook],
   );
   useEffect(() => {
     if (!pendingNext) return;
@@ -461,7 +486,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const readTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(readTimer.current), []);
   useEffect(() => {
-    if (!readAloud || !view) {
+    if (!readAloud || !view || cover !== "open") {
       readFor.current = null;
       window.clearTimeout(readTimer.current);
       return;
@@ -481,7 +506,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (turned) cancelSpeech();
     window.clearTimeout(readTimer.current);
     readTimer.current = window.setTimeout(() => speak(text), turned ? 1100 : 250);
-  }, [readAloud, view, speak, story.segments]);
+  }, [readAloud, view, speak, story.segments, cover]);
 
   // Have the voice ready before it's needed: this page's tappable word, and
   // (when reading aloud) the next page's text.
@@ -737,9 +762,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   const atChoiceUnanswered = view?.kind === "choice" && !story.segments[view.seg].chosen;
   forwardBlockedRef.current = atChoiceUnanswered;
-  const canBack = index > 0;
-  const canForward = index < lastIndex && !atChoiceUnanswered;
-  const position = view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
+  const onCover = cover !== "open";
+  const canBack = !onCover;
+  const canForward = onCover ? cover === "closed" && Boolean(firstPage) : index < lastIndex && !atChoiceUnanswered;
+  const position = onCover ? "Cover" : view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
   const jumpable = views
     .map((v, i) => ({ v, i }))
     .filter((x): x is { v: Extract<View, { kind: "page" | "choice" | "end" }>; i: number } => x.v.kind === "page" || x.v.kind === "choice" || x.v.kind === "end");
@@ -778,9 +804,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         </div>
       </div>
 
-      <div className={`book-stage ${cover}`}>
+      <div className={`book-stage ${cover}`} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         {cover !== "closed" && (
-      <div className="book" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className="book">
         <div className="book-art">{picture}</div>
         <div className="book-text">{words}</div>
         {outgoing && (
@@ -799,14 +825,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         )}
       </div>
         )}
-        {cover !== "open" && <BookCover story={story} opening={cover === "opening"} canOpen={Boolean(firstPage)} onOpen={openBook} />}
+        {cover !== "open" && <BookCover story={story} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
       </div>
 
-      <nav className={`reader-nav ${cover === "open" ? "" : "hidden-until-open"}`} aria-label="Turn the page">
+      <nav className={`reader-nav ${cover === "opening" ? "hidden-until-open" : ""}`} aria-label="Turn the page">
         <button className="nav-btn nav-btn-prev" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
           ‹
         </button>
-        <button className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 2}>
+        <button className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 1}>
           {position}
         </button>
         <button
@@ -829,17 +855,35 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               </button>
             </div>
             <div className="overview-strip" ref={stripRef}>
+              <button
+                type="button"
+                className={`overview-item ${onCover ? "current" : ""}`}
+                aria-current={onCover ? "page" : undefined}
+                onClick={() => {
+                  setOverviewOpen(false);
+                  closeBook();
+                }}
+              >
+                <span className="overview-thumb overview-thumb-label overview-thumb-cover" style={coverStyle(story.id)}>
+                  {story.title || "Cover"}
+                </span>
+                <span className="overview-caption">Cover</span>
+              </button>
               {jumpable.map(({ v, i }) => {
                 const svg = v.kind === "page" ? v.page.svg || composePainting(v.page, castFor(story, v.page)) : null;
                 return (
                   <button
                     key={i}
                     type="button"
-                    className={`overview-item ${i === index ? "current" : ""}`}
-                    aria-current={i === index ? "page" : undefined}
+                    className={`overview-item ${!onCover && i === index ? "current" : ""}`}
+                    aria-current={!onCover && i === index ? "page" : undefined}
                     onClick={() => {
                       setOverviewOpen(false);
-                      turnTo(i, { force: true });
+                      if (onCover) {
+                        indexRef.current = i;
+                        setIndex(i);
+                        openBook();
+                      } else turnTo(i, { force: true });
                     }}
                   >
                     {svg ? (

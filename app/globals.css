@@ -5874,7 +5874,7 @@ html[data-night] .reader-tools .music-control-tune {
     linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0, rgba(0, 0, 0, 0.12) 4.5%, rgba(255, 220, 180, 0.08) 6%, transparent 9%),
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 4px),
     repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 90% 70% at 60% 35%, #7d3530, #5a2321 70%);
+    radial-gradient(ellipse 90% 70% at 60% 35%, var(--cloth-a, #7d3530), var(--cloth-b, #5a2321) 70%);
   box-shadow:
     0 1px 0 rgba(255, 230, 200, 0.12) inset,
     0 0 0 1px rgba(0, 0, 0, 0.3) inset,
@@ -6807,4 +6807,31 @@ html[data-night] .skeleton-card::after {
 .skeleton-card .body {
   gap: 8px;
   align-items: flex-start;
+}
+
+/* The cover as the book's first page: a story you can read straight away
+   just waits on its cover with "Open the book"; coming back to it from
+   page 1 (or the page list) fades it softly in. */
+.book-cover.ready:not(.opening) {
+  animation: coverBack 0.35s ease both;
+}
+@keyframes coverBack {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* The cover in the page list: a little book in its own cloth. */
+.overview-thumb-cover {
+  color: #e4c27c;
+  background: radial-gradient(ellipse 90% 70% at 60% 35%, var(--cloth-a, #7d3530), var(--cloth-b, #5a2321) 70%);
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  line-height: 1.15;
+  text-align: center;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid #e4c27c;
+  outline: 3px solid var(--cloth-b, #5a2321);
+  outline-offset: -1px;
 }
