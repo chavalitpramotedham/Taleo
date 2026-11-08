@@ -1,35 +1,32 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { MUSIC_TRACKS, playMusic, recommendTrack, setMusicMuted, stopMusic, trackById } from "@/lib/music";
+import { MUSIC_TRACKS, defaultTrack, playMusic, setMusicMuted, stopMusic, trackById } from "@/lib/music";
 import { MusicNoteIcon, SpeakerIcon } from "./Icons";
 
 /** Gentle looping background music for the story reader: a two-zone pill -
  *  the left half opens a picker to change the tune, the right half mutes
- *  it. Starts on mount with a track recommended from the story's theme,
- *  and stops when the reader unmounts. */
-export function MusicControl({ theme }: { theme: string }) {
-  const [trackId, setTrackId] = useState(() => recommendTrack(theme).id);
+ *  it. Starts on mount with the default track, and stops when the reader
+ *  unmounts. */
+export function MusicControl() {
+  const [trackId, setTrackId] = useState(defaultTrack.id);
   const [muted, setMuted] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    playMusic(trackById(trackId));
+    playMusic(defaultTrack);
     return () => stopMusic();
-    // Only the very first mount should auto-start on the recommendation;
-    // later track changes are handled by the picker's own onClick below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => setMusicMuted(muted), [muted]);
 
   useEffect(() => {
     if (!pickerOpen) return;
-    const onClick = (e: MouseEvent) => {
+    const onDown = (e: PointerEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setPickerOpen(false);
     };
-    window.addEventListener("mousedown", onClick);
-    return () => window.removeEventListener("mousedown", onClick);
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
   }, [pickerOpen]);
 
   const choose = (id: string) => {

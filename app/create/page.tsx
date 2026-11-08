@@ -15,11 +15,11 @@ const MINUTES_KEY = "taleo.minutes";
 const MAX_CENTRAL = 3;
 type Step = 0 | 1 | 2;
 const GROUPS = [
+  { key: "all", label: "All" },
   { key: "mine", label: "My creations" },
-  { key: "all", label: "Everyone" },
   { key: "animal", label: "Animals" },
-  { key: "food", label: "Good enough to eat" },
-  { key: "object", label: "Curious things" },
+  { key: "food", label: "Foodies" },
+  { key: "object", label: "Curiosities" },
 ] as const;
 const STEP_TITLES = ["Who is the story for?", "Who shall it be about?", "What shall happen?"];
 const STEP_NOTES = [
@@ -228,17 +228,24 @@ export default function CreatePage() {
 
           <div className="filter-row" role="tablist">
             {GROUPS.map((g) => (
-              <button key={g.key} type="button" role="tab" aria-selected={group === g.key} className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
+              <button
+                key={g.key}
+                type="button"
+                role="tab"
+                aria-selected={group === g.key}
+                className={`chip ${group === g.key ? "on" : ""} ${g.key === "mine" ? "chip-strong" : ""}`}
+                onClick={() => setGroup(g.key)}
+              >
                 {g.label}
               </button>
             ))}
           </div>
-          {group === "mine" ? (
-            saved.length === 0 ? (
-              <p className="meta">You haven&apos;t created a character yet - try &ldquo;Dream up a character&rdquo; above.</p>
-            ) : (
-              <div className="grid chars">
-                {saved.map((c) => {
+          {group === "mine" && saved.length === 0 ? (
+            <p className="meta">You haven&apos;t created a character yet - try &ldquo;Dream up a character&rdquo; above.</p>
+          ) : (
+            <div className="grid chars">
+              {(group === "all" || group === "mine") &&
+                saved.map((c) => {
                   const uid = `saved:${c.id}`;
                   const selected = selectedUids.includes(uid);
                   const order = selectedUids.indexOf(uid) + 1;
@@ -258,11 +265,8 @@ export default function CreatePage() {
                     </button>
                   );
                 })}
-              </div>
-            )
-          ) : (
-            <div className="grid chars">
-              {visiblePresets.map((p) => {
+              {group !== "mine" &&
+                visiblePresets.map((p) => {
                 const uid = `preset:${p.key}`;
                 const selected = selectedUids.includes(uid);
                 const order = selectedUids.indexOf(uid) + 1;
@@ -281,7 +285,7 @@ export default function CreatePage() {
                     <span className="plate-sub">the {p.kind}</span>
                   </button>
                 );
-              })}
+                })}
             </div>
           )}
         </>

@@ -456,7 +456,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       <div className="reader-top">
         <h1 className="reader-title">{story.title || "A new story"}</h1>
         <div className="reader-tools">
-          <MusicControl theme={story.theme} />
+          <MusicControl />
           <button
             className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
