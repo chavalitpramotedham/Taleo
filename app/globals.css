@@ -4866,22 +4866,42 @@ html[data-night] .topbar {
   top: -2.5px;
   animation-duration: 2.9s;
 }
-.firefly.f0 { left: 8%; top: 22%; animation-delay: -3s; }
-.firefly.f1 { left: 18%; top: 64%; animation-delay: -11s; }
-.firefly.f2 { left: 27%; top: 38%; animation-delay: -7s; }
-.firefly.f3 { left: 36%; top: 82%; animation-delay: -15s; }
-.firefly.f4 { left: 44%; top: 18%; animation-delay: -2s; }
-.firefly.f5 { left: 52%; top: 56%; animation-delay: -9s; }
-.firefly.f6 { left: 61%; top: 30%; animation-delay: -13s; }
-.firefly.f7 { left: 69%; top: 74%; animation-delay: -5s; }
-.firefly.f8 { left: 77%; top: 44%; animation-delay: -17s; }
-.firefly.f9 { left: 86%; top: 86%; animation-delay: -1s; }
-.firefly.f10 { left: 92%; top: 26%; animation-delay: -12s; }
-.firefly.f11 { left: 12%; top: 88%; animation-delay: -6s; }
-.firefly.f12 { left: 33%; top: 9%; animation-delay: -14s; }
-.firefly.f13 { left: 58%; top: 92%; animation-delay: -4s; }
-.firefly.f14 { left: 73%; top: 12%; animation-delay: -10s; }
-.firefly.f15 { left: 95%; top: 58%; animation-delay: -8s; }
+/* Like real fireflies, most hover low, near the ground (the bottom third
+   of the screen); a few drift in the middle, a couple up high; and three
+   (.f13-.f15) rise slowly from the ground, fading as they climb. */
+.firefly.f0 { left: 7%; top: 88%; animation-delay: -3s; }
+.firefly.f1 { left: 16%; top: 76%; animation-delay: -11s; }
+.firefly.f2 { left: 24%; top: 92%; animation-delay: -7s; }
+.firefly.f3 { left: 33%; top: 81%; animation-delay: -15s; }
+.firefly.f4 { left: 42%; top: 94%; animation-delay: -2s; }
+.firefly.f5 { left: 51%; top: 84%; animation-delay: -9s; }
+.firefly.f6 { left: 60%; top: 73%; animation-delay: -13s; }
+.firefly.f7 { left: 69%; top: 90%; animation-delay: -5s; }
+.firefly.f8 { left: 78%; top: 79%; animation-delay: -17s; }
+.firefly.f9 { left: 87%; top: 93%; animation-delay: -1s; }
+.firefly.f10 { left: 94%; top: 70%; animation-delay: -12s; }
+.firefly.f11 { left: 11%; top: 52%; animation-delay: -6s; }
+.firefly.f12 { left: 83%; top: 46%; animation-delay: -14s; }
+/* the risers */
+.firefly.f13 { left: 29%; top: 96%; }
+.firefly.f14 { left: 64%; top: 97%; }
+.firefly.f15 { left: 90%; top: 95%; }
+.firefly.f13,
+.firefly.f14,
+.firefly.f15 {
+  animation: fireflyRise 26s ease-in-out infinite;
+}
+.firefly.f13 { animation-delay: -4s; }
+.firefly.f14 { animation-delay: -13s; animation-duration: 31s; }
+.firefly.f15 { animation-delay: -21s; animation-duration: 23s; }
+@keyframes fireflyRise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  8% { opacity: 1; }
+  30% { transform: translate(22px, -18vh); }
+  55% { transform: translate(-14px, -38vh); opacity: 0.9; }
+  80% { transform: translate(18px, -58vh); opacity: 0.5; }
+  100% { transform: translate(-6px, -74vh); opacity: 0; }
+}
 .firefly.f1 .firefly-light { animation-delay: -1.2s; }
 .firefly.f2 .firefly-light { animation-delay: -2.4s; }
 .firefly.f3 .firefly-light { animation-delay: -0.6s; }
