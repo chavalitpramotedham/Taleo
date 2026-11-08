@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasApiKey, paintPage } from "@/server/claude";
+import { hasApiKey, paintPage, StoryRefusal } from "@/server/claude";
+import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
 import { guard } from "@/server/limits";
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
         send("\n<!--taleo:done-->");
       } catch (err) {
         console.error("illustration failed", err);
+        if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("painting", err);
         send("\n<!--taleo:error-->");
       } finally {
         try {

@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { getUser, upsertFromGoogle } from "./users";
+import { reportError } from "./alerts";
 
 // Safety net: AUTH_URL must be a full address. Saved without its scheme
 // (e.g. "taleo-stories.app") Auth.js crashes on every sign-in request, so
@@ -13,6 +14,12 @@ for (const key of ["AUTH_URL", "NEXTAUTH_URL"] as const) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
   session: { strategy: "jwt" },
+  // Sign-in problems (misconfiguration, Google refusing) go to the dev inbox.
+  logger: {
+    error(error) {
+      void reportError("sign-in", error);
+    },
+  },
   pages: { signIn: "/sign-in" },
   callbacks: {
     async jwt({ token, user, account, trigger }) {

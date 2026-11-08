@@ -1,5 +1,6 @@
 import type { ContactAttachment } from "@/lib/contact";
 import { readJson, writeJson } from "./store";
+import { reportError } from "./alerts";
 
 /**
  * "Contact us" submissions. Every message is saved first (so nothing is
@@ -87,10 +88,10 @@ ${files ? `<h3 style="margin:20px 0 6px">Attachments</h3><ul>${files}</ul>` : ""
         attachments: attachments.length ? attachments : undefined,
       }),
     });
-    if (!res.ok) console.error(`[contact] Resend refused message ${msg.id}: ${res.status} ${await res.text()}`);
+    if (!res.ok) await reportError("contact email", new Error(`Resend refused message ${msg.id}: ${res.status} ${await res.text()}`));
     return res.ok;
   } catch (e) {
-    console.error(`[contact] Couldn't reach Resend for message ${msg.id}:`, e);
+    await reportError("contact email", e, { message: msg.id });
     return false;
   }
 }

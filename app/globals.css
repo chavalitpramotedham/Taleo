@@ -5155,11 +5155,14 @@ html[data-night] .contact-file-remove {
 /* Flat buttons in the popup: the raised edge reads oddly on a floating
    card, so no lip or drop shadow - a press just dims slightly instead. */
 .story-preview .btn,
-.story-preview .btn:active:not(:disabled) {
+.story-preview .btn:active:not(:disabled),
+.draft-prompt .btn,
+.draft-prompt .btn:active:not(:disabled) {
   box-shadow: none;
   transform: none;
 }
-.story-preview .btn:active:not(:disabled) {
+.story-preview .btn:active:not(:disabled),
+.draft-prompt .btn:active:not(:disabled) {
   opacity: 0.82;
 }
 
@@ -5475,4 +5478,25 @@ html[data-night] .gender-opt.open.on {
     width: 18px;
     font-size: 0.85rem;
   }
+}
+
+/* "Pick up where you left off?" */
+.draft-prompt {
+  text-align: center;
+  gap: 8px;
+}
+.draft-prompt .draft-cover {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  height: auto;
+}
+.draft-title {
+  margin: 4px 0 0;
+  font-family: var(--font-title);
+  font-size: 1.35rem;
+}
+.draft-prompt .story-preview-actions {
+  margin-top: 8px;
 }

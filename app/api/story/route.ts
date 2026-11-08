@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasApiKey, streamSegment, type SegmentEvent } from "@/server/claude";
+import { hasApiKey, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
+import { reportError } from "@/server/alerts";
 import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
           for await (const event of streamSegment(parsed, stop.signal)) send(event);
         }
       } catch (err) {
+        if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("story writing", err, { kind: parsed.kind });
         await g.release(); // a story that failed to write doesn't count
         const data = (await errorResponse(err).json().catch(() => ({}))) as { error?: string };
         send({ type: "error", error: data.error || "The story got stuck. Let's try again!" });

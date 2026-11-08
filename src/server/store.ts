@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
+import { reportError } from "./alerts";
 
 /**
  * Shared JSON-blob storage used by the public story store and the user
@@ -49,9 +50,12 @@ export function blobUrl(pathname: string): string | null {
   return storeId ? `https://${storeId.toLowerCase()}.public.blob.vercel-storage.com/${pathname}` : null;
 }
 
-async function blobRead<T>(pathname: string, cacheSeconds?: number): Promise<T | null> {
-  const url = blobUrl(pathname);
-  if (!url) throw new Error("Blob token is malformed.");
+async function blobRead<T>(pathname: string, cacheSeconds?: number, fresh?: boolean): Promise<T | null> {
+  const base = blobUrl(pathname);
+  if (!base) throw new Error("Blob token is malformed.");
+  // `fresh`: skip the CDN's copy (for a file that changes often and must be
+  // current, e.g. an unfinished story) - costs one cheap uncached read.
+  const url = fresh ? `${base}?v=${Date.now()}` : base;
   // Served from Blob's CDN (a cache hit costs nothing); overwriting a file
   // refreshes the cached copy within about a minute. Normally always fresh
   // (writes read-modify-write); pages that are themselves cached pass
@@ -60,7 +64,11 @@ async function blobRead<T>(pathname: string, cacheSeconds?: number): Promise<T |
   if (res.status === 404) return null;
   // Anything else (403 when the store is suspended or over its limits,
   // 5xx...) is a real failure - never pretend the file is simply missing.
-  if (!res.ok) throw new Error(`Blob storage refused the read (${res.status} ${res.statusText}) for ${pathname}`);
+  if (!res.ok) {
+    const err = new Error(`Blob storage refused the read (${res.status} ${res.statusText}) for ${pathname}`);
+    await reportError("storage", err);
+    throw err;
+  }
   return (await res.json()) as T;
 }
 
@@ -87,9 +95,9 @@ async function blobDelete(pathname: string) {
   if (url) await del(url, { token: BLOB_TOKEN });
 }
 
-export const readJson = async <T>(pathname: string, opts: { cacheSeconds?: number } = {}) => {
+export const readJson = async <T>(pathname: string, opts: { cacheSeconds?: number; fresh?: boolean } = {}) => {
   assertStorage();
-  return useBlob ? blobRead<T>(pathname, opts.cacheSeconds) : localRead<T>(pathname);
+  return useBlob ? blobRead<T>(pathname, opts.cacheSeconds, opts.fresh) : localRead<T>(pathname);
 };
 export const writeJson = async (pathname: string, data: unknown) => {
   assertStorage();
