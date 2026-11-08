@@ -6,44 +6,46 @@ import { HOME_SCENE } from "@/lib/art/homeScene";
 const CAPTION = "“Wait for me!” laughed Bobo, as Pip leapt clean over the puddle.";
 
 type Kind = "wash" | "paint" | "ink" | "detail";
-type Step = { el: SVGElement; kind: Kind; dwell: number; stage: string };
 
-/** What's being painted, group by group, in the sample scene's own order -
- *  told the way an illustrator would describe it. */
-const STAGES = [
-  "Washing in the sky…",
-  "Washing in the hills and trees…",
-  "Painting the meadow…",
-  "Painting Bobo…",
-  "Painting Bobo…",
-  "Painting Bobo…",
-  "Painting Pip…",
-  "Painting Pip…",
-  "A splash in the puddle…",
-  "A few little surprises…",
-  "Inking the finishing lines…",
-  "Finishing touches…",
+/** When each part of the sample scene starts painting in, and how long it
+ *  takes - in the scene's own order (sky and hills, the meadow, Bobo, Pip,
+ *  the splash, little extras), with each part beginning before the last
+ *  has finished so the picture builds in one calm, overlapping flow. */
+const SCHEDULE: { start: number; dur: number; stage: string }[] = [
+  { start: 0, dur: 2600, stage: "Washing in the sky…" },
+  { start: 900, dur: 2600, stage: "Washing in the hills and trees…" },
+  { start: 2600, dur: 2200, stage: "Painting the meadow…" },
+  { start: 4300, dur: 2200, stage: "Painting Bobo…" },
+  { start: 5800, dur: 2000, stage: "Painting Bobo…" },
+  { start: 7000, dur: 1400, stage: "Painting Bobo…" },
+  { start: 7400, dur: 2200, stage: "Painting Pip…" },
+  { start: 8900, dur: 2000, stage: "Painting Pip…" },
+  { start: 10200, dur: 1400, stage: "A splash in the puddle…" },
+  { start: 11000, dur: 2000, stage: "A few little surprises…" },
+  { start: 12200, dur: 2000, stage: "Inking the finishing lines…" },
+  { start: 13600, dur: 1400, stage: "Finishing touches…" },
 ];
-const DWELL: Record<Kind, number> = { wash: 1100, paint: 230, ink: 130, detail: 500 };
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const PAINT_MS = 15200; // all parts in
+const HOLD_MS = 4200; // admire the finished picture
+const FADE_MS = 1200; // soft fade before it starts again
+const CAPTION_START = 2400;
+const CAPTION_CHAR_MS = 66;
 
 /**
- * The homepage picture, painted before your eyes like an illustrator at
- * work: the soft washes bloom in, then each colour is dabbed on (a little
- * brush hopping from shape to shape, its tip dipped in that colour), then
- * the pen lines are drawn and the tiny details added - while a line of the
- * story is written out underneath. It holds a moment, then starts again.
+ * The homepage picture, painted gently before your eyes: whole parts of the
+ * scene fade in together (washes, then the meadow, then each character with
+ * its pen lines drawing on), overlapping so it builds in one calm flow,
+ * while a brush drifts slowly across the page and a line of the story is
+ * written underneath. Then it rests, fades, and begins again.
  *
- * Pacing is calm on purpose: shapes fade in gently and overlap, so the
- * picture builds in one flowing motion rather than popping; the brush
- * glides slowly on its own GPU layer. It pauses while
- * off-screen or in a hidden tab, and shows the finished painting straight
- * away for anyone who prefers reduced motion.
+ * The painting and the brush are CSS animations (scheduled per part with
+ * custom properties), so they run smoothly on the browser's animation
+ * engine; a light clock keeps the caption and stage label in step, and
+ * everything pauses together while off-screen or in a hidden tab. Reduced
+ * motion shows the finished picture.
  */
 export function HeroPainting() {
   const wrap = useRef<HTMLDivElement>(null);
-  const brush = useRef<HTMLDivElement>(null);
   const [typed, setTyped] = useState(CAPTION.length);
   const [live, setLive] = useState(false);
   const [stage, setStage] = useState<string | null>(null);
@@ -57,101 +59,90 @@ export function HeroPainting() {
       return;
     }
 
-    // The scene's top-level groups, in painting order (backgrounds first,
-    // then each character, then the little extras) - any unlabelled group
-    // counts as a finishing detail.
+    // Tag each top-level part of the scene with its kind and schedule.
+    // (Cleaned markup marks layers by their watercolour filter.)
     const holder = svg.querySelector(":scope > g");
     const groups = Array.from(holder?.children ?? []).filter((el): el is SVGGElement => el.tagName.toLowerCase() === "g");
-    const steps: Step[] = [];
-    groups.forEach((g, gi) => {
-      // Cleaned markup marks each layer by its watercolour filter (the
-      // original class names are swapped for these).
+    groups.forEach((g, i) => {
       const filter = g.getAttribute("filter") || "";
       const kind: Kind = filter.includes("tl-wash") ? "wash" : filter.includes("tl-paint") ? "paint" : filter.includes("tl-ink") ? "ink" : "detail";
-      const stage = STAGES[gi] ?? STAGES[STAGES.length - 1];
-      if (kind === "wash" || kind === "detail") steps.push({ el: g, kind, dwell: DWELL[kind], stage });
-      else for (const child of Array.from(g.children) as SVGElement[]) steps.push({ el: child, kind, dwell: DWELL[kind], stage });
+      const slot = SCHEDULE[i] ?? { start: Math.min(PAINT_MS - 1500, 1000 * i), dur: 1500, stage: "Finishing touches…" };
+      g.classList.add("hp-g", `hp-g-${kind}`);
+      g.style.setProperty("--d", `${slot.start}ms`);
+      g.style.setProperty("--dur", `${slot.dur}ms`);
+      if (kind === "ink") g.querySelectorAll("*").forEach((p) => p.setAttribute("pathLength", "1"));
     });
-    // Pen strokes draw themselves along their length.
-    for (const s of steps) {
-      if (s.kind !== "ink") continue;
-      const paths = s.el.matches("path, line, polyline, circle, ellipse, rect, polygon") ? [s.el] : Array.from(s.el.querySelectorAll("*"));
-      for (const p of paths) p.setAttribute("pathLength", "1");
-    }
+    root.style.setProperty("--paint-ms", `${PAINT_MS}ms`);
 
-    let cancelled = false;
+    // Start (or restart) the painting.
+    const play = () => {
+      root.classList.remove("playing");
+      void root.offsetWidth; // restart the CSS animations from the top
+      root.classList.add("playing");
+    };
+    root.classList.remove("hero-paint-pending");
+    play();
+    setLive(true);
+
+    // A light clock that only advances while the picture is on screen,
+    // keeping caption + stage in step with the (paused-alongside) CSS.
+    // Time is measured on the real clock minus paused time (not by adding
+    // up frames), so the caption stays in step with the CSS animations even
+    // when frames are slow or dropped.
     let visible = true;
     let pageVisible = !document.hidden;
-    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { threshold: 0.15 });
+    let cycleStart = performance.now();
+    let pausedAt: number | null = document.hidden ? performance.now() : null;
+    let pausedTotal = 0;
+    const syncPause = () => {
+      const paused = !(visible && pageVisible);
+      root.classList.toggle("paused", paused);
+      const now = performance.now();
+      if (paused && pausedAt === null) pausedAt = now;
+      if (!paused && pausedAt !== null) {
+        pausedTotal += now - pausedAt;
+        pausedAt = null;
+      }
+    };
+    const io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        syncPause();
+      },
+      { threshold: 0.1 },
+    );
     io.observe(root);
-    const onVis = () => (pageVisible = !document.hidden);
+    const onVis = () => {
+      pageVisible = !document.hidden;
+      syncPause();
+    };
     document.addEventListener("visibilitychange", onVis);
-    const waitUntilShown = async () => {
-      while (!cancelled && !(visible && pageVisible)) await sleep(300);
-    };
 
-    const hideAll = () => {
-      for (const s of steps) {
-        s.el.classList.remove("hp-in", "hp-draw");
-        s.el.classList.add("hp-hidden");
-      }
-    };
-    const moveBrush = (el: SVGElement, colour: string | null) => {
-      const b = brush.current;
-      if (!b) return;
-      const box = el.getBoundingClientRect();
-      const host = root.getBoundingClientRect();
-      if (!box.width && !box.height) return;
-      const x = box.left - host.left + box.width / 2;
-      const y = box.top - host.top + box.height / 2;
-      b.style.transform = `translate(${x}px, ${y}px)`;
-      if (colour && colour !== "none") b.style.setProperty("--tip", colour);
-      b.classList.add("on");
-    };
-    const fillOf = (el: SVGElement) =>
-      el.getAttribute("fill") || el.querySelector("[fill]")?.getAttribute("fill") || el.closest("[fill]")?.getAttribute("fill") || null;
+    let raf = 0;
+    let lastStage: string | null = null;
+    let lastTyped = -1;
+    const frame = () => {
+      const now = performance.now();
+      const elapsed = (pausedAt ?? now) - cycleStart - pausedTotal;
 
-    const run = async () => {
-      setLive(true);
-      while (!cancelled) {
-        hideAll();
-        setTyped(0);
-        root.classList.remove("hero-paint-pending", "hero-paint-fade");
-        await waitUntilShown();
-        let typing: Promise<void> | null = null;
-        for (let i = 0; i < steps.length && !cancelled; i++) {
-          await waitUntilShown();
-          const s = steps[i];
-          setStage(s.stage);
-          if (s.kind === "paint" || s.kind === "ink") moveBrush(s.el, s.kind === "paint" ? fillOf(s.el) : "#4F3A2A");
-          if (s.kind === "wash") brush.current?.classList.remove("on");
-          s.el.classList.remove("hp-hidden");
-          s.el.classList.add(s.kind === "ink" ? "hp-draw" : "hp-in");
-          // Start writing the story line once the colours are going on.
-          if (!typing && s.kind === "paint") {
-            typing = (async () => {
-              await sleep(600);
-              for (let c = 1; c <= CAPTION.length && !cancelled; c++) {
-                setTyped(c);
-                await sleep(CAPTION[c - 1] === " " ? 40 : 58);
-              }
-            })();
-          }
-          await sleep(s.dwell);
-        }
-        brush.current?.classList.remove("on");
-        setStage(null);
-        await typing;
-        setTyped(CAPTION.length);
-        await sleep(3600);
-        if (cancelled) break;
-        root.classList.add("hero-paint-fade");
-        await sleep(1100);
+      const st = elapsed < PAINT_MS ? ([...SCHEDULE].reverse().find((s) => s.start <= elapsed)?.stage ?? null) : null;
+      if (st !== lastStage) setStage((lastStage = st));
+      const t = Math.max(0, Math.min(CAPTION.length, Math.floor((elapsed - CAPTION_START) / CAPTION_CHAR_MS)));
+      if (t !== lastTyped) setTyped((lastTyped = t));
+
+      if (elapsed >= PAINT_MS + HOLD_MS && !root.classList.contains("hero-paint-fade")) root.classList.add("hero-paint-fade");
+      if (elapsed >= PAINT_MS + HOLD_MS + FADE_MS) {
+        cycleStart = now;
+        pausedTotal = 0;
+        play();
+        root.classList.remove("hero-paint-fade");
       }
+      raf = requestAnimationFrame(frame);
     };
-    void run();
+    raf = requestAnimationFrame(frame);
+
     return () => {
-      cancelled = true;
+      cancelAnimationFrame(raf);
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
     };
@@ -164,7 +155,7 @@ export function HeroPainting() {
         <p className={`hero-stage ${stage ? "on" : ""}`} aria-hidden>
           {stage}
         </p>
-        <div ref={brush} className="hero-brush" aria-hidden>
+        <div className="hero-brush" aria-hidden>
           <svg viewBox="0 0 40 120" width="22" height="66">
             <path d="M20 118C17 108 16 86 17 62H23C24 86 23 108 20 118Z" fill="#9b6a3c" stroke="#4F3A2A" strokeWidth="1.4" />
             <path d="M16 46H24V64H16Z" fill="#c9c2b4" stroke="#4F3A2A" strokeWidth="1.4" />

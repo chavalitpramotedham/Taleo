@@ -3757,29 +3757,25 @@ html[data-night] .modal-backdrop {
 .hero-paint-fade > svg {
   opacity: 0;
 }
-.hp-hidden {
-  visibility: hidden;
+/* Each part of the scene fades in (or, for pen lines, draws on) on its own
+   schedule: --d (delay) and --dur set per part, overlapping so the picture
+   builds in one calm flow. */
+.hero-paint-canvas.playing .hp-g-wash {
+  animation: hpFade var(--dur) ease-in-out var(--d) both;
 }
-.hp-in {
-  animation: hpFade 0.9s ease-out both;
+.hero-paint-canvas.playing .hp-g-paint,
+.hero-paint-canvas.playing .hp-g-detail {
+  animation: hpFade var(--dur) ease-out var(--d) both;
 }
-g[filter="url(#tl-wash)"].hp-in {
-  animation: hpWash 1.4s ease-in-out both;
-}
-.hp-draw,
-.hp-draw * {
+.hero-paint-canvas.playing .hp-g-ink * {
   stroke-dasharray: 1;
-  animation: hpDraw 0.8s ease-in-out both;
+  animation: hpDraw var(--dur) ease-in-out var(--d) both;
+}
+.hero-paint-canvas.paused,
+.hero-paint-canvas.paused * {
+  animation-play-state: paused !important;
 }
 @keyframes hpFade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes hpWash {
   from {
     opacity: 0;
   }
@@ -3796,22 +3792,20 @@ g[filter="url(#tl-wash)"].hp-in {
   }
 }
 
-/* The illustrator's brush, hopping from shape to shape with its tip in the
-   colour being laid down. Its own GPU layer, so the glide is smooth. */
+/* The brush drifts slowly across the picture on one unhurried path, loosely
+   following what's being painted (sky, meadow, Bobo, Pip, the puddle),
+   with a gentle sway - never hopping. The whole layer moves (its own GPU
+   layer); the brush tip sits at its top-left corner. */
 .hero-brush {
   position: absolute;
-  left: 0;
-  top: 0;
+  inset: 0;
   z-index: 3;
-  width: 0;
-  height: 0;
   pointer-events: none;
   opacity: 0;
   will-change: transform, opacity;
-  transition: transform 0.6s cubic-bezier(0.45, 0.05, 0.25, 1), opacity 0.6s ease;
 }
-.hero-brush.on {
-  opacity: 1;
+.hero-paint-canvas.playing .hero-brush {
+  animation: brushDrift var(--paint-ms, 15s) ease-in-out both;
 }
 .hero-art .hero-brush svg {
   /* (beats .hero-art svg, which sizes the painting to the frame) */
@@ -3819,16 +3813,56 @@ g[filter="url(#tl-wash)"].hp-in {
   height: 66px;
   max-width: none;
   position: absolute;
-  /* put the bristle tip on the point being painted, handle up and right */
   left: -11px;
   top: -1px;
   transform-origin: 11px 1px;
   transform: rotate(150deg);
-  filter: drop-shadow(2px 3px 2px rgba(60, 40, 20, 0.35));
+  filter: drop-shadow(2px 3px 2px rgba(60, 40, 20, 0.3));
+  animation: brushSway 3.2s ease-in-out infinite;
 }
 .hero-brush-tip {
-  fill: var(--tip, #9c4f32);
-  transition: fill 0.2s ease;
+  fill: #9c4f32;
+}
+@keyframes brushDrift {
+  0% {
+    transform: translate(16%, 20%);
+    opacity: 0;
+  }
+  5% {
+    opacity: 0.9;
+  }
+  18% {
+    transform: translate(70%, 16%);
+  }
+  32% {
+    transform: translate(36%, 56%);
+  }
+  48% {
+    transform: translate(22%, 60%);
+  }
+  64% {
+    transform: translate(62%, 52%);
+  }
+  80% {
+    transform: translate(50%, 82%);
+  }
+  93% {
+    transform: translate(78%, 70%);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(84%, 64%);
+    opacity: 0;
+  }
+}
+@keyframes brushSway {
+  0%,
+  100% {
+    rotate: -4deg;
+  }
+  50% {
+    rotate: 4deg;
+  }
 }
 
 /* What's being painted, in the illustrator's words. */
