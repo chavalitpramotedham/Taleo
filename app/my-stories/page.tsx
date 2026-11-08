@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
-import { storeUrl, shareStory } from "@/lib/share";
+import { shareUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
 import { Ornament, StarGlyph, MapleMark } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
@@ -83,7 +83,7 @@ export default function MyStoriesPage() {
 }
 
 function MyStoryCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
-  const share = () => shareStory(s.title || "An untitled story", storeUrl(s.id, window.location.origin), onCopied);
+  const share = () => shareStory(s.title || "An untitled story", shareUrl(s.id, window.location.origin), onCopied);
 
   return (
     <article className="book-card">

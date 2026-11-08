@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
-import { storeUrl } from "@/lib/share";
+import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
 import { cancelSpeech, prefetchSpeech, speakText, unlockSpeech } from "@/lib/speech";
@@ -293,7 +293,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     update?.((cur) => ({ ...cur, published: true }));
   };
 
-  const shareLink = () => storeUrl(story.id, window.location.origin);
+  const shareLink = () => shareUrl(story.id, window.location.origin);
 
   const copyToClipboard = async (url: string) => {
     try {

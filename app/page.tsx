@@ -1,4 +1,9 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getGalleryStory } from "@/server/gallery";
+import { allPages } from "@/lib/story-utils";
+import { ageById } from "@/lib/ages";
+import { SharedStoryWelcome, type SharedStorySummary } from "@/components/SharedStoryWelcome";
 import { Painting } from "@/components/art/Painting";
 import { HOME_SCENE } from "@/lib/art/homeScene";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
@@ -12,7 +17,52 @@ const STEPS = [
   { n: "IV.", title: "Decide together", text: "Choose what happens, page by page." },
 ];
 
-export default function Home() {
+type HomeProps = { searchParams: Promise<{ story?: string | string[] }> };
+
+const sharedId = async (searchParams: HomeProps["searchParams"]) => {
+  const raw = (await searchParams).story;
+  const id = Array.isArray(raw) ? raw[0] : raw;
+  return id && /^[\w-]{1,80}$/.test(id) ? id : null;
+};
+
+/** A shared link (/?story=<id>) previews as that story in chat apps and
+ *  social posts: its title, a short description and its cover image. */
+export async function generateMetadata({ searchParams }: HomeProps): Promise<Metadata> {
+  const id = await sharedId(searchParams);
+  const story = id ? await getGalleryStory(id).catch(() => null) : null;
+  if (!story) return {};
+  const title = story.title || "An untitled story";
+  const description = `A Taleo picture-book story starring ${story.hero.name}. Painted and shared for anyone to read.`;
+  const image = `/store/${story.id}/opengraph-image`;
+  return {
+    title: `${title} · Taleo`,
+    description,
+    openGraph: { title, description, type: "article", images: [image] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+  };
+}
+
+async function sharedSummary(id: string | null): Promise<SharedStorySummary | null> {
+  if (!id) return null;
+  const story = await getGalleryStory(id).catch(() => null);
+  if (!story) return null;
+  const pages = allPages(story);
+  return {
+    id: story.id,
+    title: story.title || "An untitled story",
+    cover: pages.find((p) => p.svg)?.svg ?? null,
+    author: story.authorUsername || "taleo",
+    starring: [story.hero, ...(story.companions ?? [])].map((c) => c.name).filter(Boolean),
+    ageLabel: ageById(story.age).label,
+    minutes: story.minutes || ageById(story.age).recommendedMinutes,
+    pages: pages.length,
+    ratingAvg: story.ratingCount ? (story.ratingSum ?? 0) / story.ratingCount : null,
+    ratingCount: story.ratingCount ?? 0,
+  };
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const shared = await sharedSummary(await sharedId(searchParams));
   return (
     <div className="container home">
       <section className="hero">
@@ -62,6 +112,7 @@ export default function Home() {
       </section>
 
       <FloatingBeginBar />
+      {shared && <SharedStoryWelcome story={shared} />}
     </div>
   );
 }
