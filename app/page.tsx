@@ -69,7 +69,11 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="container home">
       <section className="hero">
         <div className="hero-copy">
-          <h1>Stories dreamt up at bedtime, painted just for you</h1>
+          <h1>
+            Stories dreamt up at bedtime,
+            <br />
+            painted just for you
+          </h1>
           <p className="lead">
             <strong>By parents, for parents</strong> - a watercolour picture book you and your little one shape <em>together</em> at
             bedtime, with a warm lesson in every story.
