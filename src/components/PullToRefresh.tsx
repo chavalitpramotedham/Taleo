@@ -41,6 +41,7 @@ export function PullToRefresh() {
     let pull = 0;
     let raf = 0;
     let refreshing = false;
+    let lifted = false;
 
     const draw = () => {
       raf = 0;
@@ -65,17 +66,15 @@ export function PullToRefresh() {
     };
 
     const onStart = (e: TouchEvent) => {
-      if (refreshing || window.scrollY > 0 || e.touches.length !== 1) {
+      // Never while a popup is open (pulling moves the page, which would
+      // also shift the popup out from under the finger and lose the tap).
+      if (refreshing || window.scrollY > 0 || e.touches.length !== 1 || document.querySelector(".modal-backdrop")) {
         startY = null;
         return;
       }
       startY = e.touches[0].clientY;
-      // Lift the page onto its own GPU layer as the finger lands (not on the
-      // first frame of the pull, which would stutter while it's set up);
-      // dropped again once it has settled back.
-      const el = content();
-      if (el) el.style.willChange = "transform";
-      for (const n of [el, spin]) if (n) n.style.transition = "none";
+      lifted = false;
+      for (const n of [content(), spin]) if (n) n.style.transition = "none";
     };
     const onMove = (e: TouchEvent) => {
       if (startY == null) return;
@@ -85,12 +84,22 @@ export function PullToRefresh() {
         return;
       }
       const dy = e.touches[0].clientY - startY;
-      pull = dy > 0 ? Math.min(dy * 0.5, MAX_PULL) : 0;
+      // A tap (or a finger that barely moves) never moves the page: only a
+      // real downward pull does. The page goes onto its own GPU layer at
+      // that moment, and comes off once it has settled back.
+      if (!lifted) {
+        if (dy < 8) return;
+        lifted = true;
+        const el = content();
+        if (el) el.style.willChange = "transform";
+      }
+      pull = dy > 0 ? Math.min((dy - 8) * 0.5, MAX_PULL) : 0;
       schedule();
     };
     const onEnd = () => {
       if (startY == null) return;
       startY = null;
+      if (!lifted) return; // just a tap
       if (pull >= THRESHOLD) {
         refreshing = true;
         settle(THRESHOLD);
