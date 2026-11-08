@@ -3443,25 +3443,121 @@ html[data-night] .modal-backdrop {
   z-index: 7;
   pointer-events: none;
   overflow: hidden;
+  /* Where the light comes from: the lantern's glowing glass (its x along
+     the book, and how far down from the book's top edge the glass hangs). */
   --lamp-x: 86%;
+  --lamp-y: 94px;
   animation: lightOn 1.1s ease 0.35s both;
 }
+/* The lantern's light: brightest right around the glass and falling off
+   fast and then gently with distance - like real light - in fixed pixel
+   distances, so it stays anchored to the lantern on any size of book.
+   Two layers move it: a slow breathing pulse and a quick, faint shimmer,
+   like a candle behind glass. */
 .night-pool {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 68% 85% at var(--lamp-x) 2%,
-    rgba(255, 205, 128, 0.32),
-    rgba(255, 178, 96, 0.13) 40%,
-    rgba(255, 170, 90, 0) 72%
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(255, 214, 142, 0.46) 0,
+    rgba(255, 198, 116, 0.32) 46px,
+    rgba(255, 186, 102, 0.19) 120px,
+    rgba(255, 178, 94, 0.1) 240px,
+    rgba(255, 172, 90, 0.04) 400px,
+    rgba(255, 170, 90, 0) 600px
   );
   mix-blend-mode: screen;
-  animation: lampFlicker 9s ease-in-out infinite;
+  transform-origin: var(--lamp-x) var(--lamp-y);
+  animation: lanternBreathe 3.6s ease-in-out infinite;
+}
+.night-pool-shimmer {
+  background: radial-gradient(
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(255, 226, 160, 0.22) 0,
+    rgba(255, 206, 128, 0.1) 70px,
+    rgba(255, 196, 116, 0) 210px
+  );
+  animation: lanternShimmer 1.7s steps(1, end) infinite;
 }
 .night-dark {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 125% 115% at var(--lamp-x) 0%, rgba(8, 5, 10, 0) 42%, rgba(8, 5, 10, 0.42) 100%);
+  background: radial-gradient(
+    circle at var(--lamp-x) var(--lamp-y),
+    rgba(8, 5, 10, 0) 150px,
+    rgba(8, 5, 10, 0.22) 380px,
+    rgba(8, 5, 10, 0.5) 820px
+  );
+  transform-origin: var(--lamp-x) var(--lamp-y);
+  animation: lanternBreathe 3.6s ease-in-out infinite reverse;
+}
+@keyframes lanternBreathe {
+  0%,
+  100% {
+    opacity: 0.86;
+    transform: scale(0.97);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  55% {
+    opacity: 0.93;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@keyframes lanternShimmer {
+  0% {
+    opacity: 0.7;
+  }
+  14% {
+    opacity: 1;
+  }
+  27% {
+    opacity: 0.8;
+  }
+  41% {
+    opacity: 0.95;
+  }
+  58% {
+    opacity: 0.65;
+  }
+  72% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0.85;
+  }
+}
+@media (max-width: 760px) {
+  .night-light {
+    --lamp-y: 76px;
+  }
+}
+/* The candle flame flickers in step with the light. */
+.night-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flameFlicker 1.7s ease-in-out infinite;
+}
+@keyframes flameFlicker {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  20% {
+    transform: scale(0.92, 1.08) skewX(-2deg);
+  }
+  45% {
+    transform: scale(1.04, 0.95);
+  }
+  70% {
+    transform: scale(0.95, 1.06) skewX(2deg);
+  }
 }
 .night-light.leaving {
   animation: lightOff 0.4s ease both;
@@ -3476,28 +3572,6 @@ html[data-night] .modal-backdrop {
     opacity: 0;
   }
 }
-@keyframes lampFlicker {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  41% {
-    opacity: 0.94;
-  }
-  42% {
-    opacity: 1;
-  }
-  63% {
-    opacity: 0.97;
-  }
-  78% {
-    opacity: 0.92;
-  }
-  79% {
-    opacity: 0.99;
-  }
-}
-
 /* Motes drifting up through the lamplight. */
 .night-motes {
   position: absolute;
@@ -3563,7 +3637,7 @@ html[data-night] .modal-backdrop {
   filter: drop-shadow(-6px 10px 8px rgba(0, 0, 0, 0.55));
 }
 .night-lamp-halo {
-  animation: haloPulse 4.5s ease-in-out infinite;
+  animation: haloPulse 3.6s ease-in-out infinite;
   transform-origin: 100px 300px;
 }
 .night-lamp.leaving {
@@ -3620,6 +3694,8 @@ html[data-night] .modal-backdrop {
   .night-lamp-sway,
   .night-lamp-halo,
   .night-pool,
+  .night-dark,
+  .night-flame,
   .night-light {
     animation: none !important;
   }

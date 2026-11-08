@@ -9,6 +9,7 @@ export function NightLamp({ leaving = false }: { leaving?: boolean }) {
     <>
       <div className={`night-light ${leaving ? "leaving" : ""}`} aria-hidden>
         <div className="night-pool" />
+        <div className="night-pool night-pool-shimmer" />
         <div className="night-dark" />
         <div className="night-motes">
           {Array.from({ length: 9 }, (_, i) => (
@@ -53,8 +54,10 @@ export function NightLamp({ leaving = false }: { leaving?: boolean }) {
             </g>
 
             {/* the flame */}
-            <path d="M100 262C111 278 112 290 100 298C88 290 89 278 100 262Z" fill="#FFF6D8" />
-            <path d="M100 276C105 284 105 290 100 294C95 290 95 284 100 276Z" fill="#FFC85A" />
+            <g className="night-flame">
+              <path d="M100 262C111 278 112 290 100 298C88 290 89 278 100 262Z" fill="#FFF6D8" />
+              <path d="M100 276C105 284 105 290 100 294C95 290 95 284 100 276Z" fill="#FFC85A" />
+            </g>
 
             {/* pen linework, sepia like the paintings */}
             <g
