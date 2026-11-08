@@ -7196,3 +7196,13 @@ html.theme-switching .topbar {
   flex-direction: column;
   gap: 10px;
 }
+
+/* Every page ends with some breathing room below its last content (about
+   half a story card), so the bottom never feels tight. Not the story
+   reader, whose book fills the screen exactly on wide screens. */
+main {
+  padding-bottom: 120px;
+}
+main:has(.reader) {
+  padding-bottom: 0;
+}
