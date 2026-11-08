@@ -413,6 +413,9 @@ main {
 /* ---------- wizard ---------- */
 .wizard {
   max-width: 1000px;
+  /* Room for the floating nav at the bottom, so it never covers the last
+     bit of content (same reservation the reader makes for its nav). */
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 .wizard-head {
   text-align: center;
@@ -739,22 +742,6 @@ main {
   border-color: var(--russet);
   animation: pulse 1.2s infinite;
 }
-.wizard-foot {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-  padding: 14px 0 calc(14px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--paper) 72%, rgba(243, 236, 220, 0));
-  border-top: 1px solid var(--rule);
-}
-.foot-summary {
-  font-style: italic;
-  text-align: center;
-}
 .error {
   border-left: 3px solid var(--russet);
   background: #f6e5da;
@@ -1050,6 +1037,31 @@ main {
 .reader-index:disabled {
   cursor: default;
   opacity: 0.7;
+}
+/* A wider, pill-shaped variant of .nav-btn for a labelled call to action
+   (e.g. "Begin the story") where a bare arrow glyph wouldn't say enough -
+   same floating position and family, just not a plain circle. */
+.nav-btn-cta {
+  width: auto;
+  height: 56px;
+  border-radius: 999px;
+  padding: 0 26px;
+  background: var(--russet);
+  color: #fbf4e6;
+  border-color: var(--russet-dark);
+  box-shadow: 0 2px 0 var(--russet-dark), var(--shadow);
+  font-family: var(--font-caps);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+.nav-btn-cta:not(:disabled):hover {
+  background: var(--russet-dark);
+  color: #fbf4e6;
+}
+.nav-btn-cta:disabled {
+  background: #c9b5a2;
+  border-color: #b9a38e;
+  box-shadow: none;
 }
 
 /* Generic popup shell - the reader's page-jump overview, the character
@@ -1768,14 +1780,6 @@ main {
   }
   .book-text {
     padding: 20px 20px 14px;
-  }
-  .foot-summary {
-    display: none;
-  }
-  .wizard-foot .btn {
-    white-space: nowrap;
-    padding-left: 16px;
-    padding-right: 16px;
   }
 }
 
