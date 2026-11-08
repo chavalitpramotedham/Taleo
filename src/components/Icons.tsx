@@ -163,6 +163,23 @@ export const Ornament = ({ className }: { className?: string }) => (
   </svg>
 );
 
+/** The story cards' flourish as a full-width section divider: the same
+ *  knot-and-curls centrepiece, with long hairlines running out to either
+ *  side and fading toward the edges, so it scales to any width while the
+ *  centre stays crisp. */
+export const OrnamentRule = ({ className }: { className?: string }) => (
+  <div className={`ornament-rule ${className || ""}`} aria-hidden>
+    <span className="ornament-rule-line" />
+    <svg viewBox="42 0 36 14" width="45" height="17" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
+      <path d="M42 7h6M72 7h6" />
+      <path d="M60 2c-4 0-6 2.5-6 5s2 5 6 5 6-2.5 6-5-2-5-6-5z" />
+      <path d="M48 7c2-3 4-3 6 0M66 7c2 3 4 3 6 0" />
+      <circle cx="60" cy="7" r="1.2" fill="currentColor" />
+    </svg>
+    <span className="ornament-rule-line" />
+  </div>
+);
+
 /** The CTA marker: one maple leaf in the brand's gold, front-facing and
  *  flat (the same five soft lobes and stem as the logo's leaves, upright
  *  and unrotated), used as a leading icon on the key calls to action -

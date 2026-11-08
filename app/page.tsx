@@ -3,7 +3,7 @@ import { Painting } from "@/components/art/Painting";
 import { HOME_SCENE } from "@/lib/art/homeScene";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
-import { MapleMark } from "@/components/Icons";
+import { MapleMark, OrnamentRule } from "@/components/Icons";
 
 const STEPS = [
   { n: "I.", title: "Set the age", text: "Words and choices grow with them." },
@@ -45,6 +45,8 @@ export default function Home() {
           </li>
         ))}
       </ol>
+
+      <OrnamentRule className="home-divider" />
 
       <section className="home-shelf">
         <GalleryShelf

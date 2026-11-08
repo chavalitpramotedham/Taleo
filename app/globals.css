@@ -3192,3 +3192,30 @@ main {
     box-shadow: none;
   }
 }
+
+/* Full-width section divider (the cards' flourish, stretched). */
+.ornament-rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--rule-strong);
+  width: 100%;
+}
+.ornament-rule svg {
+  flex: none;
+  display: block;
+}
+.ornament-rule-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to left, var(--rule-strong), rgba(185, 167, 135, 0));
+}
+.ornament-rule-line:last-child {
+  background: linear-gradient(to right, var(--rule-strong), rgba(185, 167, 135, 0));
+}
+.home-divider {
+  margin: clamp(30px, 4.5vw, 48px) auto clamp(22px, 3.5vw, 36px);
+}
+.home-divider + .home-shelf {
+  margin-top: 0;
+}
