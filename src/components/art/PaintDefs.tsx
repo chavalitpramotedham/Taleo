@@ -87,6 +87,11 @@ export function PaintDefs() {
         <mask id="tl-vignette" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="300">
           <rect x="20" y="18" width="360" height="266" rx="60" fill="#fff" filter="url(#tl-vig)" />
         </mask>
+        {/* a square picture (e.g. the About page's illustration), with the
+            same ragged watercolour edge as the story paintings */}
+        <mask id="tl-vignette-square" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="400">
+          <rect x="20" y="20" width="360" height="360" rx="60" fill="#fff" filter="url(#tl-vig)" />
+        </mask>
         <mask id="tl-vignette-sq" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
           <ellipse cx="100" cy="104" rx="92" ry="90" fill="#fff" filter="url(#tl-vig)" />
         </mask>

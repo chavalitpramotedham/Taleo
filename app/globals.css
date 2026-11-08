@@ -5233,3 +5233,14 @@ body {
     bottom: calc(var(--edge) + 8px);
   }
 }
+
+/* The About page's illustration, between the eyebrow and the title. */
+.about-hero {
+  width: min(100%, 440px);
+  margin: 10px auto clamp(22px, 4vw, 34px);
+}
+.about-hero svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
