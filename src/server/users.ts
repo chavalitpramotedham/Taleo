@@ -76,6 +76,8 @@ export async function upsertFromGoogle(input: { id: string; email: string; name:
     avatarKey: users[i].avatarKey ?? defaultAvatarFor(input.id),
     isAdmin: users[i].isAdmin || isAdmin,
   };
+  const same = (Object.keys(profile) as (keyof UserProfile)[]).every((k) => profile[k] === users[i][k]);
+  if (same) return profile; // nothing new - skip the write
   const next = [...users];
   next[i] = profile;
   await writeUsers(next);

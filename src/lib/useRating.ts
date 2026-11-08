@@ -20,12 +20,18 @@ export interface RatingAggregate {
  * being recorded, so the UI should treat `mine` as locked once present.
  */
 export function useRating(id: string, initial: RatingAggregate) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [mine, setMine] = useState<RatingRecord | null>(null);
   const [agg, setAgg] = useState(initial);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (status === "loading") return;
+    // Signed out, there's no rating of yours to look up - skip the request.
+    if (status === "unauthenticated") {
+      setLoaded(true);
+      return;
+    }
     let live = true;
     fetch(`/api/gallery/${id}/ratings`)
       .then((r) => r.json())
@@ -39,7 +45,7 @@ export function useRating(id: string, initial: RatingAggregate) {
     return () => {
       live = false;
     };
-  }, [id]);
+  }, [id, status]);
 
   const submit = async (rating: number, comment: string): Promise<string | null> => {
     if (!session?.user) return "Sign in to rate this story.";

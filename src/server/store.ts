@@ -80,10 +80,9 @@ async function localDelete(pathname: string) {
 }
 
 async function blobDelete(pathname: string) {
-  const { list, del } = await import("@vercel/blob");
-  const { blobs } = await list({ prefix: pathname, token: BLOB_TOKEN, limit: 1 });
-  const blob = blobs.find((b) => b.pathname === pathname);
-  if (blob) await del(blob.url, { token: BLOB_TOKEN });
+  const { del } = await import("@vercel/blob");
+  const url = blobUrl(pathname);
+  if (url) await del(url, { token: BLOB_TOKEN });
 }
 
 export const readJson = async <T>(pathname: string) => {

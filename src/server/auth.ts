@@ -7,7 +7,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/sign-in" },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (account && user) {
         const profile = await upsertFromGoogle({
           id: account.providerAccountId,
@@ -19,14 +19,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       // Username can change after the token was minted (right after sign-up),
       // so always re-read it rather than trusting a stale cached value.
-      // If the profile can't be read right now (a storage hiccup), keep what
-      // the token already has rather than blanking the username and picture.
-      if (token.uid) {
+      // Re-read the profile only when it can have changed: at sign-in, when
+      // the app asks (after a username or avatar change), while there's no
+      // username yet (sign-up), or every 10 minutes - not on every request.
+      // If it can't be read right now (a storage hiccup), keep what the
+      // token already has rather than blanking the username and picture.
+      const stale = Date.now() - ((token.profileAt as number | undefined) ?? 0) > 10 * 60 * 1000;
+      if (token.uid && (account || trigger === "update" || !token.username || stale)) {
         const profile = await getUser(token.uid as string).catch(() => null);
         if (profile) {
           token.username = profile.username ?? null;
           token.isAdmin = profile.isAdmin ?? false;
           token.avatarKey = profile.avatarKey ?? null;
+          token.profileAt = Date.now();
         }
       }
       return token;

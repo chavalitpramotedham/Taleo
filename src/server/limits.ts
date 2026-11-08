@@ -16,8 +16,13 @@ import { readJson, writeJson } from "./store";
  *   tts         new read-aloud clips (already-made clips are free and unlimited)
  *
  * Only `story` is a product limit; the rest are generous caps whose job is to
- * stop anyone from scripting the endpoints and running up the bill. Counts
- * live in the shared store as per-user rolling windows.
+ * stop anyone from scripting the endpoints and running up the bill.
+ *
+ * Only `story` counts are kept in the shared store (one small write per new
+ * story). The high-frequency caps are counted in the server's memory: every
+ * stored write is a metered Blob operation, and writing on each painted
+ * page or voice clip would burn through the store's allowance. Memory is per
+ * server instance, which is plenty for an anti-abuse cap.
  */
 
 export type Bucket = "story" | "segment" | "illustrate" | "character" | "tts";
@@ -34,6 +39,20 @@ const LIMITS: Record<Bucket, number> = {
 type Usage = Partial<Record<Bucket, number[]>>;
 const path = (userId: string) => `ratelimits/${userId}.json`;
 
+const memory = new Map<string, Usage>();
+const stored = (bucket: Bucket) => bucket === "story";
+async function load(userId: string, bucket: Bucket): Promise<Usage> {
+  if (!stored(bucket)) return memory.get(userId) ?? {};
+  return (await readJson<Usage>(path(userId))) ?? {};
+}
+async function save(userId: string, bucket: Bucket, usage: Usage) {
+  if (!stored(bucket)) {
+    memory.set(userId, usage);
+    return;
+  }
+  await writeJson(path(userId), { story: usage.story ?? [] });
+}
+
 export const isUnlimited = (session: Session | null) => Boolean(session?.user?.isAdmin);
 
 function minutesText(seconds: number) {
@@ -44,7 +63,7 @@ function minutesText(seconds: number) {
 /** What a user still has in a bucket, without using any of it. */
 export async function peekLimit(userId: string, bucket: Bucket): Promise<{ ok: boolean; retryAfterSec: number }> {
   const now = Date.now();
-  const usage = (await readJson<Usage>(path(userId))) ?? {};
+  const usage = await load(userId, bucket);
   const recent = (usage[bucket] ?? []).filter((t) => now - t < WINDOW_MS);
   if (recent.length < LIMITS[bucket]) return { ok: true, retryAfterSec: 0 };
   return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + WINDOW_MS - now) / 1000) };
@@ -53,7 +72,7 @@ export async function peekLimit(userId: string, bucket: Bucket): Promise<{ ok: b
 /** Uses one from a bucket if there's room. */
 async function take(userId: string, bucket: Bucket): Promise<{ ok: boolean; retryAfterSec: number; at: number }> {
   const now = Date.now();
-  const usage = (await readJson<Usage>(path(userId))) ?? {};
+  const usage = await load(userId, bucket);
   const recent = (usage[bucket] ?? []).filter((t) => now - t < WINDOW_MS);
   if (recent.length >= LIMITS[bucket]) {
     return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + WINDOW_MS - now) / 1000), at: now };
@@ -63,7 +82,7 @@ async function take(userId: string, bucket: Bucket): Promise<{ ok: boolean; retr
   for (const b of Object.keys(usage) as Bucket[]) {
     if (b !== bucket) usage[b] = (usage[b] ?? []).filter((t) => now - t < WINDOW_MS);
   }
-  await writeJson(path(userId), usage);
+  await save(userId, bucket, usage);
   return { ok: true, retryAfterSec: 0, at: now };
 }
 
@@ -71,12 +90,12 @@ async function take(userId: string, bucket: Bucket): Promise<{ ok: boolean; retr
  *  write), so a failure never costs someone their allowance. */
 export async function refund(userId: string, bucket: Bucket, at: number) {
   try {
-    const usage = (await readJson<Usage>(path(userId))) ?? {};
+    const usage = await load(userId, bucket);
     const list = usage[bucket] ?? [];
     const i = list.lastIndexOf(at);
     if (i < 0) return;
     usage[bucket] = [...list.slice(0, i), ...list.slice(i + 1)];
-    await writeJson(path(userId), usage);
+    await save(userId, bucket, usage);
   } catch (e) {
     console.error("[limits] refund failed", e);
   }
