@@ -20,9 +20,11 @@ const FADE_MS = 450; // fade-out before the reload
  */
 export function PullToRefresh() {
   const spinner = useRef<HTMLDivElement>(null);
+  const ring = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const spin = spinner.current;
+    const circle = ring.current;
     const content = () => document.querySelector<HTMLElement>("main > .page-enter");
     let startY: number | null = null;
     let pull = 0;
@@ -34,10 +36,13 @@ export function PullToRefresh() {
       const el = content();
       if (el) el.style.transform = pull ? `translate3d(0, ${pull}px, 0)` : "";
       if (spin) {
+        // The holder only moves (and grows a touch once far enough); the
+        // ring inside only turns, about its own centre.
         spin.style.opacity = String(Math.min(1, pull / THRESHOLD));
-        spin.style.transform = `translate3d(-50%, ${pull / 2 - 11}px, 0) rotate(${pull * 4}deg) scale(${pull >= THRESHOLD ? 1.15 : 1})`;
+        spin.style.transform = `translate3d(-50%, ${pull / 2 - 11}px, 0) scale(${pull >= THRESHOLD ? 1.15 : 1})`;
         spin.classList.toggle("ready", pull >= THRESHOLD);
       }
+      if (circle && !refreshing) circle.style.transform = `rotate(${pull * 4}deg)`;
     };
     const schedule = () => {
       if (!raf) raf = requestAnimationFrame(draw);
@@ -74,6 +79,7 @@ export function PullToRefresh() {
       if (pull >= THRESHOLD) {
         refreshing = true;
         settle(THRESHOLD);
+        if (circle) circle.style.transform = "";
         spin?.classList.add("spinning");
         window.setTimeout(() => {
           document.documentElement.classList.add("pull-reloading");
@@ -99,7 +105,9 @@ export function PullToRefresh() {
 
   return (
     <div className="pull-refresh" aria-hidden>
-      <div className="pull-refresh-spin" ref={spinner} />
+      <div className="pull-refresh-spin" ref={spinner}>
+        <div className="pull-refresh-ring" ref={ring} />
+      </div>
     </div>
   );
 }
