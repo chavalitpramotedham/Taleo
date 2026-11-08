@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { Painting } from "@/components/art/Painting";
-import { Ornament } from "@/components/Icons";
 import { HOME_SCENE } from "@/lib/art/homeScene";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
+import { GalleryShelf } from "@/components/GalleryShelf";
+
+const STEPS = [
+  { n: "I.", title: "Set the age", text: "Words and choices grow with them." },
+  { n: "II.", title: "Choose a hero", text: "Pick a friend, or invent your own." },
+  { n: "III.", title: "Pick the tale", text: "Adventure, bedtime, or any idea." },
+  { n: "IV.", title: "Decide together", text: "Choose what happens, page by page." },
+];
 
 export default function Home() {
   return (
@@ -12,43 +19,40 @@ export default function Home() {
           <p className="eyebrow">A picture book you make together</p>
           <h1>Stories dreamt up at bedtime, painted just for you</h1>
           <p className="lead">
-            Choose a character, choose what the story is about, and Taleo writes and paints a watercolour picture book for your
-            little one, pausing at just the right moments so <em>you</em> can decide what happens next.
+            A watercolour picture book for your little one, where <em>you</em> decide what happens next.
           </p>
-          <div className="hero-actions">
-            <Link className="btn btn-soft" href="/my-stories">
-              My bookshelf
+          {/* Desktop: the call to action sits right here; touch devices get the floating bar instead. */}
+          <div className="hero-actions desktop-only">
+            <Link className="btn btn-primary hero-cta" href="/create">
+              Begin a story
             </Link>
           </div>
         </div>
         <figure className="hero-art">
           <Painting svg={HOME_SCENE} title="Pip the rabbit leaps over a puddle after a falling leaf while Bobo the bear laughs" />
-          <figcaption>“Wait for me!” laughed Bobo, as Pip leapt clean over the puddle.</figcaption>
         </figure>
       </section>
 
-      <Ornament className="ornament center" />
+      <ol className="steps" aria-label="How it works">
+        {STEPS.map((s) => (
+          <li key={s.n} className="step">
+            <span className="numeral">{s.n}</span>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
 
-      <section className="steps">
-        <div className="step">
-          <span className="numeral">I.</span>
-          <h3>Set the age</h3>
-          <p>From first words at one-and-a-half to big imaginations at six. Words and choices grow with them.</p>
-        </div>
-        <div className="step">
-          <span className="numeral">II.</span>
-          <h3>Choose a hero</h3>
-          <p>A rabbit, a fox cub, a china teapot… or invent your own by typing it or saying it out loud.</p>
-        </div>
-        <div className="step">
-          <span className="numeral">III.</span>
-          <h3>Pick the tale</h3>
-          <p>Adventure, new friends, family, bedtime, or any idea you can put in a sentence.</p>
-        </div>
-        <div className="step">
-          <span className="numeral">IV.</span>
-          <h3>Decide together</h3>
-          <p>At each turning point, choose what happens, or call out your own idea. Every page is painted as you go.</p>
+      <section className="home-shelf">
+        <GalleryShelf
+          limit={8}
+          headClass="home-shelf-head"
+          heading={<h2>From the library</h2>}
+        />
+        <div className="home-shelf-more">
+          <Link className="btn btn-soft" href="/store">
+            See the whole library
+          </Link>
         </div>
       </section>
 

@@ -480,24 +480,62 @@ main {
   font-size: 1rem;
   padding: 2px 8px 4px;
 }
+/* How it works: one row of small boxes that slides sideways when it
+   doesn't fit (phones), with snap points so each box lands neatly. */
 .steps {
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
-  margin-top: 16px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, 1fr);
+  gap: 14px;
+  margin: clamp(26px, 4vw, 40px) 0 0;
+  padding: 2px 0 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.steps::-webkit-scrollbar {
+  display: none;
+}
+.step {
+  scroll-snap-align: start;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+  padding: 14px 18px 16px;
 }
 .step .numeral {
   font-family: var(--font-title);
   color: var(--russet);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 .step h3 {
-  margin: 2px 0 4px;
+  margin: 0 0 2px;
+  font-size: 1.2rem;
 }
 .step p {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 1rem;
+  font-size: 0.98rem;
+}
+.home-shelf {
+  margin-top: clamp(34px, 5vw, 56px);
+}
+.home-shelf-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.home-shelf-head h2 {
+  margin: 0;
+}
+.home-shelf-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
 }
 
 /* ---------- wizard ---------- */
@@ -624,25 +662,33 @@ main {
 }
 .filter-row {
   display: flex;
-  gap: 6px 18px;
+  gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
   margin: 0 0 18px;
 }
+/* Filter / sort tabs as soft pills. */
 .chip {
-  background: none;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  padding: 4px 2px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 5px 16px 6px;
   cursor: pointer;
   font-family: var(--font-caps);
-  letter-spacing: 0.04em;
-  font-size: 1.02rem;
-  color: var(--ink-faint);
+  letter-spacing: 0.03em;
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--ink-soft);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip:hover:not(.on) {
+  border-color: var(--rule-strong);
+  color: var(--ink);
 }
 .chip.on {
-  color: var(--ink);
-  border-bottom-color: var(--russet);
+  background: var(--russet);
+  border-color: var(--russet);
+  color: var(--page);
 }
 .panel {
   background: var(--page);
@@ -1503,6 +1549,9 @@ main {
 }
 .rating-panel .comment-input {
   max-width: none;
+  /* .input's flex-basis would otherwise become its height in this column. */
+  flex: none;
+  height: 76px;
 }
 .rating-panel .rating-summary,
 .rating-panel .rating-note {
@@ -1948,9 +1997,6 @@ main {
 }
 
 @media (max-width: 900px) {
-  .steps {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .ages {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -2029,8 +2075,13 @@ main {
     padding: 14px 16px;
   }
   .steps {
-    grid-template-columns: 1fr;
-    gap: 18px;
+    grid-auto-columns: 62%;
+    gap: 12px;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-padding: 0 16px;
   }
   .nav-btn {
     bottom: calc(18px + env(safe-area-inset-bottom));
@@ -2508,4 +2559,72 @@ main {
    a (column) modal panel it would become a height. */
 .modal-panel > .input {
   flex: none;
+}
+
+/* ---------- desktop vs touch placement ----------
+   Phones and tablets keep primary controls floating at the bottom of the
+   screen, within thumb reach. On a desktop (wide screen + mouse) that puts
+   them far from where the eye is, so there they sit in the page flow,
+   right under the content they act on. */
+.desktop-only {
+  display: none !important;
+}
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .desktop-only {
+    display: flex !important;
+  }
+  .touch-only {
+    display: none !important;
+  }
+  .home {
+    padding-bottom: clamp(18px, 4vw, 44px);
+  }
+  .hero-cta {
+    border-radius: 999px;
+    padding: 13px 34px;
+  }
+
+  /* Setup wizard: Back + Next right under the options. */
+  .wizard {
+    padding-bottom: clamp(18px, 4vw, 44px);
+  }
+  .wizard-nav {
+    position: static;
+    margin-top: 30px;
+    padding: 0;
+  }
+
+  /* Reader: prev / page index / next as one row directly under the book. */
+  .reader {
+    padding-bottom: clamp(18px, 3vw, 36px);
+  }
+  .reader-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+  }
+  .nav-btn,
+  .reader-index {
+    position: static;
+    transform: none;
+  }
+  .nav-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1.8rem;
+  }
+
+  /* With nothing floating at the bottom, the rating panel and toasts can
+     sit lower. */
+  .toast {
+    bottom: 28px;
+  }
+  /* Its own card in the page flow, right under the book and its nav, so
+     it never covers the end page's own buttons. */
+  .rating-panel,
+  .rating-pill {
+    position: static;
+    margin: 6px auto 0;
+  }
 }
