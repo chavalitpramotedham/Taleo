@@ -268,7 +268,7 @@ function CharacterEditModal({
           </div>
         )}
         <input
-          className="input"
+          className="input char-name-input"
           value={name}
           maxLength={40}
           onChange={(e) => setName(e.target.value)}

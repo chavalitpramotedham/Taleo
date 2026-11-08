@@ -7233,3 +7233,8 @@ main:has(.reader) {
 .modal-panel .char-save-btn {
   border-radius: 12px;
 }
+/* A character's name sits centred under their picture. */
+.char-name-input,
+.character-preview .input {
+  text-align: center;
+}
