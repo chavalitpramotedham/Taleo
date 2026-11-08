@@ -6012,3 +6012,30 @@ html.brand-live .leaf-whirl {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Menu lettering, level on every browser: the Begin pill's label is the
+   same size as Library / About on every screen, and where the browser can
+   trim a line box down to the letters themselves (capital height to
+   baseline), every label is trimmed and centred exactly - no hand-tuned
+   nudges that only suit one browser's font rendering. */
+.nav-begin-pill {
+  font-size: 1.02rem;
+}
+@media (max-width: 520px) {
+  .nav-begin-pill {
+    font-size: 0.98rem;
+  }
+}
+@media (max-width: 440px) {
+  .nav-begin-pill {
+    font-size: 0.9rem;
+  }
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .nav-begin-pill span,
+  .topnav .nav-link:not(.nav-begin) {
+    text-box: trim-both cap alphabetic;
+    top: 0;
+    translate: none;
+  }
+}
