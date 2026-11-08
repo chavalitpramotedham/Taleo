@@ -1330,30 +1330,44 @@ main {
 }
 
 /* Generic popup shell - the reader's page-jump overview, the character
-   creator, and any other modal share this same look: a sheet pinned to
-   the bottom on small screens, centred on larger ones. */
+   creator, the character editor and any other modal share this look: a
+   centred card on every screen size, scrolling inside itself if tall. */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(47, 34, 20, 0.45);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 0;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  animation: fadeIn 0.18s ease both;
 }
 .modal-panel {
   width: 100%;
   max-width: 560px;
-  max-height: 86dvh;
+  max-height: 100%;
+  border-radius: 6px;
+  animation: modalIn 0.22s ease both;
   background: var(--page);
   border: 1px solid var(--page-edge);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 18px clamp(16px, 4vw, 28px) calc(18px + env(safe-area-inset-bottom));
+  padding: 18px clamp(16px, 4vw, 28px) 22px;
   overflow-y: auto;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
 }
 .modal-head {
   display: flex;
@@ -1421,14 +1435,6 @@ main {
   font-weight: 600;
 }
 
-@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
-  .modal-backdrop {
-    align-items: center;
-  }
-  .modal-panel {
-    max-height: 80dvh;
-  }
-}
 
 /* choices */
 .choice-wrap {
