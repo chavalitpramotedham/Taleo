@@ -5912,3 +5912,31 @@ html[data-night] .reader-tools .music-control.playing {
 .reader-tools .music-control.playing .music-control-tune {
   border-right-color: color-mix(in srgb, var(--russet) 35%, transparent);
 }
+
+/* The rating on the end page: part of the page, not a floating panel. */
+.rating-panel.rating-inline {
+  position: static;
+  inset: auto;
+  transform: none;
+  width: min(100%, 360px);
+  margin: 0 auto 6px;
+  padding: 14px 16px;
+  box-shadow: none;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--page) 70%, var(--paper));
+  animation: none;
+  z-index: auto;
+}
+.rating-inline .rating-panel-head {
+  justify-content: center;
+}
+.rating-inline .rating-panel-head h3 {
+  font-size: 1.05rem;
+  font-family: var(--font-caps);
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+.rating-inline .my-comment {
+  margin: 6px 0 0;
+  font-style: italic;
+}

@@ -641,6 +641,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
       <div className="the-end page-anim">
         <p className="end-title">The End</p>
         <Ornament className="ornament" />
+        {/* the rating sits right here on the page - stars and comment, or
+            yours once rated - with the share buttons below */}
+        <RateAndComment
+          inline
+          storyId={story.id}
+          initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }}
+          prepare={readOnly ? undefined : ensurePublished}
+        />
         {/* One main action in the middle (share it, or keep a copy of
             someone else's), with read-again and copy-link as quiet icons
             either side. */}
@@ -792,13 +800,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
             </div>
           </div>
         </div>
-      )}
-      {view?.kind === "end" && (
-        <RateAndComment
-          storyId={story.id}
-          initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }}
-          prepare={readOnly ? undefined : ensurePublished}
-        />
       )}
       {toast && <div className="toast">{toast}</div>}
     </div>

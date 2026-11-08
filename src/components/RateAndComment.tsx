@@ -16,10 +16,14 @@ export function RateAndComment({
   storyId,
   initial,
   prepare,
+  inline = false,
 }: {
   storyId: string;
   initial: RatingAggregate;
   prepare?: () => Promise<void>;
+  /** Part of the page (the end of a story) rather than a floating panel:
+   *  always shown, never minimised. */
+  inline?: boolean;
 }) {
   const { data: session } = useSession();
   const { mine, agg, loaded, submit } = useRating(storyId, initial);
@@ -29,10 +33,11 @@ export function RateAndComment({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Start open for anyone who hasn't rated yet, minimised for those who have.
+  // Start open for anyone who hasn't rated yet, minimised for those who have
+  // (inline: always open, it's part of the page).
   useEffect(() => {
-    if (loaded && open === null) setOpen(!mine);
-  }, [loaded, mine, open]);
+    if (loaded && open === null) setOpen(inline || !mine);
+  }, [loaded, mine, open, inline]);
 
   const send = async () => {
     if (!draft || busy) return;
@@ -42,7 +47,7 @@ export function RateAndComment({
       await prepare?.();
       const err = await submit(draft, comment);
       if (err) setError(err);
-      else setOpen(false);
+      else if (!inline) setOpen(false);
     } catch {
       setError("Couldn't save your rating. Please try again.");
     } finally {
@@ -62,12 +67,14 @@ export function RateAndComment({
   }
 
   return (
-    <section className="rating-panel" aria-label="Rate this story">
+    <section className={inline ? "rating-panel rating-inline" : "rating-panel"} aria-label="Rate this story">
       <div className="rating-panel-head">
         <h3>{mine ? "Your rating" : "Rate this story"}</h3>
-        <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close">
-          ✕
-        </button>
+        {!inline && (
+          <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close">
+            ✕
+          </button>
+        )}
       </div>
 
       {mine ? (
