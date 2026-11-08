@@ -1,0 +1,195 @@
+"use client";
+import { useEffect, useState } from "react";
+import type { CharacterDef, CharacterResponse, SavedCharacter } from "@/lib/types";
+import { CharacterPortrait } from "@/components/art/Painting";
+import { DictateButton } from "@/components/DictateButton";
+import { LeafLoader } from "@/components/Icons";
+import { MAX_CHARACTERS } from "@/lib/characters";
+
+interface Props {
+  onClose: () => void;
+  /** Called once the character is actually saved to the roster. */
+  onConfirmed: (character: SavedCharacter) => void;
+  /** The signed-in user's current roster, for the at-cap replace picker. */
+  existing: SavedCharacter[];
+}
+
+/** Describe → preview → (edit the description and regenerate, or rename) →
+ *  confirm. Nothing is saved until "Confirm & save" - previewing and
+ *  regenerating only ever call the no-save /api/character design
+ *  endpoint, so confirming persists exactly what was last previewed,
+ *  never a fresh redesign. */
+export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props) {
+  const [description, setDescription] = useState("");
+  const [name, setName] = useState("");
+  const [drafted, setDrafted] = useState<CharacterDef | null>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const draw = async () => {
+    if (!description.trim() || drawing) return;
+    setDrawing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/character", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ description, name: name.trim() || undefined }),
+      });
+      const data = (await res.json()) as CharacterResponse & { error?: string };
+      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
+      setDrafted(data.character);
+      setName(data.character.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setDrawing(false);
+    }
+  };
+
+  const confirm = async (replaceId?: string) => {
+    if (!drafted || confirming) return;
+    const finalName = name.trim() || drafted.name;
+    setConfirming(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/characters", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg }, replaceId }),
+      });
+      const data = (await res.json()) as { character?: SavedCharacter; error?: string; limitReached?: boolean };
+      if (!res.ok || !data.character) {
+        if (data.limitReached) {
+          setReplacing(true);
+          return;
+        }
+        throw new Error(data.error || "Couldn't save that character.");
+      }
+      onConfirmed(data.character);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Create a character">
+        <div className="modal-head">
+          <h3>{replacing ? "Pick one to replace" : drafted ? "Here they are!" : "Dream up a character"}</h3>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        </div>
+
+        {!drafted && !replacing && (
+          <>
+            <p className="meta">Say it out loud, or type it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
+            <div className="field-row">
+              <DictateButton onText={setDescription} label="Describe by voice" />
+              <input
+                className="input"
+                value={description}
+                maxLength={200}
+                placeholder="A sleepy hedgehog who loves pancakes…"
+                onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && draw()}
+                aria-label="Describe your character"
+              />
+            </div>
+            <div className="field-row">
+              <button type="button" className="btn btn-primary btn-block" onClick={draw} disabled={!description.trim() || drawing}>
+                {drawing ? (
+                  <>
+                    <LeafLoader size={18} /> Painting…
+                  </>
+                ) : (
+                  "Paint them"
+                )}
+              </button>
+            </div>
+          </>
+        )}
+
+        {drafted && !replacing && (
+          <>
+            <div className="character-preview">
+              <CharacterPortrait character={drafted} className="character-preview-portrait" />
+              <input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
+            </div>
+            <p className="meta">Not quite right? Edit the description and paint them again.</p>
+            <div className="field-row">
+              <input
+                className="input"
+                value={description}
+                maxLength={200}
+                onChange={(e) => setDescription(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && draw()}
+                aria-label="Describe your character"
+              />
+              <button type="button" className="btn btn-soft" onClick={draw} disabled={!description.trim() || drawing}>
+                {drawing ? (
+                  <>
+                    <LeafLoader size={16} /> Painting…
+                  </>
+                ) : (
+                  "Regenerate"
+                )}
+              </button>
+            </div>
+            <div className="field-row">
+              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={confirming}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary btn-block" onClick={() => confirm()} disabled={!name.trim() || confirming}>
+                {confirming ? (
+                  <>
+                    <LeafLoader size={18} /> Saving…
+                  </>
+                ) : (
+                  "Confirm & save"
+                )}
+              </button>
+            </div>
+          </>
+        )}
+
+        {replacing && (
+          <>
+            <p className="meta">
+              You&apos;ve saved {MAX_CHARACTERS} characters already. Pick one to replace with &ldquo;{name}&rdquo;.
+            </p>
+            <div className="grid chars">
+              {existing.map((c) => (
+                <button key={c.id} type="button" className="plate char-plate replace-plate" disabled={confirming} onClick={() => confirm(c.id)}>
+                  <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} />
+                  <span className="plate-label">{c.name}</span>
+                  <span className="plate-sub">
+                    {confirming ? <LeafLoader size={16} /> : "Replace this one"}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="field-row">
+              <button type="button" className="btn btn-ghost" onClick={() => setReplacing(false)} disabled={confirming}>
+                Back
+              </button>
+            </div>
+          </>
+        )}
+
+        {error && <p className="error">{error}</p>}
+      </div>
+    </div>
+  );
+}

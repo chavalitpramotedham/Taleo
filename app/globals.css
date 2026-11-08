@@ -505,12 +505,6 @@ main {
 .selection-count {
   margin: -4px 0 16px;
 }
-.chars.highlight {
-  padding: 16px;
-  background: var(--sage-soft);
-  border: 1px dashed var(--rule-strong);
-  margin-bottom: 4px;
-}
 .plate-label {
   font-family: var(--font-title);
   font-size: 1.45rem;
@@ -657,6 +651,19 @@ main {
 }
 .hero-name {
   flex: 1 1 260px;
+}
+.character-preview {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.character-preview-portrait {
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+.character-preview .input {
+  flex: 1;
 }
 .saved-characters {
   display: flex;
@@ -1045,9 +1052,10 @@ main {
   opacity: 0.7;
 }
 
-/* Tapping the floating index opens a grid of every page/choice written so
-   far, to jump straight to one. */
-.overview-backdrop {
+/* Generic popup shell - the reader's page-jump overview, the character
+   creator, and any other modal share this same look: a sheet pinned to
+   the bottom on small screens, centred on larger ones. */
+.modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(47, 34, 20, 0.45);
@@ -1057,59 +1065,91 @@ main {
   z-index: 50;
   padding: 0;
 }
-.overview-panel {
+.modal-panel {
   width: 100%;
   max-width: 560px;
-  max-height: 72dvh;
+  max-height: 86dvh;
   background: var(--page);
   border: 1px solid var(--page-edge);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
+  gap: 12px;
   padding: 18px clamp(16px, 4vw, 28px) calc(18px + env(safe-area-inset-bottom));
+  overflow-y: auto;
 }
-.overview-head {
+.modal-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
 }
-.overview-head h3 {
+.modal-head h3 {
   margin: 0;
 }
+
+/* Tapping the reader's floating index opens a grid of every page/choice
+   written so far, each a little picture of that page, to jump straight
+   to one. */
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-  overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
 }
 .overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   border: 1px solid var(--rule-strong);
   background: var(--page);
-  padding: 10px 6px;
-  text-align: center;
+  padding: 6px;
   cursor: pointer;
+}
+.overview-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  border: 1px solid var(--rule);
+}
+.overview-thumb-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+  background: var(--sage-soft);
   font-family: var(--font-caps);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   letter-spacing: 0.03em;
   color: var(--ink-soft);
 }
-.overview-item:hover {
+.overview-caption {
+  text-align: center;
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+.overview-item:hover .overview-thumb {
   border-color: var(--russet);
+}
+.overview-item:hover .overview-caption,
+.overview-item:hover .overview-thumb-label {
   color: var(--russet);
 }
-.overview-item.current {
+.overview-item.current .overview-thumb {
   border: 2px solid var(--russet);
+}
+.overview-item.current .overview-caption {
   color: var(--russet);
-  background: #fffaf0;
+  font-weight: 600;
 }
 
 @media (min-width: 760px) and (min-aspect-ratio: 5/4) {
-  .overview-backdrop {
+  .modal-backdrop {
     align-items: center;
   }
-  .overview-panel {
-    max-height: 70dvh;
+  .modal-panel {
+    max-height: 80dvh;
   }
 }
 
@@ -1743,7 +1783,7 @@ main {
   .topbar,
   .reader-nav,
   .reader-tools,
-  .overview-backdrop {
+  .modal-backdrop {
     display: none !important;
   }
 }

@@ -4,17 +4,18 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
-import type { CharacterDef, CharacterResponse, SavedCharacter, Story } from "@/lib/types";
+import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
-import { LeafLoader } from "@/components/Icons";
+import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
 const MAX_CENTRAL = 3;
 type Step = 0 | 1 | 2;
 const GROUPS = [
+  { key: "mine", label: "My creations" },
   { key: "all", label: "Everyone" },
   { key: "animal", label: "Animals" },
   { key: "food", label: "Good enough to eat" },
@@ -35,12 +36,9 @@ export default function CreatePage() {
   const [minutes, setMinutes] = useState<number | null>(null);
 
   const [group, setGroup] = useState<(typeof GROUPS)[number]["key"]>("all");
-  const [heroName, setHeroName] = useState("");
-  const [customDesc, setCustomDesc] = useState("");
-  const [custom, setCustom] = useState<CharacterDef | null>(null);
-  const [drawing, setDrawing] = useState(false);
   const [saved, setSaved] = useState<SavedCharacter[]>([]);
   const [selectedUids, setSelectedUids] = useState<string[]>([]);
+  const [creatingCharacter, setCreatingCharacter] = useState(false);
 
   const [themeKey, setThemeKey] = useState<string | null>(null);
   const [themeText, setThemeText] = useState("");
@@ -69,7 +67,6 @@ export default function CreatePage() {
   }, [status]);
 
   const defForUid = (uid: string): CharacterDef | null => {
-    if (uid === "custom") return custom;
     if (uid.startsWith("saved:")) {
       const c = saved.find((s) => s.id === uid.slice(6));
       return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg } : null;
@@ -93,28 +90,6 @@ export default function CreatePage() {
   const recommendedMinutes = age ? ageById(age).recommendedMinutes : null;
   const effectiveMinutes = minutes ?? recommendedMinutes ?? MIN_MINUTES;
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
-
-  const drawCustom = async () => {
-    if (!customDesc.trim() || drawing) return;
-    setDrawing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/character", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ description: customDesc, name: heroName || undefined }),
-      });
-      const data = (await res.json()) as CharacterResponse & { error?: string };
-      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
-      setCustom(data.character);
-      setSelectedUids((cur) => (cur.includes("custom") ? cur : cur.length >= MAX_CENTRAL ? cur : [...cur, "custom"]));
-      if (!heroName) setHeroName(data.character.name);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      setDrawing(false);
-    }
-  };
 
   const start = () => {
     if (!age || !hero || !theme || !session?.user.username) return;
@@ -225,28 +200,44 @@ export default function CreatePage() {
 
           <section className="panel panel-invent">
             <h3>Dream up a hero</h3>
-            <p className="meta">Say it out loud, or type it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
+            <p className="meta">Paint a brand-new character - once you confirm them, they're saved to your roster for any story.</p>
             <div className="field-row">
-              <DictateButton onText={setCustomDesc} label="Describe by voice" />
-              <input
-                className="input"
-                value={customDesc}
-                maxLength={200}
-                placeholder="A sleepy hedgehog who loves pancakes…"
-                onChange={(e) => setCustomDesc(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && drawCustom()}
-                aria-label="Describe your character"
-              />
-              <button type="button" className="btn btn-primary" onClick={drawCustom} disabled={!customDesc.trim() || drawing}>
-                {drawing ? <LeafLoader size={18} /> : "Paint them"}
+              <button type="button" className="btn btn-primary" onClick={() => setCreatingCharacter(true)}>
+                Dream up a character
               </button>
             </div>
           </section>
 
-          {saved.length > 0 && (
-            <>
-              <p className="divider-label">Your characters</p>
-              <div className="grid chars highlight">
+          {creatingCharacter && (
+            <CharacterCreatorModal
+              existing={saved}
+              onClose={() => setCreatingCharacter(false)}
+              onConfirmed={(character) => {
+                setSaved((cur) => {
+                  const kept = cur.filter((c) => c.id !== character.id);
+                  return [...kept, character];
+                });
+                const uid = `saved:${character.id}`;
+                setSelectedUids((cur) => (cur.includes(uid) ? cur : cur.length >= MAX_CENTRAL ? cur : [...cur, uid]));
+                setCreatingCharacter(false);
+              }}
+            />
+          )}
+
+          <p className="divider-label">Choose a friend</p>
+
+          <div className="filter-row" role="tablist">
+            {GROUPS.map((g) => (
+              <button key={g.key} type="button" role="tab" aria-selected={group === g.key} className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
+                {g.label}
+              </button>
+            ))}
+          </div>
+          {group === "mine" ? (
+            saved.length === 0 ? (
+              <p className="meta">You haven&apos;t created a character yet - try &ldquo;Dream up a character&rdquo; above.</p>
+            ) : (
+              <div className="grid chars">
                 {saved.map((c) => {
                   const uid = `saved:${c.id}`;
                   const selected = selectedUids.includes(uid);
@@ -268,54 +259,31 @@ export default function CreatePage() {
                   );
                 })}
               </div>
-            </>
+            )
+          ) : (
+            <div className="grid chars">
+              {visiblePresets.map((p) => {
+                const uid = `preset:${p.key}`;
+                const selected = selectedUids.includes(uid);
+                const order = selectedUids.indexOf(uid) + 1;
+                return (
+                  <button
+                    key={uid}
+                    type="button"
+                    className={`plate char-plate ${selected ? "selected" : ""}`}
+                    aria-pressed={selected}
+                    data-order={selected ? order : undefined}
+                    disabled={!selected && atCap}
+                    onClick={() => toggleSelect(uid)}
+                  >
+                    <CharacterPortrait character={presetCharacter(p)} />
+                    <span className="plate-label">{p.name}</span>
+                    <span className="plate-sub">the {p.kind}</span>
+                  </button>
+                );
+              })}
+            </div>
           )}
-
-          <p className="divider-label">Or choose a friend from the shelf</p>
-
-          <div className="filter-row" role="tablist">
-            {GROUPS.map((g) => (
-              <button key={g.key} type="button" role="tab" aria-selected={group === g.key} className={`chip ${group === g.key ? "on" : ""}`} onClick={() => setGroup(g.key)}>
-                {g.label}
-              </button>
-            ))}
-          </div>
-          <div className="grid chars">
-            {custom && (
-              <button
-                type="button"
-                className={`plate char-plate ${selectedUids.includes("custom") ? "selected" : ""}`}
-                aria-pressed={selectedUids.includes("custom")}
-                data-order={selectedUids.includes("custom") ? selectedUids.indexOf("custom") + 1 : undefined}
-                disabled={!selectedUids.includes("custom") && atCap}
-                onClick={() => toggleSelect("custom")}
-              >
-                <CharacterPortrait character={custom} />
-                <span className="plate-label">{custom.name}</span>
-                <span className="plate-sub">your own</span>
-              </button>
-            )}
-            {visiblePresets.map((p) => {
-              const uid = `preset:${p.key}`;
-              const selected = selectedUids.includes(uid);
-              const order = selectedUids.indexOf(uid) + 1;
-              return (
-                <button
-                  key={uid}
-                  type="button"
-                  className={`plate char-plate ${selected ? "selected" : ""}`}
-                  aria-pressed={selected}
-                  data-order={selected ? order : undefined}
-                  disabled={!selected && atCap}
-                  onClick={() => toggleSelect(uid)}
-                >
-                  <CharacterPortrait character={presetCharacter(p)} />
-                  <span className="plate-label">{p.name}</span>
-                  <span className="plate-sub">the {p.kind}</span>
-                </button>
-              );
-            })}
-          </div>
         </>
       )}
 

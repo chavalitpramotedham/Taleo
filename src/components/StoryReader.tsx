@@ -507,28 +507,36 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
         </button>
       </nav>
       {overviewOpen && (
-        <div className="overview-backdrop" onClick={() => setOverviewOpen(false)}>
-          <div className="overview-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
-            <div className="overview-head">
+        <div className="modal-backdrop" onClick={() => setOverviewOpen(false)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
+            <div className="modal-head">
               <h3>Jump to a page</h3>
               <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
                 ✕
               </button>
             </div>
             <div className="overview-grid">
-              {jumpable.map(({ v, i }) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={`overview-item ${i === index ? "current" : ""}`}
-                  onClick={() => {
-                    setIndex(i);
-                    setOverviewOpen(false);
-                  }}
-                >
-                  {jumpLabel(v)}
-                </button>
-              ))}
+              {jumpable.map(({ v, i }) => {
+                const svg = v.kind === "page" ? v.page.svg || composePainting(v.page, castFor(story, v.page)) : null;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`overview-item ${i === index ? "current" : ""}`}
+                    onClick={() => {
+                      setIndex(i);
+                      setOverviewOpen(false);
+                    }}
+                  >
+                    {svg ? (
+                      <Painting svg={svg} title={v.kind === "page" ? v.page.picture || v.page.text : ""} className="overview-thumb" vignette={false} />
+                    ) : (
+                      <span className="overview-thumb overview-thumb-label">{jumpLabel(v)}</span>
+                    )}
+                    {v.kind === "page" && <span className="overview-caption">Page {v.number}</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
