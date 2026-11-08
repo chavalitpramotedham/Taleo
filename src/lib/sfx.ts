@@ -10,7 +10,9 @@ function getCtor() {
   return window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 }
 
-function audio(): AudioContext | null {
+/** The single shared AudioContext, also used by music.ts so sound effects
+ *  and background music play through the same (already-unlocked) context. */
+export function audio(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
     const Ctor = getCtor();

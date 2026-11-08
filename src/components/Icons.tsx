@@ -25,6 +25,25 @@ export const SpeakerIcon = ({ on }: { on: boolean }) => (
   </svg>
 );
 
+/** A person speaking - sound waves from their mouth when on, a cross when
+ *  off - for the "read aloud" toggle, distinct from the plain speaker
+ *  cone used for volume/mute elsewhere. */
+export const SpeechIcon = ({ on }: { on: boolean }) => (
+  <svg {...base}>
+    <circle cx="8.5" cy="8.3" r="3.3" />
+    <path d="M3.5 19c0-3.5 2.4-5.7 5-5.7s5 2.2 5 5.7" />
+    {on ? <path d="M16.5 7a4 4 0 0 1 0 6M19 4.8a7.3 7.3 0 0 1 0 10.4" /> : <path d="M16.5 6.5l5 5M21.5 6.5l-5 5" />}
+  </svg>
+);
+
+export const MusicNoteIcon = () => (
+  <svg {...base}>
+    <path d="M9 16.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+    <path d="M11.5 14V4.8L18 3.5v9" />
+    <path d="M15.5 12.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+  </svg>
+);
+
 export const ShareIcon = () => (
   <svg {...base}>
     <path d="M4 7.5h16v11H4z" />

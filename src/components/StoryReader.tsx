@@ -12,7 +12,8 @@ import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { RateAndComment } from "./RateAndComment";
-import { LeafLoader, Ornament, ShareIcon, SpeakerIcon } from "./Icons";
+import { MusicControl } from "./MusicControl";
+import { LeafLoader, Ornament, ShareIcon, SpeechIcon } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -455,6 +456,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       <div className="reader-top">
         <h1 className="reader-title">{story.title || "A new story"}</h1>
         <div className="reader-tools">
+          <MusicControl theme={story.theme} />
           <button
             className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
@@ -466,7 +468,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             aria-label={readAloud ? "Stop reading aloud" : "Read aloud"}
             title={readAloud ? "Stop reading aloud" : "Read to me"}
           >
-            <SpeakerIcon on={readAloud} />
+            <SpeechIcon on={readAloud} />
           </button>
           {!readOnly && story.status === "complete" && (
             <button className="icon-btn" onClick={share} aria-label="Share story" title="Share">
