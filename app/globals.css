@@ -682,7 +682,8 @@ main {
   grid-template-columns: repeat(5, 1fr);
 }
 .chars {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* at least 150px each, and never more than five to a row */
+  grid-template-columns: repeat(auto-fill, minmax(max(150px, calc((100% - 4 * 14px) / 5)), 1fr));
 }
 .themes {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -5449,5 +5450,29 @@ html[data-night] .gender-opt.open.on {
   }
   .side-scroll-more {
     right: -10px;
+  }
+}
+
+/* Ready-made characters on phones: three to a row (a picture, a name and a
+   kind is all they show, so two big cards per row felt cramped and long). */
+@media (max-width: 520px) {
+  .chars {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .char-plate {
+    padding: 8px 4px 9px;
+  }
+  .char-plate .plate-label {
+    font-size: 1.02rem;
+  }
+  .char-plate .plate-sub {
+    font-size: 0.78rem;
+  }
+  .char-plate.selected::after {
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    font-size: 0.85rem;
   }
 }
