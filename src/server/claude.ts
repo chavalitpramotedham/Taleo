@@ -157,6 +157,7 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
  *  page written so far (so the reader can show page 1 while the rest is
  *  still being written), then the final, validated segment. */
 export type SegmentEvent =
+  | { type: "title"; title: string }
   | { type: "pages"; newCharacters: CharacterDef[]; pages: Page[] }
   | { type: "done"; response: SegmentResponse };
 
@@ -214,6 +215,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
 
   let text = "";
   let sent = 0;
+  let titleSent = false;
   for await (const event of stream) {
     // A new text block starts the JSON afresh (e.g. after a server-side
     // fallback to another model mid-reply).
@@ -224,6 +226,20 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
     }
     if (event.type !== "content_block_delta" || event.delta.type !== "text_delta") continue;
     text += event.delta.text;
+
+    // The title is written first: pass it on the moment it's complete, so
+    // the book's cover can show it long before the first page is ready.
+    if (!titleSent) {
+      const t = /"title"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
+      if (t) {
+        titleSent = true;
+        let title = "";
+        try {
+          title = (JSON.parse(`"${t[1]}"`) as string).trim();
+        } catch {}
+        if (title) yield { type: "title", title: title.slice(0, 120) };
+      }
+    }
 
     const pagesSoFar = completeItems(text, "pages");
     if (!pagesSoFar || pagesSoFar.items.length <= sent) continue;

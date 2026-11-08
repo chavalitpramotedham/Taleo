@@ -1,0 +1,60 @@
+"use client";
+import type { Story } from "@/lib/types";
+import { CharacterPortrait, Painting } from "./art/Painting";
+import { LeafLoader, Ornament } from "./Icons";
+
+/**
+ * The closed storybook shown while a new story is being written and its
+ * first page painted: a classic cloth-bound cover with gilt borders, the
+ * title stamped on it as soon as the storyteller has chosen it, and an
+ * oval picture - the hero's portrait at first, then the first page's
+ * painting once it's ready, so the cover matches the opening scene.
+ */
+export function BookCover({
+  story,
+  opening,
+  canOpen,
+  onOpen,
+}: {
+  story: Story;
+  /** Swinging open (CSS animation) - the book underneath shows through. */
+  opening: boolean;
+  /** The first page's words are ready (so it can be opened early). */
+  canOpen: boolean;
+  onOpen: () => void;
+}) {
+  const first = story.segments[0]?.pages[0];
+  const heroes = [story.hero, ...(story.companions ?? [])];
+  const names = heroes.map((h) => h.name);
+  const starring = names.length > 1 ? `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}` : names[0];
+  const status = !story.title ? "Writing your story…" : !first ? "Writing the first page…" : !first.svg ? "Painting the first page…" : "Opening the book…";
+
+  return (
+    <div className={`book-cover ${opening ? "opening" : ""}`} aria-live="polite">
+      <div className="book-cover-board">
+        <div className="book-cover-frame">
+          <p className="book-cover-kicker">A Taleo picture book</p>
+          <Ornament className="book-cover-orn" />
+          <h2 className={`book-cover-title ${story.title ? "shown" : ""}`}>{story.title || " "}</h2>
+          <div className="book-cover-oval">
+            {first?.svg ? (
+              <Painting svg={first.svg} title={story.title} className="book-cover-art" />
+            ) : (
+              <CharacterPortrait character={story.hero} className="book-cover-portrait" />
+            )}
+          </div>
+          <p className="book-cover-starring">Starring {starring}</p>
+          <div className="book-cover-status">
+            {!first?.svg && <LeafLoader size={22} />}
+            <span>{status}</span>
+          </div>
+          {canOpen && !first?.svg && !opening && (
+            <button type="button" className="book-cover-open" onClick={onOpen}>
+              Open the book
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -5710,3 +5710,191 @@ html[data-night] .reader-tools .music-control-tune {
   letter-spacing: 0.03em;
   color: var(--ink-soft);
 }
+
+/* ---------- a new story: the closed book, then it opens ---------- */
+.book-stage {
+  position: relative;
+  -webkit-perspective: 2000px;
+  perspective: 2000px;
+}
+.reader-nav.hidden-until-open {
+  visibility: hidden;
+}
+/* The cover: oxblood book cloth with a faint weave, a shaded spine on the
+   left, a double gilt frame and gilt lettering - an old-fashioned novel. */
+.book-cover {
+  --gilt: #e4c27c;
+  width: min(100%, 420px, 50dvh);
+  margin: 4px auto 0;
+}
+.book-cover-board {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  padding: 16px;
+  border-radius: 3px 10px 10px 3px;
+  color: var(--gilt);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0, rgba(0, 0, 0, 0.12) 4.5%, rgba(255, 220, 180, 0.08) 6%, transparent 9%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 90% 70% at 60% 35%, #7d3530, #5a2321 70%);
+  box-shadow:
+    0 1px 0 rgba(255, 230, 200, 0.12) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.3) inset,
+    0 26px 44px -20px rgba(40, 18, 10, 0.65),
+    6px 8px 0 -3px #eadfc8,
+    6px 8px 0 -2px rgba(80, 60, 40, 0.25);
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+.book-cover-frame {
+  height: 100%;
+  box-sizing: border-box;
+  border: 2px solid var(--gilt);
+  outline: 1px solid color-mix(in srgb, var(--gilt) 70%, transparent);
+  outline-offset: -8px;
+  padding: 22px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.book-cover-kicker {
+  margin: 0;
+  font-family: var(--font-caps);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+}
+.book-cover-orn {
+  width: 120px;
+  height: auto;
+  color: var(--gilt);
+  opacity: 0.8;
+  margin: -2px 0 0;
+}
+.book-cover-title {
+  margin: 4px 0 6px;
+  min-height: 2.3em;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: clamp(1.45rem, 5.6vw, 2.05rem);
+  line-height: 1.15;
+  color: var(--gilt);
+  text-wrap: balance;
+  /* stamped gilt: a hint of light above, a pressed shadow below */
+  text-shadow:
+    0 -1px 0 rgba(255, 240, 200, 0.25),
+    0 1px 1px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.book-cover-title.shown {
+  opacity: 1;
+  transform: none;
+}
+.book-cover-oval {
+  width: 78%;
+  aspect-ratio: 4 / 3;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #ece2cb;
+  border: 2px solid var(--gilt);
+  box-shadow:
+    0 0 0 4px #5a2321,
+    0 0 0 5px color-mix(in srgb, var(--gilt) 60%, transparent),
+    0 6px 14px -6px rgba(0, 0, 0, 0.6) inset;
+}
+.book-cover-art {
+  width: 116%;
+  height: auto;
+  display: block;
+  animation: coverArtIn 0.9s ease both;
+}
+.book-cover-portrait {
+  width: 62%;
+  height: auto;
+}
+.book-cover-starring {
+  margin: 8px 0 0;
+  font-style: italic;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+.book-cover-status {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-caps);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+.book-cover-open {
+  background: none;
+  border: 0;
+  padding: 2px 4px;
+  color: var(--gilt);
+  font-family: var(--font-caps);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+@keyframes coverArtIn {
+  from {
+    opacity: 0;
+  }
+}
+/* Opening: the cover swings open on its spine to the left while the first
+   page fades in underneath. */
+.book-stage.opening .book-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+.book-cover.opening .book-cover-board {
+  animation: coverOpen 1.2s cubic-bezier(0.55, 0.05, 0.3, 1) forwards;
+}
+@keyframes coverOpen {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(-150deg);
+    opacity: 0;
+  }
+}
+.book-stage.opening .book {
+  animation: bookReveal 1.2s ease both;
+}
+@keyframes bookReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  40% {
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-cover.opening .book-cover-board,
+  .book-stage.opening .book {
+    animation-duration: 0.01s;
+  }
+}

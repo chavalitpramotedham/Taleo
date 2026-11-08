@@ -56,6 +56,10 @@ export async function POST(req: Request) {
         if (!hasApiKey()) {
           // Demo mode: the templated storyteller, "written" page by page.
           const seg = mockSegment(parsed);
+          if (seg.title) {
+            await new Promise((r) => setTimeout(r, 700));
+            send({ type: "title", title: seg.title });
+          }
           for (let i = 1; i <= seg.segment.pages.length; i++) {
             await new Promise((r) => setTimeout(r, i === 1 ? 900 : 700));
             send({ type: "pages", newCharacters: seg.newCharacters, pages: seg.segment.pages.slice(0, i) });

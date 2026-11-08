@@ -11,6 +11,7 @@ import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakTe
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
+import { BookCover } from "./BookCover";
 import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
@@ -43,6 +44,10 @@ interface Props {
 
 export function StoryReader({ story, update, readOnly = false, onSaveCopy, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
+  // A brand-new story starts as a closed book (see BookCover): its cover
+  // fills in while the first page is written and painted, then it swings
+  // open into the story.
+  const [cover, setCover] = useState<"closed" | "opening" | "open">(() => (!readOnly && story.segments.length === 0 ? "closed" : "open"));
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [customIdea, setCustomIdea] = useState("");
@@ -85,6 +90,26 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     setToast(msg);
     window.setTimeout(() => setToast(null), 2600);
   };
+
+  // ---------------------------------------------------------------- the cover
+  const firstPage = story.segments[0]?.pages[0];
+  const openBook = useCallback(() => {
+    setCover((c) => (c === "closed" ? "opening" : c));
+  }, []);
+  useEffect(() => {
+    if (cover !== "opening") return;
+    const t = window.setTimeout(() => setCover("open"), 1250);
+    return () => window.clearTimeout(t);
+  }, [cover]);
+  // Open by itself once the first page is painted (a moment to see the
+  // painting on the cover first), or if something went wrong.
+  useEffect(() => {
+    if (cover !== "closed") return;
+    if (error) return openBook();
+    if (!firstPage?.svg) return;
+    const t = window.setTimeout(openBook, 900);
+    return () => window.clearTimeout(t);
+  }, [cover, firstPage?.svg, error, openBook]);
 
   // ---------------------------------------------------------------- writing
   // Leaving the story cancels a segment still being written: it couldn't be
@@ -149,6 +174,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
         let finished = false;
         const handle = (event: { type: string } & Record<string, unknown>) => {
           if (event.type === "error") throw new Error((event.error as string) || "The story got stuck. Let's try again!");
+          if (event.type === "title") {
+            const title = event.title as string;
+            update?.((cur) => (cur.title ? cur : { ...cur, title }));
+          }
           if (event.type === "pages") {
             const pages = event.pages as Page[];
             const newCharacters = event.newCharacters as CharacterDef[];
@@ -622,7 +651,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   return (
     <div className={`reader age-${story.age}`}>
       <div className="reader-top">
-        <h1 className="reader-title">{story.title || "A new story"}</h1>
+        {/* while the book is closed, its title is on the cover */}
+        {cover !== "closed" && <h1 className="reader-title">{story.title || "A new story"}</h1>}
         <div className="reader-tools">
           <MusicControl />
           <button
@@ -646,6 +676,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
         </div>
       </div>
 
+      <div className={`book-stage ${cover}`}>
+        {cover !== "closed" && (
       <div className="book" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className="book-art">{picture}</div>
         <div className="book-text">{words}</div>
@@ -664,8 +696,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
           </>
         )}
       </div>
+        )}
+        {cover !== "open" && <BookCover story={story} opening={cover === "opening"} canOpen={Boolean(firstPage)} onOpen={openBook} />}
+      </div>
 
-      <nav className="reader-nav" aria-label="Turn the page">
+      <nav className={`reader-nav ${cover === "open" ? "" : "hidden-until-open"}`} aria-label="Turn the page">
         <button className="nav-btn nav-btn-prev" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
           ‹
         </button>
