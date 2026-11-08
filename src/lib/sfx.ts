@@ -4,7 +4,7 @@ import { resumeMusic } from "./music";
 // no audio files are needed. Each page's tap-target names one of these.
 
 import type { SoundId } from "./actions";
-import { prefetchSpeech, speakText, unlockSpeech } from "./speech";
+import { prefetchSpeech, speakText, unlockSpeech, usesDeviceVoice } from "./speech";
 import { getAudioContext } from "./audio-context";
 
 export { unlockAudio } from "./audio-context";
@@ -194,6 +194,13 @@ export function sayWord(word: string, delayMs = 650) {
   // speech below isn't silently dropped by iOS Safari's gesture rule - and
   // start fetching the voice clip so it's ready when the sound effect ends.
   unlockSpeech();
+  // The device's own voice has to start inside the tap (iOS drops it
+  // otherwise), so it speaks straight away; the neural voice can wait for
+  // the sound effect to finish first.
+  if (usesDeviceVoice()) {
+    speakText(word, { kind: "word" });
+    return;
+  }
   prefetchSpeech(word, "word");
   window.setTimeout(() => speakText(word, { kind: "word" }), delayMs);
 }

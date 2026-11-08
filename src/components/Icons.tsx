@@ -28,11 +28,14 @@ export const SpeakerIcon = ({ on }: { on: boolean }) => (
 /** A person speaking - sound waves from their mouth when on, a cross when
  *  off - for the "read aloud" toggle, distinct from the plain speaker
  *  cone used for volume/mute elsewhere. */
+/** Read aloud: a head in profile, facing left, with sound waves coming
+ *  from the mouth - full strength while reading aloud is on, faint while
+ *  it's off (so the icon always reads as "speaking"). */
 export const SpeechIcon = ({ on }: { on: boolean }) => (
   <svg {...base}>
-    <circle cx="8.5" cy="8.3" r="3.3" />
-    <path d="M3.5 19c0-3.5 2.4-5.7 5-5.7s5 2.2 5 5.7" />
-    {on ? <path d="M16.5 7a4 4 0 0 1 0 6M19 4.8a7.3 7.3 0 0 1 0 10.4" /> : <path d="M16.5 6.5l5 5M21.5 6.5l-5 5" />}
+    {/* back of the head, crown, forehead, nose, lips, chin and neck */}
+    <path d="M19.6 15.4c1.7-2.8 1.6-7-.9-9.6-2-2.1-5.3-2.3-7.4-.8-1.6 1.1-2.2 2.9-1.9 4.6l-1.2 2.1c-.3.5 0 1 .5 1.1l.8.2c-.3.5-.2.9.3 1.1-.5.4-.5.9 0 1.2.1.8.4 1.5 1.4 1.6h1.9c1.1 0 1.7.8 1.7 1.8v.9" />
+    <path d="M6.9 10c-.9 1.1-.9 3.1 0 4.2M4.8 8.4c-1.6 1.9-1.6 5.5 0 7.4M2.7 6.9c-2.2 2.7-2.2 7.7 0 10.4" opacity={on ? 1 : 0.35} />
   </svg>
 );
 

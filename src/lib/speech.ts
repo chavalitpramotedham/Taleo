@@ -20,13 +20,24 @@ export type SpeechKind = "page" | "word";
 // ---------------------------------------------------------------- neural voice
 
 let neuralOn: Promise<boolean> | null = null;
+/** Settled answer once known: true/false, or null while still checking. */
+let neuralKnown: boolean | null = null;
 function neuralEnabled(): Promise<boolean> {
   neuralOn ??= fetch("/api/tts")
     .then((r) => (r.ok ? r.json() : { enabled: false }))
     .then((d: { enabled?: boolean }) => Boolean(d.enabled))
-    .catch(() => false);
+    .catch(() => false)
+    .then((on) => (neuralKnown = on));
   return neuralOn;
 }
+// Ask once, as soon as the app loads, so no tap ever waits on it: with the
+// device voice, speech must start inside the tap itself (iOS drops speech
+// that starts after a network round-trip).
+if (typeof window !== "undefined") void neuralEnabled();
+
+/** True when speech will use the device's own voice, which on iOS must be
+ *  started synchronously inside the user's tap. */
+export const usesDeviceVoice = () => neuralKnown !== true;
 
 const clips = new Map<string, Promise<AudioBuffer | null>>();
 const clipKey = (text: string, kind: SpeechKind) => `${kind}\n${text}`;
@@ -172,6 +183,13 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
   duckMusic("speech", true);
   // Safety net in case an end event never arrives.
   safety = window.setTimeout(done, Math.min(90000, 4000 + t.length * 110));
+
+  // Device voice (no neural voice configured): speak right now, still
+  // inside the caller's tap, rather than after an await.
+  if (neuralKnown === false) {
+    browserSpeak(t, kind, isCurrent, done);
+    return;
+  }
 
   void (async () => {
     if (await neuralEnabled()) {
