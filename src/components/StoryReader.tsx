@@ -335,7 +335,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     const dx = e.changedTouches[0].clientX - start.x;
     const dy = e.changedTouches[0].clientY - start.y;
     const fast = Date.now() - start.t < 300;
-    if (Math.abs(dx) < (fast ? 30 : 50) || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    // A light flick (24px quick, 38px slow) turns the page; it just needs
+    // to be more sideways than up-and-down.
+    if (Math.abs(dx) < (fast ? 24 : 38) || Math.abs(dx) < Math.abs(dy) * 1.25) return;
     go(dx < 0 ? 1 : -1);
   };
 

@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-const THRESHOLD = 50;
-const MAX_PULL = 92;
+// A deliberate pull is needed to reload (about 130px of finger travel), so
+// an ordinary scroll back to the top never reloads by accident.
+const THRESHOLD = 64;
+const MAX_PULL = 104;
 const HOLD_MS = 350; // how long the spinner sits at full strength before fading
 const FADE_MS = 450; // fade-out duration, matched by the CSS transition
 
