@@ -7178,3 +7178,21 @@ html[data-night] .topbar {
 html.theme-switching .topbar {
   transition-property: --ink, --ink-soft, --ink-faint, --page, --rule, --rule-strong, --russet, --russet-dark, --ochre, border-color, box-shadow, background-color;
 }
+.redraw-backdrop {
+  z-index: 120;
+}
+.redraw-panel {
+  max-width: 460px;
+}
+.redraw-current {
+  cursor: default;
+}
+.redraw-note {
+  text-align: center;
+  margin: 0;
+}
+.redraw-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

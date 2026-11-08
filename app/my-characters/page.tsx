@@ -237,6 +237,8 @@ function CharacterEditModal({
     }
   };
 
+  const redrawing = stage === "redraw" || stage === "drawing" || stage === "compare";
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Edit ${character.name}`}>
@@ -246,34 +248,15 @@ function CharacterEditModal({
             ✕
           </button>
         </div>
-        {stage === "compare" && redrawn ? (
-          <div className="redraw-compare">
-            <figure>
-              <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
-              <figcaption>Before</figcaption>
-            </figure>
-            <figure className="redraw-new">
-              <CharacterPortrait character={{ preset: null, svg: redrawn.svg, name: character.name }} className="char-edit-portrait" />
-              <figcaption>New look</figcaption>
-            </figure>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className={`char-edit-picture ${stage === "menu" ? "open" : ""}`}
-            onClick={() => setStage((s) => (s === "menu" ? "idle" : s === "idle" ? "menu" : s))}
-            aria-expanded={stage === "menu"}
-            aria-label={`${character.name}'s picture - save it or redraw it`}
-            disabled={stage === "drawing"}
-          >
-            <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
-            {stage === "drawing" && (
-              <span className="char-edit-drawing" aria-hidden>
-                <LeafLoader size={44} />
-              </span>
-            )}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`char-edit-picture ${stage === "menu" ? "open" : ""}`}
+          onClick={() => setStage((s) => (s === "menu" ? "idle" : "menu"))}
+          aria-expanded={stage === "menu"}
+          aria-label={`${character.name}'s picture - save it or redraw it`}
+        >
+          <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+        </button>
         {stage === "menu" && (
           <div className="char-picture-actions">
             <button type="button" className="btn btn-soft" onClick={() => void saveImage()} disabled={saving}>
@@ -290,57 +273,6 @@ function CharacterEditModal({
             </button>
           </div>
         )}
-        {(stage === "redraw" || stage === "drawing") && (
-          <div className="char-redraw">
-            <p className="meta">What should change? {character.name} keeps their name and who they are.</p>
-            <div className="field-row">
-              <DictateButton onText={setChange} label="Describe by voice" />
-              <GrowingInput
-                value={change}
-                maxLength={200}
-                placeholder="A red scarf and bigger, floppier ears…"
-                onChange={setChange}
-                onEnter={() => void redraw()}
-                aria-label="What should change"
-                disabled={stage === "drawing"}
-              />
-            </div>
-            <div className="redraw-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setStage("idle")} disabled={stage === "drawing"}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn-primary btn-block" onClick={() => void redraw()} disabled={!change.trim() || stage === "drawing"}>
-                {stage === "drawing" ? (
-                  <>
-                    <LeafLoader size={18} /> Painting…
-                  </>
-                ) : (
-                  <>
-                    <MapleMark />
-                    Redraw
-                  </>
-                )}
-              </button>
-            </div>
-            {stage === "drawing" && <p className="meta character-wait">Painting the new look with extra care - this can take a minute or two.</p>}
-          </div>
-        )}
-        {stage === "compare" && (
-          <div className="redraw-actions">
-            <button type="button" className="btn btn-soft" onClick={() => setStage("idle")} disabled={busy === "save"}>
-              Keep the old one
-            </button>
-            <button type="button" className="btn btn-primary btn-block" onClick={() => void acceptRedraw()} disabled={busy === "save"}>
-              {busy === "save" ? (
-                <>
-                  <LeafLoader size={18} /> Saving…
-                </>
-              ) : (
-                "Keep the new look"
-              )}
-            </button>
-          </div>
-        )}
         <input
           className="input"
           value={name}
@@ -352,7 +284,7 @@ function CharacterEditModal({
         <GenderPicker value={gender} onChange={setGender} disabled={Boolean(busy)} />
         <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || character.name} disabled={Boolean(busy)} />
         <button type="button" className="btn btn-primary btn-block" onClick={save} disabled={!canSave}>
-          {busy === "save" ? (
+          {busy === "save" && !redrawing ? (
             <>
               <LeafLoader size={18} /> Saving…
             </>
@@ -369,8 +301,95 @@ function CharacterEditModal({
             "Delete character"
           )}
         </button>
-        {error && <p className="error">{error}</p>}
+        {error && !redrawing && <p className="error">{error}</p>}
       </div>
+
+      {redrawing && (
+        // The whole redraw in its own popup over the editor: say what should
+        // change, watch it paint, then keep the new look or the old one.
+        <div className="modal-backdrop redraw-backdrop" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-panel redraw-panel" role="dialog" aria-modal="true" aria-label={`Redraw ${character.name}`} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3>{stage === "compare" ? `${character.name}'s new look` : `Redraw ${character.name}`}</h3>
+              {stage !== "drawing" && busy !== "save" && (
+                <button type="button" className="icon-btn" onClick={() => setStage("idle")} aria-label="Close">
+                  ✕
+                </button>
+              )}
+            </div>
+            {stage === "compare" && redrawn ? (
+              <>
+                <div className="redraw-compare">
+                  <figure>
+                    <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+                    <figcaption>Before</figcaption>
+                  </figure>
+                  <figure className="redraw-new">
+                    <CharacterPortrait character={{ preset: null, svg: redrawn.svg, name: character.name }} className="char-edit-portrait" />
+                    <figcaption>New look</figcaption>
+                  </figure>
+                </div>
+                <p className="meta redraw-note">The new look is used in every story from now on.</p>
+                <div className="redraw-choices">
+                  <button type="button" className="btn btn-primary btn-block" onClick={() => void acceptRedraw()} disabled={busy === "save"}>
+                    {busy === "save" ? (
+                      <>
+                        <LeafLoader size={18} /> Saving…
+                      </>
+                    ) : (
+                      <>
+                        <MapleMark />
+                        Keep the new look
+                      </>
+                    )}
+                  </button>
+                  <button type="button" className="btn btn-soft btn-block" onClick={() => setStage("idle")} disabled={busy === "save"}>
+                    Keep the old one
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="char-edit-picture redraw-current">
+                  <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+                  {stage === "drawing" && (
+                    <span className="char-edit-drawing" aria-hidden>
+                      <LeafLoader size={44} />
+                    </span>
+                  )}
+                </div>
+                <p className="meta">What should change? {character.name} keeps their name and who they are.</p>
+                <div className="field-row">
+                  <DictateButton onText={setChange} label="Describe by voice" />
+                  <GrowingInput
+                    value={change}
+                    maxLength={200}
+                    placeholder="A red scarf and bigger, floppier ears…"
+                    onChange={setChange}
+                    onEnter={() => void redraw()}
+                    aria-label="What should change"
+                    disabled={stage === "drawing"}
+                  />
+                </div>
+                <button type="button" className="btn btn-primary btn-block" onClick={() => void redraw()} disabled={!change.trim() || stage === "drawing"}>
+                  {stage === "drawing" ? (
+                    <>
+                      <LeafLoader size={18} /> Painting…
+                    </>
+                  ) : (
+                    <>
+                      <MapleMark />
+                      Redraw
+                    </>
+                  )}
+                </button>
+                {stage === "drawing" && <p className="meta character-wait">Painting the new look with extra care - this can take a minute or two.</p>}
+              </>
+            )}
+            {error && <p className="error">{error}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
