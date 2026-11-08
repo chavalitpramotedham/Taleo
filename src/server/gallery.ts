@@ -19,7 +19,13 @@ export async function getGalleryStory(id: string): Promise<Story | null> {
   if (!/^[a-z0-9]+$/i.test(id)) return null;
   const story = await readJson<Story>(storyPath(id));
   if (!story) return null;
-  return story.authorId ? story : { ...story, authorId: ADMIN_USER_ID, authorUsername: "taleo" };
+  return {
+    ...story,
+    authorId: story.authorId ?? ADMIN_USER_ID,
+    authorUsername: story.authorUsername ?? "taleo",
+    // Stories saved before multi-character support existed have no companions.
+    companions: story.companions ?? [],
+  };
 }
 
 export async function listMyStories(authorId: string): Promise<GalleryEntry[]> {

@@ -32,7 +32,7 @@ export function decodeShared(hash: string): Story | null {
     if (!json) return null;
     const s = JSON.parse(json) as Story;
     if (!s || !Array.isArray(s.segments) || !s.hero) return null;
-    return { ...s, rating: 0 };
+    return { ...s, rating: 0, companions: s.companions ?? [] };
   } catch {
     return null;
   }

@@ -8,7 +8,9 @@ function readAll(): Story[] {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Story[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Stories saved before multi-character support existed have no companions.
+    return (parsed as Story[]).map((s) => ({ ...s, companions: s.companions ?? [] }));
   } catch {
     return [];
   }
