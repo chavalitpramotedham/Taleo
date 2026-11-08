@@ -24,7 +24,7 @@ const STAGES = [
   "Inking the finishing lines…",
   "Finishing touches…",
 ];
-const DWELL: Record<Kind, number> = { wash: 520, paint: 120, ink: 80, detail: 240 };
+const DWELL: Record<Kind, number> = { wash: 1100, paint: 230, ink: 130, detail: 500 };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -35,9 +35,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * the pen lines are drawn and the tiny details added - while a line of the
  * story is written out underneath. It holds a moment, then starts again.
  *
- * Performance: the picture only changes when a stroke lands (a handful of
- * times a second), never every frame, so the watercolour filters aren't
- * re-run constantly; the brush glides on its own GPU layer. It pauses while
+ * Pacing is calm on purpose: shapes fade in gently and overlap, so the
+ * picture builds in one flowing motion rather than popping; the brush
+ * glides slowly on its own GPU layer. It pauses while
  * off-screen or in a hidden tab, and shows the finished painting straight
  * away for anyone who prefers reduced motion.
  */
@@ -133,7 +133,7 @@ export function HeroPainting() {
               await sleep(600);
               for (let c = 1; c <= CAPTION.length && !cancelled; c++) {
                 setTyped(c);
-                await sleep(CAPTION[c - 1] === " " ? 30 : 42);
+                await sleep(CAPTION[c - 1] === " " ? 40 : 58);
               }
             })();
           }
@@ -146,7 +146,7 @@ export function HeroPainting() {
         await sleep(3600);
         if (cancelled) break;
         root.classList.add("hero-paint-fade");
-        await sleep(800);
+        await sleep(1100);
       }
     };
     void run();
