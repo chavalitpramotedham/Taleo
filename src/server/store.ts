@@ -49,12 +49,14 @@ export function blobUrl(pathname: string): string | null {
   return storeId ? `https://${storeId.toLowerCase()}.public.blob.vercel-storage.com/${pathname}` : null;
 }
 
-async function blobRead<T>(pathname: string): Promise<T | null> {
+async function blobRead<T>(pathname: string, cacheSeconds?: number): Promise<T | null> {
   const url = blobUrl(pathname);
   if (!url) throw new Error("Blob token is malformed.");
   // Served from Blob's CDN (a cache hit costs nothing); overwriting a file
-  // refreshes the cached copy within about a minute.
-  const res = await fetch(url, { cache: "no-store" });
+  // refreshes the cached copy within about a minute. Normally always fresh
+  // (writes read-modify-write); pages that are themselves cached pass
+  // cacheSeconds so they can be served from Vercel's cache.
+  const res = await fetch(url, cacheSeconds ? { next: { revalidate: cacheSeconds } } : { cache: "no-store" });
   if (res.status === 404) return null;
   // Anything else (403 when the store is suspended or over its limits,
   // 5xx...) is a real failure - never pretend the file is simply missing.
@@ -85,9 +87,9 @@ async function blobDelete(pathname: string) {
   if (url) await del(url, { token: BLOB_TOKEN });
 }
 
-export const readJson = async <T>(pathname: string) => {
+export const readJson = async <T>(pathname: string, opts: { cacheSeconds?: number } = {}) => {
   assertStorage();
-  return useBlob ? blobRead<T>(pathname) : localRead<T>(pathname);
+  return useBlob ? blobRead<T>(pathname, opts.cacheSeconds) : localRead<T>(pathname);
 };
 export const writeJson = async (pathname: string, data: unknown) => {
   assertStorage();

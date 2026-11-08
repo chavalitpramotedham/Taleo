@@ -25,6 +25,13 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   // reading smooth while several pictures are being made at once.
   const focusRef = useRef(focus);
   focusRef.current = focus;
+  // Leaving the story cancels paintings still in progress: their result
+  // could no longer be saved, and cancelling stops the paid work at once.
+  const life = useRef<AbortController | null>(null);
+  useEffect(() => {
+    life.current = new AbortController();
+    return () => life.current?.abort();
+  }, []);
 
   const paint = useCallback(
     async (seg: number, idx: number) => {
@@ -38,6 +45,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
       let last = 0;
       try {
         const res = await fetch("/api/illustrate", {
+          signal: life.current?.signal,
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -69,6 +77,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           ),
         }));
       } catch {
+        if (life.current?.signal.aborted) return; // left the story
         setFailed((f) => ({ ...f, [key]: true }));
       } finally {
         inflight.current.delete(key);

@@ -86,6 +86,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   };
 
   // ---------------------------------------------------------------- writing
+  // Leaving the story cancels a segment still being written: it couldn't be
+  // saved any more, and cancelling stops the paid work straight away.
+  const life = useRef<AbortController | null>(null);
+  useEffect(() => {
+    life.current = new AbortController();
+    return () => {
+      life.current?.abort();
+      // If this reader comes back (React remounts it in development), let
+      // it start the opening segment afresh.
+      started.current = false;
+    };
+  }, []);
+
   const generate = useCallback(
     async (s: Story) => {
       setBusy(true);
@@ -117,8 +130,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
       const keepSvgs = (pages: Page[], prev: Segment | undefined) =>
         pages.map((p, i) => ({ ...p, svg: prev?.pages[i]?.text === p.text ? (prev.pages[i].svg ?? null) : (p.svg ?? null) }));
       let shown = false;
+      const signal = life.current?.signal;
       try {
         const res = await fetch("/api/story", {
+          signal,
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(body),
@@ -178,9 +193,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
         // Never leave a half-written part behind: roll it back so "try
         // again" writes it afresh.
         if (shown) update?.((cur) => ({ ...cur, cast: baseCast, segments: cur.segments.slice(0, base) }));
+        if (signal?.aborted) return; // cancelled because the reader closed
         setError(e instanceof Error ? e.message : "Something went wrong.");
       } finally {
-        setBusy(false);
+        if (!signal?.aborted) setBusy(false);
       }
     },
     [update],

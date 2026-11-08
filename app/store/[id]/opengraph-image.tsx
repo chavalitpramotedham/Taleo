@@ -6,6 +6,12 @@ import { sanitizeSvgFlat } from "@/lib/svg-sanitize";
 import { loadBrandFonts } from "@/server/og-fonts";
 
 export const size = { width: 1200, height: 630 };
+// Built once per story and cached (rebuilt at most daily) - not on every
+// time a link preview is fetched.
+export const revalidate = 86400;
+export async function generateStaticParams() {
+  return [];
+}
 export const contentType = "image/png";
 
 const toReactAttr = (k: string) => (k === "class" ? "className" : k.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase()));
@@ -48,7 +54,7 @@ function Star({ filled }: { filled: boolean }) {
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const story = await getGalleryStory(id);
+  const story = await getGalleryStory(id, { cacheSeconds: 86400 });
 
   const title = story?.title || "A Taleo story";
   const cover = story ? (allPages(story).find((p) => p.svg)?.svg ?? null) : null;

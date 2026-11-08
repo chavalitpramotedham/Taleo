@@ -37,11 +37,20 @@ export async function POST(req: Request) {
   // page is ready (so the reader can start on page 1 while the rest is
   // still being written), then {type:"done"} with the finished segment, or
   // {type:"error"}.
+  // If the reader leaves (closes the tab, moves to another page), stop the
+  // model straight away: nobody will receive the rest, so finishing it
+  // would only spend tokens on a result that's thrown away.
+  const stop = new AbortController();
+  req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
+    cancel() {
+      stop.abort();
+    },
     async start(controller) {
-      const send = (event: SegmentEvent | { type: "error"; error: string }) =>
-        controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      const send = (event: SegmentEvent | { type: "error"; error: string }) => {
+        if (!stop.signal.aborted) controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      };
       try {
         if (!hasApiKey()) {
           // Demo mode: the templated storyteller, "written" page by page.
@@ -52,14 +61,16 @@ export async function POST(req: Request) {
           }
           send({ type: "done", response: { ...seg, demo: true } });
         } else {
-          for await (const event of streamSegment(parsed)) send(event);
+          for await (const event of streamSegment(parsed, stop.signal)) send(event);
         }
       } catch (err) {
         await g.release(); // a story that failed to write doesn't count
         const data = (await errorResponse(err).json().catch(() => ({}))) as { error?: string };
         send({ type: "error", error: data.error || "The story got stuck. Let's try again!" });
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch {}
       }
     },
   });

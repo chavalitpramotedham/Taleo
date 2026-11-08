@@ -190,7 +190,7 @@ function completeItems(json: string, key: string): { items: string[]; closed: bo
  * and normalised exactly like the final result), and the finished segment
  * follows at the end.
  */
-export async function* streamSegment(req: StoryRequest): AsyncGenerator<SegmentEvent> {
+export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): AsyncGenerator<SegmentEvent> {
   const { user, norm } = buildSegmentRequest(req);
   const stream = getClient().beta.messages.stream({
     model: STORY_MODEL,
@@ -200,7 +200,7 @@ export async function* streamSegment(req: StoryRequest): AsyncGenerator<SegmentE
     system: [{ type: "text", text: writerPrompt(), cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
     output_config: { effort: STORY_EFFORT, format: betaZodOutputFormat(SegmentSchema) },
-  });
+  }, { signal });
 
   let text = "";
   let sent = 0;
@@ -304,7 +304,7 @@ function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text:
 // ---------------------------------------------------------------- illustrations
 
 /** Streams the SVG markup of one painted page. */
-export async function* paintPage(req: IllustrateRequest): AsyncGenerator<string> {
+export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): AsyncGenerator<string> {
   const sheets = req.cast
     .map((c) => {
       const art = characterArt(c);
@@ -334,7 +334,7 @@ export async function* paintPage(req: IllustrateRequest): AsyncGenerator<string>
     system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
     output_config: { effort: ART_EFFORT },
-  });
+  }, { signal });
 
   for await (const event of stream) {
     if (event.type === "content_block_delta" && event.delta.type === "text_delta") yield event.delta.text;

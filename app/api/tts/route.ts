@@ -8,20 +8,25 @@ export const runtime = "nodejs";
 
 const MAX_CHARS = 800;
 
-const words = (s: string) => s.toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [];
+const norm = (s: string) => s.replace(/\s+/g, " ").trim();
 
-/** Every word that could be read aloud from a published story: its pages,
- *  asides, words to learn, choice prompts and options, plus the little
- *  joining words the reader adds ("or", "the end"). */
-async function publishedStoryWords(storyId: string): Promise<Set<string> | null> {
+/** The exact phrases the reader can say aloud for a published story - built
+ *  the same way the reader builds them (each page with its aside, each
+ *  choice with its options, each word to learn, "The end."). Signed-out
+ *  readers may only create clips for these, so nobody can script endless
+ *  new combinations of the story's words onto the voice bill. */
+async function publishedStoryPhrases(storyId: string): Promise<Set<string> | null> {
   const story = await getGalleryStory(storyId).catch(() => null);
   if (!story) return null;
-  const parts: string[] = ["or the end"];
+  const phrases = ["The end."];
   for (const seg of story.segments) {
-    for (const p of seg.pages) parts.push(p.text, p.aside ?? "", p.action?.word ?? "");
-    if (seg.choice) parts.push(seg.choice.prompt, ...seg.choice.options.map((o) => o.label));
+    for (const p of seg.pages) {
+      phrases.push([p.aside, p.text].filter(Boolean).join(" "));
+      if (p.action?.word) phrases.push(p.action.word);
+    }
+    if (seg.choice) phrases.push(`${seg.choice.prompt} ${seg.choice.options.map((o) => o.label).join("? Or ")}?`);
   }
-  return new Set(parts.flatMap(words));
+  return new Set(phrases.map(norm));
 }
 
 const audio = (clip: Buffer) =>
@@ -65,8 +70,8 @@ export async function GET(req: Request) {
 
     // Signed out: only the words of the published story being read.
     const storyId = url.searchParams.get("s");
-    const allowed = storyId && /^[\w-]{1,80}$/.test(storyId) ? await publishedStoryWords(storyId) : null;
-    if (!allowed || !words(text).every((w) => allowed.has(w))) {
+    const allowed = storyId && /^[\w-]{1,80}$/.test(storyId) ? await publishedStoryPhrases(storyId) : null;
+    if (!allowed?.has(norm(text))) {
       return NextResponse.json({ error: "Sign in to hear this read aloud." }, { status: 401 });
     }
     return audio(await speechClip(text, kind));

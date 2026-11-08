@@ -27,11 +27,23 @@ const isOurBlob = (url: string) => {
   }
 };
 
+// Each message sends an email (Resend's free plan allows 100 a day) and
+// saves files, so a person can send a handful an hour - plenty for real
+// feedback, and a stop on anything stuck in a loop or scripted.
+const SENT = new Map<string, number[]>();
+const PER_HOUR = 5;
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) {
     return NextResponse.json({ error: "Please sign in to send us a message." }, { status: 401 });
   }
+  const now = Date.now();
+  const recent = (SENT.get(session.user.id) ?? []).filter((t) => now - t < 60 * 60 * 1000);
+  if (recent.length >= PER_HOUR && !session.user.isAdmin) {
+    return NextResponse.json({ error: "Thanks for all the messages! Please try again in a little while." }, { status: 429 });
+  }
+  SENT.set(session.user.id, [...recent, now]);
   const body = (await req.json().catch(() => null)) as { title?: unknown; message?: unknown; attachments?: unknown } | null;
   const title = typeof body?.title === "string" ? body.title.trim().slice(0, CONTACT_TITLE_MAX) : "";
   const message = typeof body?.message === "string" ? body.message.trim().slice(0, CONTACT_MESSAGE_MAX) : "";

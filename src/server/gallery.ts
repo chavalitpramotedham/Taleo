@@ -45,9 +45,11 @@ export async function listGallery(): Promise<GalleryEntry[]> {
   return entries.map((e) => ({ ...e, authorId: e.authorId ?? ADMIN_USER_ID, authorUsername: e.authorUsername ?? "taleo" }));
 }
 
-export async function getGalleryStory(id: string): Promise<Story | null> {
+/** `cacheSeconds`: only for pages that are themselves cached (the shared
+ *  story page and its preview image). */
+export async function getGalleryStory(id: string, opts: { cacheSeconds?: number } = {}): Promise<Story | null> {
   if (!/^[a-z0-9]+$/i.test(id)) return null;
-  const story = await readJson<Story>(storyPath(id));
+  const story = await readJson<Story>(storyPath(id), opts);
   if (!story) return null;
   return {
     ...story,

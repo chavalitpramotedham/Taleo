@@ -18,10 +18,20 @@ export async function POST(req: Request) {
   const g = await guard("illustrate");
   if (!g.ok) return g.response;
 
+  // If the reader leaves (closes the tab, moves to another page), stop the
+  // model straight away: nobody will receive the rest, so finishing it
+  // would only spend tokens on a result that's thrown away.
+  const stop = new AbortController();
+  req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
+    cancel() {
+      stop.abort();
+    },
     async start(controller) {
-      const send = (s: string) => controller.enqueue(encoder.encode(s));
+      const send = (s: string) => {
+        if (!stop.signal.aborted) controller.enqueue(encoder.encode(s));
+      };
       try {
         if (!hasApiKey()) {
           // Demo mode: compose the picture and "paint" it in a few strokes.
@@ -32,14 +42,16 @@ export async function POST(req: Request) {
             await new Promise((r) => setTimeout(r, 220));
           }
         } else {
-          for await (const delta of paintPage(parsed)) send(delta);
+          for await (const delta of paintPage(parsed, stop.signal)) send(delta);
         }
         send("\n<!--taleo:done-->");
       } catch (err) {
         console.error("illustration failed", err);
         send("\n<!--taleo:error-->");
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch {}
       }
     },
   });
