@@ -96,5 +96,6 @@ export function parseIllustrateRequest(body: unknown): IllustrateRequest | null 
     cast: (Array.isArray(b.cast) ? b.cast : []).slice(0, 6).map((c, i) => cleanCharacter(c, `friend${i}`)),
     page,
     previous: b.previous ? str(b.previous, 1200) : null,
+    quick: b.quick === true,
   };
 }

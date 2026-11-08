@@ -62,18 +62,25 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   const started = useRef(false);
   const paintingRef = useRef<InteractivePaintingHandle>(null);
 
+  // After a decision, the story waits on its loading page ("And then…")
+  // until the next page's words AND picture are ready, then moves on - so
+  // the child never lands on a half-made page with the voice starting.
+  const [holdSeg, setHoldSeg] = useState<number | null>(null);
+
   const views: View[] = useMemo(() => {
     const v: View[] = [];
     let number = 0;
     story.segments.forEach((seg, si) => {
+      if (holdSeg !== null && si >= holdSeg) return;
       seg.pages.forEach((page, pi) => v.push({ kind: "page", page, seg: si, n: pi, number: ++number }));
       if (seg.choice) v.push({ kind: "choice", seg: si });
     });
-    if (busy) v.push({ kind: "loading" });
+    if (busy || holdSeg !== null) v.push({ kind: "loading" });
     else if (error) v.push({ kind: "error" });
     else if (story.status === "complete") v.push({ kind: "end" });
     return v;
-  }, [story, busy, error]);
+  }, [story, busy, error, holdSeg]);
+
 
   const view = views[Math.min(index, views.length - 1)];
   const lastIndex = views.length - 1;
@@ -85,6 +92,25 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   const focus = shown ? pageKey(shown.seg, shown.n) : null;
 
   const { live, failed, retry, painting } = usePaintings(story, update, focus, !readOnly);
+
+  // Let the held part through once its first page is painted (a moment's
+  // grace so the picture is there when it appears), or after 30s with the
+  // words ready (a slow painting shouldn't keep everyone waiting), or if
+  // writing or painting it failed.
+  const heldFirst = holdSeg !== null ? story.segments[holdSeg]?.pages[0] : undefined;
+  const heldFailed = holdSeg !== null && Boolean(failed[pageKey(holdSeg, 0)]);
+  useEffect(() => {
+    if (holdSeg === null) return;
+    if (error || (!busy && !story.segments[holdSeg]) || heldFailed) return setHoldSeg(null);
+    if (heldFirst?.svg) {
+      const t = window.setTimeout(() => setHoldSeg(null), 350);
+      return () => window.clearTimeout(t);
+    }
+    if (heldFirst) {
+      const t = window.setTimeout(() => setHoldSeg(null), 30000);
+      return () => window.clearTimeout(t);
+    }
+  }, [holdSeg, heldFirst, heldFirst?.svg, heldFailed, error, busy, story.segments]);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -313,6 +339,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     const segs = story.segments.map((s, i) => (i === story.segments.length - 1 ? { ...s, chosen: { text: t, custom } } : s));
     const next = { ...story, segments: segs };
     update?.(() => next);
+    setHoldSeg(next.segments.length);
     setCustomIdea("");
     (document.activeElement as HTMLElement | null)?.blur();
     void generate(next);

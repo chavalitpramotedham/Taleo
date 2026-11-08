@@ -53,6 +53,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             cast: castFor(s, page),
             page: { text: page.text, picture: page.picture || page.text, characters: page.characters, action: page.action ?? null },
             previous: prev?.picture ?? null,
+            // The first picture after a decision is painted quicker (a
+            // lighter effort), so the story can carry on sooner.
+            quick: seg > 0 && idx === 0,
           }),
         });
         if (!res.ok || !res.body) throw new Error("paint failed");

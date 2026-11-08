@@ -359,7 +359,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     fallbacks: "default",
     system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
-    output_config: { effort: ART_EFFORT },
+    output_config: { effort: req.quick ? "low" : ART_EFFORT },
   }, { signal });
 
   for await (const event of stream) {

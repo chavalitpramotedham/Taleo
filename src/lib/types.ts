@@ -199,6 +199,8 @@ export interface IllustrateRequest {
   cast: CharacterDef[]; // characters in this picture (hero included when present)
   page: Pick<Page, "text" | "picture" | "characters" | "action">;
   previous?: string | null; // previous page's picture brief, for continuity
+  /** Paint at a lighter effort (the first picture after a decision). */
+  quick?: boolean;
 }
 
 export interface CharacterRequest {
