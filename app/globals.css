@@ -2997,9 +2997,8 @@ main {
 }
 
 /* ---------- home on phones ----------
-   Opens with the message: the "By parents, for parents" badge and the title
-   come first, then the painting as the showcase, then the intro line and
-   the steps - each part given room to breathe. (.hero-copy steps aside with
+   Opens with the title, then the painting as the showcase, then the intro
+   line (which carries "By parents, for parents") and the steps - each part given room to breathe. (.hero-copy steps aside with
    display: contents so its pieces can sit either side of the painting.) */
 @media (max-width: 760px) {
   .home {
@@ -3011,11 +3010,6 @@ main {
   }
   .hero-copy {
     display: contents;
-  }
-  .hero-badge {
-    order: 1;
-    justify-self: start;
-    margin-bottom: 12px;
   }
   .hero h1 {
     order: 2;
@@ -3273,14 +3267,14 @@ main {
 }
 
 /* ---------- welcome popup for a shared story ---------- */
-.shared-welcome {
+.story-preview {
   position: relative;
   max-width: 460px;
   padding: 0;
   gap: 0;
   overflow-x: hidden;
 }
-.shared-welcome-close {
+.story-preview-close {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -3289,22 +3283,22 @@ main {
   height: 36px;
   background: rgba(251, 247, 238, 0.92);
 }
-.shared-welcome-cover {
+.story-preview-cover {
   position: relative;
   aspect-ratio: 4 / 3;
   flex: none;
   border-bottom: 1px solid var(--rule);
   overflow: hidden;
 }
-.shared-welcome-cover .painting,
-.shared-welcome-cover svg {
+.story-preview-cover .painting,
+.story-preview-cover svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
 }
-.shared-welcome-body {
+.story-preview-body {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3312,20 +3306,20 @@ main {
   gap: 6px;
   padding: 18px clamp(18px, 5vw, 30px) 20px;
 }
-.shared-welcome-body > * {
+.story-preview-body > * {
   margin: 0;
 }
-.shared-welcome-body h2 {
+.story-preview-body h2 {
   font-size: clamp(1.5rem, 4.6vw, 1.9rem);
   text-wrap: balance;
 }
-.shared-welcome-by {
+.story-preview-by {
   font-style: italic;
 }
-.shared-welcome-body .ornament.small {
+.story-preview-body .ornament.small {
   margin: 4px auto 6px;
 }
-.shared-welcome-facts {
+.story-preview-facts {
   list-style: none;
   padding: 0;
   margin: 0 0 14px;
@@ -3334,7 +3328,7 @@ main {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-.shared-welcome-facts li {
+.story-preview-facts li {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -3345,24 +3339,24 @@ main {
   line-height: 1.25;
   text-align: left;
 }
-.shared-welcome-facts li > span:first-child {
+.story-preview-facts li > span:first-child {
   font-family: var(--font-caps);
   font-size: 0.8rem;
   letter-spacing: 0.05em;
   color: var(--ink-faint);
 }
-.shared-welcome-rating {
+.story-preview-rating {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-.shared-welcome-rating svg {
+.story-preview-rating svg {
   width: 13px;
   height: 13px;
   fill: var(--ochre);
   stroke: var(--ochre);
 }
-.shared-welcome .btn-ghost {
+.story-preview .btn-ghost {
   min-height: 40px;
   font-size: 1rem;
 }
@@ -4055,31 +4049,105 @@ g[filter="url(#tl-wash)"].hp-in {
   }
 }
 
-/* The homepage's key message: a soft gold pill with the brand's leaf. */
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 14px 5px 10px;
-  margin-bottom: 12px;
-  border-radius: 999px;
-  background: rgba(196, 154, 62, 0.14);
-  border: 1px solid rgba(196, 154, 62, 0.35);
-  color: var(--russet-dark);
-  font-size: 1.02rem;
-  letter-spacing: 0.06em;
-}
-.hero-badge .maple-mark {
-  width: 1.2em;
-  height: 1.2em;
-  margin: -0.1em 0;
-}
 .home-shelf-head .sub {
   margin-top: -6px;
 }
-@media (max-width: 760px) {
-  .hero-badge {
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+
+/* The key message, set in bold within the intro text. */
+.hero .lead strong {
+  color: var(--russet-dark);
+  font-weight: 600;
+}
+
+/* ---------- story cards: one tap target, first-layer details only ---------- */
+.story-card {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  width: 100%;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.story-card .cover {
+  overflow: hidden;
+}
+.story-card .body {
+  gap: 8px;
+  align-items: flex-start;
+}
+.story-card-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-family: var(--font-title);
+  font-size: clamp(1.05rem, 0.85rem + 1vw, 1.35rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+@media (hover: hover) {
+  .story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 18px 30px -18px rgba(70, 50, 30, 0.55);
   }
+}
+.story-card:active {
+  transform: translateY(1px);
+}
+
+/* A story's keyword ("Family", "Adventure"), as a small pill. */
+.keyword-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 11px 3px;
+  border-radius: 999px;
+  background: var(--sage-soft);
+  border: 1px solid rgba(111, 127, 82, 0.35);
+  color: var(--sage);
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* ---------- story preview actions ---------- */
+.story-preview-body .keyword-pill {
+  margin-top: 2px;
+}
+.story-preview-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.story-preview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.story-preview-row .btn.on {
+  border-color: var(--russet);
+  color: var(--russet);
+}
+.inline-rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  animation: pageIn 0.25s ease both;
+}
+.inline-rating > * {
+  margin: 0;
+}
+.inline-rating .comment-input {
+  max-width: none;
+  flex: none;
+  height: 72px;
 }

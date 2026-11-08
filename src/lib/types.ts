@@ -86,6 +86,9 @@ export interface Story {
   /** The story's heart: the one lesson the book builds to and lands at the
    *  end (chosen when the story starts, then kept for every later part). */
   moral?: string;
+  /** One word for what the story is about ("Family", "Adventure"), shown as
+   *  a pill on its card. Chosen by the writer; older stories derive it. */
+  keyword?: string;
   hero: CharacterDef;
   /** Up to 2 more central characters chosen alongside the hero (ids
    *  "companion1", "companion2") - together with hero, up to 3 protagonists
@@ -156,6 +159,7 @@ export interface SegmentResponse {
   title?: string;
   world?: string;
   moral?: string;
+  keyword?: string;
   newCharacters: CharacterDef[];
   segment: Segment;
   ending: boolean;
@@ -176,6 +180,12 @@ export interface GalleryEntry {
   cover: string | null;
   authorId: string;
   authorUsername: string;
+  /** Card and preview details (filled at publish; back-filled for older
+   *  entries), so the preview opens without loading the whole story. */
+  keyword?: string;
+  starring?: string[];
+  minutes?: number;
+  pages?: number;
 }
 
 export interface IllustrateRequest {

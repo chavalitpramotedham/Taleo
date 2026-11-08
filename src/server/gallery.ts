@@ -1,4 +1,6 @@
 import { allPages } from "@/lib/story-utils";
+import { ageById } from "@/lib/ages";
+import { storyKeyword } from "@/lib/keywords";
 import type { CharacterDef, GalleryEntry, RatingRecord, Story } from "@/lib/types";
 import { deleteJson, readJson, writeJson } from "./store";
 import { ADMIN_USER_ID } from "./users";
@@ -9,8 +11,36 @@ const INDEX_PATH = "gallery/index.json";
 const storyPath = (id: string) => `gallery/stories/${id}.json`;
 const ratingsPath = (id: string) => `gallery/ratings/${id}.json`;
 
+/** The card/preview details kept on each library entry. */
+function cardDetails(story: Story): Pick<GalleryEntry, "keyword" | "starring" | "minutes" | "pages"> {
+  return {
+    keyword: storyKeyword(story),
+    starring: [story.hero, ...(story.companions ?? [])].map((c) => c.name).filter(Boolean),
+    minutes: story.minutes || ageById(story.age).recommendedMinutes,
+    pages: allPages(story).length,
+  };
+}
+
 export async function listGallery(): Promise<GalleryEntry[]> {
-  const entries = (await readJson<GalleryEntry[]>(INDEX_PATH)) ?? [];
+  let entries = (await readJson<GalleryEntry[]>(INDEX_PATH)) ?? [];
+  // One-off back-fill of card details for entries published before they
+  // were stored: read those stories once, then save the index.
+  const missing = entries.filter((e) => !e.keyword || !e.starring);
+  if (missing.length) {
+    const filled = new Map<string, ReturnType<typeof cardDetails>>();
+    for (let i = 0; i < missing.length; i += 8) {
+      await Promise.all(
+        missing.slice(i, i + 8).map(async (e) => {
+          const story = await readJson<Story>(storyPath(e.id)).catch(() => null);
+          if (story) filled.set(e.id, cardDetails(story));
+        }),
+      );
+    }
+    if (filled.size) {
+      entries = entries.map((e) => (filled.has(e.id) ? { ...e, ...filled.get(e.id) } : e));
+      await writeJson(INDEX_PATH, entries).catch((err) => console.error("[gallery] back-fill save failed", err));
+    }
+  }
   // Back-fill stories published before accounts existed.
   return entries.map((e) => ({ ...e, authorId: e.authorId ?? ADMIN_USER_ID, authorUsername: e.authorUsername ?? "taleo" }));
 }
@@ -55,6 +85,7 @@ export async function publishStory(story: Story, author: { id: string; username:
     cover: allPages(story).find((p) => p.svg)?.svg ?? null,
     authorId,
     authorUsername,
+    ...cardDetails(story),
   };
   const next = [entry, ...index.filter((e) => e.id !== story.id)];
   // Family notes about a character (and the link back to the author's

@@ -4,8 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
 import { shareUrl, shareStory } from "@/lib/share";
-import { Painting, CharacterPortrait } from "@/components/art/Painting";
-import { Ornament, StarGlyph, MapleMark } from "@/components/Icons";
+import { CharacterPortrait } from "@/components/art/Painting";
+import { MapleMark } from "@/components/Icons";
+import { StoryCard } from "./StoryCard";
+import { StoryPreview, summaryFromEntry } from "./StoryPreview";
+import { InlineRating } from "./InlineRating";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "./PageLoading";
 
@@ -77,6 +80,9 @@ export function GalleryShelf({
     return limit ? list.slice(0, limit) : list;
   }, [stories, sort, limit]);
 
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
+
   const flash = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 2400);
@@ -110,49 +116,51 @@ export function GalleryShelf({
       ) : (
         <div className="shelf">
           {sorted.map((s) => (
-            <StoreCard key={s.id} entry={s} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
+            <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
           ))}
         </div>
+      )}
+      {open && (
+        <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)}>
+          <LibraryActions
+            entry={open}
+            onCopied={() => flash("Link copied. Paste it anywhere to share.")}
+            onRated={(agg) => setStories((cur) => cur?.map((e) => (e.id === open.id ? { ...e, ...agg } : e)) ?? cur)}
+          />
+        </StoryPreview>
       )}
       {toast && <div className="toast">{toast}</div>}
     </>
   );
 }
 
-function StoreCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
-  const share = () => shareStory(s.title || "An untitled story", shareUrl(s.id, window.location.origin), onCopied);
-
+/** A library story's preview actions: read it, share it, or rate it right here. */
+function LibraryActions({
+  entry,
+  onCopied,
+  onRated,
+}: {
+  entry: GalleryEntry;
+  onCopied: () => void;
+  onRated: (agg: { ratingSum: number; ratingCount: number }) => void;
+}) {
+  const [rating, setRating] = useState(false);
+  const title = entry.title || "An untitled story";
   return (
-    <article className="book-card">
-      <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
-        {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
-        <div className="cover-meta">
-          <span className="cover-rating">
-            {s.ratingCount ? (
-              <>
-                <StarGlyph /> {avg(s).toFixed(1)} ({s.ratingCount})
-              </>
-            ) : (
-              "Not yet rated"
-            )}
-          </span>
-        </div>
+    <div className="story-preview-actions">
+      <Link className="btn btn-primary btn-block" href={`/store/${entry.id}`}>
+        <MapleMark />
+        Read the story
       </Link>
-      <div className="body">
-        <h3>{s.title || "An untitled story"}</h3>
-        <Ornament className="ornament small" />
-        <p className="meta byline">
-          by @{s.authorUsername || "taleo"} · {new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-        </p>
-        <div className="card-actions">
-          <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
-            Read
-          </Link>
-          <button className="btn btn-soft btn-sm" onClick={share}>
-            Share
-          </button>
-        </div>
+      <div className="story-preview-row">
+        <button type="button" className="btn btn-soft" onClick={() => shareStory(title, shareUrl(entry.id, window.location.origin), onCopied)}>
+          Share
+        </button>
+        <button type="button" className={`btn btn-soft ${rating ? "on" : ""}`} onClick={() => setRating((r) => !r)} aria-expanded={rating}>
+          {rating ? "Hide rating" : "Rate"}
+        </button>
       </div>
-    </article>
+      {rating && <InlineRating storyId={entry.id} initial={{ ratingSum: entry.ratingSum, ratingCount: entry.ratingCount }} onRated={onRated} />}
+    </div>
   );
 }

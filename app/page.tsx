@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
+import { storyKeyword } from "@/lib/keywords";
 import { SharedStoryWelcome, type SharedStorySummary } from "@/components/SharedStoryWelcome";
 import { HeroPainting } from "@/components/HeroPainting";
 import { StepsScroller } from "@/components/StepsScroller";
@@ -52,6 +53,7 @@ async function sharedSummary(id: string | null): Promise<SharedStorySummary | nu
     title: story.title || "An untitled story",
     cover: pages.find((p) => p.svg)?.svg ?? null,
     author: story.authorUsername || "taleo",
+    keyword: storyKeyword(story),
     starring: [story.hero, ...(story.companions ?? [])].map((c) => c.name).filter(Boolean),
     ageLabel: ageById(story.age).label,
     minutes: story.minutes || ageById(story.age).recommendedMinutes,
@@ -67,14 +69,10 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="container home">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow hero-badge">
-            <MapleMark />
-            By parents, for parents
-          </p>
           <h1>Stories dreamt up at bedtime, painted just for you</h1>
           <p className="lead">
-            Made by parents for bedtimes like yours: a watercolour picture book you and your little one shape <em>together</em>,
-            with a warm lesson in every story.
+            <strong>By parents, for parents</strong> - a watercolour picture book you and your little one shape <em>together</em> at
+            bedtime, with a warm lesson in every story.
           </p>
           {/* Desktop: the call to action sits right here; touch devices get the floating bar instead. */}
           <div className="hero-actions desktop-only">

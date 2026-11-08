@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
 import { shareUrl, shareStory } from "@/lib/share";
-import { Painting, CharacterPortrait } from "@/components/art/Painting";
-import { Ornament, StarGlyph, MapleMark } from "@/components/Icons";
+import { CharacterPortrait } from "@/components/art/Painting";
+import { MapleMark } from "@/components/Icons";
+import { StoryCard } from "@/components/StoryCard";
+import { StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "@/components/PageLoading";
 
@@ -35,6 +37,9 @@ export default function MyStoriesPage() {
     () => (stories ? [...stories].sort((a, b) => (sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt)) : []),
     [stories, sort],
   );
+
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -73,50 +78,37 @@ export default function MyStoriesPage() {
       ) : (
         <div className="shelf">
           {sorted.map((s) => (
-            <MyStoryCard key={s.id} entry={s} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
+            <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
           ))}
         </div>
       )}
+      {open && (
+        <StoryPreview story={summaryFromEntry(open)} eyebrow="On your bookshelf" onClose={() => setOpenId(null)}>
+          <div className="story-preview-actions">
+            <Link className="btn btn-primary btn-block" href={`/store/${open.id}`}>
+              <MapleMark />
+              Read the story
+            </Link>
+            <div className="story-preview-row">
+              <button
+                type="button"
+                className="btn btn-soft"
+                onClick={() =>
+                  shareStory(open.title || "An untitled story", shareUrl(open.id, window.location.origin), () =>
+                    flash("Link copied. Paste it anywhere to share."),
+                  )
+                }
+              >
+                Share
+              </button>
+              <Link className="btn btn-soft" href={`/my-stories/${open.id}/ratings`}>
+                See ratings
+              </Link>
+            </div>
+          </div>
+        </StoryPreview>
+      )}
       {toast && <div className="toast">{toast}</div>}
     </div>
-  );
-}
-
-function MyStoryCard({ entry: s, onCopied }: { entry: GalleryEntry; onCopied: () => void }) {
-  const share = () => shareStory(s.title || "An untitled story", shareUrl(s.id, window.location.origin), onCopied);
-
-  return (
-    <article className="book-card">
-      <Link href={`/store/${s.id}`} className="cover" aria-label={`Read ${s.title}`}>
-        {s.cover ? <Painting svg={s.cover} title={s.title} /> : null}
-        <div className="cover-meta">
-          <span className="cover-rating">
-            {s.ratingCount ? (
-              <>
-                <StarGlyph /> {avg(s).toFixed(1)} ({s.ratingCount})
-              </>
-            ) : (
-              "Not yet rated"
-            )}
-          </span>
-        </div>
-      </Link>
-      <div className="body">
-        <h3>{s.title || "An untitled story"}</h3>
-        <Ornament className="ornament small" />
-        <p className="meta byline">{new Date(s.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p>
-        <div className="card-actions">
-          <Link className="btn btn-primary btn-sm" href={`/store/${s.id}`}>
-            Read
-          </Link>
-          <button className="btn btn-soft btn-sm" onClick={share}>
-            Share
-          </button>
-        </div>
-        <Link className="btn btn-ghost btn-sm card-actions-secondary" href={`/my-stories/${s.id}/ratings`}>
-          See ratings
-        </Link>
-      </div>
-    </article>
   );
 }

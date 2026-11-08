@@ -121,8 +121,8 @@ function buildSegmentRequest(req: StoryRequest) {
     }
     parts.push(
       isLast
-        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words before a cosy last page. Set choice to null and ending to true. Leave title, world and moral empty.`
-        : `Write segment ${index} of ${totalSegments}: show the result of the choice, add a fun new twist that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world and moral empty.`,
+        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words before a cosy last page. Set choice to null and ending to true. Leave title, world, moral and keyword empty.`
+        : `Write segment ${index} of ${totalSegments}: show the result of the choice, add a fun new twist that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world, moral and keyword empty.`,
     );
   }
   parts.push(
@@ -223,7 +223,7 @@ export async function* streamSegment(req: StoryRequest): AsyncGenerator<SegmentE
       const newCharacters = chars.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
       const pages = pagesSoFar.items.map((p) => PageSchema.parse(JSON.parse(p)));
       const partial = normalizeSegment(
-        { title: "", world: "", moral: "", newCharacters, pages, choice: null, ending: false },
+        { title: "", world: "", moral: "", keyword: "", newCharacters, pages, choice: null, ending: false },
         { ...norm, isLast: false },
       );
       sent = pages.length;
@@ -281,6 +281,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     title: out.title?.trim() || undefined,
     world: out.world?.trim() || undefined,
     moral: out.moral?.trim().slice(0, 200) || undefined,
+    keyword: out.keyword?.trim().split(/\s+/)[0]?.replace(/[^\p{L}-]/gu, "").slice(0, 24) || undefined,
     newCharacters,
     segment: { pages, choice, chosen: null },
     ending: opts.isLast || (!choice && out.ending),

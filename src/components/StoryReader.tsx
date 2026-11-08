@@ -192,6 +192,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
               title: cur.title || data.title || `${cur.hero.name}'s Story`,
               world: cur.world || data.world || "",
               moral: cur.moral || data.moral,
+              keyword: cur.keyword || data.keyword,
               cast: [...baseCast, ...data.newCharacters],
               segments: [
                 ...cur.segments.slice(0, base),
