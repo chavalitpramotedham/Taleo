@@ -401,6 +401,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     window.scrollTo({ top: 0 });
   }, [index]);
 
+  // The menu bar's height, for the layout: an open book fills exactly the
+  // screen below it, and on tall screens the picture stops just under it.
+  useEffect(() => {
+    const bar = document.querySelector<HTMLElement>(".topbar");
+    if (!bar) return;
+    const set = () => document.documentElement.style.setProperty("--topbar-h", `${Math.round(bar.getBoundingClientRect().height)}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
+
   // Swipe to turn: right-to-left = next page, left-to-right = previous.
   // Only a clearly sideways, single-finger swipe counts, so scrolling a
   // tall page or pinching never turns it by accident.

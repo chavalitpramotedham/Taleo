@@ -52,7 +52,8 @@ export function PullToRefresh() {
         // ring inside only turns, about its own centre.
         spin.style.opacity = String(Math.min(1, pull / THRESHOLD));
         spin.style.transform = `translate3d(-50%, ${pull / 2 - 11}px, 0) scale(${pull >= THRESHOLD ? 1.15 : 1})`;
-        spin.classList.toggle("ready", pull >= THRESHOLD);
+        const ready = pull >= THRESHOLD;
+        if (spin.classList.contains("ready") !== ready) spin.classList.toggle("ready", ready);
       }
       if (circle && !refreshing) circle.style.transform = `rotate(${pull * 4}deg)`;
     };
@@ -72,7 +73,12 @@ export function PullToRefresh() {
         return;
       }
       startY = e.touches[0].clientY;
-      for (const n of [content(), spin]) if (n) n.style.transition = "none";
+      // Lift the page onto its own GPU layer as the finger lands (not on the
+      // first frame of the pull, which would stutter while it's set up);
+      // dropped again once it has settled back.
+      const el = content();
+      if (el) el.style.willChange = "transform";
+      for (const n of [el, spin]) if (n) n.style.transition = "none";
     };
     const onMove = (e: TouchEvent) => {
       if (startY == null) return;
@@ -99,6 +105,10 @@ export function PullToRefresh() {
         }, HOLD_MS);
       } else {
         settle(0);
+        window.setTimeout(() => {
+          const el = content();
+          if (el && startY == null && !refreshing) el.style.willChange = "";
+        }, 450);
       }
     };
 

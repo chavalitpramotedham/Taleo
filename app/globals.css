@@ -128,7 +128,9 @@ main {
   will-change: transform, opacity;
 }
 .pull-refresh-ring {
-  /* the ring itself: only ever turns, about its own centre */
+  /* the ring itself: only ever turns, about its own centre (its own GPU
+     layer, so turning it never redraws it) */
+  will-change: transform;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -6575,4 +6577,103 @@ html[data-night] .admin-spark.good {
 html[data-night] .admin-change.bad,
 html[data-night] .admin-spark.bad {
   color: #e08a6c;
+}
+
+/* ---------- the picture always in full view ---------- */
+/* Tall screens (phones, portrait tablets): the picture takes the full
+   width; as the page scrolls it rises until it meets the menu bar, then
+   stays there while the words scroll up beneath it - so the picture never
+   leaves the screen. */
+@media not ((min-width: 760px) and (min-aspect-ratio: 5/4)) {
+  .book-art {
+    position: sticky;
+    top: var(--topbar-h, 64px);
+    z-index: 3;
+    background: var(--page);
+    /* a soft edge where the words slide under it */
+    box-shadow: 0 10px 12px -12px rgba(60, 40, 20, 0.35);
+  }
+  html[data-night] .book-art {
+    box-shadow: 0 10px 14px -12px rgba(0, 0, 0, 0.8);
+  }
+}
+/* Wide screens: the open book fills exactly the screen below the menu bar
+   (and the page-turn buttons), so the whole picture shows on the left with
+   no page scrolling; only the words column scrolls, if it has to. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .reader {
+    height: calc(100dvh - var(--topbar-h, 72px));
+    min-height: 420px;
+  }
+  .book-stage {
+    flex: 1;
+    min-height: 0;
+  }
+  .book {
+    height: 100%;
+    min-height: 0;
+  }
+}
+/* Short wide screens (a phone on its side): title and tools share one line
+   and everything is a little tighter, to leave the picture room. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) and (max-height: 560px) {
+  .reader {
+    gap: 6px;
+    padding-top: 6px;
+    min-height: 0;
+  }
+  .reader-top {
+    flex-direction: row;
+    align-items: center;
+  }
+  .reader-title {
+    font-size: 1.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+}
+
+/* The painting always keeps its 4:3 shape inside the picture area (centred,
+   as large as fits), so its soft painted edge is never stretched when the
+   area is a different shape - an open book on a wide screen, a phone on
+   its side. */
+.book-art {
+  container-type: size;
+}
+.book-art .painting {
+  inset: 0;
+  margin: auto;
+  width: min(100cqw, 133.333cqh);
+  height: min(75cqw, 100cqh);
+}
+/* A phone on its side: smaller page-turn buttons, tucked lower, to give the
+   picture more of the little height there is. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) and (max-height: 560px) and (hover: none) {
+  .reader {
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.6rem;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  .reader-index {
+    height: 34px;
+    bottom: calc(13px + env(safe-area-inset-bottom));
+  }
+}
+/* Words are centred on the page when they fit, but a long page starts at
+   the top and scrolls - centring alone would push its first lines up out
+   of reach. (Auto margins collapse to nothing once the words overflow.) */
+.book-text {
+  justify-content: flex-start;
+}
+.book-text > :first-child {
+  margin-top: auto;
+}
+.book-text > :last-child {
+  margin-bottom: auto;
 }
