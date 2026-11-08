@@ -4502,30 +4502,57 @@ html[data-night] .modal-backdrop {
    ===================================================================== */
 
 /* ---------- menu ---------- */
-/* "Begin a story" is the primary action: a small rust pill with the gold
-   leaf. Library and About stay quiet text links. */
-.nav-link.nav-primary {
+/* "Begin a story": just the maple leaf on the homepage (which has its own
+   big Begin button) and while making a story; on other pages the leaf
+   sits in a small rust "Begin" pill. Library and About stay quiet links. */
+.nav-begin {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 15px 7px 11px;
+  flex: 0 0 auto;
+  text-decoration: none;
+  margin-right: 4px;
+}
+.nav-begin .maple-mark {
+  width: 1.25em;
+  height: 1.25em;
+}
+.nav-begin-leaf {
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+.nav-begin-leaf .maple-mark {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.25s ease;
+}
+@media (hover: hover) {
+  .nav-begin-leaf:hover {
+    background: color-mix(in srgb, var(--ochre) 14%, transparent);
+  }
+  .nav-begin-leaf:hover .maple-mark {
+    transform: rotate(-12deg) scale(1.08);
+  }
+}
+.nav-begin-pill {
+  gap: 5px;
+  padding: 3px 12px 4px 8px;
   border-radius: 999px;
   border: 1px solid var(--russet-dark);
   background: var(--russet);
   color: #fbf4e6;
   box-shadow: 0 2px 0 var(--russet-dark);
-  margin-right: 6px;
-}
-.nav-link.nav-primary .maple-mark {
-  width: 1.2em;
-  height: 1.2em;
-  margin: -0.1em 0;
+  font-family: var(--font-caps);
+  font-size: 0.98rem;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
 }
 @media (hover: hover) {
-  .nav-link.nav-primary:hover {
-    color: #fbf4e6;
+  .nav-begin-pill:hover {
     background: var(--russet-dark);
-    border-bottom-color: var(--russet-dark);
+    color: #fbf4e6;
   }
 }
 .nav-tools {
@@ -4552,10 +4579,6 @@ html[data-night] .modal-backdrop {
   height: 19px;
 }
 @media (max-width: 640px) {
-  .nav-link.nav-primary {
-    padding: 5px 12px 6px 9px;
-    margin-right: 4px;
-  }
   .nav-tools {
     gap: 9px;
   }
@@ -4568,13 +4591,6 @@ html[data-night] .modal-backdrop {
   .nav-link {
     padding: 6px 4px;
     font-size: 0.9rem;
-  }
-  .nav-link.nav-primary .maple-mark {
-    display: none;
-  }
-  .nav-link.nav-primary {
-    padding: 4px 8px 5px;
-    margin-right: 2px;
   }
   .nav-tools {
     gap: 6px;
