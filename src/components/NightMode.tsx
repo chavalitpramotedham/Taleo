@@ -88,22 +88,17 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={{ night, leaving, settled, toggle }}>
       {children}
-      {night && <NightAmbience leaving={leaving} />}
+      {night && <NightAmbience leaving={leaving} settled={settled} />}
       {veil && <div className={`night-veil ${veil.phase}`} style={{ background: veil.colour }} aria-hidden />}
     </Ctx.Provider>
   );
 }
 
-/** The light switch in the menu bar - with the lantern hanging beside it at night. */
+/** The light switch in the menu bar (the lantern hangs just below it at night). */
 export function NightToggle() {
-  const { night, leaving, settled, toggle } = useNightMode();
+  const { night, toggle } = useNightMode();
   return (
     <span className="night-switch">
-      {night && (
-        <span className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`} aria-hidden>
-          <LanternArt />
-        </span>
-      )}
       <button
         type="button"
         className={`icon-btn night-toggle ${night ? "on" : ""}`}
@@ -120,41 +115,100 @@ export function NightToggle() {
 
 const FIREFLIES = 16;
 
-/** The room at night: the lantern's warm light (anchored to the lantern in
- *  the menu bar), a soft dimming toward the edges, and fireflies drifting
- *  across the screen. Decorative only - never catches a tap. */
-function NightAmbience({ leaving }: { leaving: boolean }) {
-  const glow = useRef<HTMLDivElement>(null);
+/** The room at night: the lantern dropping down from under the menu bar
+ *  beside the switch, its warm light, a soft dimming toward the edges, and
+ *  fireflies drifting across the screen. Decorative only - never catches a
+ *  tap. */
+function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolean }) {
+  const root = useRef<HTMLDivElement>(null);
 
-  // Centre the light on the lantern's glass, in page coordinates (the
-  // lantern sits in the menu bar, so its light stays with the top of the
-  // page as you scroll).
+  // Hang the lantern from the menu bar's bottom edge just left of the
+  // switch, and centre the light on its glass - in page coordinates, so
+  // both stay with the top of the page as you scroll. Measured from things
+  // that never animate (the bar and the switch), using the lantern's
+  // resting geometry (CSS: a 14px cord, then 64px of lantern with the
+  // glass at 65%) - so it's right even mid drop-in.
   useLayoutEffect(() => {
-    // Measured from the switch (which never moves), using the lantern's
-    // resting geometry (CSS: 28px wide, hanging 28px below the switch,
-    // glass at 65% of its 64px height) - so it's right even mid drop-in.
     const place = () => {
       const sw = document.querySelector(".night-switch");
-      const el = glow.current;
-      if (!sw || !el) return;
-      const r = sw.getBoundingClientRect();
-      el.style.setProperty("--lamp-x", `${r.left - 6 - 14 + window.scrollX}px`);
-      el.style.setProperty("--lamp-y", `${r.bottom + 28 - 64 * 0.35 + window.scrollY}px`);
+      const bar = document.querySelector(".topbar");
+      const el = root.current;
+      if (!sw || !bar || !el) return;
+      const s = sw.getBoundingClientRect();
+      const b = bar.getBoundingClientRect();
+      const x = s.left - 20 + window.scrollX;
+      const top = b.bottom + window.scrollY;
+      el.style.setProperty("--lamp-x", `${x}px`);
+      el.style.setProperty("--bar-y", `${top}px`);
+      el.style.setProperty("--lamp-y", `${top + 14 + 64 * 0.65}px`);
     };
     place();
     window.addEventListener("resize", place);
     return () => window.removeEventListener("resize", place);
   }, []);
 
+  // Scrolling drifts the fireflies past at their own depths (nearer ones
+  // faster), like a little parallax, instead of them sitting still on the
+  // glass. One that leaves the screen wraps round, out of sight, to come in
+  // from the other edge. Uses the separate `translate` property, so their
+  // wandering animation (on `transform`) carries on untouched.
+  const flies = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = flies.current;
+    if (!box || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const els = Array.from(box.children) as HTMLElement[];
+    const depth = els.map((_, i) => 0.18 + ((i * 7) % 16) / 16 * 0.5); // 0.18-0.68
+    const M = 40; // wrap margin, beyond the edge of the screen
+    let base: number[] = [];
+    let h = 0;
+    const measure = () => {
+      h = box.clientHeight;
+      els.forEach((el) => (el.style.translate = ""));
+      base = els.map((el) => el.offsetTop);
+    };
+    let raf = 0;
+    const draw = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const span = h + 2 * M;
+      els.forEach((el, i) => {
+        const at = (((base[i] - y * depth[i] + M) % span) + span) % span - M;
+        el.style.translate = `0 ${(at - base[i]).toFixed(1)}px`;
+      });
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
+    const onResize = () => {
+      measure();
+      draw();
+    };
+    measure();
+    draw();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   return (
-    <div className={`night-ambience ${leaving ? "leaving" : ""}`} aria-hidden>
+    <div className={`night-ambience ${leaving ? "leaving" : ""}`} ref={root} aria-hidden>
       <div className="night-room" />
-      <div className="night-glow" ref={glow}>
+      <div className="night-glow">
         <div className="night-glow-halo" />
         <div className="night-glow-core" />
         <div className="night-glow-shimmer" />
       </div>
-      <div className="fireflies">
+      {/* above its own light, so the light never washes it out */}
+      <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
+        <div className="nav-lantern-drop">
+          <LanternArt />
+        </div>
+      </div>
+      <div className="fireflies" ref={flies}>
         {Array.from({ length: FIREFLIES }, (_, i) => (
           <span key={i} className={`firefly f${i}`}>
             <span className="firefly-light" />

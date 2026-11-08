@@ -13,8 +13,8 @@ export function LanternArt() {
       <svg viewBox="0 0 200 460" className="night-lamp-layer night-lamp-halo" aria-hidden>
         <defs>
           <radialGradient id="nl-halo">
-            <stop offset="0" stopColor="#ffd58a" stopOpacity="0.7" />
-            <stop offset="0.45" stopColor="#ffbf6b" stopOpacity="0.2" />
+            <stop offset="0" stopColor="#ffd58a" stopOpacity="0.42" />
+            <stop offset="0.45" stopColor="#ffbf6b" stopOpacity="0.12" />
             <stop offset="1" stopColor="#ffb055" stopOpacity="0" />
           </radialGradient>
         </defs>
@@ -41,9 +41,17 @@ export function LanternArt() {
           {/* candle */}
           <path d="M91 300H109V336H91Z" fill="#F4EAD2" />
           {/* tin cap and base */}
-          <path d="M56 254C62 226 82 212 100 212C118 212 138 226 144 254Z" fill="#7A6A58" />
-          <path d="M58 338H142L132 356H68Z" fill="#6B5C4C" />
-          <circle cx="100" cy="206" r="7" fill="#8A7862" />
+          <path d="M56 254C62 226 82 212 100 212C118 212 138 226 144 254Z" fill="#A08C72" />
+          <path d="M58 338H142L132 356H68Z" fill="#93806A" />
+          <circle cx="100" cy="206" r="7" fill="#B29D80" />
+        </g>
+
+        {/* a faint warm rim of candlelight round the tin, so the lantern's
+            shape reads against the dark */}
+        <g fill="none" stroke="#e9c48e" strokeWidth="9" strokeLinejoin="round" opacity="0.35" filter="url(#tl-ink)">
+          <path d="M56 254C62 226 82 212 100 212C118 212 138 226 144 254Z" />
+          <path d="M58 338H142L132 356H68Z" />
+          <path d="M66 254L72 338M134 254L128 338" />
         </g>
 
         {/* pen linework, sepia like the paintings */}
