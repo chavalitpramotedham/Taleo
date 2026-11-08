@@ -3118,3 +3118,52 @@ main {
     padding-right: 8px;
   }
 }
+
+/* Contact us: "Send message" lives outside the form box. On phones and
+   tablets it floats at the bottom of the screen (like "Begin a story"),
+   with any error just above it; the page keeps room so it never covers
+   the form. On a desktop it sits right under the form, the same width. */
+.contact {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
+.contact-send {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px calc(18px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.contact-send > * {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 420px;
+}
+.contact-send-btn {
+  min-height: 52px;
+}
+.contact-error {
+  margin: 0;
+  box-shadow: var(--shadow);
+}
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  .contact {
+    padding-bottom: clamp(18px, 4vw, 44px);
+  }
+  .contact-send {
+    position: static;
+    padding: 0;
+    margin-top: 18px;
+  }
+  .contact-send > * {
+    max-width: none;
+  }
+  .contact-error {
+    box-shadow: none;
+  }
+}

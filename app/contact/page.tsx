@@ -219,9 +219,15 @@ export default function ContactPage() {
             />
           </div>
 
-          {error && <p className="error">{error}</p>}
+        </div>
+      )}
 
-          <button type="button" className="btn btn-primary btn-block" onClick={send} disabled={!title.trim() || !message.trim() || sending}>
+      {/* The call to action sits outside the form box: a full-width button
+          right under it on desktop, a floating bar on phones. */}
+      {!sent && (
+        <div className="contact-send">
+          {error && <p className="error contact-error">{error}</p>}
+          <button type="button" className="btn btn-primary btn-block contact-send-btn" onClick={send} disabled={!title.trim() || !message.trim() || sending}>
             {sending ? (
               <>
                 <LeafLoader size={18} /> {files.length ? "Uploading & sending…" : "Sending…"}
