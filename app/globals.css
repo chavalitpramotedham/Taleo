@@ -276,8 +276,9 @@ main {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  border-radius: 3px;
-  padding: 11px 24px;
+  /* One button system everywhere: pill-shaped, flat fills. */
+  border-radius: 999px;
+  padding: 11px 26px;
   font-family: var(--font-caps);
   font-size: 1.1rem;
   letter-spacing: 0.05em;
@@ -292,8 +293,9 @@ main {
 .btn-primary {
   background: var(--russet);
   color: #fbf4e6;
-  border-color: var(--russet-dark);
-  box-shadow: 0 2px 0 var(--russet-dark);
+  border-color: var(--russet);
+  /* A single soft shadow - no bevel/bezel edge. */
+  box-shadow: 0 6px 14px -8px rgba(70, 50, 30, 0.55);
 }
 @media (hover: hover) {
 .btn-primary:hover {
@@ -302,7 +304,7 @@ main {
 }
 .btn-primary:disabled {
   background: #c9b5a2;
-  border-color: #b9a38e;
+  border-color: #c9b5a2;
   box-shadow: none;
   cursor: not-allowed;
 }
@@ -483,11 +485,9 @@ main {
 .floating-cta-btn {
   width: 100%;
   max-width: 420px;
+  min-height: 52px;
   text-align: center;
   pointer-events: auto;
-  border-radius: 999px;
-  padding: 15px 24px;
-  box-shadow: 0 8px 22px -6px rgba(70, 50, 30, 0.5);
 }
 .hero-art {
   margin: 0;
@@ -1432,8 +1432,8 @@ main {
   pointer-events: auto;
 }
 .wizard-back {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   flex: none;
   border-radius: 50%;
   border: 1px solid var(--rule-strong);
@@ -1444,7 +1444,7 @@ main {
   line-height: 1;
   padding-bottom: 6px;
   cursor: pointer;
-  box-shadow: var(--shadow);
+  box-shadow: 0 6px 14px -8px rgba(70, 50, 30, 0.45);
 }
 @media (hover: hover) {
 .wizard-back:hover {
@@ -1454,9 +1454,7 @@ main {
 }
 .wizard-cta {
   min-width: 200px;
-  height: 56px;
-  border-radius: 999px;
-  box-shadow: 0 2px 0 var(--russet-dark), var(--shadow);
+  height: 52px;
 }
 
 /* Generic popup shell - the reader's page-jump overview, the character
@@ -2295,11 +2293,11 @@ main {
     bottom: calc(18px + env(safe-area-inset-bottom));
   }
   .wizard-back {
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
   }
   .wizard-cta {
-    height: 50px;
+    height: 52px;
     min-width: 0;
     flex: 0 1 240px;
   }
@@ -2773,10 +2771,6 @@ main {
   }
   .home {
     padding-bottom: clamp(18px, 4vw, 44px);
-  }
-  .hero-cta {
-    border-radius: 999px;
-    padding: 13px 34px;
   }
 
   /* Setup wizard: Back + Next right under the options. */
