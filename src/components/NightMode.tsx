@@ -122,6 +122,33 @@ const FIREFLIES = 16;
 function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolean }) {
   const root = useRef<HTMLDivElement>(null);
 
+  // Arrive in stages so the switch itself stays smooth: first only the
+  // theme's colours (behind the veil); once the veil has gone, the lantern
+  // drops in with its light; a little later the fireflies come out. On a
+  // page that opens at night, wait for the page to settle first.
+  const [lit, setLit] = useState(false);
+  const [alive, setAlive] = useState(false);
+  useEffect(() => {
+    const timers: number[] = [];
+    let idle = 0;
+    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
+    const begin = () => {
+      setLit(true);
+      later(() => setAlive(true), 1100);
+    };
+    if (settled) {
+      const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
+      idle = ric(() => later(begin, 150), { timeout: 900 }) as number;
+    } else {
+      later(begin, 700); // just after the veil has faded away
+    }
+    return () => {
+      timers.forEach(clearTimeout);
+      if (idle) (window.cancelIdleCallback ?? clearTimeout)(idle);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Hang the lantern from the menu bar's bottom edge just left of the
   // switch, and centre the light on its glass - in page coordinates, so
   // both stay with the top of the page as you scroll. Measured from things
@@ -136,11 +163,10 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       if (!sw || !bar || !el) return;
       const s = sw.getBoundingClientRect();
       const b = bar.getBoundingClientRect();
-      // On a phone the content runs edge to edge, so the lantern (a little
-      // smaller) hangs in the right-hand margin instead of over headings.
-      const phone = window.innerWidth < 640;
-      const w = phone ? 20 : 28;
-      const x = (phone ? document.documentElement.clientWidth - 13 : s.left - 20) + window.scrollX;
+      // Always hangs straight down from the switch; sized to the screen
+      // (small on a phone, never more than 28px wide).
+      const w = Math.round(Math.min(28, Math.max(18, window.innerWidth / 46)));
+      const x = s.left + s.width / 2 + window.scrollX;
       const top = b.bottom + window.scrollY;
       el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
@@ -172,6 +198,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   // wandering animation (on `transform`) carries on untouched.
   const flies = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!alive) return;
     const box = flies.current;
     if (!box || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const els = Array.from(box.children) as HTMLElement[];
@@ -210,29 +237,35 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [alive]);
 
   return (
     <div className={`night-ambience ${leaving ? "leaving" : ""}`} ref={root} aria-hidden>
       <div className="night-room" />
-      <div className="night-glow">
-        <div className="night-glow-halo" />
-        <div className="night-glow-core" />
-        <div className="night-glow-shimmer" />
-      </div>
-      {/* above its own light, so the light never washes it out */}
-      <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
-        <div className="nav-lantern-drop">
-          <LanternArt />
+      {lit && (
+        <>
+          <div className="night-glow">
+            <div className="night-glow-halo" />
+            <div className="night-glow-core" />
+            <div className="night-glow-shimmer" />
+          </div>
+          {/* above its own light, so the light never washes it out */}
+          <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
+            <div className="nav-lantern-drop">
+              <LanternArt />
+            </div>
+          </div>
+        </>
+      )}
+      {alive && (
+        <div className="fireflies" ref={flies}>
+          {Array.from({ length: FIREFLIES }, (_, i) => (
+            <span key={i} className={`firefly f${i}`}>
+              <span className="firefly-light" />
+            </span>
+          ))}
         </div>
-      </div>
-      <div className="fireflies" ref={flies}>
-        {Array.from({ length: FIREFLIES }, (_, i) => (
-          <span key={i} className={`firefly f${i}`}>
-            <span className="firefly-light" />
-          </span>
-        ))}
-      </div>
+      )}
     </div>
   );
 }

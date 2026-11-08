@@ -80,71 +80,91 @@ export function HeroPainting() {
       void root.offsetWidth; // restart the CSS animations from the top
       root.classList.add("playing");
     };
-    root.classList.remove("hero-paint-pending");
-    play();
+
+    // Don't start straight away: let the page arrive and settle first (fonts,
+    // the rest of the page, the theme), then begin painting on blank paper,
+    // so entering the page never competes with the painting's first frames.
+    let stop: (() => void) | null = null;
+    const start = () => {
+      root.classList.remove("hero-paint-pending");
+      play();
+      stop = run();
+    };
+    // Blank paper and an empty line, pen poised, while it waits.
+    setTyped(0);
     setLive(true);
+    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
+    let wait = 0;
+    const idle = ric(() => (wait = window.setTimeout(start, 500)), { timeout: 1500 }) as number;
 
-    // A light clock that only advances while the picture is on screen,
-    // keeping caption + stage in step with the (paused-alongside) CSS.
-    // Time is measured on the real clock minus paused time (not by adding
-    // up frames), so the caption stays in step with the CSS animations even
-    // when frames are slow or dropped.
-    let visible = true;
-    let pageVisible = !document.hidden;
-    let cycleStart = performance.now();
-    let pausedAt: number | null = document.hidden ? performance.now() : null;
-    let pausedTotal = 0;
-    const syncPause = () => {
-      const paused = !(visible && pageVisible);
-      root.classList.toggle("paused", paused);
-      const now = performance.now();
-      if (paused && pausedAt === null) pausedAt = now;
-      if (!paused && pausedAt !== null) {
-        pausedTotal += now - pausedAt;
-        pausedAt = null;
-      }
-    };
-    const io = new IntersectionObserver(
-      ([e]) => {
-        visible = e.isIntersecting;
+    const run = () => {
+      // A light clock that only advances while the picture is on screen,
+      // keeping caption + stage in step with the (paused-alongside) CSS.
+      // Time is measured on the real clock minus paused time (not by adding
+      // up frames), so the caption stays in step with the CSS animations even
+      // when frames are slow or dropped.
+      let visible = true;
+      let pageVisible = !document.hidden;
+      let cycleStart = performance.now();
+      let pausedAt: number | null = document.hidden ? performance.now() : null;
+      let pausedTotal = 0;
+      const syncPause = () => {
+        const paused = !(visible && pageVisible);
+        root.classList.toggle("paused", paused);
+        const now = performance.now();
+        if (paused && pausedAt === null) pausedAt = now;
+        if (!paused && pausedAt !== null) {
+          pausedTotal += now - pausedAt;
+          pausedAt = null;
+        }
+      };
+      const io = new IntersectionObserver(
+        ([e]) => {
+          visible = e.isIntersecting;
+          syncPause();
+        },
+        { threshold: 0.1 },
+      );
+      io.observe(root);
+      const onVis = () => {
+        pageVisible = !document.hidden;
         syncPause();
-      },
-      { threshold: 0.1 },
-    );
-    io.observe(root);
-    const onVis = () => {
-      pageVisible = !document.hidden;
-      syncPause();
-    };
-    document.addEventListener("visibilitychange", onVis);
+      };
+      document.addEventListener("visibilitychange", onVis);
 
-    let raf = 0;
-    let lastStage: string | null = null;
-    let lastTyped = -1;
-    const frame = () => {
-      const now = performance.now();
-      const elapsed = (pausedAt ?? now) - cycleStart - pausedTotal;
+      let raf = 0;
+      let lastStage: string | null = null;
+      let lastTyped = -1;
+      const frame = () => {
+        const now = performance.now();
+        const elapsed = (pausedAt ?? now) - cycleStart - pausedTotal;
 
-      const st = elapsed < PAINT_MS ? ([...SCHEDULE].reverse().find((s) => s.start <= elapsed)?.stage ?? null) : null;
-      if (st !== lastStage) setStage((lastStage = st));
-      const t = Math.max(0, Math.min(CAPTION.length, Math.floor((elapsed - CAPTION_START) / CAPTION_CHAR_MS)));
-      if (t !== lastTyped) setTyped((lastTyped = t));
+        const st = elapsed < PAINT_MS ? ([...SCHEDULE].reverse().find((s) => s.start <= elapsed)?.stage ?? null) : null;
+        if (st !== lastStage) setStage((lastStage = st));
+        const t = Math.max(0, Math.min(CAPTION.length, Math.floor((elapsed - CAPTION_START) / CAPTION_CHAR_MS)));
+        if (t !== lastTyped) setTyped((lastTyped = t));
 
-      if (elapsed >= PAINT_MS + HOLD_MS && !root.classList.contains("hero-paint-fade")) root.classList.add("hero-paint-fade");
-      if (elapsed >= PAINT_MS + HOLD_MS + FADE_MS) {
-        cycleStart = now;
-        pausedTotal = 0;
-        play();
-        root.classList.remove("hero-paint-fade");
-      }
+        if (elapsed >= PAINT_MS + HOLD_MS && !root.classList.contains("hero-paint-fade")) root.classList.add("hero-paint-fade");
+        if (elapsed >= PAINT_MS + HOLD_MS + FADE_MS) {
+          cycleStart = now;
+          pausedTotal = 0;
+          play();
+          root.classList.remove("hero-paint-fade");
+        }
+        raf = requestAnimationFrame(frame);
+      };
       raf = requestAnimationFrame(frame);
+      return () => {
+        cancelAnimationFrame(raf);
+        io.disconnect();
+        document.removeEventListener("visibilitychange", onVis);
+      };
     };
-    raf = requestAnimationFrame(frame);
 
     return () => {
-      cancelAnimationFrame(raf);
-      io.disconnect();
-      document.removeEventListener("visibilitychange", onVis);
+      (window.cancelIdleCallback ?? clearTimeout)(idle);
+      clearTimeout(wait);
+      stop?.();
     };
   }, []);
 
@@ -156,12 +176,12 @@ export function HeroPainting() {
           {stage}
         </p>
         <div className="hero-brush" aria-hidden>
-          <svg viewBox="0 0 40 120" width="22" height="66">
-            <path d="M20 118C17 108 16 86 17 62H23C24 86 23 108 20 118Z" fill="#9b6a3c" stroke="#4F3A2A" strokeWidth="1.4" />
-            <path d="M16 46H24V64H16Z" fill="#c9c2b4" stroke="#4F3A2A" strokeWidth="1.4" />
-            <path d="M16 46C14 30 17 12 20 2C23 12 26 30 24 46Z" fill="#7a5a3a" stroke="#4F3A2A" strokeWidth="1.4" />
-            <path className="hero-brush-tip" d="M17 22C18 13 19 7 20 2C21 7 22 13 23 22Z" />
-          </svg>
+          {/* its shadow on the paper, offset down and to the right, so the
+              brush reads as held just above the painting */}
+          <span className="hero-brush-shadow">
+            <BrushArt />
+          </span>
+          <BrushArt />
         </div>
       </div>
       <figcaption aria-label={CAPTION}>
@@ -171,3 +191,12 @@ export function HeroPainting() {
     </figure>
   );
 }
+
+const BrushArt = () => (
+  <svg viewBox="0 0 40 120" width="22" height="66">
+    <path d="M20 118C17 108 16 86 17 62H23C24 86 23 108 20 118Z" fill="#9b6a3c" stroke="#4F3A2A" strokeWidth="1.4" />
+    <path d="M16 46H24V64H16Z" fill="#c9c2b4" stroke="#4F3A2A" strokeWidth="1.4" />
+    <path d="M16 46C14 30 17 12 20 2C23 12 26 30 24 46Z" fill="#7a5a3a" stroke="#4F3A2A" strokeWidth="1.4" />
+    <path className="hero-brush-tip" d="M17 22C18 13 19 7 20 2C21 7 22 13 23 22Z" />
+  </svg>
+);

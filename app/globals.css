@@ -4980,3 +4980,48 @@ html[data-night] .keyword-pill {
   background: color-mix(in srgb, var(--kw) 16%, var(--page));
   border-color: color-mix(in srgb, var(--kw) 50%, transparent);
 }
+
+/* ---------- night arrives in stages (see NightAmbience) ---------- */
+/* The light and the fireflies fade in when their stage begins; a lantern
+   that was already there when the page opened fades in rather than drops. */
+.night-glow {
+  animation: lightOn 1.4s ease both;
+}
+.fireflies {
+  animation: lightOn 2.4s ease both;
+}
+.nav-lantern.settled .nav-lantern-drop {
+  animation: lightOn 0.9s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .night-glow,
+  .fireflies,
+  .nav-lantern.settled .nav-lantern-drop {
+    animation: none;
+  }
+}
+
+/* ---------- paintings keep their own layer ---------- */
+/* Watercolour filters are the costliest thing to draw. Giving each
+   painting its own layer means changes around it (the night/day switch,
+   the parchment behind it, hover states) don't force the painting itself
+   to be redrawn - the already-drawn picture is simply reused. */
+.book-card .cover > svg,
+.story-preview-cover > svg,
+.hero-paint-canvas > svg {
+  will-change: transform;
+}
+
+/* The brush's shadow on the paper: the same brush, flattened to a soft dark
+   silhouette and offset down-right in screen space (the offset sits on an
+   unrotated wrapper, so the shadow falls the same way whichever hand holds
+   the brush). Drawn once and only moved, like the brush itself. */
+.hero-brush-shadow {
+  position: absolute;
+  left: 11px;
+  top: 16px;
+  opacity: 0.4;
+}
+.hero-art .hero-brush .hero-brush-shadow svg {
+  filter: brightness(0) blur(2.5px);
+}
