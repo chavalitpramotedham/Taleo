@@ -3074,8 +3074,21 @@ main {
 .btn:focus-visible .maple-mark {
   transform: rotate(-14deg) scale(1.08);
 }
+/* Disabled: the leaf fades with the label - drawn in the text's own
+   colour, flat, with its veins as soft cut-outs - instead of staying a
+   bold gold leaf beside pale words. */
 .btn:disabled .maple-mark {
-  filter: grayscale(0.3);
+  filter: none;
+}
+.btn:disabled .maple-mark path {
+  fill: currentColor;
+  stroke: currentColor;
+}
+.btn:disabled .maple-mark > path:first-child {
+  stroke: none;
+}
+.btn:disabled .maple-mark g path {
+  stroke: #c9b5a2;
 }
 @media (prefers-reduced-motion: reduce) {
   .maple-mark {
