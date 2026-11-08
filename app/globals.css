@@ -5648,3 +5648,65 @@ html[data-night] .reader-tools .icon-btn.on {
 html[data-night] .reader-tools .music-control-tune {
   border-right-color: rgba(255, 232, 200, 0.12);
 }
+
+/* ---------- where the fireflies gather (all screen sizes) ---------- */
+/* Mostly low: about 60% in the bottom quarter of the screen, about 30% a
+   little higher (25-50% up), and the three risers drift from the ground to
+   around halfway - one a touch beyond - before fading. */
+.firefly.f0 { top: 88%; }
+.firefly.f1 { top: 84%; }
+.firefly.f2 { top: 92%; }
+.firefly.f3 { top: 80%; }
+.firefly.f4 { top: 95%; }
+.firefly.f5 { top: 86%; }
+.firefly.f7 { top: 90%; }
+.firefly.f8 { top: 78%; }
+.firefly.f9 { top: 93%; }
+.firefly.f6 { top: 70%; }
+.firefly.f10 { top: 63%; }
+.firefly.f11 { top: 58%; }
+.firefly.f12 { top: 77%; }
+.firefly.f13,
+.firefly.f14,
+.firefly.f15 {
+  top: 95%;
+  animation-name: fireflyRiseHalf;
+}
+.firefly.f15 {
+  animation-name: fireflyRiseBeyond;
+}
+@keyframes fireflyRiseHalf {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(18px, -18vh); }
+  70% { transform: translate(-12px, -32vh); opacity: 0.8; }
+  100% { transform: translate(8px, -44vh); opacity: 0; }
+}
+@keyframes fireflyRiseBeyond {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(-16px, -22vh); }
+  70% { transform: translate(12px, -48vh); opacity: 0.7; }
+  100% { transform: translate(-6px, -66vh); opacity: 0; }
+}
+
+/* The reader's tools have their own line now, so the tune's name fits on
+   phones too. */
+.reader-tools .music-control-tune {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px 0 12px;
+}
+.reader-tools .music-control-name {
+  display: inline;
+  max-width: min(180px, 42vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-caps);
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
