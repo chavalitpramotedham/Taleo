@@ -6251,3 +6251,7 @@ html.brand-live .leaf-whirl {
     padding: 0 8px 0 3px;
   }
 }
+.character-wait {
+  text-align: center;
+  margin: -2px 0 0;
+}

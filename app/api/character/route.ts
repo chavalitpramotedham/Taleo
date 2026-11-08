@@ -5,7 +5,8 @@ import { errorResponse } from "@/server/errors";
 import { guard } from "@/server/limits";
 
 export const runtime = "nodejs";
-export const maxDuration = 90;
+// High-effort character design can take a couple of minutes.
+export const maxDuration = 300;
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { description?: unknown; name?: unknown } | null;

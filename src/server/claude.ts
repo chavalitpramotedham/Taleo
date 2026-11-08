@@ -23,6 +23,10 @@ const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
 const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
+/** Designing a new character runs at high effort: their reference painting
+ *  and model sheet are shown to the painter on every page they appear in,
+ *  so getting them right once pays off across the whole book. */
+const CHARACTER_EFFORT = (process.env.TALEO_CHARACTER_EFFORT as Effort) || "high";
 
 /** False in demo mode (no key), or when TALEO_MOCK=1 forces the templated
  *  storyteller and painter - handy for testing flows without real stories. */
@@ -34,7 +38,7 @@ const getClient = () => (client ??= new Anthropic());
 
 export class StoryRefusal extends Error {}
 
-async function ask<T extends z.ZodType>(schema: T, system: string, user: string, maxTokens = 16000): Promise<z.infer<T>> {
+async function ask<T extends z.ZodType>(schema: T, system: string, user: string, maxTokens = 16000, effort: Effort = STORY_EFFORT): Promise<z.infer<T>> {
   const response = await getClient().beta.messages.parse({
     model: STORY_MODEL,
     max_tokens: maxTokens,
@@ -42,7 +46,7 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string,
     fallbacks: "default",
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
-    output_config: { effort: STORY_EFFORT, format: betaZodOutputFormat(schema) },
+    output_config: { effort, format: betaZodOutputFormat(schema) },
   });
   if (response.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (response.stop_reason === "max_tokens" || !response.parsed_output) {
@@ -375,7 +379,8 @@ export async function designCharacter(req: CharacterRequest): Promise<CharacterR
   const user = `Design this character: "${req.description}".${
     req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
   }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
-  const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 12000);
+  // (more room than other requests: high effort thinks longer before it paints)
+  const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 20000, CHARACTER_EFFORT);
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

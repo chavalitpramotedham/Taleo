@@ -124,6 +124,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 )}
               </button>
             </div>
+            {drawing && <p className="meta character-wait">Painting them with extra care - this can take a minute or two.</p>}
           </>
         )}
 
@@ -134,7 +135,9 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
               <input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
             </div>
             <GenderPicker value={gender} onChange={setGender} disabled={confirming} />
-            <p className="meta">Not quite right? Edit the description and paint them again.</p>
+            <p className="meta">
+              {drawing ? "Painting them again with extra care - this can take a minute or two." : "Not quite right? Edit the description and paint them again."}
+            </p>
             <div className="field-row">
               <GrowingInput
                 value={description}
