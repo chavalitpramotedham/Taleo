@@ -126,8 +126,22 @@ export const BrandMark = () => (
  *  wait" indicator - so every busy moment in the app (writing, painting,
  *  saving) shares the same bit of visual language instead of a generic
  *  spinner. */
+// The leaves fall from well above the 24x24 mark to well below it and sway
+// sideways as they go, so the loader's canvas is enlarged to hold every
+// leaf's whole path (and its soft shadow); otherwise they're clipped at
+// the box edges. `size` is still the size of the 24-unit mark, so the
+// leaves look the same size as before - the extra room is just margin.
+const LOADER_BOX = { x: -8, y: -10, w: 40, h: 45 };
+
 export const LeafLoader = ({ size = 40, className }: { size?: number; className?: string }) => (
-  <svg className={`leaf-loader ${className || ""}`} viewBox="0 0 24 24" width={size} height={size} role="img" aria-label="Loading">
+  <svg
+    className={`leaf-loader ${className || ""}`}
+    viewBox={`${LOADER_BOX.x} ${LOADER_BOX.y} ${LOADER_BOX.w} ${LOADER_BOX.h}`}
+    width={(size * LOADER_BOX.w) / 24}
+    height={(size * LOADER_BOX.h) / 24}
+    role="img"
+    aria-label="Loading"
+  >
     <LeafTrio />
   </svg>
 );

@@ -3000,3 +3000,16 @@ main {
   opacity: 1;
   cursor: progress;
 }
+
+/* The loader's canvas is roomier than the leaves themselves (it holds
+   their whole fall); never clip what's left at the edge, and inside a
+   button let that extra room overlap the padding instead of making the
+   button taller while it's busy. */
+.leaf-loader {
+  overflow: visible;
+  flex: none;
+}
+.btn .leaf-loader,
+.mic .leaf-loader {
+  margin: -0.9em -0.35em;
+}
