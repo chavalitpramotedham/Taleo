@@ -11,8 +11,9 @@ import { LanternArt, MoonIcon, SunIcon } from "./NightLamp";
  * layout applies it before first paint, so there's never a flash of the
  * light theme.
  *
- * Switching never blanks the screen: the page's contents fade out, the
- * theme flips while they're hidden, the old backgrounds (page and menu
+ * Switching never blanks the screen: the menu bar stays, its colours
+ * blending into the new theme's; below it the page's contents fade out,
+ * the theme flips while they're hidden, the old backgrounds (page and menu
  * bar) melt into the new ones, and the contents fade back in. Every step
  * is a layer's opacity (GPU work), not every element's colours animating.
  * The lantern and fireflies only start once the switch is done.
@@ -86,7 +87,8 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
       resume();
       return;
     }
-    // 1. The contents fade out (and the lantern rises away, going to day).
+    // 1. The page below the menu fades out (and the lantern rises away,
+    //    going to day); the menu bar itself stays.
     root.classList.add("theme-switching", "theme-hidden");
     if (!next) setLeaving(true);
     await sleep(next ? 240 : 420);

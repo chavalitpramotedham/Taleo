@@ -4776,19 +4776,44 @@ html[data-night] .modal-backdrop {
 /* ---------- switching day and night ---------- */
 /* (see NightProvider) The contents fade out, the theme flips, the old
    backgrounds melt into the new ones, and the contents fade back in. */
-html.theme-switching main,
-html.theme-switching .topbar > * {
+html.theme-switching main {
   transition: opacity 0.24s ease;
   will-change: opacity;
 }
-html.theme-hidden main,
-html.theme-hidden .topbar > * {
+html.theme-hidden main {
   opacity: 0;
 }
-html.theme-switching:not(.theme-hidden) main,
-html.theme-switching:not(.theme-hidden) .topbar > * {
+html.theme-switching:not(.theme-hidden) main {
   transition-duration: 0.45s;
 }
+/* The menu bar stays put through the switch: its colours blend from one
+   theme to the other (the theme colours are registered below so they can
+   be animated, and only the bar animates them - the page beneath is
+   hidden while the theme flips). */
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #3b3127; }
+@property --ink-soft { syntax: "<color>"; inherits: true; initial-value: #6b5a48; }
+@property --ink-faint { syntax: "<color>"; inherits: true; initial-value: #9a8a74; }
+@property --page { syntax: "<color>"; inherits: true; initial-value: #fbf7ee; }
+@property --rule { syntax: "<color>"; inherits: true; initial-value: #d9ccb0; }
+@property --rule-strong { syntax: "<color>"; inherits: true; initial-value: #b9a787; }
+@property --russet { syntax: "<color>"; inherits: true; initial-value: #9c4f32; }
+@property --russet-dark { syntax: "<color>"; inherits: true; initial-value: #7f3e26; }
+@property --ochre { syntax: "<color>"; inherits: true; initial-value: #c49a3e; }
+html.theme-switching .topbar {
+  transition:
+    --ink 0.7s ease-in-out,
+    --ink-soft 0.7s ease-in-out,
+    --ink-faint 0.7s ease-in-out,
+    --page 0.7s ease-in-out,
+    --rule 0.7s ease-in-out,
+    --rule-strong 0.7s ease-in-out,
+    --russet 0.7s ease-in-out,
+    --russet-dark 0.7s ease-in-out,
+    --ochre 0.7s ease-in-out,
+    border-color 0.7s ease-in-out,
+    box-shadow 0.7s ease-in-out;
+}
+
 /* The theme being left, held over the new one and dissolved: the page's
    background (a fixed layer behind everything) and the menu bar's (its own
    ::before, under its contents). */
