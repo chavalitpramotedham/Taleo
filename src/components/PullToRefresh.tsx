@@ -19,39 +19,61 @@ const MAX_PULL = 104;
 const HOLD_MS = 350; // how long the spinner sits at full strength before fading
 const FADE_MS = 450; // fade-out before the reload
 
+const BOUNCE_MAX = 72; // furthest a plain elastic stretch goes
+
+/** Is the touch inside something that scrolls on its own (the words column
+ *  of an open book, a popup, a sideways row)? Then that gets the gesture. */
+function inOwnScroller(el: Element | null): boolean {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    const oy = getComputedStyle(n).overflowY;
+    if ((oy === "auto" || oy === "scroll") && n.scrollHeight > n.clientHeight + 1) return true;
+  }
+  return false;
+}
+
 /**
- * A touch-drag-down-from-the-top-of-the-page gesture reloads the app, the
- * way native pull-to-refresh does - needed because installed/standalone
- * PWAs (see manifest.ts) generally lose the browser's own version of it.
+ * The page's ends feel alive rather than dead-stopped. Pulled past the top,
+ * a page reloads (pull-to-refresh, needed because installed/standalone PWAs
+ * lose the browser's own) - except on story pages, where a stray pull
+ * mustn't reload the book: there it just stretches and springs back. Pulled
+ * past the bottom, every page stretches a little and springs back.
  *
- * Built to keep up with the finger: the page content slides down with a
- * transform (no re-layout of the page), the spinner is revealed behind it,
- * and each move is applied at most once per frame, straight to the DOM -
- * no React re-render while dragging.
+ * Built to keep up with the finger: the content slides with a transform (no
+ * re-layout), the loader is revealed behind it, and each move is applied at
+ * most once per frame, straight to the DOM - no React re-render while
+ * dragging. Only the content moves, never anything pinned to the screen.
  */
 export function PullToRefresh() {
   const spinner = useRef<HTMLDivElement>(null);
-  const enabled = canPullToRefresh(usePathname());
+  const reloadable = canPullToRefresh(usePathname());
 
   useEffect(() => {
-    if (!enabled) return;
-    const spin = spinner.current;
-    const content = () => document.querySelector<HTMLElement>("main > .page-enter");
+    const spin = reloadable ? spinner.current : null;
+    // What moves: the page - or, on a story page, the title and the book
+    // (its page buttons float, pinned to the screen, and must stay put).
+    const targets = (): HTMLElement[] => {
+      const story = document.querySelectorAll<HTMLElement>("main .reader > .reader-top, main .reader > .book-stage");
+      if (story.length) return Array.from(story);
+      const page = document.querySelector<HTMLElement>("main > .page-enter");
+      return page ? [page] : [];
+    };
+    let startX = 0;
     let startY: number | null = null;
+    let edge: "top" | "bottom" | "both" | null = null;
+    let dir: 1 | -1 | 0 = 0; // 1 = pulling down at the top, -1 = up at the bottom
     let pull = 0;
     let raf = 0;
     let refreshing = false;
-    let lifted = false;
+    let moving: HTMLElement[] = [];
 
     const draw = () => {
       raf = 0;
-      const el = content();
-      if (el) el.style.transform = pull ? `translate3d(0, ${pull}px, 0)` : "";
+      for (const el of moving) el.style.transform = pull ? `translate3d(0, ${pull}px, 0)` : "";
       if (spin) {
-        // The loader only moves, fades in and grows as the pull deepens.
-        spin.style.opacity = String(Math.min(1, pull / THRESHOLD));
-        spin.style.transform = `translate3d(-50%, ${pull / 2 - 24}px, 0) scale(${pull >= THRESHOLD ? 1.15 : 0.7 + (0.3 * pull) / THRESHOLD})`;
-        const ready = pull >= THRESHOLD;
+        const p = Math.max(0, pull);
+        spin.style.opacity = String(Math.min(1, p / THRESHOLD));
+        spin.style.transform = `translate3d(-50%, ${p / 2 - 24}px, 0) scale(${p >= THRESHOLD ? 1.15 : 0.7 + (0.3 * p) / THRESHOLD})`;
+        const ready = p >= THRESHOLD;
         if (spin.classList.contains("ready") !== ready) spin.classList.toggle("ready", ready);
       }
     };
@@ -59,61 +81,80 @@ export function PullToRefresh() {
       if (!raf) raf = requestAnimationFrame(draw);
     };
     const settle = (to: number) => {
-      const el = content();
-      for (const n of [el, spin]) if (n) n.style.transition = "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease";
+      for (const n of [...moving, spin]) if (n) n.style.transition = "transform 0.45s cubic-bezier(0.22, 1.25, 0.36, 1), opacity 0.3s ease";
       pull = to;
       schedule();
+      if (to === 0) {
+        const done = moving;
+        window.setTimeout(() => {
+          if (startY == null && !refreshing) for (const el of done) el.style.willChange = "";
+        }, 480);
+      }
     };
 
+    const atTop = () => window.scrollY <= 0;
+    const atBottom = () => window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
+
     const onStart = (e: TouchEvent) => {
-      // Never while a popup is open (pulling moves the page, which would
-      // also shift the popup out from under the finger and lose the tap).
-      if (refreshing || window.scrollY > 0 || e.touches.length !== 1 || document.querySelector(".modal-backdrop")) {
-        startY = null;
-        return;
-      }
+      startY = null;
+      // Never while a popup is open (moving the page would shift the popup
+      // out from under the finger and lose the tap), never mid-reload, and
+      // not inside something that scrolls by itself.
+      if (refreshing || e.touches.length !== 1 || document.querySelector(".modal-backdrop") || inOwnScroller(e.target as Element)) return;
+      const top = atTop();
+      const bottom = atBottom();
+      if (!top && !bottom) return;
+      edge = top && bottom ? "both" : top ? "top" : "bottom";
+      startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
-      lifted = false;
-      for (const n of [content(), spin]) if (n) n.style.transition = "none";
+      dir = 0;
     };
     const onMove = (e: TouchEvent) => {
       if (startY == null) return;
-      if (window.scrollY > 0) {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      // A tap (or a finger that barely moves) never moves the page; a
+      // sideways swipe (turning a page) isn't a stretch either.
+      if (!dir) {
+        if (Math.abs(dy) < 8) return;
+        if (Math.abs(dx) > Math.abs(dy)) return void (startY = null);
+        const wantDown = dy > 0;
+        if (wantDown && edge === "bottom") return void (startY = null);
+        if (!wantDown && edge === "top") return void (startY = null);
+        dir = wantDown ? 1 : -1;
+        moving = targets();
+        for (const el of moving) {
+          el.style.transition = "none";
+          el.style.willChange = "transform";
+        }
+        if (spin) spin.style.transition = "none";
+      }
+      // Scrolled away from the edge after all: let go.
+      if ((dir === 1 && !atTop()) || (dir === -1 && !atBottom())) {
         startY = null;
         settle(0);
         return;
       }
-      const dy = e.touches[0].clientY - startY;
-      // A tap (or a finger that barely moves) never moves the page: only a
-      // real downward pull does. The page goes onto its own GPU layer at
-      // that moment, and comes off once it has settled back.
-      if (!lifted) {
-        if (dy < 8) return;
-        lifted = true;
-        const el = content();
-        if (el) el.style.willChange = "transform";
-      }
-      pull = dy > 0 ? Math.min((dy - 8) * 0.5, MAX_PULL) : 0;
+      const d = Math.max(0, (dir === 1 ? dy : -dy) - 8);
+      // Pull-to-refresh pulls further; a plain stretch gives sooner.
+      const amount = dir === 1 && spin ? Math.min(d * 0.5, MAX_PULL) : BOUNCE_MAX * (1 - Math.exp(-d / 160));
+      pull = dir * amount;
       schedule();
     };
     const onEnd = () => {
       if (startY == null) return;
       startY = null;
-      if (!lifted) return; // just a tap
-      if (pull >= THRESHOLD) {
+      if (!dir) return; // just a tap
+      if (dir === 1 && spin && pull >= THRESHOLD) {
         refreshing = true;
         settle(THRESHOLD);
-        spin?.classList.add("spinning");
+        spin.classList.add("spinning");
         window.setTimeout(() => {
           document.documentElement.classList.add("pull-reloading");
           window.setTimeout(() => window.location.reload(), FADE_MS);
         }, HOLD_MS);
       } else {
         settle(0);
-        window.setTimeout(() => {
-          const el = content();
-          if (el && startY == null && !refreshing) el.style.willChange = "";
-        }, 450);
       }
     };
 
@@ -128,9 +169,9 @@ export function PullToRefresh() {
       window.removeEventListener("touchend", onEnd);
       window.removeEventListener("touchcancel", onEnd);
     };
-  }, [enabled]);
+  }, [reloadable]);
 
-  if (!enabled) return null;
+  if (!reloadable) return null;
   return (
     <div className="pull-refresh" aria-hidden>
       <div className="pull-refresh-spin" ref={spinner}>
