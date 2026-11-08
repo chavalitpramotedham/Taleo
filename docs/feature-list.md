@@ -11,8 +11,8 @@ Status: ✅ done · 🟡 partly done · ⬜ not started. Last updated 9 Nov 2026
 | # | Item | Status | Notes | Effort |
 |---|------|--------|-------|--------|
 | 1 | **Lock down the AI endpoints.** | ✅ | Sign-in required for story, painting, character and voice requests. Limits: one new story per 30 minutes (admin exempt), plus anti-abuse caps. Signed-out readers can only voice a published story's exact sentences. Unfinished paid work stops when the reader leaves. | - |
-| 2 | **Stories only live in the browser.** | ⬜ | Drafts and unpublished stories are still in `localStorage`: lost on another device, or when browser data is cleared. Save them to the account, keeping a local copy for speed. | M |
-| 3 | **No error monitoring or analytics.** | ⬜ | We found the storage outage and the sign-in crash by hand. Add error reporting (and alerts) plus privacy-friendly usage stats. | S |
+| 2 | **Stories only live in the browser.** | ✅ | Unfinished stories are saved to the account, with a Resume/Discard prompt on any device (a local copy is kept for speed). | - |
+| 3 | **No error monitoring or analytics.** | 🟡 | Server and browser errors now email an alert. Still to do: privacy-friendly usage stats, and logging what each story costs (see [roadmap.md](roadmap.md)). | S |
 | 4 | **No moderation in the public library.** | ⬜ | Add a "Report" button on stories and comments, and an admin review queue. | S–M |
 | 5 | **Neural voice and contact email.** | 🟡 | The OpenAI voice is on (`/api/tts` reports enabled). Email works, but goes through Resend's shared test sender. Verify `taleo-stories.app` in Resend and set `CONTACT_FROM`. 3 early messages were saved but never emailed. | config |
 | 6 | **Storage budget.** | ✅ | Storage reads cost nothing (no `list()` per read), the session re-reads the profile at most every 10 minutes, rate-limit counters live in memory, and the plan is Pro. | - |
@@ -24,10 +24,10 @@ Status: ✅ done · 🟡 partly done · ⬜ not started. Last updated 9 Nov 2026
 |---|------|--------|-------|--------|
 | 8 | **Shorten the wait while a story is written and painted.** | 🟡 | Text now streams page by page, the reader can start on page 1 straight away, and pictures paint in the background with a "Painting…" loader. Next: a faster/cheaper painting model or effort setting. | M |
 | 9 | **"Words we learnt" recap at the end.** | ⬜ | The story's words to learn, each with its picture and tap-to-hear. Makes the educational value visible to parents. | S |
-| 10 | **Read-along highlighting.** | ⬜ | Each word lights up as the voice reads it. The neural voice now makes this possible (with word timings, or an estimate). | M |
+| 10 | **Read-along highlighting.** | ✅ | Each word lights up as the voice reads it, timed from the audio itself. | - |
 | 11 | **Continue where you left off.** | ⬜ | A "Continue reading" spot on the homepage and bookshelf for half-finished stories. | S |
 | 12 | **Sequels from saved characters.** | ⬜ | "Another adventure with Pip & Mo", using the stories each character has already been in. That record already exists. | M |
-| 13 | **Library discovery.** | 🟡 | Sort by favourites or newest, cards with a keyword, and a preview sheet. Next: filter by age and theme, search, "more like this", and loading in batches. | M |
+| 13 | **Library discovery.** | 🟡 | Sort by favourites or newest, filter by category, author bookshelves, and a preview sheet. Next: filter by age, search, "more like this", and loading in batches. | M |
 | 14 | **Try before signing in.** | ⬜ | First-time visitors must sign in before they can try anything. Offer a short sample story with no account needed. | M |
 | 15 | **Bedtime extras.** | 🟡 | Site-wide night mode with lantern and fireflies, and the music dips under the voice. Next: a sleep timer that fades the music out, night mode turning on automatically in the evening, and a softer "wind-down" ending. | S |
 | 16 | **Characters that stay true.** | ✅ | Optional male/female per custom character, family notes about relationships, and the storyteller and painter told to keep both exactly right. Worth spot-checking in real stories. | - |
