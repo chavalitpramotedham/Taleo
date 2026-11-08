@@ -4213,3 +4213,10 @@ g[filter="url(#tl-wash)"].hp-in {
 .contact-send.contact-send-inline > * {
   max-width: none;
 }
+
+/* Profile button placeholder while sign-in status loads: same footprint,
+   softly faded, so the menu keeps its shape. */
+.account-trigger-pending {
+  opacity: 0.45;
+  pointer-events: none;
+}

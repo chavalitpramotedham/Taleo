@@ -19,7 +19,15 @@ export function AccountNav() {
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  if (status === "loading") return null;
+  // While sign-in status is still being checked, hold the button's exact
+  // place (same size and shape) so the menu never shifts when it resolves.
+  if (status === "loading") {
+    return (
+      <span className="icon-btn account-trigger account-trigger-pending" aria-hidden>
+        <AccountIcon />
+      </span>
+    );
+  }
 
   if (!session?.user) {
     return (
