@@ -5244,3 +5244,10 @@ body {
   width: 100%;
   height: auto;
 }
+
+/* The small-caps face draws its letters ~1.7px above the middle of its line
+   box; drop Library / About onto the row's centre line (the Begin pill's
+   label gets the same correction), so the whole menu reads level. */
+.topnav .nav-link:not(.nav-begin) {
+  translate: 0 1.7px;
+}
