@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AVATAR_KEYS, presetByKey } from "@/lib/presets";
 import { Avatar } from "@/components/Avatar";
-import { CharacterManager } from "@/components/CharacterManager";
 
 const sanitize = (raw: string) => raw.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 20);
 
@@ -157,8 +156,6 @@ export function AccountForm({ username, avatarKey, isAdmin }: { username: string
         {nameSaved && <p className="meta">Saved.</p>}
         {nameError && <p className="error">{nameError}</p>}
       </section>
-
-      <CharacterManager />
 
       <section className="panel">
         <h3>Danger zone</h3>
