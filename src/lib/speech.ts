@@ -39,6 +39,14 @@ if (typeof window !== "undefined") void neuralEnabled();
  *  started synchronously inside the user's tap. */
 export const usesDeviceVoice = () => neuralKnown !== true;
 
+// The story being read, sent with clip requests so signed-out readers of a
+// published story can still hear it in the neural voice (the server only
+// makes clips from that story's own words).
+let storyId: string | null = null;
+export function setSpeechStory(id: string | null) {
+  storyId = id;
+}
+
 const clips = new Map<string, Promise<AudioBuffer | null>>();
 const clipKey = (text: string, kind: SpeechKind) => `${kind}\n${text}`;
 
@@ -46,7 +54,7 @@ function loadClip(text: string, kind: SpeechKind): Promise<AudioBuffer | null> {
   const key = clipKey(text, kind);
   const have = clips.get(key);
   if (have) return have;
-  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}`)
+  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}`)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((buf) => {
       const c = getAudioContext();

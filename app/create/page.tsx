@@ -11,7 +11,7 @@ import { DictateButton } from "@/components/DictateButton";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { PageLoading } from "@/components/PageLoading";
-import { MapleMark } from "@/components/Icons";
+import { LeafLoader, MapleMark } from "@/components/Icons";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -93,8 +93,26 @@ export default function CreatePage() {
   const effectiveMinutes = minutes ?? recommendedMinutes ?? MIN_MINUTES;
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
-  const start = () => {
-    if (!age || !hero || !theme || !session?.user.username) return;
+  const [checking, setChecking] = useState(false);
+  const start = async () => {
+    if (!age || !hero || !theme || !session?.user.username || checking) return;
+    // New stories are limited (one every 30 minutes, except for the admin):
+    // check first, so hitting the limit never leaves an empty story behind.
+    setChecking(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/story", { cache: "no-store" });
+      const data = (await res.json().catch(() => ({}))) as { canStart?: boolean; error?: string };
+      if (!data.canStart) {
+        setError(data.error || "Couldn't start a story just now. Please try again.");
+        return;
+      }
+    } catch {
+      setError("Couldn't start a story just now. Please check your connection and try again.");
+      return;
+    } finally {
+      setChecking(false);
+    }
     try {
       localStorage.setItem(AGE_KEY, age);
       localStorage.setItem(MINUTES_KEY, String(effectiveMinutes));
@@ -140,7 +158,7 @@ export default function CreatePage() {
     if (step < 2) {
       setStep((s) => (s + 1) as Step);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else start();
+    } else void start();
   };
 
   if (status !== "authenticated" || !session?.user.username) return <PageLoading />;
@@ -366,9 +384,17 @@ export default function CreatePage() {
             ‹
           </button>
         )}
-        <button type="button" className="btn btn-primary wizard-cta" onClick={next} disabled={!canNext}>
-          <MapleMark />
-          {step === 2 ? "Begin the story" : "Next ›"}
+        <button type="button" className="btn btn-primary wizard-cta" onClick={next} disabled={!canNext || checking}>
+          {checking ? (
+            <>
+              <LeafLoader size={18} /> Getting ready…
+            </>
+          ) : (
+            <>
+              <MapleMark />
+              {step === 2 ? "Begin the story" : "Next ›"}
+            </>
+          )}
         </button>
       </nav>
     </div>

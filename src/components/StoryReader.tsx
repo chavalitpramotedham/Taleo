@@ -7,7 +7,7 @@ import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
-import { cancelSpeech, prefetchSpeech, speakText, unlockSpeech } from "@/lib/speech";
+import { cancelSpeech, prefetchSpeech, setSpeechStory, speakText, unlockSpeech } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -322,6 +322,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     const nextView = views[index + 1];
     if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "));
   }, [view, views, index, readAloud]);
+
+  useEffect(() => {
+    setSpeechStory(story.id);
+    return () => setSpeechStory(null);
+  }, [story.id]);
 
   useEffect(() => () => cancelSpeech(), []);
 

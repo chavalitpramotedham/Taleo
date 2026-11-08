@@ -134,7 +134,14 @@ async function writeCache(key: string, audio: Buffer) {
   }
 }
 
-/** MP3 audio for a phrase, from the cache or freshly synthesised. */
+/** A clip that's already been made (free to serve to anyone), or null. */
+export async function cachedClip(text: string, kind: TtsKind): Promise<Buffer | null> {
+  if (!provider) return null;
+  return readCache(cacheKey(text, kind));
+}
+
+/** MP3 audio for a phrase, from the cache or freshly synthesised. Callers
+ *  must check the requester may create new clips (see /api/tts). */
 export async function speechClip(text: string, kind: TtsKind): Promise<Buffer> {
   if (!provider) throw new Error("No text-to-speech provider configured.");
   const key = cacheKey(text, kind);

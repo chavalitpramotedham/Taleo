@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hasApiKey, paintPage } from "@/server/claude";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
+import { guard } from "@/server/limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -14,6 +15,8 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const parsed = parseIllustrateRequest(await req.json().catch(() => null));
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
+  const g = await guard("illustrate");
+  if (!g.ok) return g.response;
 
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
