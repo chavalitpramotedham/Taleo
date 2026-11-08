@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { MicIcon } from "./Icons";
+import { MicIcon, StopIcon } from "./Icons";
 import { holdMusic } from "@/lib/music";
 
 // Minimal typing for the (still vendor-prefixed) Web Speech API.
@@ -13,7 +13,7 @@ interface SpeechRecognitionLike {
   stop(): void;
   abort(): void;
   onstart: (() => void) | null;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((e: { resultIndex?: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }> }) => void) | null;
   onend: (() => void) | null;
   onerror: ((e: { error?: string }) => void) | null;
 }
@@ -26,35 +26,40 @@ function recognitionCtor(): Ctor | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
-// Only one recogniser may be live in the whole app at a time: browsers
-// refuse (or silently fail) to start a second while the first is still
-// shutting down - the classic "works once, then stops working".
-let active: { rec: SpeechRecognitionLike; finish: () => void } | null = null;
+/** Longest a single dictation may stay open (a safety net if left on). */
+const MAX_MS = 3 * 60 * 1000;
+/** If the browser hasn't confirmed it's listening by then, give up. */
+const START_TIMEOUT_MS = 5000;
+/** A pause before reopening the mic after the browser closed it. */
+const RESTART_DELAY_MS = 250;
+/** Too many failed reopenings in a row: stop rather than loop. */
+const MAX_RESTART_FAILS = 4;
 
-/** How long silence may last after speech before we wrap up ourselves -
- *  some browsers (iOS Safari especially) never end on their own. */
-const SILENCE_MS = 2200;
-/** Longest a single dictation may run. */
-const MAX_MS = 20000;
-/** If the browser hasn't confirmed it's listening by then, start over. */
-const START_TIMEOUT_MS = 4000;
-/** After asking it to stop, wait this long for its end event before forcing it. */
-const STOP_GRACE_MS = 900;
+const tidy = (s: string) => s.replace(/\s+/g, " ").trim();
 
-/** Microphone button that fills a text field by voice (hidden if unsupported). */
+/** Only one dictation may be live in the whole app at a time (browsers
+ *  refuse a second recogniser while the first is still shutting down). */
+let activeStop: (() => void) | null = null;
+
+/**
+ * Microphone button that fills a text field by voice (hidden if
+ * unsupported). Tap it and it becomes a stop button: it keeps listening -
+ * pauses and all - until tapped again. Browsers close the microphone on
+ * their own after a silence, so whenever that happens mid-dictation a new
+ * recogniser is opened straight away and carries on from the words already
+ * heard. Tapping stop always ends it cleanly, whatever state it's in.
+ */
 export function DictateButton({ onText, label = "Speak" }: { onText: (text: string) => void; label?: string }) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
-  const mine = useRef<SpeechRecognitionLike | null>(null);
   const onTextRef = useRef(onText);
   onTextRef.current = onText;
+  const stopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     setSupported(Boolean(recognitionCtor()));
-    return () => {
-      if (active && active.rec === mine.current) active.finish();
-    };
+    return () => stopRef.current?.();
   }, []);
 
   if (!supported) return null;
@@ -62,97 +67,122 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
   const start = () => {
     const Rec = recognitionCtor();
     if (!Rec) return;
-    // Tidy up anything still running (ours from a previous tap, or another
-    // field's), without waiting for it - its own timers are cleared too.
-    active?.finish();
+    activeStop?.(); // end any other field's dictation first
 
-    const rec = new Rec();
-    rec.lang = navigator.language || "en-GB";
-    rec.interimResults = true;
-    rec.continuous = false;
-    rec.maxAlternatives = 1;
+    let stopped = false;
+    let committed = ""; // words from earlier sessions of this dictation
+    let rec: SpeechRecognitionLike | null = null;
+    let fails = 0;
+    let heard = false; // the browser confirmed it's listening at least once
+    const timers = new Set<number>();
+    const later = (fn: () => void, ms: number) => {
+      const t = window.setTimeout(() => {
+        timers.delete(t);
+        fn();
+      }, ms);
+      timers.add(t);
+    };
 
-    const timers: number[] = [];
-    let silence: number | undefined;
-    let ended = false;
-    const finish = () => {
-      if (ended) return;
-      ended = true;
-      timers.forEach((t) => window.clearTimeout(t));
-      window.clearTimeout(silence);
-      rec.onstart = rec.onresult = rec.onend = rec.onerror = null;
+    const detach = (r: SpeechRecognitionLike | null) => {
+      if (!r) return;
+      r.onstart = r.onresult = r.onend = r.onerror = null;
       try {
-        rec.abort();
+        r.abort();
       } catch {}
-      if (active?.rec === rec) active = null;
-      if (mine.current === rec) {
-        mine.current = null;
-        setListening(false);
+    };
+
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      timers.forEach((t) => window.clearTimeout(t));
+      timers.clear();
+      const r = rec;
+      rec = null;
+      if (r) {
+        // Ask it to finish (so the last words come through), then let go.
+        r.onend = r.onerror = r.onstart = null;
+        try {
+          r.stop();
+        } catch {}
+        window.setTimeout(() => detach(r), 1200);
       }
-      // Let the background music back in now the mic is closed.
+      if (activeStop === stop) activeStop = null;
+      if (stopRef.current === stop) stopRef.current = null;
+      setListening(false);
       holdMusic("mic", false);
     };
 
-    rec.onstart = () => {
-      window.clearTimeout(timers[0]);
-    };
-    rec.onresult = (e) => {
-      const text = Array.from(e.results)
-        .map((r) => r[0]?.transcript ?? "")
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
-      if (text) onTextRef.current(text);
-      // Wrap up after a pause in speaking, in case the browser doesn't.
-      window.clearTimeout(silence);
-      silence = window.setTimeout(() => {
-        try {
-          rec.stop();
-        } catch {}
-        timers.push(window.setTimeout(finish, STOP_GRACE_MS));
-      }, SILENCE_MS);
-    };
-    rec.onend = finish;
-    rec.onerror = (e) => {
-      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") {
-        setHint("Allow microphone access to use your voice.");
-      } else if (e?.error === "audio-capture") {
-        setHint("The microphone is busy. Try again in a moment.");
-      } else if (e?.error === "network") {
-        setHint("Voice typing needs an internet connection.");
+    const open = () => {
+      if (stopped) return;
+      const r = new Rec();
+      rec = r;
+      r.lang = navigator.language || "en-GB";
+      r.interimResults = true;
+      r.continuous = true;
+      r.maxAlternatives = 1;
+      let session = "";
+
+      r.onstart = () => {
+        heard = true;
+        fails = 0;
+      };
+      r.onresult = (e) => {
+        session = tidy(
+          Array.from(e.results)
+            .map((x) => x[0]?.transcript ?? "")
+            .join(" "),
+        );
+        const text = tidy(`${committed} ${session}`);
+        if (text) onTextRef.current(text);
+      };
+      r.onerror = (e) => {
+        const err = e?.error;
+        if (err === "not-allowed" || err === "service-not-allowed") {
+          setHint(heard ? "Tap the mic to carry on." : "Allow microphone access to use your voice.");
+          stop();
+        } else if (err === "audio-capture") {
+          setHint("The microphone is busy. Try again in a moment.");
+          stop();
+        } else if (err === "network") {
+          setHint("Voice typing needs an internet connection.");
+          stop();
+        }
+        // "no-speech" / "aborted": the end event follows and reopens.
+      };
+      r.onend = () => {
+        if (stopped || rec !== r) return;
+        // The browser closed the mic (usually after a silence): keep what
+        // was heard and open a fresh one to carry on listening.
+        committed = tidy(`${committed} ${session}`);
+        detach(r);
+        rec = null;
+        if (++fails > MAX_RESTART_FAILS) {
+          setHint("Tap the mic to carry on.");
+          return stop();
+        }
+        later(open, RESTART_DELAY_MS);
+      };
+
+      try {
+        r.start();
+      } catch {
+        detach(r);
+        rec = null;
+        if (++fails > MAX_RESTART_FAILS) return stop();
+        later(open, RESTART_DELAY_MS * 2);
       }
-      finish();
     };
 
     // Pause the background music while the mic is open: on phones, music
     // playing can stop the microphone from starting.
     holdMusic("mic", true, { pause: true });
-    active = { rec, finish };
-    mine.current = rec;
+    activeStop = stop;
+    stopRef.current = stop;
     setHint(null);
     setListening(true);
-    timers.push(window.setTimeout(finish, START_TIMEOUT_MS));
-    timers.push(window.setTimeout(finish, MAX_MS));
-    try {
-      rec.start();
-    } catch {
-      finish();
-    }
-  };
-
-  const stop = () => {
-    const rec = mine.current;
-    if (!rec || !active || active.rec !== rec) {
-      // The UI thought it was listening but nothing is: just reset.
-      setListening(false);
-      return;
-    }
-    const { finish } = active;
-    try {
-      rec.stop();
-    } catch {}
-    // Don't trust the end event to arrive: force the reset shortly after.
-    window.setTimeout(finish, STOP_GRACE_MS);
+    later(() => !heard && (setHint("Couldn't start the microphone. Try again?"), stop()), START_TIMEOUT_MS);
+    later(stop, MAX_MS);
+    open();
   };
 
   return (
@@ -160,11 +190,12 @@ export function DictateButton({ onText, label = "Speak" }: { onText: (text: stri
       <button
         type="button"
         className={`mic ${listening ? "listening" : ""}`}
-        onClick={listening ? stop : start}
+        onClick={() => (listening ? stopRef.current?.() ?? setListening(false) : start())}
         aria-label={listening ? "Stop listening" : label}
+        aria-pressed={listening}
         title={listening ? "Listening… tap to stop" : label}
       >
-        <MicIcon />
+        {listening ? <StopIcon /> : <MicIcon />}
       </button>
       {hint && (
         <span className="mic-hint" role="status">

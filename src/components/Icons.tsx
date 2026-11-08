@@ -18,6 +18,13 @@ export const MicIcon = () => (
   </svg>
 );
 
+/** Stop listening: a soft rounded square. */
+export const StopIcon = () => (
+  <svg {...base}>
+    <rect x="7" y="7" width="10" height="10" rx="2.5" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 export const SpeakerIcon = ({ on }: { on: boolean }) => (
   <svg {...base}>
     <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
