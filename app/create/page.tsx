@@ -9,6 +9,7 @@ import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { SideScroll } from "@/components/SideScroll";
+import { GrowingInput } from "@/components/GrowingInput";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { PageLoading } from "@/components/PageLoading";
@@ -340,13 +341,12 @@ export default function CreatePage() {
             <p className="meta">Say it out loud, or type it: &ldquo;the moon has lost its hat&rdquo;.</p>
             <div className="field-row">
               <DictateButton onText={setThemeText} label="Say your idea" />
-              <input
-                className="input"
+              <GrowingInput
                 value={themeText}
                 maxLength={160}
                 placeholder="The moon has lost its hat…"
-                onChange={(e) => setThemeText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && next()}
+                onChange={setThemeText}
+                onEnter={next}
                 aria-label="Your own story idea"
               />
             </div>

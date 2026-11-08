@@ -4,6 +4,7 @@ import type { CharacterDef, CharacterGender, CharacterResponse, SavedCharacter }
 import { GenderPicker } from "@/components/GenderPicker";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
+import { GrowingInput } from "@/components/GrowingInput";
 import { LeafLoader, MapleMark } from "@/components/Icons";
 import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
 
@@ -100,13 +101,12 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
             <p className="meta">Say it out loud, or type it: &ldquo;a little purple giraffe with spotty socks&rdquo;.</p>
             <div className="field-row">
               <DictateButton onText={setDescription} label="Describe by voice" />
-              <input
-                className="input"
+              <GrowingInput
                 value={description}
                 maxLength={200}
                 placeholder="A sleepy hedgehog who loves pancakes…"
-                onChange={(e) => setDescription(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && draw()}
+                onChange={setDescription}
+                onEnter={draw}
                 aria-label="Describe your character"
               />
             </div>
@@ -136,12 +136,11 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
             <GenderPicker value={gender} onChange={setGender} disabled={confirming} />
             <p className="meta">Not quite right? Edit the description and paint them again.</p>
             <div className="field-row">
-              <input
-                className="input"
+              <GrowingInput
                 value={description}
                 maxLength={200}
-                onChange={(e) => setDescription(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && draw()}
+                onChange={setDescription}
+                onEnter={draw}
                 aria-label="Describe your character"
               />
               <button type="button" className="btn btn-soft" onClick={draw} disabled={!description.trim() || drawing}>

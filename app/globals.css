@@ -5413,34 +5413,40 @@ html[data-night] .gender-opt.open.on {
 }
 
 /* ---------- your characters, on phones: a sliding row ---------- */
-/* Three and a half cards in view (so names fit and the half card says
-   "there's more"), sliding sideways with an arrow on the right. */
+/* About three and a quarter cards in view (names fit, and the cut-off card
+   says "there's more"), sliding sideways with arrows either side. The row
+   stops as soon as the last card is fully in view. */
 .side-scroll {
   position: relative;
 }
-.side-scroll-more {
+.side-scroll-btn {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
 }
-.side-scroll.has-more .side-scroll-more {
+.side-scroll.has-more .side-scroll-next,
+.side-scroll.has-less .side-scroll-prev {
   opacity: 1;
   pointer-events: auto;
+}
+.side-scroll .side-scroll-prev {
+  right: auto;
+  left: -10px;
 }
 @media (max-width: 640px) {
   .hero-slots {
     display: grid;
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: calc((100% - 3 * 8px) / 3.5);
+    grid-auto-columns: calc((100% - 3 * 8px) / 3.25);
     gap: 8px;
     max-width: none;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
-    /* room for the selected badge, which pokes out above the corner */
-    padding: 10px 10px 4px 2px;
-    margin: -10px -10px 0 -2px;
+    /* room for the selected badge above the corner, inside the row */
+    padding: 10px 2px 4px;
   }
   .hero-slots::-webkit-scrollbar {
     display: none;
@@ -5448,10 +5454,17 @@ html[data-night] .gender-opt.open.on {
   .hero-slot {
     scroll-snap-align: start;
   }
-  .hero-slot-name {
-    font-size: 0.86rem;
+  .hero-slot:last-child {
+    scroll-snap-align: end;
   }
-  .side-scroll-more {
+  .hero-slot.selected::after {
+    top: -8px;
+    right: -6px;
+  }
+  .hero-slot-name {
+    font-size: 0.9rem;
+  }
+  .side-scroll .side-scroll-next {
     right: -10px;
   }
 }
@@ -5499,4 +5512,41 @@ html[data-night] .gender-opt.open.on {
 }
 .draft-prompt .story-preview-actions {
   margin-top: 8px;
+}
+
+/* Age choices: never two to a row - three on phones, all six in one row
+   once there's room. */
+.ages {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (min-width: 760px) {
+  .ages {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .ages {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .ages .plate {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .ages .plate-sub {
+    font-size: 0.8rem;
+  }
+}
+
+/* Idea and description boxes wrap long text and grow to show all of it. */
+.growing-input {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.35;
+  min-height: 0;
+  font-family: inherit;
+  display: block;
+}
+.field-row:has(.growing-input) {
+  align-items: flex-start;
 }

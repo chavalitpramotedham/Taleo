@@ -11,6 +11,7 @@ import { cancelSpeech, prefetchSpeech, setSpeechStory, speakText, unlockSpeech }
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
+import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
@@ -525,13 +526,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
           <>
             <div className="field-row">
               <DictateButton onText={setCustomIdea} label="Say your idea" />
-              <input
-                className="input"
+              <GrowingInput
                 value={customIdea}
                 maxLength={160}
                 placeholder="Say it out loud, or type your own idea…"
-                onChange={(e) => setCustomIdea(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && choose(customIdea, true)}
+                onChange={setCustomIdea}
+                onEnter={() => customIdea.trim() && !busy && choose(customIdea, true)}
                 aria-label="Your own idea for what happens next"
               />
               <button className="btn btn-primary" disabled={!customIdea.trim() || busy} onClick={() => choose(customIdea, true)}>

@@ -1,4 +1,4 @@
-export type AgeId = "1.5-2" | "2-3" | "3-4" | "4-5" | "5-6";
+export type AgeId = "1.5-2" | "2-3" | "3-4" | "4-5" | "5-6" | "6+";
 
 export interface AgeLevel {
   id: AgeId;
@@ -108,6 +108,22 @@ export const AGES: AgeLevel[] = [
       "'Big words' that stretch vocabulary, with the meaning made obvious by the sentence and the picture (astonished, tremble, gallop, discover, enormous, cautiously, triumphant). Feelings and describing words are welcome, not just actions. No sound-effect words.",
     guide:
       "Early readers. 3-5 sentences per page. Lively dialogue with distinct character voices, jokes that play with words, a plot with a twist, and characters who learn something. Varied sentence lengths and vivid verbs. Choices can be tricky dilemmas with no wrong answer.",
+  },
+  {
+    id: "6+",
+    label: "6+",
+    blurb: "Young readers",
+    emoji: "📚",
+    choices: 3,
+    pagesPerSegment: [4, 6],
+    words: [60, 100],
+    optionCount: 3,
+    recommendedMinutes: 8,
+    secondsPerPage: 28,
+    vocab:
+      "Ambitious 'story words' a confident 6-8 year old reader enjoys learning, clear from the sentence and picture: vivid verbs, precise describing words and feelings (bewildered, determined, clambered, murmured, glimmering, reluctant, magnificent, whispered). No sound-effect words, and nothing so rare it needs a dictionary.",
+    guide:
+      "Confident young readers (about 6-8), the most advanced level - more like the opening of a beloved chapter book than a toddler's picture book. 5-7 sentences per page with varied rhythm: some long, flowing sentences and some short punchy ones for effect. A real plot that builds: a clear goal, a problem that gets harder, a turning point and a satisfying, earned resolution, with genuine (gentle) suspense, a mystery or a surprise twist, and small details planted early that pay off later. Characters have distinct voices and personalities, mixed feelings (nervous but brave, cross then sorry) and grow by the end. Humour can be cleverer - wordplay, irony the child is in on, running jokes. The heart of the story can be more thoughtful (fairness, honesty when it's hard, seeing someone else's side, perseverance, owning a mistake), shown through choices with real consequences rather than told. Choices are genuine dilemmas where each path has a cost or trade-off, and the story honours whichever is chosen. Still warm, safe and bedtime-calm at the end; no real danger, cruelty or scary villains.",
   },
 ];
 

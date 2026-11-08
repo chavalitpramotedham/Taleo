@@ -62,7 +62,7 @@ const FAMILY_OF: Record<MotionId, keyof typeof FAMILIES> = {
   zoom: "travel", dash: "travel",
 };
 
-const AGE_LEVEL: Record<string, number> = { "1.5-2": 1, "2-3": 2, "3-4": 3, "4-5": 4, "5-6": 5 };
+const AGE_LEVEL: Record<string, number> = { "1.5-2": 1, "2-3": 2, "3-4": 3, "4-5": 4, "5-6": 5, "6+": 5 };
 export const ageLevel = (ageId: string) => AGE_LEVEL[ageId] ?? 3;
 
 /** The version of a motion that suits the reader's age. */

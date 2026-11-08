@@ -27,6 +27,9 @@ const VOLUME = 0.35;
 
 let el: HTMLAudioElement | null = null;
 let wanted = false;
+/** Muted = paused (not just silenced): nothing keeps playing, and nothing
+ *  tries to bring it back until it's unmuted. */
+let mutedByUser = false;
 let retryArmed = false;
 
 // ---- staying alive through other sounds ----
@@ -54,7 +57,7 @@ function silenced(p: HTMLAudioElement) {
 
 function ensurePlaying() {
   const p = el;
-  if (!wanted || !p) return stopWatchdog();
+  if (!wanted || mutedByUser || !p) return stopWatchdog();
   if (!silenced(p)) return stopWatchdog();
   if (holds.size) return; // try again on the next tick
   if (gain) getAudioContext(); // asks a suspended/interrupted context to resume
@@ -174,7 +177,7 @@ function player(): HTMLAudioElement | null {
       }
     }
     if (!gain) el.volume = level();
-    el.addEventListener("pause", () => wanted && startWatchdog());
+    el.addEventListener("pause", () => wanted && !mutedByUser && startWatchdog());
     if (gain) {
       gain.context.addEventListener("statechange", () => {
         if (wanted && gain && gain.context.state !== "running") startWatchdog();
@@ -196,7 +199,7 @@ function armRetry() {
     window.removeEventListener("pointerdown", retry);
     window.removeEventListener("keydown", retry);
     // Not while the mic is open: grabbing the speaker could end dictation.
-    if (wanted && !holds.has("mic")) {
+    if (wanted && !mutedByUser && !holds.has("mic")) {
       if (gain) getAudioContext();
       void player()?.play().catch(() => {});
     }
@@ -207,7 +210,7 @@ function armRetry() {
 
 function tryPlay() {
   const p = player();
-  if (!p) return;
+  if (!p || mutedByUser) return;
   if (gain) getAudioContext(); // wakes a suspended context (it carries the music)
   p.play().catch(armRetry);
 }
@@ -234,11 +237,20 @@ export function stopMusic() {
   }
 }
 
+/** Muting pauses the music. Unmuting carries on: the same tune from where
+ *  it stopped, or - if a different tune was picked while muted - the new
+ *  one from its start (playMusic already loaded it, without playing). */
 export function setMusicMuted(muted: boolean) {
+  mutedByUser = muted;
   const p = player();
   if (!p) return;
-  p.muted = muted;
-  // Unmuting is itself a tap, so it's a good moment to recover from a
-  // blocked autoplay.
-  if (!muted && wanted && p.paused) tryPlay();
+  p.muted = false;
+  if (muted) {
+    stopWatchdog();
+    p.pause();
+  } else if (wanted) {
+    // Unmuting is itself a tap, so it's also a good moment to recover
+    // from a blocked autoplay.
+    tryPlay();
+  }
 }
