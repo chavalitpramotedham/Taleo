@@ -83,8 +83,10 @@ export interface Story {
   /** @deprecated superseded by per-user RatingRecord; kept only so very old local drafts still load. */
   rating: number;
   demo?: boolean;
-  /** Mirrored to the public story store once finished and fully painted. */
+  /** Mirrored to the public story store (possibly early, e.g. to share or rate it before every page is painted). */
   published?: boolean;
+  /** The store copy includes every finished painting. */
+  publishedPainted?: boolean;
   /** Community rating, mirrored from the store once published. */
   ratingSum?: number;
   ratingCount?: number;

@@ -47,14 +47,14 @@ export function useRating(id: string, initial: RatingAggregate) {
     const res = await fetch(`/api/gallery/${id}/rate`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ rating, comment }),
+      body: JSON.stringify({ rating, comment: comment.trim() }),
     });
-    const data = await res.json();
-    if (!res.ok) return data.error || "Couldn't save your rating.";
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.record) return data.error || "Couldn't save your rating.";
     setMine(data.record);
     setAgg({ ratingSum: data.ratingSum, ratingCount: data.ratingCount });
     return null;
   };
 
-  return { mine, agg, loaded, submit, canRate: Boolean(session?.user) && !mine };
+  return { mine, agg, loaded, submit };
 }

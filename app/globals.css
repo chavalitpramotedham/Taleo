@@ -1469,18 +1469,70 @@ main {
   margin: 0;
   line-height: 1;
 }
-.rate {
+/* End-of-story rating: its own floating panel above the nav row, closable
+   and minimising to a pill. */
+.rating-panel,
+.rating-pill {
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 45;
+}
+.rating-panel {
+  width: min(400px, calc(100% - 32px));
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
+  padding: 14px 18px 18px;
+  background: var(--page);
+  border: 1px solid var(--rule-strong);
+  box-shadow: var(--shadow);
+  animation: pageIn 0.3s ease both;
 }
-.rate-block {
+.rating-panel-head {
+  width: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+.rating-panel-head h3 {
+  margin: 0;
+}
+.rating-panel .comment-input {
+  max-width: none;
+}
+.rating-panel .rating-summary,
+.rating-panel .rating-note {
+  margin: 0;
+}
+.rating-pill {
+  width: fit-content;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  box-shadow: var(--shadow);
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.rating-pill svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--ochre);
+  stroke: var(--ochre);
+}
+.rating-pill:hover {
+  border-color: var(--russet);
+  color: var(--russet);
 }
 .comment-input {
   width: 100%;

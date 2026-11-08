@@ -154,15 +154,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     }
   }, [busy, views.length]);
 
-  // Once a story is finished and every page is painted, it joins the public story store.
+  // Once a story is finished and every page is painted, it joins the public
+  // story store - or, if it was already published early (to share or rate
+  // it), the store copy is refreshed with the finished paintings.
   const publishedRef = useRef(false);
   useEffect(() => {
-    if (readOnly || publishedRef.current || story.published || story.status !== "complete") return;
+    if (readOnly || publishedRef.current || story.publishedPainted || story.status !== "complete") return;
     const pages = allPages(story);
     if (pages.length === 0 || !pages.every((p) => p.svg)) return;
     publishedRef.current = true;
     void publishToGallery(story).then((ok) => {
-      if (ok) update?.((cur) => ({ ...cur, published: true }));
+      if (ok) update?.((cur) => ({ ...cur, published: true, publishedPainted: true }));
     });
   }, [story, readOnly, update]);
 
@@ -193,7 +195,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && overviewOpen) return setOverviewOpen(false);
-      if ((e.target as HTMLElement)?.tagName === "INPUT" || overviewOpen) return;
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName) || overviewOpen) return;
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
     };
@@ -236,7 +238,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   const ensurePublished = async () => {
     if (story.published) return;
     const ok = await publishToGallery(story);
-    if (ok) update?.((cur) => ({ ...cur, published: true }));
+    if (!ok) throw new Error("Couldn't publish the story.");
+    update?.((cur) => ({ ...cur, published: true }));
   };
 
   const shareLink = () => storeUrl(story.id, window.location.origin);
@@ -251,12 +254,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
   };
 
   const copyLink = async () => {
-    await ensurePublished();
+    await ensurePublished().catch(() => {});
     await copyToClipboard(shareLink());
   };
 
   const share = async () => {
-    await ensurePublished();
+    await ensurePublished().catch(() => {});
     const url = shareLink();
     const data = { title: story.title, text: `A Taleo story: “${story.title}”`, url };
     try {
@@ -406,10 +409,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
       <div className="the-end page-anim">
         <p className="end-title">The End</p>
         <Ornament className="ornament" />
-        <div className="rate">
-          <p className="meta">{readOnly ? "Rate this story" : "Did you enjoy it?"}</p>
-          <RateAndComment storyId={story.id} initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }} />
-        </div>
         <div className="end-actions">
           <button className="btn btn-soft" onClick={() => setIndex(0)}>
             Read it again
@@ -542,6 +541,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             </div>
           </div>
         </div>
+      )}
+      {view?.kind === "end" && (
+        <RateAndComment
+          storyId={story.id}
+          initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }}
+          prepare={readOnly ? undefined : ensurePublished}
+        />
       )}
       {toast && <div className="toast">{toast}</div>}
     </div>

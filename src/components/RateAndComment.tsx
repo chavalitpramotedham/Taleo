@@ -1,65 +1,114 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { formatRating, useRating, type RatingAggregate } from "@/lib/useRating";
 import { StarRating } from "./StarRating";
+import { LeafLoader, StarGlyph } from "./Icons";
 
-export function RateAndComment({ storyId, initial }: { storyId: string; initial: RatingAggregate }) {
+/** The end-of-story rating, as its own floating panel: pick stars, add an
+ *  optional comment, then submit both together. Closable with ✕, and it
+ *  minimises to a small pill once submitted (tap the pill to reopen it and
+ *  see what you rated). One rating per reader per story, locked after
+ *  submitting. `prepare` runs first so the rating has a published story
+ *  to attach to (a story only reaches the store once fully painted). */
+export function RateAndComment({
+  storyId,
+  initial,
+  prepare,
+}: {
+  storyId: string;
+  initial: RatingAggregate;
+  prepare?: () => Promise<void>;
+}) {
   const { data: session } = useSession();
-  const { mine, agg, loaded, submit, canRate } = useRating(storyId, initial);
+  const { mine, agg, loaded, submit } = useRating(storyId, initial);
+  const [open, setOpen] = useState<boolean | null>(null);
   const [draft, setDraft] = useState(0);
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const go = async (rating: number) => {
-    setDraft(rating);
+  // Start open for anyone who hasn't rated yet, minimised for those who have.
+  useEffect(() => {
+    if (loaded && open === null) setOpen(!mine);
+  }, [loaded, mine, open]);
+
+  const send = async () => {
+    if (!draft || busy) return;
     setBusy(true);
     setError(null);
-    const err = await submit(rating, comment);
-    if (err) setError(err);
-    setBusy(false);
+    try {
+      await prepare?.();
+      const err = await submit(draft, comment);
+      if (err) setError(err);
+      else setOpen(false);
+    } catch {
+      setError("Couldn't save your rating. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (!loaded) return null;
+  if (!loaded || open === null) return null;
 
-  if (mine) {
+  if (!open) {
     return (
-      <div className="rate-block">
-        <StarRating value={mine.rating} />
-        <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
-        <p className="meta">You rated this {mine.rating} star{mine.rating === 1 ? "" : "s"}{mine.comment ? ":" : "."}</p>
-        {mine.comment && <p className="my-comment">&ldquo;{mine.comment}&rdquo;</p>}
-      </div>
-    );
-  }
-
-  if (!session?.user) {
-    return (
-      <div className="rate-block">
-        <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
-        <p className="meta">
-          <Link href={`/sign-in?next=/store/${storyId}`}>Sign in</Link> to rate this story.
-        </p>
-      </div>
+      <button type="button" className="rating-pill" onClick={() => setOpen(true)}>
+        <StarGlyph />
+        {mine ? `You rated ${mine.rating}` : "Rate this story"}
+      </button>
     );
   }
 
   return (
-    <div className="rate-block">
-      <StarRating value={draft} onChange={canRate ? go : undefined} />
-      <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
-      <textarea
-        className="input comment-input"
-        placeholder="Leave a comment with your rating (optional)…"
-        maxLength={500}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        disabled={busy}
-      />
-      <p className="meta">Tap a star above to submit your rating{comment.trim() ? " and comment" : ""} — this can&apos;t be changed afterwards.</p>
+    <section className="rating-panel" aria-label="Rate this story">
+      <div className="rating-panel-head">
+        <h3>{mine ? "Your rating" : "Rate this story"}</h3>
+        <button type="button" className="icon-btn" onClick={() => setOpen(false)} aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      {mine ? (
+        <>
+          <StarRating value={mine.rating} />
+          {mine.comment && <p className="my-comment">&ldquo;{mine.comment}&rdquo;</p>}
+          <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
+        </>
+      ) : !session?.user ? (
+        <>
+          <p className="meta rating-summary">{formatRating(agg.ratingSum, agg.ratingCount)}</p>
+          <p className="meta">
+            <Link href={`/sign-in?next=/store/${storyId}`}>Sign in</Link> to rate this story.
+          </p>
+        </>
+      ) : (
+        <>
+          <StarRating value={draft} onChange={busy ? undefined : setDraft} />
+          <textarea
+            className="input comment-input"
+            placeholder="Add a comment (optional)…"
+            maxLength={500}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            disabled={busy}
+          />
+          <button type="button" className="btn btn-primary btn-block" onClick={send} disabled={!draft || busy}>
+            {busy ? (
+              <>
+                <LeafLoader size={18} /> Saving…
+              </>
+            ) : draft ? (
+              `Submit ${draft} star${draft === 1 ? "" : "s"}`
+            ) : (
+              "Tap the stars to rate"
+            )}
+          </button>
+          <p className="meta rating-note">Ratings can&apos;t be changed after submitting.</p>
+        </>
+      )}
       {error && <p className="error">{error}</p>}
-    </div>
+    </section>
   );
 }
