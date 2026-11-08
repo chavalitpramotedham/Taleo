@@ -19,11 +19,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       // Username can change after the token was minted (right after sign-up),
       // so always re-read it rather than trusting a stale cached value.
+      // If the profile can't be read right now (a storage hiccup), keep what
+      // the token already has rather than blanking the username and picture.
       if (token.uid) {
-        const profile = await getUser(token.uid as string);
-        token.username = profile?.username ?? null;
-        token.isAdmin = profile?.isAdmin ?? false;
-        token.avatarKey = profile?.avatarKey ?? null;
+        const profile = await getUser(token.uid as string).catch(() => null);
+        if (profile) {
+          token.username = profile.username ?? null;
+          token.isAdmin = profile.isAdmin ?? false;
+          token.avatarKey = profile.avatarKey ?? null;
+        }
       }
       return token;
     },
