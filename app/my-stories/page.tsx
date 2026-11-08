@@ -10,6 +10,7 @@ import { MapleMark, StarGlyph } from "@/components/Icons";
 import { StoryCard } from "@/components/StoryCard";
 import { PreviewButtons, StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
+import { CategoryFilter, categoriesOf, matchesCategory } from "@/components/CategoryFilter";
 import { PageLoading } from "@/components/PageLoading";
 
 type Sort = "recent" | "rating";
@@ -20,6 +21,7 @@ export default function MyStoriesPage() {
   const router = useRouter();
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<Sort>("recent");
+  const [category, setCategory] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,9 +36,15 @@ export default function MyStoriesPage() {
   }, [status]);
 
   const sorted = useMemo(
-    () => (stories ? [...stories].sort((a, b) => (sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt)) : []),
-    [stories, sort],
+    () =>
+      stories
+        ? [...stories]
+            .filter((e) => matchesCategory(e, category))
+            .sort((a, b) => (sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt))
+        : [],
+    [stories, sort, category],
   );
+  const categories = useMemo(() => categoriesOf(stories ?? []), [stories]);
 
   const [openId, setOpenId] = useState<string | null>(null);
   const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
@@ -61,6 +69,12 @@ export default function MyStoriesPage() {
             <button className={`chip ${sort === "rating" ? "on" : ""}`} onClick={() => setSort("rating")}>
               Favourites
             </button>
+            {categories.length > 1 && (
+              <>
+                <span className="filter-split" aria-hidden />
+                <CategoryFilter options={categories} value={category} onChange={setCategory} />
+              </>
+            )}
           </div>
         )}
       </header>

@@ -6110,14 +6110,144 @@ html.brand-live .leaf-whirl {
   }
 }
 /* An author's bookshelf: their avatar beside their @name under the title. */
-.author-sub {
+.author-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
 }
 .author-avatar {
-  width: 36px;
-  height: 36px;
+  width: 1.15em;
+  height: 1.15em;
   flex: none;
+}
+
+/* ---------- shelf category filter ---------- */
+/* A thin upright rule splits the sort pills (Favourites / Newest) from the
+   category filter, which narrows the shelf without changing its order. */
+.filter-split {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--rule-strong);
+}
+.category-chip {
+  display: inline-flex;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+.category-chip button {
+  background: none;
+  border: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.category-chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px 6px;
+  white-space: nowrap;
+}
+.category-chip.on .category-chip-label {
+  padding-right: 6px;
+}
+.category-chip-clear {
+  display: grid;
+  place-items: center;
+  padding: 0 12px 0 6px;
+  opacity: 0.85;
+}
+.category-chip-clear:active {
+  opacity: 0.6;
+}
+.category-caret {
+  transition: transform 0.15s ease;
+}
+.category-caret.up {
+  transform: rotate(180deg);
+}
+.category-menu {
+  border-radius: 14px;
+  min-width: 180px;
+  max-height: min(60vh, 360px);
+  z-index: 60;
+  animation: fadeIn 0.12s ease both;
+}
+/* Phones: keep sort + split + category on one line without scrolling. */
+@media (max-width: 440px) {
+  .filter-row:has(.category-chip) {
+    gap: 6px;
+  }
+  .filter-row:has(.category-chip) .chip,
+  .filter-row .category-chip-label {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .filter-row .category-chip {
+    padding: 0;
+  }
+  .filter-row .category-chip.on .category-chip-label {
+    padding-right: 4px;
+  }
+  .filter-row .category-chip-clear {
+    padding: 0 10px 0 4px;
+  }
+  .filter-split {
+    margin: 0 2px;
+  }
+}
+@media (max-width: 440px) {
+  .filter-row:has(.category-chip) .chip {
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .filter-row .category-chip {
+    padding: 0;
+  }
+  .filter-row .category-chip-label {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 4px;
+  }
+}
+/* (narrow phones: just "Category", so the row still fits on one line) */
+.category-short {
+  display: none;
+}
+@media (max-width: 380px) {
+  .category-long {
+    display: none;
+  }
+  .category-short {
+    display: inline;
+  }
+}
+@media (max-width: 380px) {
+  .filter-row:has(.category-chip) {
+    gap: 5px;
+  }
+  .filter-row:has(.category-chip) .chip,
+  .filter-row .category-chip-label {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 0.86rem;
+  }
+  .filter-row .category-chip {
+    padding: 0;
+  }
+  .filter-row .category-chip.on .category-chip-label {
+    padding-right: 3px;
+  }
+  .filter-row .category-chip-clear {
+    padding: 0 8px 0 3px;
+  }
 }

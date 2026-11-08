@@ -9,6 +9,7 @@ import { MapleMark } from "@/components/Icons";
 import { StoryCard } from "./StoryCard";
 import { PreviewButtons, StoryPreview, summaryFromEntry } from "./StoryPreview";
 import { MyRatingNote } from "./InlineRating";
+import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "./PageLoading";
 
@@ -17,7 +18,7 @@ export type GallerySort = "recent" | "rating";
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
 
 /** Favourites / Newest pill toggle. */
-export function SortPills({ sort, onChange }: { sort: GallerySort; onChange: (s: GallerySort) => void }) {
+export function SortPills({ sort, onChange, children }: { sort: GallerySort; onChange: (s: GallerySort) => void; children?: React.ReactNode }) {
   return (
     <div className="filter-row" role="tablist">
       <button role="tab" aria-selected={sort === "rating"} className={`chip ${sort === "rating" ? "on" : ""}`} onClick={() => onChange("rating")}>
@@ -26,6 +27,12 @@ export function SortPills({ sort, onChange }: { sort: GallerySort; onChange: (s:
       <button role="tab" aria-selected={sort === "recent"} className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => onChange("recent")}>
         Newest
       </button>
+      {children && (
+        <>
+          <span className="filter-split" aria-hidden />
+          {children}
+        </>
+      )}
     </div>
   );
 }
@@ -47,6 +54,8 @@ export function GalleryShelf({
 }) {
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<GallerySort>("rating");
+  // Category filter (full shelves only - not the homepage's top few).
+  const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -81,8 +90,8 @@ export function GalleryShelf({
     const list = [...stories].sort((a, b) =>
       sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt,
     );
-    return limit ? list.slice(0, limit) : list;
-  }, [stories, sort, limit]);
+    return limit ? list.slice(0, limit) : list.filter((e) => matchesCategory(e, category));
+  }, [stories, sort, limit, category]);
 
   const [openId, setOpenId] = useState<string | null>(null);
   const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
@@ -92,7 +101,13 @@ export function GalleryShelf({
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  const pills = stories && stories.length > 1 ? <SortPills sort={sort} onChange={setSort} /> : null;
+  const categories = useMemo(() => (stories && !limit ? categoriesOf(stories) : []), [stories, limit]);
+  const pills =
+    stories && stories.length > 1 ? (
+      <SortPills sort={sort} onChange={setSort}>
+        {categories.length > 1 && <CategoryFilter options={categories} value={category} onChange={setCategory} />}
+      </SortPills>
+    ) : null;
 
   return (
     <>

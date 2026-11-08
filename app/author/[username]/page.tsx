@@ -30,11 +30,11 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
         headClass="wizard-head"
         heading={
           <>
-            <h1>Bookshelf</h1>
-            <p className="sub author-sub">
+            <h1 className="author-title">
               {profile?.avatarKey && <Avatar avatarKey={profile.avatarKey} className="author-avatar" />}
-              <span>@{shown}</span>
-            </p>
+              Bookshelf
+            </h1>
+            <p className="sub">@{shown}</p>
           </>
         }
       />
