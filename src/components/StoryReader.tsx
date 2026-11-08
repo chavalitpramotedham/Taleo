@@ -48,6 +48,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   // fills in while the first page is written and painted, then it swings
   // open into the story.
   const [cover, setCover] = useState<"closed" | "opening" | "open">(() => (!readOnly && story.segments.length === 0 ? "closed" : "open"));
+  // Revisiting (a finished story reopened, or someone else's): sharing is
+  // always to hand at the top. While a story is first being made, it's
+  // offered at the end instead.
+  const [revisit] = useState(() => readOnly || story.status === "complete");
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [customIdea, setCustomIdea] = useState("");
@@ -483,7 +487,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   };
 
   const share = async () => {
-    await ensurePublished().catch(() => {});
+    // Someone else's story is already in the library: just share its link.
+    if (!readOnly) await ensurePublished().catch(() => {});
     const url = shareLink();
     const data = { title: story.title, text: `A Taleo story: “${story.title}”`, url };
     try {
@@ -722,7 +727,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
           >
             <SpeechIcon on={readAloud} speaking={readAloud && spoken !== null} />
           </button>
-          {!readOnly && story.status === "complete" && (
+          {revisit && (
             <button className="icon-btn" onClick={share} aria-label="Share story" title="Share">
               <ShareIcon />
             </button>
