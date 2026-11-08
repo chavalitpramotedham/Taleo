@@ -183,6 +183,9 @@ function emit(p: SpeechProgress) {
   progress = p;
   listeners.forEach((l) => l(p));
 }
+/** Is a page being read aloud right now? */
+export const isNarrating = () => progress !== null;
+
 export function onSpeechProgress(fn: (p: SpeechProgress) => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);

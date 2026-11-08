@@ -4,7 +4,7 @@ import { resumeMusic } from "./music";
 // no audio files are needed. Each page's tap-target names one of these.
 
 import type { SoundId } from "./actions";
-import { prefetchSpeech, speakText, unlockSpeech, usesDeviceVoice } from "./speech";
+import { isNarrating, prefetchSpeech, speakText, unlockSpeech, usesDeviceVoice } from "./speech";
 import { getAudioContext } from "./audio-context";
 
 export { unlockAudio } from "./audio-context";
@@ -187,9 +187,12 @@ export function playSound(id: SoundId | null | undefined) {
   }
 }
 
-/** Say a single word slowly and clearly (for word association). */
+/** Say a single word slowly and clearly (for word association) - unless a
+ *  page is being read aloud right now: then the tap's sound and animation
+ *  still play, but the word isn't spoken, so the reading isn't cut off. */
 export function sayWord(word: string, delayMs = 650) {
   if (typeof window === "undefined" || !word) return;
+  if (isNarrating()) return;
   // Unlock synchronously now, inside the tap's call stack, so the delayed
   // speech below isn't silently dropped by iOS Safari's gesture rule - and
   // start fetching the voice clip so it's ready when the sound effect ends.
@@ -202,6 +205,6 @@ export function sayWord(word: string, delayMs = 650) {
     return;
   }
   prefetchSpeech(word, "word");
-  window.setTimeout(() => speakText(word, { kind: "word" }), delayMs);
+  window.setTimeout(() => !isNarrating() && speakText(word, { kind: "word" }), delayMs);
 }
 
