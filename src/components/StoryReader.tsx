@@ -15,7 +15,7 @@ import { BookCover } from "./BookCover";
 import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
-import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
+import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon, SpeechIcon } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -509,7 +509,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   };
 
   const copyLink = async () => {
-    await ensurePublished().catch(() => {});
+    // (someone else's story is already in the library)
+    if (!readOnly) await ensurePublished().catch(() => {});
     await copyToClipboard(shareLink());
   };
 
@@ -688,27 +689,30 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           <button className="icon-btn end-icon" onClick={() => turnTo(0, { force: true })} aria-label="Read it again" title="Read it again">
             <ReplayIcon />
           </button>
-          {readOnly
-            ? onSaveCopy && (
-                <button className="btn btn-primary end-main" onClick={onSaveCopy}>
-                  <MapleMark />
-                  {saveCopyLabel ?? "Keep this story"}
-                </button>
-              )
-            : (
-                <button className="btn btn-primary end-main" onClick={share}>
-                  <ShareIcon />
-                  Share
-                </button>
-              )}
+          {/* The same ending for every story, yours or someone else's:
+              share it, read it again, or copy its link. */}
+          <button className="btn btn-primary end-main" onClick={share}>
+            <ShareIcon />
+            Share
+          </button>
           <button className="icon-btn end-icon" onClick={copyLink} aria-label="Copy link" title="Copy link">
             <LinkIcon />
           </button>
         </div>
         {readOnly ? (
-          <Link className="end-back" href="/store">
-            Back to the library
-          </Link>
+          <p className="end-links">
+            {onSaveCopy && (
+              <>
+                <button type="button" className="end-back end-keep" onClick={onSaveCopy}>
+                  {saveCopyLabel ?? "Keep a copy on my bookshelf"}
+                </button>
+                <span aria-hidden> · </span>
+              </>
+            )}
+            <Link className="end-back" href="/store">
+              Back to the library
+            </Link>
+          </p>
         ) : (
           <Link className="end-back" href="/my-stories">
             Return to my bookshelf

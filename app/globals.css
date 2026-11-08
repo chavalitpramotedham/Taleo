@@ -6473,3 +6473,16 @@ html.brand-live .leaf-whirl {
   border: 1px solid color-mix(in srgb, var(--russet) 40%, transparent);
   vertical-align: 2px;
 }
+/* Someone else's story: keep a copy and back to the library, as quiet links. */
+.end-links {
+  margin: 4px 0 0;
+  color: var(--ink-faint, var(--ink-soft));
+}
+.end-keep {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-style: italic;
+  cursor: pointer;
+}

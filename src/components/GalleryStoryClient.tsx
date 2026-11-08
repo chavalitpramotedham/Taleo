@@ -53,5 +53,5 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
     router.push(`/story/${copy.id}`);
   };
 
-  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep this story"} picturesPending={partial && story === initial} />;
+  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to keep a copy"} picturesPending={partial && story === initial} />;
 }
