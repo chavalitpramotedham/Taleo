@@ -2754,3 +2754,90 @@ main {
   flex: none;
   height: 84px;
 }
+
+/* ---------- contact us ---------- */
+.contact {
+  max-width: 680px;
+}
+.contact-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 0;
+}
+.contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.contact-field .input {
+  flex: none;
+}
+.contact-message {
+  max-width: none;
+  height: 180px;
+}
+.contact-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.contact-file {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 5px;
+  overflow: hidden;
+}
+.contact-file img,
+.contact-file video {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: var(--page-edge);
+}
+.contact-file-name {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contact-file-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: rgba(251, 247, 238, 0.92);
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
+}
+.contact-file-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--russet);
+  transition: width 0.2s;
+}
+.contact-add {
+  align-self: flex-start;
+}
+.contact-sent {
+  align-items: center;
+  text-align: center;
+}
+.contact-sent h2 {
+  margin: 0;
+}
