@@ -5,6 +5,7 @@ import type { Story } from "@/lib/types";
 import { getStory, saveStory } from "@/lib/storage";
 import { StoryReader } from "@/components/StoryReader";
 import { PageLoading } from "@/components/PageLoading";
+import { MapleMark } from "@/components/Icons";
 
 export default function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -30,6 +31,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
         <h2>We couldn&apos;t find that story</h2>
         <p className="meta">Stories are kept on this device. It may have been tidied away.</p>
         <Link className="btn btn-primary" href="/create">
+          <MapleMark />
           Begin a new story
         </Link>
       </div>

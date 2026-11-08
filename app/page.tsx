@@ -3,6 +3,7 @@ import { Painting } from "@/components/art/Painting";
 import { HOME_SCENE } from "@/lib/art/homeScene";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
+import { MapleMark } from "@/components/Icons";
 
 const STEPS = [
   { n: "I.", title: "Set the age", text: "Words and choices grow with them." },
@@ -24,6 +25,7 @@ export default function Home() {
           {/* Desktop: the call to action sits right here; touch devices get the floating bar instead. */}
           <div className="hero-actions desktop-only">
             <Link className="btn btn-primary hero-cta" href="/create">
+              <MapleMark />
               Begin a story
             </Link>
           </div>

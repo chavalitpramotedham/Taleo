@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { formatRating, useRating, type RatingAggregate } from "@/lib/useRating";
 import { StarRating } from "./StarRating";
-import { LeafLoader, StarGlyph } from "./Icons";
+import { LeafLoader, StarGlyph, MapleMark } from "./Icons";
 
 /** The end-of-story rating, as its own floating panel: pick stars, add an
  *  optional comment, then submit both together. Closable with ✕, and it
@@ -100,7 +100,10 @@ export function RateAndComment({
                 <LeafLoader size={18} /> Saving…
               </>
             ) : draft ? (
-              `Submit ${draft} star${draft === 1 ? "" : "s"}`
+              <>
+                <MapleMark />
+                {`Submit ${draft} star${draft === 1 ? "" : "s"}`}
+              </>
             ) : (
               "Tap the stars to rate"
             )}

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { LeafLoader } from "@/components/Icons";
+import { LeafLoader, MapleMark } from "@/components/Icons";
 import { PageLoading } from "@/components/PageLoading";
 import {
   CONTACT_MAX_FILES,
@@ -227,7 +227,10 @@ export default function ContactPage() {
                 <LeafLoader size={18} /> {files.length ? "Uploading & sending…" : "Sending…"}
               </>
             ) : (
-              "Send message"
+              <>
+                <MapleMark />
+                Send message
+              </>
             )}
           </button>
         </div>

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { MapleMark } from "@/components/Icons";
 
 /** Lowercase, strip anything but letters/numbers/underscore — applied live,
  *  so browser/password-manager autofill (which ignores our suggested value
@@ -57,7 +58,14 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
           name="taleo-username"
         />
         <button type="button" className="btn btn-primary" onClick={submit} disabled={username.length < 3 || busy}>
-          {busy ? "Saving…" : "Let's go"}
+          {busy ? (
+            "Saving…"
+          ) : (
+            <>
+              <MapleMark />
+              Let&apos;s go
+            </>
+          )}
         </button>
       </div>
       <p className="meta">3-20 letters, numbers or underscores{username.length > 0 && username.length < 3 ? " — a couple more, please" : "."}</p>

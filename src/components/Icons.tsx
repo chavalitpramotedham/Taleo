@@ -148,3 +148,27 @@ export const Ornament = ({ className }: { className?: string }) => (
     <circle cx="60" cy="7" r="1.2" fill="currentColor" />
   </svg>
 );
+
+/** The CTA marker: one maple leaf in the brand's gold, front-facing and
+ *  flat (the same five soft lobes and stem as the logo's leaves, upright
+ *  and unrotated), used as a leading icon on the key calls to action -
+ *  "Begin a story", "Next", "Send" - so they share one bit of the brand. */
+export const MapleMark = () => (
+  <svg className="maple-mark" viewBox="-6.6 -8.4 13.2 15.6" aria-hidden focusable="false">
+    <path
+      d="M0,-7.2 C1.6,-6.8 2,-5.3 1.5,-4 C2.6,-4.6 4.2,-4.6 5.4,-3.4 C4.6,-2.2 3.4,-1.5 2.4,-1.2 C3.6,0.3 4.2,1.8 3.8,3.2 C2.4,2.6 1.1,2.1 0,1.6 C-1.1,2.1 -2.4,2.6 -3.8,3.2 C-4.2,1.8 -3.6,0.3 -2.4,-1.2 C-3.4,-1.5 -4.6,-2.2 -5.4,-3.4 C-4.2,-4.6 -2.6,-4.6 -1.5,-4 C-2,-5.3 -1.6,-6.8 0,-7.2 Z"
+      fill="#E2AE4A"
+      stroke="#7A5420"
+      strokeWidth="0.45"
+      strokeLinejoin="round"
+    />
+    <g stroke="#9A6A26" strokeWidth="0.38" strokeLinecap="round" fill="none" opacity="0.8">
+      <path d="M0,-5.4 L0,1.5" />
+      <path d="M0,-0.6 L-3.2,-3" />
+      <path d="M0,-0.6 L3.2,-3" />
+      <path d="M0,0.6 L-2.4,2" />
+      <path d="M0,0.6 L2.4,2" />
+    </g>
+    <path d="M0,1.5 C0,2.9 0,4.3 0.3,6.2" stroke="#7A5420" strokeWidth="0.6" strokeLinecap="round" fill="none" />
+  </svg>
+);

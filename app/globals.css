@@ -2939,3 +2939,29 @@ main {
   margin: 0;
   font-style: italic;
 }
+
+/* ---------- CTA maple-leaf marker ----------
+   A gold maple leaf leading the key calls to action. Sized to the text,
+   with a soft light rim so it lifts off the russet button, and a little
+   sway on hover/focus as if caught by a breeze. */
+.maple-mark {
+  width: 1.45em;
+  height: 1.45em;
+  flex: none;
+  margin: -0.25em -0.05em -0.2em -0.3em;
+  filter: drop-shadow(0 0 0.6px rgba(255, 244, 220, 0.85)) drop-shadow(0 1px 1px rgba(60, 30, 10, 0.25));
+  transform-origin: 50% 85%;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn:hover:not(:disabled) .maple-mark,
+.btn:focus-visible .maple-mark {
+  transform: rotate(-14deg) scale(1.08);
+}
+.btn:disabled .maple-mark {
+  filter: grayscale(0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .maple-mark {
+    transition: none;
+  }
+}

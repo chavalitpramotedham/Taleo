@@ -7,6 +7,7 @@ import { decodeShared } from "@/lib/share";
 import { newId, saveStory } from "@/lib/storage";
 import { StoryReader } from "@/components/StoryReader";
 import { PageLoading } from "@/components/PageLoading";
+import { MapleMark } from "@/components/Icons";
 
 export default function SharedPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function SharedPage() {
         <h2>This story link seems torn</h2>
         <p className="meta">Ask for the link again, or begin a brand-new story.</p>
         <Link className="btn btn-primary" href="/create">
+          <MapleMark />
           Begin a story
         </Link>
       </div>

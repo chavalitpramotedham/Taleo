@@ -13,7 +13,7 @@ import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaint
 import { DictateButton } from "./DictateButton";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
-import { LeafLoader, Ornament, ShareIcon, SpeechIcon } from "./Icons";
+import { LeafLoader, Ornament, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -470,11 +470,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
           {readOnly
             ? onSaveCopy && (
                 <button className="btn btn-primary" onClick={onSaveCopy}>
+                  <MapleMark />
                   Keep this story
                 </button>
               )
             : (
                 <button className="btn btn-primary" onClick={share}>
+                  <MapleMark />
                   Share
                 </button>
               )}

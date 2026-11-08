@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
 import { storeUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
-import { Ornament, StarGlyph } from "@/components/Icons";
+import { Ornament, StarGlyph, MapleMark } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "@/components/PageLoading";
 
@@ -66,6 +66,7 @@ export default function MyStoriesPage() {
           <h2>You haven&apos;t written one yet</h2>
           <p className="meta">Finished stories you create live here.</p>
           <Link className="btn btn-primary" href="/create">
+            <MapleMark />
             Begin your first story
           </Link>
         </div>

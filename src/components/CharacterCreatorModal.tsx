@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { CharacterDef, CharacterResponse, SavedCharacter } from "@/lib/types";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
-import { LeafLoader } from "@/components/Icons";
+import { LeafLoader, MapleMark } from "@/components/Icons";
 import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
 
 interface Props {
@@ -115,7 +115,10 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                     <LeafLoader size={18} /> Painting…
                   </>
                 ) : (
-                  "Paint them"
+                  <>
+                    <MapleMark />
+                    Paint them
+                  </>
                 )}
               </button>
             </div>
@@ -159,7 +162,10 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                     <LeafLoader size={18} /> Saving…
                   </>
                 ) : (
-                  "Confirm & save"
+                  <>
+                    <MapleMark />
+                    Confirm &amp; save
+                  </>
                 )}
               </button>
             </div>

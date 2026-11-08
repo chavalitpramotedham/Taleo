@@ -5,7 +5,7 @@ import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
 import { storeUrl, shareStory } from "@/lib/share";
 import { Painting, CharacterPortrait } from "@/components/art/Painting";
-import { Ornament, StarGlyph } from "@/components/Icons";
+import { Ornament, StarGlyph, MapleMark } from "@/components/Icons";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { PageLoading } from "./PageLoading";
 
@@ -84,6 +84,7 @@ export function GalleryShelf({
           <h2>The library is empty, for now</h2>
           <p className="meta">Finished stories appear here for anyone to read.</p>
           <Link className="btn btn-primary" href="/create">
+            <MapleMark />
             Begin the first story
           </Link>
         </div>

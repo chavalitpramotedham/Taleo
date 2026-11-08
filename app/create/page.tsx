@@ -11,6 +11,7 @@ import { DictateButton } from "@/components/DictateButton";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { PageLoading } from "@/components/PageLoading";
+import { MapleMark } from "@/components/Icons";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -366,6 +367,7 @@ export default function CreatePage() {
           </button>
         )}
         <button type="button" className="btn btn-primary wizard-cta" onClick={next} disabled={!canNext}>
+          <MapleMark />
           {step === 2 ? "Begin the story" : "Next ›"}
         </button>
       </nav>
