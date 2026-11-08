@@ -2,6 +2,10 @@ import type { AgeId } from "./ages";
 import type { MotionId, SoundId } from "./actions";
 
 /** A character that appears in the book. */
+/** Optional: a family can say whether a custom character is a boy/man or a
+ *  girl/woman (or leave it open), so stories and pictures get it right. */
+export type CharacterGender = "male" | "female";
+
 export interface CharacterDef {
   id: string;
   name: string;
@@ -17,6 +21,7 @@ export interface CharacterDef {
   notes?: string | null;
   /** The SavedCharacter this came from, if it's one of the user's own. */
   savedId?: string | null;
+  gender?: CharacterGender | null;
 }
 
 /** A custom character a signed-in user has saved to their own roster (up to
@@ -28,6 +33,7 @@ export interface SavedCharacter {
   svg: string | null;
   /** Optional freeform description / relationships (see CharacterDef.notes). */
   notes: string | null;
+  gender: CharacterGender | null;
   /** Ids of the stories this character has starred in, oldest first. Not
    *  shown yet - kept so future stories can recall shared adventures. */
   storyIds: string[];

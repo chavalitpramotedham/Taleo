@@ -23,12 +23,13 @@ export async function POST(req: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as
-    | { character?: { name?: unknown; look?: unknown; svg?: unknown; notes?: unknown }; replaceId?: unknown }
+    | { character?: { name?: unknown; look?: unknown; svg?: unknown; notes?: unknown; gender?: unknown }; replaceId?: unknown }
     | null;
   const name = typeof body?.character?.name === "string" ? body.character.name.trim() : "";
   const look = typeof body?.character?.look === "string" ? body.character.look : "";
   const svg = typeof body?.character?.svg === "string" ? body.character.svg : null;
   const notes = typeof body?.character?.notes === "string" ? body.character.notes : null;
+  const gender = typeof body?.character?.gender === "string" ? body.character.gender : null;
   const replaceId = typeof body?.replaceId === "string" ? body.replaceId : undefined;
   if (!name) return NextResponse.json({ error: "That character needs a name first." }, { status: 400 });
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const character = await saveCharacter(session.user.id, { name, look, svg, notes }, replaceId);
+    const character = await saveCharacter(session.user.id, { name, look, svg, notes, gender }, replaceId);
     return NextResponse.json({ character });
   } catch (err) {
     if (err instanceof CharacterLimitError) return NextResponse.json({ error: err.message, limitReached: true }, { status: 409 });

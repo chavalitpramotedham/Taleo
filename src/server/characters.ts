@@ -1,5 +1,5 @@
 import type { CharacterDef, SavedCharacter } from "@/lib/types";
-import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
+import { MAX_CHARACTERS, NOTES_MAX, asGender } from "@/lib/characters";
 import { readJson, writeJson } from "./store";
 
 /** Each signed-in user's saved custom-character roster, used to populate
@@ -19,7 +19,7 @@ export class CharacterLimitError extends Error {}
 export async function listCharacters(ownerId: string): Promise<SavedCharacter[]> {
   const list = (await readJson<SavedCharacter[]>(path(ownerId))) ?? [];
   // Back-fill fields added after the first characters were saved.
-  return list.map((c) => ({ ...c, notes: c.notes ?? null, storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
+  return list.map((c) => ({ ...c, notes: c.notes ?? null, gender: asGender(c.gender), storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
 }
 
 /** Saves a newly designed character, or - if `replaceId` is given -
@@ -29,19 +29,20 @@ export async function listCharacters(ownerId: string): Promise<SavedCharacter[]>
  *  replaceId was given. */
 export async function saveCharacter(
   ownerId: string,
-  input: { name: string; look: string; svg: string | null; notes?: string | null },
+  input: { name: string; look: string; svg: string | null; notes?: string | null; gender?: string | null },
   replaceId?: string,
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const name = input.name.trim().slice(0, 40) || "Friend";
   const look = input.look.trim().slice(0, 500);
   const notes = cleanNotes(input.notes);
+  const gender = asGender(input.gender);
   const now = Date.now();
 
   if (replaceId) {
     const i = list.findIndex((c) => c.id === replaceId);
     if (i < 0) throw new Error("That character doesn't exist any more.");
-    const updated: SavedCharacter = { ...list[i], name, look, svg: input.svg, notes, storyIds: [], updatedAt: now };
+    const updated: SavedCharacter = { ...list[i], name, look, svg: input.svg, notes, gender, storyIds: [], updatedAt: now };
     const next = [...list];
     next[i] = updated;
     await writeJson(path(ownerId), next);
@@ -51,16 +52,17 @@ export async function saveCharacter(
   if (list.length >= MAX_CHARACTERS) {
     throw new CharacterLimitError(`You can save up to ${MAX_CHARACTERS} characters - replace one to add another.`);
   }
-  const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, storyIds: [], createdAt: now, updatedAt: now };
+  const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, gender, storyIds: [], createdAt: now, updatedAt: now };
   await writeJson(path(ownerId), [...list, created]);
   return created;
 }
 
-/** Renames a character and/or changes its notes (undefined = leave as is). */
+/** Renames a character and/or changes its notes or gender (undefined =
+ *  leave as is; null gender = left open). */
 export async function updateCharacter(
   ownerId: string,
   id: string,
-  patch: { name?: string; notes?: string | null },
+  patch: { name?: string; notes?: string | null; gender?: string | null },
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const i = list.findIndex((c) => c.id === id);
@@ -70,6 +72,7 @@ export async function updateCharacter(
     ...cur,
     name: patch.name === undefined ? cur.name : patch.name.trim().slice(0, 40) || cur.name,
     notes: patch.notes === undefined ? cur.notes : cleanNotes(patch.notes),
+    gender: patch.gender === undefined ? cur.gender : asGender(patch.gender),
     updatedAt: Date.now(),
   };
   const next = [...list];
@@ -107,4 +110,5 @@ export const toCharacterDef = (c: SavedCharacter, id: string): CharacterDef => (
   svg: c.svg,
   notes: c.notes,
   savedId: c.id,
+  gender: c.gender,
 });

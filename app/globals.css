@@ -5251,3 +5251,56 @@ body {
 .topnav .nav-link:not(.nav-begin) {
   translate: 0 1.7px;
 }
+
+/* ---------- optional male / female / open choice for a character ---------- */
+.gender-picker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.gender-opt {
+  --g: #8a8178;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--g) 35%, transparent);
+  background: color-mix(in srgb, var(--g) 8%, var(--page));
+  color: color-mix(in srgb, var(--g) 70%, var(--page));
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.gender-opt svg {
+  width: 18px;
+  height: 18px;
+}
+.gender-opt.male {
+  --g: #4f7fb8;
+}
+.gender-opt.female {
+  --g: #c45d86;
+}
+.gender-opt.on {
+  border-color: var(--g);
+  background: color-mix(in srgb, var(--g) 22%, var(--page));
+  color: var(--g);
+}
+.gender-opt.open.on {
+  --g: #7a7068;
+}
+html[data-night] .gender-opt.male {
+  --g: #7fa6d8;
+}
+html[data-night] .gender-opt.female {
+  --g: #e08aac;
+}
+html[data-night] .gender-opt.open,
+html[data-night] .gender-opt.open.on {
+  --g: #a39889;
+}
+@media (hover: hover) {
+  .gender-opt:hover:not(.on):not(:disabled) {
+    border-color: color-mix(in srgb, var(--g) 60%, transparent);
+  }
+}

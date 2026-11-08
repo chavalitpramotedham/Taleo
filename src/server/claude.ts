@@ -53,8 +53,12 @@ async function ask<T extends z.ZodType>(schema: T, system: string, user: string,
 
 // ---------------------------------------------------------------- stories
 
+/** The family's choice, if they made one: a boy/man or a girl/woman. */
+const genderNote = (c: Pick<CharacterDef, "gender">) =>
+  c.gender === "male" ? " [male - he/him]" : c.gender === "female" ? " [female - she/her]" : "";
+
 const modelSheet = (c: CharacterDef) =>
-  `- id "${c.id}": ${c.name}: ${c.look}${c.preset ? ` (preset: ${c.preset})` : ""}`;
+  `- id "${c.id}": ${c.name}${genderNote(c)}: ${c.look}${c.preset ? ` (preset: ${c.preset})` : ""}`;
 
 /** A central character's model sheet plus the family's notes about them
  *  (personality, relationships), which only the writer sees. */
@@ -87,9 +91,15 @@ function buildSegmentRequest(req: StoryRequest) {
   parts.push(
     `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
   );
+  const gendered = [...heroes, ...cast].filter((h) => h.gender);
+  if (gendered.length) {
+    parts.push(
+      `GENDER, as the family chose it - follow exactly, every page: ${gendered.map((h) => `${h.name} is ${h.gender === "male" ? "male (he/him)" : "female (she/her)"}`).join("; ")}.`,
+    );
+  }
   if (heroes.some((h) => h.notes)) {
     parts.push(
-      "Honour the FAMILY NOTES above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together.",
+      "Honour the FAMILY NOTES above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together. The relationships must be exactly as the notes say (who is whose sister, parent, grandparent, friend) - never swapped, changed or contradicted.",
     );
   }
   parts.push(`WORD LEVEL for this reader (each page's word to learn): ${age.vocab}`);
@@ -308,7 +318,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
   const sheets = req.cast
     .map((c) => {
       const art = characterArt(c);
-      return `CHARACTER "${c.id}": ${c.name}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art.trim()}` : ""}`;
+      return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art.trim()}` : ""}`;
     })
     .join("\n\n");
 

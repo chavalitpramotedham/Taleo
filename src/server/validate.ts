@@ -2,7 +2,7 @@ import { AGES, ageById, clampMinutes } from "@/lib/ages";
 import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
 import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { NOTES_MAX } from "@/lib/characters";
+import { NOTES_MAX, asGender } from "@/lib/characters";
 
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
@@ -22,6 +22,7 @@ export function cleanCharacter(c: unknown, fallbackId = "hero"): CharacterDef {
     svg: sanitizeSvg(str(o.svg, 40000), 30000) || null,
     notes: str(o.notes, NOTES_MAX).trim() || null,
     savedId: str(o.savedId, 40) || null,
+    gender: asGender(o.gender),
   };
 }
 

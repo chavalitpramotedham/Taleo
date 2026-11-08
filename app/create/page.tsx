@@ -71,7 +71,7 @@ export default function CreatePage() {
   const defForUid = (uid: string): CharacterDef | null => {
     if (uid.startsWith("saved:")) {
       const c = saved.find((s) => s.id === uid.slice(6));
-      return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg, notes: c.notes, savedId: c.id } : null;
+      return c ? { id: c.id, name: c.name, look: c.look, preset: null, svg: c.svg, notes: c.notes, savedId: c.id, gender: c.gender } : null;
     }
     if (uid.startsWith("preset:")) {
       const p = PRESETS.find((pp) => pp.key === uid.slice(7));

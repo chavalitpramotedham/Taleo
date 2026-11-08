@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { CharacterDef, CharacterResponse, SavedCharacter } from "@/lib/types";
+import type { CharacterDef, CharacterGender, CharacterResponse, SavedCharacter } from "@/lib/types";
+import { GenderPicker } from "@/components/GenderPicker";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { LeafLoader, MapleMark } from "@/components/Icons";
@@ -23,6 +24,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
+  const [gender, setGender] = useState<CharacterGender | null>(null);
   const [drafted, setDrafted] = useState<CharacterDef | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -65,7 +67,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null }, replaceId }),
+        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null, gender }, replaceId }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string; limitReached?: boolean };
       if (!res.ok || !data.character) {
@@ -131,6 +133,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
               <CharacterPortrait character={drafted} className="character-preview-portrait" />
               <input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
             </div>
+            <GenderPicker value={gender} onChange={setGender} disabled={confirming} />
             <p className="meta">Not quite right? Edit the description and paint them again.</p>
             <div className="field-row">
               <input
