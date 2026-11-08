@@ -5407,3 +5407,47 @@ html[data-night] .gender-opt.open.on {
   70% { transform: translate(-10px, -24vh); opacity: 0.7; }
   100% { transform: translate(6px, -34vh); opacity: 0; }
 }
+
+/* ---------- your characters, on phones: a sliding row ---------- */
+/* Three and a half cards in view (so names fit and the half card says
+   "there's more"), sliding sideways with an arrow on the right. */
+.side-scroll {
+  position: relative;
+}
+.side-scroll-more {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.side-scroll.has-more .side-scroll-more {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (max-width: 640px) {
+  .hero-slots {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - 3 * 8px) / 3.5);
+    gap: 8px;
+    max-width: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    /* room for the selected badge, which pokes out above the corner */
+    padding: 10px 10px 4px 2px;
+    margin: -10px -10px 0 -2px;
+  }
+  .hero-slots::-webkit-scrollbar {
+    display: none;
+  }
+  .hero-slot {
+    scroll-snap-align: start;
+  }
+  .hero-slot-name {
+    font-size: 0.86rem;
+  }
+  .side-scroll-more {
+    right: -10px;
+  }
+}

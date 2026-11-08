@@ -89,3 +89,11 @@ export const MoonIcon = ({ on }: { on: boolean }) => (
     <circle cx="20.2" cy="8.6" r="0.55" fill="currentColor" stroke="none" opacity={on ? 1 : 0.6} />
   </svg>
 );
+
+/** Shown on the switch at night: back to daylight. */
+export const SunIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="4.2" fill="currentColor" fillOpacity="0.18" />
+    <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5" />
+  </svg>
+);

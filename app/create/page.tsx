@@ -8,6 +8,7 @@ import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
+import { SideScroll } from "@/components/SideScroll";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { PageLoading } from "@/components/PageLoading";
@@ -244,7 +245,7 @@ export default function CreatePage() {
                 )}
               </span>
             </div>
-            <div className="hero-slots">
+            <SideScroll className="hero-slots" label="More of your characters">
               {Array.from({ length: MAX_CHARACTERS }, (_, i) => {
                 const c = saved[i];
                 if (!c) {
@@ -272,7 +273,7 @@ export default function CreatePage() {
                   </button>
                 );
               })}
-            </div>
+            </SideScroll>
           </section>
 
           {creatingCharacter && (
