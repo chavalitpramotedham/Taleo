@@ -3956,3 +3956,87 @@ g[filter="url(#tl-wash)"].hp-in {
     animation: none;
   }
 }
+
+/* ---------- homepage "Begin a story": float + breathing glow ----------
+   Invites a tap without shouting: the button drifts up and down a few
+   pixels, a warm halo breathes around it, and the leaf gives an
+   occasional rock. Uses the separate `translate` property (so the press
+   effect's transform still works) and animates only translate/opacity/
+   rotate, which stay smooth on phones. */
+.hero-cta,
+.floating-cta-btn {
+  position: relative;
+  animation: ctaFloat 3.4s ease-in-out infinite;
+}
+.hero-cta::after,
+.floating-cta-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 18px 4px rgba(214, 128, 78, 0.55),
+    0 0 42px 10px rgba(232, 168, 92, 0.28);
+  opacity: 0.35;
+  animation: ctaGlow 3.4s ease-in-out infinite;
+}
+.hero-cta .maple-mark,
+.floating-cta-btn .maple-mark {
+  animation: ctaLeaf 6.8s ease-in-out infinite;
+}
+.hero-cta:hover,
+.floating-cta-btn:hover {
+  animation-play-state: paused;
+}
+@keyframes ctaFloat {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+@keyframes ctaGlow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+@keyframes ctaLeaf {
+  0%,
+  70%,
+  100% {
+    rotate: 0deg;
+  }
+  76% {
+    rotate: -14deg;
+  }
+  82% {
+    rotate: 9deg;
+  }
+  88% {
+    rotate: -4deg;
+  }
+  94% {
+    rotate: 0deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta,
+  .floating-cta-btn,
+  .hero-cta::after,
+  .floating-cta-btn::after,
+  .hero-cta .maple-mark,
+  .floating-cta-btn .maple-mark {
+    animation: none;
+  }
+  .hero-cta::after,
+  .floating-cta-btn::after {
+    opacity: 0.6;
+  }
+}
