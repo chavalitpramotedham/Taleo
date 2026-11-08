@@ -234,11 +234,27 @@ html {
 .nav-row {
   display: flex;
   align-items: center;
+  /* The links, then a clear gap, a hairline divider and the profile
+     button - so the account reads as its own group, not a fourth link
+     jammed against the last one. */
+  gap: 18px;
 }
 .topnav {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  padding-right: 18px;
+}
+.topnav::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  height: 22px;
+  width: 1px;
+  transform: translateY(-50%);
+  background: var(--rule);
 }
 .nav-link {
   font-family: var(--font-caps);
@@ -1798,7 +1814,6 @@ main {
 .account-trigger {
   width: 34px;
   height: 34px;
-  margin-left: 6px;
   color: var(--ink-soft);
   padding: 0;
   overflow: hidden;
@@ -2212,13 +2227,15 @@ main {
   }
   .nav-row {
     border-top: 1px solid var(--rule);
-    padding: 8px clamp(12px, 4vw, 24px);
+    padding: 8px clamp(10px, 3vw, 24px);
+    gap: 10px;
   }
   .topnav {
     flex: 1;
     min-width: 0;
     justify-content: center;
     gap: 2px;
+    padding-right: 10px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -2240,7 +2257,7 @@ main {
     font-size: 1.55rem;
   }
   .nav-link {
-    padding: 6px 10px;
+    padding: 6px 8px;
     font-size: 0.98rem;
   }
   .ages {
@@ -3084,4 +3101,20 @@ main {
 .avatar-option.selected,
 .avatar-option.selected:hover {
   border-color: var(--russet);
+}
+
+/* Very narrow phones (e.g. 360px Android): the three links and the
+   profile still fit on one line without scrolling. */
+@media (max-width: 380px) {
+  .nav-link {
+    padding: 6px 6px;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+  }
+  .nav-row {
+    gap: 8px;
+  }
+  .topnav {
+    padding-right: 8px;
+  }
 }
