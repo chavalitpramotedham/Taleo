@@ -47,6 +47,22 @@ export const MusicNoteIcon = () => (
   </svg>
 );
 
+/** Read again: a circular arrow. */
+export const ReplayIcon = () => (
+  <svg {...base}>
+    <path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3" />
+    <path d="M4.5 4.5v3.6h3.6" />
+  </svg>
+);
+
+/** Copy link: two chain links. */
+export const LinkIcon = () => (
+  <svg {...base}>
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+    <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+  </svg>
+);
+
 export const ShareIcon = () => (
   <svg {...base}>
     <path d="M4 7.5h16v11H4z" />

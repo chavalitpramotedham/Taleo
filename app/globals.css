@@ -1997,10 +1997,39 @@ main {
   cursor: default;
 }
 .end-actions {
+  /* read again (icon) - the one main action - copy link (icon) */
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
   justify-content: center;
+  gap: 14px;
+}
+.end-actions .end-main {
+  min-width: 168px;
+}
+.end-actions .end-icon {
+  width: 48px;
+  height: 48px;
+  flex: none;
+}
+.end-actions .end-icon svg {
+  width: 22px;
+  height: 22px;
+}
+/* a quiet text link back to where the story now lives */
+.end-back {
+  display: inline-block;
+  margin-top: 4px;
+  font-style: italic;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 4px;
+}
+@media (hover: hover) {
+  .end-back:hover {
+    color: var(--ink);
+    text-decoration-color: var(--russet);
+  }
 }
 .toast {
   position: fixed;

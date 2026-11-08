@@ -13,7 +13,7 @@ import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaint
 import { DictateButton } from "./DictateButton";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
-import { LeafLoader, Ornament, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
+import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon, SpeechIcon, MapleMark } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -556,30 +556,39 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
       <div className="the-end page-anim">
         <p className="end-title">The End</p>
         <Ornament className="ornament" />
+        {/* One main action in the middle (share it, or keep a copy of
+            someone else's), with read-again and copy-link as quiet icons
+            either side. */}
         <div className="end-actions">
-          <button className="btn btn-soft" onClick={() => turnTo(0, { force: true })}>
-            Read it again
-          </button>
-          <button className="btn btn-soft" onClick={copyLink}>
-            Copy link
+          <button className="icon-btn end-icon" onClick={() => turnTo(0, { force: true })} aria-label="Read it again" title="Read it again">
+            <ReplayIcon />
           </button>
           {readOnly
             ? onSaveCopy && (
-                <button className="btn btn-primary" onClick={onSaveCopy}>
+                <button className="btn btn-primary end-main" onClick={onSaveCopy}>
                   <MapleMark />
                   Keep this story
                 </button>
               )
             : (
-                <button className="btn btn-primary" onClick={share}>
+                <button className="btn btn-primary end-main" onClick={share}>
                   <MapleMark />
                   Share
                 </button>
               )}
-          <Link className="btn btn-soft" href="/create">
-            A new story
-          </Link>
+          <button className="icon-btn end-icon" onClick={copyLink} aria-label="Copy link" title="Copy link">
+            <LinkIcon />
+          </button>
         </div>
+        {readOnly ? (
+          <Link className="end-back" href="/store">
+            Back to the library
+          </Link>
+        ) : (
+          <Link className="end-back" href="/my-stories">
+            Find it on your bookshelf
+          </Link>
+        )}
         {story.demo && <p className="demo-note">Demo story: add an Anthropic API key for stories written and painted by Claude.</p>}
       </div>
     );
