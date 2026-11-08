@@ -3807,7 +3807,11 @@ g[filter="url(#tl-wash)"].hp-in {
 .hero-brush.on {
   opacity: 1;
 }
-.hero-brush svg {
+.hero-art .hero-brush svg {
+  /* (beats .hero-art svg, which sizes the painting to the frame) */
+  width: 22px;
+  height: 66px;
+  max-width: none;
   position: absolute;
   /* put the bristle tip on the point being painted, handle up and right */
   left: -11px;
