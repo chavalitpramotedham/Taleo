@@ -69,8 +69,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/store" className="nav-link">
                   Library
                 </Link>
-                <Link href="/contact" className="nav-link">
-                  Contact us
+                <Link href="/about" className="nav-link">
+                  About
                 </Link>
               </nav>
               <AccountNav />

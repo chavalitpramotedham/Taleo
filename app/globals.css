@@ -4160,3 +4160,56 @@ g[filter="url(#tl-wash)"].hp-in {
   flex: none;
   height: 72px;
 }
+
+/* ---------- About ---------- */
+.about {
+  max-width: 720px;
+}
+.about-story {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.about-story p {
+  margin: 0;
+  font-size: clamp(1.08rem, 1rem + 0.35vw, 1.22rem);
+  line-height: 1.7;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.about-story .about-lead::first-letter {
+  font-family: var(--font-title);
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.82;
+  padding: 0.06em 0.08em 0 0;
+  color: var(--russet);
+}
+.about-story .about-sign {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.about-divider {
+  margin: clamp(30px, 5vw, 48px) auto clamp(24px, 4vw, 36px);
+}
+.contact-section {
+  scroll-margin-top: 20px;
+}
+.contact-head {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.contact-head h2 {
+  margin: 0 0 4px;
+}
+/* On the About page the send button sits right under the form on every
+   screen (a floating bar would hover over the story while people read). */
+.contact-send.contact-send-inline {
+  position: static;
+  padding: 0;
+  margin-top: 18px;
+  pointer-events: auto;
+}
+.contact-send.contact-send-inline > * {
+  max-width: none;
+}
