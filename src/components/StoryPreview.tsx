@@ -4,6 +4,7 @@ import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
 import { Ornament, StarGlyph } from "./Icons";
+import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
  *  entry, without loading the whole book. */
@@ -80,9 +81,9 @@ export function StoryPreview({
         )}
         <div className="story-preview-body">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+          {story.keyword && <KeywordPill keyword={story.keyword} />}
           <h2 id="story-preview-title">{story.title}</h2>
           <p className="meta story-preview-by">by @{story.author}</p>
-          {story.keyword && <span className="keyword-pill">{story.keyword}</span>}
           <Ornament className="ornament small" />
           <ul className="story-preview-facts">
             {story.starring.length > 0 && (

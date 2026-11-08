@@ -2,6 +2,7 @@
 import { Painting } from "@/components/art/Painting";
 import type { GalleryEntry } from "@/lib/types";
 import { StarGlyph } from "./Icons";
+import { KeywordPill } from "./KeywordPill";
 
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
 
@@ -27,8 +28,8 @@ export function StoryCard({ entry: s, onOpen }: { entry: GalleryEntry; onOpen: (
         </span>
       </span>
       <span className="body">
+        <KeywordPill keyword={s.keyword} />
         <span className="story-card-title">{title}</span>
-        {s.keyword && <span className="keyword-pill">{s.keyword}</span>}
       </span>
     </button>
   );

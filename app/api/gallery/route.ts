@@ -7,7 +7,8 @@ const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? 
 
 /** The public library. `?sort=rating|recent` and `?limit=N` let a page ask
  *  for just what it shows (the homepage needs 8 covers, not every story).
- *  Cached briefly at the edge - new stories and ratings show within a minute. */
+ *  Cached briefly on Vercel's edge (CDN-Cache-Control) so new stories and
+ *  ratings show within a minute; browsers always revalidate. */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const sort = url.searchParams.get("sort");
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
   if (limit) stories = stories.slice(0, limit);
   return NextResponse.json(
     { stories },
-    { headers: { "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600" } },
+    { headers: { "Cache-Control": "public, max-age=0, must-revalidate", "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } },
   );
 }
 

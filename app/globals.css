@@ -4099,15 +4099,18 @@ g[filter="url(#tl-wash)"].hp-in {
   transform: translateY(1px);
 }
 
-/* A story's keyword ("Family", "Adventure"), as a small pill. */
+/* A story's keyword ("Family", "Adventure"), as a small pill in the
+   keyword's own colour (--kw, set per pill from the app's palette). */
 .keyword-pill {
+  --kw: var(--sage);
   display: inline-flex;
   align-items: center;
+  min-height: 1.6em;
   padding: 2px 11px 3px;
   border-radius: 999px;
-  background: var(--sage-soft);
-  border: 1px solid rgba(111, 127, 82, 0.35);
-  color: var(--sage);
+  background: color-mix(in srgb, var(--kw) 12%, var(--page));
+  border: 1px solid color-mix(in srgb, var(--kw) 38%, transparent);
+  color: var(--kw);
   font-family: var(--font-caps);
   font-size: 0.82rem;
   letter-spacing: 0.04em;
@@ -4116,8 +4119,12 @@ g[filter="url(#tl-wash)"].hp-in {
 }
 
 /* ---------- story preview actions ---------- */
+.keyword-pill-empty {
+  visibility: hidden;
+  width: 4em;
+}
 .story-preview-body .keyword-pill {
-  margin-top: 2px;
+  margin-bottom: 4px;
 }
 .story-preview-actions {
   width: 100%;

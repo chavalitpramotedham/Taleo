@@ -39,3 +39,30 @@ export function storyKeyword(s: { keyword?: string | null; theme?: string | null
   if (preset) return BY_THEME[preset.key] ?? "Adventure";
   return HINTS.find(([re]) => re.test(theme))?.[1] ?? "Imagination";
 }
+
+/** Each keyword's colour - all from the app's earthy storybook palette, and
+ *  dark enough to read as text on the cream cards. Unknown keywords get a
+ *  stable pick from the same palette. */
+const KEYWORD_COLOURS: Record<string, string> = {
+  Family: "#9c4f32",
+  Friendship: "#8a6a1f",
+  Adventure: "#5e6b40",
+  Kindness: "#a2534c",
+  Bravery: "#8f3d2e",
+  Bedtime: "#4f5680",
+  Feelings: "#6f5d86",
+  Mystery: "#44657f",
+  Nature: "#4f7046",
+  Celebration: "#9a6a12",
+  Imagination: "#6b4d7a",
+  Mission: "#3f6f6a",
+};
+const PALETTE = Object.values(KEYWORD_COLOURS);
+
+export function keywordColour(keyword: string): string {
+  const known = KEYWORD_COLOURS[keyword];
+  if (known) return known;
+  let h = 0;
+  for (const c of keyword.toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
