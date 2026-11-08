@@ -84,9 +84,13 @@ export function LanternArt() {
 
 export const MoonIcon = ({ on }: { on: boolean }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M19.5 14.6A7.6 7.6 0 0 1 9.4 4.5a7.6 7.6 0 1 0 10.1 10.1Z" fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.18 : 0} />
-    <path d="M16.6 3.6v2.6M15.3 4.9h2.6" opacity={on ? 1 : 0.6} />
-    <circle cx="20.2" cy="8.6" r="0.55" fill="currentColor" stroke="none" opacity={on ? 1 : 0.6} />
+    {/* the crescent and its sparkle lean right and up as drawn: shifted so
+        the whole mark sits on the button's centre */}
+    <g transform="translate(-0.9 0.7)">
+      <path d="M19.5 14.6A7.6 7.6 0 0 1 9.4 4.5a7.6 7.6 0 1 0 10.1 10.1Z" fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.18 : 0} />
+      <path d="M16.6 3.6v2.6M15.3 4.9h2.6" opacity={on ? 1 : 0.6} />
+      <circle cx="20.2" cy="8.6" r="0.55" fill="currentColor" stroke="none" opacity={on ? 1 : 0.6} />
+    </g>
   </svg>
 );
 

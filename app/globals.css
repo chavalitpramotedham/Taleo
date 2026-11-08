@@ -387,6 +387,9 @@ main {
 .icon-btn {
   width: 44px;
   height: 44px;
+  /* no default button padding: in a small circle it pushes the icon off
+     centre (it overflows the shrunken content box to one side) */
+  padding: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
