@@ -5550,3 +5550,50 @@ html[data-night] .gender-opt.open.on {
 .field-row:has(.growing-input) {
   align-items: flex-start;
 }
+
+/* Read-along: the word being read glows softly, karaoke-style (a background
+   only, so nothing on the page moves). */
+.story-text span {
+  border-radius: 4px;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+.story-text .reading {
+  background-color: color-mix(in srgb, var(--ochre) 32%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ochre) 32%, transparent);
+}
+html[data-night] .story-text .reading {
+  background-color: color-mix(in srgb, var(--ochre) 26%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ochre) 26%, transparent);
+}
+
+/* The read-aloud button's sound waves pulse outward while a page is being
+   read, and settle when it's done (the button stays on). */
+.speech-icon .wave {
+  transform-box: fill-box;
+  transform-origin: right center;
+}
+.speech-icon.speaking .wave {
+  animation: speechWave 1.2s ease-in-out infinite;
+}
+.speech-icon.speaking .w2 {
+  animation-delay: 0.15s;
+}
+.speech-icon.speaking .w3 {
+  animation-delay: 0.3s;
+}
+@keyframes speechWave {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.88);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .speech-icon.speaking .wave {
+    animation: none;
+  }
+}

@@ -149,7 +149,13 @@ function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, 
   // Natural pitch (raising it is what made the old voice sound robotic),
   // and an unhurried pace; single words a touch slower and clearer.
   u.pitch = 1;
-  u.rate = kind === "word" ? 0.8 : 0.9;
+  // Slow and gentle, like reading to a baby.
+  u.rate = kind === "word" ? 0.7 : 0.76;
+  if (kind === "page") {
+    u.onboundary = (e) => {
+      if (isCurrent() && e.name === "word") emit({ text, at: e.charIndex });
+    };
+  }
   u.onend = done;
   u.onerror = done;
   // Hold the music watchdog while the system voice speaks (on some phones
@@ -163,6 +169,42 @@ function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, 
   ss.resume();
   if (busy) window.setTimeout(() => isCurrent() && ss.speak(u), 120);
   else ss.speak(u);
+}
+
+// ---------------------------------------------------------------- read-along
+// Which word is being read right now (for highlighting it, karaoke-style):
+// the text being spoken and the character index of the current word, or
+// null when nothing is being read.
+export type SpeechProgress = { text: string; at: number } | null;
+const listeners = new Set<(p: SpeechProgress) => void>();
+let progress: SpeechProgress = null;
+function emit(p: SpeechProgress) {
+  if (p?.at === progress?.at && p?.text === progress?.text) return;
+  progress = p;
+  listeners.forEach((l) => l(p));
+}
+export function onSpeechProgress(fn: (p: SpeechProgress) => void): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+/** Estimated start time of each word in a clip of known length: time is
+ *  shared out by word length, plus pauses after commas and sentence ends
+ *  (the voice reads slowly, with long pauses between sentences). */
+function wordTimings(text: string, duration: number) {
+  const words = [...text.matchAll(/\S+/g)].map((m) => {
+    const w = m[0];
+    const pause = /[.!?]["')\]]*$/.test(w) ? 7 : /[,;:\u2014-]["')\]]*$/.test(w) ? 3 : 0;
+    return { at: m.index ?? 0, weight: w.replace(/[^\p{L}\p{N}]/gu, "").length + 2 + pause };
+  });
+  const total = words.reduce((n, w) => n + w.weight, 0) || 1;
+  const lead = Math.min(0.25, duration * 0.04); // a breath before the first word
+  let t = lead;
+  return words.map((w) => {
+    const start = t;
+    t += ((duration - lead) * w.weight) / total;
+    return { at: w.at, start };
+  });
 }
 
 // ---------------------------------------------------------------- speaking
@@ -185,10 +227,14 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
     if (!isCurrent()) return;
     window.clearTimeout(safety);
     stopCurrent = null;
+    emit(null);
     duckMusic("speech", false);
     holdMusic("speech", false);
   };
   duckMusic("speech", true);
+  // A page being read: say so straight away (the speaker icon pulses), with
+  // no word lit until the voice reaches the first one.
+  if (kind === "page") emit({ text: t, at: -1 });
   // Safety net in case an end event never arrives.
   safety = window.setTimeout(done, Math.min(90000, 4000 + t.length * 110));
 
@@ -211,11 +257,32 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
         src.connect(c.destination);
         src.onended = done;
         src.start();
+        // Follow along word by word (estimated from the clip's length).
+        let raf = 0;
+        if (kind === "page") {
+          const marks = wordTimings(t, buf.duration);
+          const t0 = c.currentTime;
+          const tick = () => {
+            if (!isCurrent()) return;
+            const el = c.currentTime - t0;
+            let i = 0;
+            while (i + 1 < marks.length && marks[i + 1].start <= el) i++;
+            emit({ text: t, at: marks[i]?.at ?? 0 });
+            raf = requestAnimationFrame(tick);
+          };
+          raf = requestAnimationFrame(tick);
+        }
         stopCurrent = () => {
+          cancelAnimationFrame(raf);
           src.onended = null;
           try {
             src.stop();
           } catch {}
+        };
+        const ended = src.onended;
+        src.onended = (ev) => {
+          cancelAnimationFrame(raf);
+          ended?.call(src, ev);
         };
         return;
       }
@@ -230,6 +297,7 @@ export function cancelSpeech() {
   window.clearTimeout(safety);
   stopCurrent?.();
   stopCurrent = null;
+  emit(null);
   duckMusic("speech", false);
   holdMusic("speech", false);
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();

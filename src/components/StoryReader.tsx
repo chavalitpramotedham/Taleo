@@ -7,7 +7,7 @@ import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
-import { cancelSpeech, prefetchSpeech, setSpeechStory, speakText, unlockSpeech } from "@/lib/speech";
+import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -345,6 +345,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
   // ---------------------------------------------------------------- read aloud
   const speak = useCallback((text: string) => speakText(text, { kind: "page" }), []);
 
+  // The word being read right now, to light it up as the voice goes.
+  const [spoken, setSpoken] = useState<SpeechProgress>(null);
+  useEffect(() => onSpeechProgress(setSpoken), []);
+  const readingAt = (page: Page) => {
+    if (!spoken) return -1;
+    const full = [page.aside, page.text].filter(Boolean).join(" ");
+    if (spoken.text.replace(/\s+/g, " ").trim() !== full.replace(/\s+/g, " ").trim()) return -1;
+    return spoken.at - (page.aside ? page.aside.length + 1 : 0);
+  };
+
   useEffect(() => {
     if (!readAloud || !view) return;
     if (view.kind === "page") speak([view.page.aside, view.page.text].filter(Boolean).join(" "));
@@ -495,7 +505,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
           </p>
         )}
         <p className={`story-text ${first ? "drop" : ""}`}>
-          {withTappableWord(view.page.text, view.page.action?.word, () => paintingRef.current?.play())}
+          {withTappableWord(view.page.text, view.page.action?.word, () => paintingRef.current?.play(), readingAt(view.page))}
         </p>
         <p className="folio">— {view.number} —</p>
       </div>
@@ -626,7 +636,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
             aria-label={readAloud ? "Stop reading aloud" : "Read aloud"}
             title={readAloud ? "Stop reading aloud" : "Read to me"}
           >
-            <SpeechIcon on={readAloud} />
+            <SpeechIcon on={readAloud} speaking={readAloud && spoken !== null} />
           </button>
           {!readOnly && story.status === "complete" && (
             <button className="icon-btn" onClick={share} aria-label="Share story" title="Share">
@@ -729,21 +739,50 @@ function tapTarget(page: Page, cast: CharacterDef[], age: string): TapTarget | n
   };
 }
 
-/** Render page text with the key word (and its endings: hop → hopped) as a tappable button. */
-function withTappableWord(text: string, word: string | undefined, onTap: () => void): React.ReactNode {
-  if (!word) return text;
-  const escaped = word.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const m = new RegExp(`(^|[^\\p{L}])(${escaped}[\\p{L}']*)`, "iu").exec(text);
-  if (!m) return text;
-  const start = m.index + m[1].length;
-  const found = m[2];
-  return (
-    <>
-      {text.slice(0, start)}
-      <button type="button" className="word-tap" onClick={onTap} title={`Tap to hear “${found}”`}>
-        {found}
-      </button>
-      {text.slice(start + found.length)}
-    </>
-  );
+/** Render page text with the key word (and its endings: hop → hopped) as a
+ *  tappable button, and - while it's being read aloud - the word being
+ *  read softly lit, karaoke-style (`reading` = its character index). */
+function withTappableWord(text: string, word: string | undefined, onTap: () => void, reading = -1): React.ReactNode {
+  let tapStart = -1;
+  let found = "";
+  if (word) {
+    const escaped = word.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const m = new RegExp(`(^|[^\\p{L}])(${escaped}[\\p{L}']*)`, "iu").exec(text);
+    if (m) {
+      tapStart = m.index + m[1].length;
+      found = m[2];
+    }
+  }
+  const tapEnd = tapStart + found.length;
+  const out: React.ReactNode[] = [];
+  let pos = 0;
+  for (const m of text.matchAll(/\S+/g)) {
+    const start = m.index ?? 0;
+    const end = start + m[0].length;
+    if (end <= pos) continue;
+    out.push(text.slice(pos, start));
+    const lit = reading >= start && reading < end;
+    if (tapStart >= 0 && start <= tapStart && tapStart < end) {
+      // the word containing the tappable word (keep its punctuation around it)
+      out.push(
+        <span key={start} className={lit ? "reading" : undefined}>
+          {text.slice(start, tapStart)}
+          <button type="button" className="word-tap" onClick={onTap} title={`Tap to hear “${found}”`}>
+            {found}
+          </button>
+          {text.slice(tapEnd, Math.max(tapEnd, end))}
+        </span>,
+      );
+      pos = Math.max(end, tapEnd);
+      continue;
+    }
+    out.push(
+      <span key={start} className={lit ? "reading" : undefined}>
+        {m[0]}
+      </span>,
+    );
+    pos = end;
+  }
+  out.push(text.slice(pos));
+  return <>{out}</>;
 }
