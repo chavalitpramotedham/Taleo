@@ -156,7 +156,7 @@ html {
   /* The wordmark's glyphs sit in the upper half of their line box (no
      descenders in "Taleo"), so centering the icon against the full line
      leaves it looking low; nudge it up to match the text optically. */
-  transform: translateY(-4px);
+  transform: translateY(-2px);
 }
 .leaf-whirl {
   transform-box: fill-box;
@@ -421,6 +421,31 @@ main {
 .music-control-tune {
   border-right: 1px solid var(--rule);
   border-radius: 999px 0 0 999px;
+}
+/* The current tune's name beside the note - wider screens only; phones
+   keep the compact icon-only pill. */
+.music-control-name {
+  display: none;
+}
+@media (min-width: 761px) {
+  .music-control-tune {
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 14px 0 13px;
+  }
+  .music-control-name {
+    display: inline;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-caps);
+    font-size: 0.92rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+  }
 }
 .music-control-mute {
   border-radius: 0 999px 999px 0;

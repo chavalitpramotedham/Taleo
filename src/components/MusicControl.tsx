@@ -3,10 +3,30 @@ import { useEffect, useRef, useState } from "react";
 import { MUSIC_TRACKS, defaultTrack, playMusic, setMusicMuted, stopMusic, trackById } from "@/lib/music";
 import { MusicNoteIcon, SpeakerIcon } from "./Icons";
 
+// The reader's last choices, remembered on this device so every story
+// starts with the tune they picked (and stays muted if they muted it)
+// until they change it.
+const TRACK_KEY = "taleo.music.track";
+const MUTED_KEY = "taleo.music.muted";
+
+function readPref(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writePref(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
 /** Gentle looping background music for the story reader: a two-zone pill -
- *  the left half opens a picker to change the tune, the right half mutes
- *  it. Starts on mount with the default track, and stops when the reader
- *  unmounts. */
+ *  the left half opens a picker to change the tune (and, on wider screens,
+ *  shows the tune's name), the right half mutes it. Starts on mount with the
+ *  reader's last-chosen tune (the default the first time), and stops when
+ *  the reader unmounts. */
 export function MusicControl() {
   const [trackId, setTrackId] = useState(defaultTrack.id);
   const [muted, setMuted] = useState(false);
@@ -14,11 +34,23 @@ export function MusicControl() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    playMusic(defaultTrack);
+    // trackById falls back to the default for an unknown/removed tune.
+    const track = trackById(readPref(TRACK_KEY) || defaultTrack.id);
+    const wasMuted = readPref(MUTED_KEY) === "1";
+    setTrackId(track.id);
+    setMuted(wasMuted);
+    setMusicMuted(wasMuted);
+    playMusic(track);
     return () => stopMusic();
   }, []);
 
   useEffect(() => setMusicMuted(muted), [muted]);
+
+  const toggleMute = () =>
+    setMuted((m) => {
+      writePref(MUTED_KEY, m ? "0" : "1");
+      return !m;
+    });
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -32,8 +64,10 @@ export function MusicControl() {
   const choose = (id: string) => {
     setTrackId(id);
     setPickerOpen(false);
+    writePref(TRACK_KEY, id);
     playMusic(trackById(id));
   };
+  const trackName = trackById(trackId).name;
 
   return (
     <div className="music-control" ref={ref}>
@@ -43,15 +77,16 @@ export function MusicControl() {
         onClick={() => setPickerOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={pickerOpen}
-        aria-label="Change background music"
+        aria-label={`Background music: ${trackName}. Change tune`}
         title="Change background music"
       >
         <MusicNoteIcon />
+        <span className="music-control-name">{trackName}</span>
       </button>
       <button
         type="button"
         className="music-control-half music-control-mute"
-        onClick={() => setMuted((m) => !m)}
+        onClick={toggleMute}
         aria-pressed={muted}
         aria-label={muted ? "Unmute background music" : "Mute background music"}
         title={muted ? "Unmute music" : "Mute music"}
