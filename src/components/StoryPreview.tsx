@@ -1,10 +1,10 @@
 "use client";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { useEffect } from "react";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
-import { ClockIcon, MapleMark, ShareIcon, StarGlyph } from "./Icons";
+import { ClockIcon, LeafLoader, MapleMark, ShareIcon, StarGlyph } from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -126,12 +126,29 @@ export function PreviewButtons({ href, label, onShare, onRead }: { href: string;
   return (
     <div className="story-preview-buttons">
       <Link className="btn btn-primary" href={href} onClick={onRead}>
-        <MapleMark />
-        {label}
+        <ReadLabel label={label} />
       </Link>
       <button type="button" className="icon-btn story-preview-share" onClick={onShare} aria-label="Share story" title="Share">
         <ShareIcon />
       </button>
     </div>
+  );
+}
+
+/** The read button's contents: while the story is on its way (after the
+ *  tap, before the page arrives), the leaves fall and it says "Opening…",
+ *  so a tap always visibly registers. */
+function ReadLabel({ label }: { label: string }) {
+  const { pending } = useLinkStatus();
+  return pending ? (
+    <>
+      <LeafLoader size={18} />
+      Opening…
+    </>
+  ) : (
+    <>
+      <MapleMark />
+      {label}
+    </>
   );
 }

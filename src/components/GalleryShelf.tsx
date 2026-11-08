@@ -11,7 +11,7 @@ import { PreviewButtons, StoryPreview, summaryFromEntry } from "./StoryPreview";
 import { MyRatingNote } from "./InlineRating";
 import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter";
 import { PRESETS, presetCharacter } from "@/lib/presets";
-import { PageLoading } from "./PageLoading";
+import { ShelfSkeleton } from "./ShelfSkeleton";
 
 export type GallerySort = "recent" | "rating";
 
@@ -116,7 +116,7 @@ export function GalleryShelf({
         {pills}
       </header>
       {stories === null && !error ? (
-        <PageLoading label="Fetching stories…" compact />
+        <ShelfSkeleton count={limit ?? 6} />
       ) : error ? (
         <div className="empty">
           <h2>The library couldn&apos;t open just now</h2>

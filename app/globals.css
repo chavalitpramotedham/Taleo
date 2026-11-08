@@ -6733,3 +6733,78 @@ html[data-night] .admin-spark.bad {
 .book-text > :last-child {
   margin-bottom: auto;
 }
+
+/* ---------- story cards: a fixed shape, and placeholders while loading ---------- */
+/* The picture never decides the card's size: the cover is a 4:3 box and
+   the painting is laid over it (some browsers otherwise let an unsized
+   picture stretch the card while it's first drawn). Every title gets room
+   for three lines, so cards in a row match and nothing shifts. */
+.book-card .cover > svg:not(.cover-portrait) {
+  position: absolute;
+  inset: 0;
+}
+.story-card-title {
+  min-height: calc(1.25em * 3);
+}
+.skeleton-card {
+  pointer-events: none;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-card .cover {
+  background: color-mix(in srgb, var(--rule) 45%, var(--page));
+}
+/* (same pill and same three-line title box as a real card, so the
+   heights match exactly) */
+.skeleton-pill {
+  width: 38%;
+  color: transparent;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--rule) 55%, var(--page));
+}
+.skeleton-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  width: 100%;
+  font-size: clamp(1.05rem, 0.85rem + 1vw, 1.35rem);
+  height: calc(1.25em * 3);
+  padding-top: 0.2em;
+  box-sizing: border-box;
+}
+.skeleton-line {
+  display: block;
+  width: 88%;
+  height: 0.85em;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rule) 55%, var(--page));
+}
+.skeleton-line.short {
+  width: 56%;
+}
+.skeleton-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 252, 244, 0.45) 50%, transparent 70%);
+  transform: translateX(-100%);
+  will-change: transform;
+  animation: skeletonSheen 1.6s ease-in-out infinite;
+}
+html[data-night] .skeleton-card::after {
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 236, 205, 0.06) 50%, transparent 70%);
+}
+@keyframes skeletonSheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card::after {
+    animation: none;
+  }
+}
+.skeleton-card .body {
+  gap: 8px;
+  align-items: flex-start;
+}
