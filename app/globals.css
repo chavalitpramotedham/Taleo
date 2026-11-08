@@ -4432,3 +4432,74 @@ html[data-night] .modal-backdrop {
 .story-preview-facts li {
   padding: 6px 10px;
 }
+
+/* ---------- card & preview polish ---------- */
+/* Cards: the cover's rating, the keyword pill and the title share one left
+   edge (the card's inner padding), and the pill's word sits close to it. */
+.book-card .cover-meta {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.story-card .keyword-pill {
+  padding: 2px 9px 3px;
+}
+@media (max-width: 639px) {
+  .book-card .cover-meta {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Preview: a little smaller, so it sits neatly as a popup. */
+.story-preview {
+  max-width: 400px;
+}
+.story-preview-body {
+  padding: 12px 20px 16px;
+}
+.story-preview-body h2 {
+  font-size: clamp(1.35rem, 4vw, 1.6rem);
+}
+/* Time pill and close button: same height, same frosted glass, one line. */
+.story-preview-close {
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: rgba(255, 252, 244, 0.42);
+  -webkit-backdrop-filter: blur(8px) saturate(1.3);
+  backdrop-filter: blur(8px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px -3px rgba(60, 40, 20, 0.25);
+}
+.story-preview-cover .cover-time {
+  top: 12px;
+  right: 52px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px 0 10px;
+}
+/* Details as one plain line - no boxes. */
+.story-preview-meta {
+  margin: 2px 0 12px !important;
+  font-size: 0.98rem;
+  color: var(--ink-soft);
+}
+.story-preview-meta b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.story-preview-meta .dot {
+  margin: 0 8px;
+  color: var(--ink-faint);
+}
+/* The rating area: a hairline above instead of a box. */
+.inline-rating {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 14px 0 0;
+}

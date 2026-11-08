@@ -96,18 +96,17 @@ export function StoryPreview({
           {story.keyword && <KeywordPill keyword={story.keyword} />}
           <h2 id="story-preview-title">{story.title}</h2>
           <p className="meta story-preview-by">by @{story.author}</p>
-          <ul className="story-preview-facts">
+          <p className="story-preview-meta">
             {story.starring.length > 0 && (
-              <li>
-                <span>Starring</span>
-                {joinNames(story.starring)}
-              </li>
+              <>
+                Starring <b>{joinNames(story.starring)}</b>
+                <span className="dot" aria-hidden>
+                  ·
+                </span>
+              </>
             )}
-            <li>
-              <span>Ages</span>
-              {story.ageLabel}
-            </li>
-          </ul>
+            Ages <b>{story.ageLabel}</b>
+          </p>
           {children}
         </div>
       </div>
