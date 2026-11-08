@@ -4,8 +4,7 @@ import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
 import { SharedStoryWelcome, type SharedStorySummary } from "@/components/SharedStoryWelcome";
-import { Painting } from "@/components/art/Painting";
-import { HOME_SCENE } from "@/lib/art/homeScene";
+import { HeroPainting } from "@/components/HeroPainting";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
@@ -80,9 +79,7 @@ export default async function Home({ searchParams }: HomeProps) {
             </Link>
           </div>
         </div>
-        <figure className="hero-art">
-          <Painting svg={HOME_SCENE} title="Pip the rabbit leaps over a puddle after a falling leaf while Bobo the bear laughs" />
-        </figure>
+        <HeroPainting />
       </section>
 
       <ol className="steps" aria-label="How it works">

@@ -3732,3 +3732,146 @@ html[data-night] .modal-backdrop {
     display: none;
   }
 }
+
+/* ---------- homepage: the picture painted before your eyes ----------
+   Shapes appear in a few discrete steps (steps() timing) rather than
+   smoothly, so the watercolour filters re-run only a handful of times per
+   stroke - it reads as dabs of paint and stays light on phones. */
+.hero-paint-canvas {
+  position: relative;
+}
+.hero-paint-canvas > svg {
+  transition: opacity 0.7s ease;
+}
+.hero-paint-pending > svg,
+.hero-paint-fade > svg {
+  opacity: 0;
+}
+.hp-hidden {
+  visibility: hidden;
+}
+.hp-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hpBloom 0.36s steps(3, end) both;
+}
+g[filter="url(#tl-wash)"].hp-in {
+  animation: hpWash 0.6s steps(4, end) both;
+}
+.hp-draw,
+.hp-draw * {
+  stroke-dasharray: 1;
+  animation: hpDraw 0.34s steps(5, end) both;
+}
+@keyframes hpBloom {
+  from {
+    opacity: 0.35;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hpWash {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes hpDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The illustrator's brush, hopping from shape to shape with its tip in the
+   colour being laid down. Its own GPU layer, so the glide is smooth. */
+.hero-brush {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: transform 0.24s cubic-bezier(0.3, 0.75, 0.3, 1), opacity 0.3s ease;
+}
+.hero-brush.on {
+  opacity: 1;
+}
+.hero-brush svg {
+  position: absolute;
+  /* put the bristle tip on the point being painted, handle up and right */
+  left: -11px;
+  top: -1px;
+  transform-origin: 11px 1px;
+  transform: rotate(150deg);
+  filter: drop-shadow(2px 3px 2px rgba(60, 40, 20, 0.35));
+}
+.hero-brush-tip {
+  fill: var(--tip, #9c4f32);
+  transition: fill 0.2s ease;
+}
+
+/* What's being painted, in the illustrator's words. */
+.hero-stage {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  margin: 0;
+  padding: 4px 13px 5px;
+  border-radius: 999px;
+  background: rgba(251, 247, 238, 0.92);
+  border: 1px solid var(--rule);
+  box-shadow: 0 4px 10px -6px rgba(70, 50, 30, 0.45);
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+.hero-stage.on {
+  opacity: 1;
+  transform: none;
+}
+
+/* The story line being written underneath, with a blinking pen. */
+.hero-paint figcaption {
+  min-height: 3em;
+  padding-top: 6px;
+}
+.hero-quill {
+  display: inline-block;
+  width: 1.5px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  background: var(--ink-soft);
+  opacity: 0;
+}
+.hero-quill.on {
+  animation: quillBlink 0.9s steps(2, start) infinite;
+}
+@keyframes quillBlink {
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 760px) {
+  .hero-stage {
+    top: 8px;
+    left: 8px;
+    font-size: 0.82rem;
+  }
+}
