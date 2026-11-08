@@ -12,22 +12,22 @@ export type GallerySort = "recent" | "rating";
 
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
 
-/** Newest / Favourites pill toggle. */
+/** Favourites / Newest pill toggle. */
 export function SortPills({ sort, onChange }: { sort: GallerySort; onChange: (s: GallerySort) => void }) {
   return (
     <div className="filter-row" role="tablist">
-      <button role="tab" aria-selected={sort === "recent"} className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => onChange("recent")}>
-        Newest
-      </button>
       <button role="tab" aria-selected={sort === "rating"} className={`chip ${sort === "rating" ? "on" : ""}`} onClick={() => onChange("rating")}>
         Favourites
+      </button>
+      <button role="tab" aria-selected={sort === "recent"} className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => onChange("recent")}>
+        Newest
       </button>
     </div>
   );
 }
 
-/** The public story store as a shelf of cards, with its own Newest /
- *  Favourites toggle. `limit` shows just the top few (home page). */
+/** The public story store as a shelf of cards, with its own Favourites /
+ *  Newest toggle. `limit` shows just the top few (home page). */
 export function GalleryShelf({
   limit,
   heading,
@@ -39,7 +39,7 @@ export function GalleryShelf({
   headClass: string;
 }) {
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
-  const [sort, setSort] = useState<GallerySort>("recent");
+  const [sort, setSort] = useState<GallerySort>("rating");
   const [error, setError] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 

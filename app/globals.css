@@ -428,7 +428,13 @@ main {
   align-items: center;
 }
 .hero h1 {
-  font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+  /* Always two balanced lines: sized to its own column (container units),
+     so it fits whatever width the layout gives it, and never shouts. */
+  font-size: clamp(1.25rem, 6.8cqi, 2.7rem);
+  text-wrap: balance;
+}
+.hero-copy {
+  container-type: inline-size;
 }
 .lead {
   font-size: clamp(1.1rem, 1.8vw, 1.28rem);
@@ -2840,4 +2846,53 @@ main {
 }
 .contact-sent h2 {
   margin: 0;
+}
+
+/* ---------- home on phones: everything above the fold that matters ----------
+   A shorter, wider crop of the picture, a two-line title sized to the
+   screen, and tighter spacing, so the library starts much sooner. */
+@media (max-width: 760px) {
+  .home {
+    padding-top: 12px;
+  }
+  .hero {
+    gap: 14px;
+  }
+  .hero-art {
+    padding: 6px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .hero-art svg {
+    flex: none;
+  }
+  .hero h1 {
+    line-height: 1.12;
+    margin-bottom: 8px;
+  }
+  .hero .eyebrow {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+  .hero .lead {
+    font-size: 1.02rem;
+    margin: 0;
+  }
+  .steps {
+    margin-top: 18px;
+  }
+  .step {
+    padding: 10px 14px 12px;
+  }
+  .step h3 {
+    font-size: 1.08rem;
+  }
+  .step p {
+    font-size: 0.92rem;
+  }
+  .home-shelf {
+    margin-top: 26px;
+  }
 }
