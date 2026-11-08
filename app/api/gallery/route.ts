@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   if (limit) stories = stories.slice(0, limit);
   return NextResponse.json(
     { stories },
-    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } },
+    { headers: { "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600" } },
   );
 }
 

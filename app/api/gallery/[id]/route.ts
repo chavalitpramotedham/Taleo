@@ -5,5 +5,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const story = await getGalleryStory(id);
   if (!story) return NextResponse.json({ error: "Not found." }, { status: 404 });
-  return NextResponse.json({ story }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } });
+  return NextResponse.json({ story }, { headers: { "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600" } });
 }

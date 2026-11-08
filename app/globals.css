@@ -3875,3 +3875,12 @@ g[filter="url(#tl-wash)"].hp-in {
     font-size: 0.82rem;
   }
 }
+
+/* Long shelves: let the browser skip rendering story cards (each with a
+   filtered watercolour cover) until they're scrolled near, so the first
+   view of the library appears faster. The intrinsic size keeps the
+   scrollbar and layout steady. */
+.shelf > .book-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
