@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { EB_Garamond, IM_Fell_English, IM_Fell_English_SC } from "next/font/google";
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { BrandMark } from "@/components/Icons";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -24,17 +25,32 @@ export const viewport: Viewport = {
   themeColor: "#F3ECDC",
 };
 
+// Self-hosted by Next.js (served from our own domain and preloaded), so the
+// first paint doesn't wait on a stylesheet from fonts.googleapis.com.
+const garamond = EB_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-garamond",
+});
+const fell = IM_Fell_English({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-fell",
+});
+const fellSC = IM_Fell_English_SC({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-fell-sc",
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable}`}>
       <body>
         <Providers>
           <PaintDefs />

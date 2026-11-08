@@ -14,9 +14,9 @@
   --sage-soft: #e3e6d2;
   --ochre: #c49a3e;
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 12px 28px -18px rgba(70, 50, 30, 0.45);
-  --font-title: "IM Fell English", "EB Garamond", Georgia, serif;
-  --font-caps: "IM Fell English SC", "EB Garamond", Georgia, serif;
-  --font-body: "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-title: var(--font-fell), var(--font-garamond), Georgia, serif;
+  --font-caps: var(--font-fell-sc), var(--font-garamond), Georgia, serif;
+  --font-body: var(--font-garamond), Georgia, "Times New Roman", serif;
 }
 
 * {
