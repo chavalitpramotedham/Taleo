@@ -5054,3 +5054,14 @@ html[data-night] .hero-stage {
   box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.7);
   color: #f0e3c9;
 }
+
+/* Selected cards and character slots at night: a warm lamplit tint of the
+   page (they used a fixed cream, which stayed light-mode). */
+html[data-night] .plate.selected,
+html[data-night] .hero-slot.selected {
+  background: color-mix(in srgb, var(--russet) 14%, var(--page));
+}
+html[data-night] .contact-file-remove {
+  background: rgba(22, 17, 24, 0.85);
+  color: var(--ink);
+}
