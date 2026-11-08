@@ -304,14 +304,22 @@ main {
   min-height: 48px;
 }
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(2px);
 }
 .btn-primary {
   background: var(--russet);
   color: #fbf4e6;
-  border-color: var(--russet);
-  /* A single soft shadow - no bevel/bezel edge. */
-  box-shadow: 0 6px 14px -8px rgba(70, 50, 30, 0.55);
+  border-color: var(--russet-dark);
+  /* Raised: a darker lip along the bottom plus a soft shadow. It presses
+     down on tap/click (the lip shrinks as the button moves down). */
+  box-shadow:
+    0 3px 0 var(--russet-dark),
+    0 8px 16px -10px rgba(70, 50, 30, 0.55);
+}
+.btn-primary:active:not(:disabled) {
+  box-shadow:
+    0 1px 0 var(--russet-dark),
+    0 4px 10px -8px rgba(70, 50, 30, 0.5);
 }
 @media (hover: hover) {
 .btn-primary:hover {
@@ -328,6 +336,17 @@ main {
   background: var(--page);
   border-color: var(--rule-strong);
   color: var(--ink);
+  /* The same raised edge as primary buttons, in the paper's colours. */
+  box-shadow:
+    0 3px 0 var(--rule-strong),
+    0 8px 16px -12px rgba(70, 50, 30, 0.45);
+}
+.btn-soft:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--rule-strong);
+}
+.btn-soft:disabled {
+  box-shadow: none;
+  opacity: 0.6;
 }
 @media (hover: hover) {
 .btn-soft:hover {
@@ -1460,7 +1479,13 @@ main {
   line-height: 1;
   padding-bottom: 6px;
   cursor: pointer;
-  box-shadow: 0 6px 14px -8px rgba(70, 50, 30, 0.45);
+  box-shadow:
+    0 3px 0 var(--rule-strong),
+    0 8px 16px -12px rgba(70, 50, 30, 0.45);
+}
+.wizard-back:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--rule-strong);
 }
 @media (hover: hover) {
 .wizard-back:hover {
