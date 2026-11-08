@@ -296,7 +296,32 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     },
     [lastIndex],
   );
-  const go = useCallback((d: number) => turnTo(indexRef.current + d), [turnTo]);
+  // Tapping Next onto a page that's still being written doesn't flip to a
+  // blank "writing" page: the Next button shows it's waiting (a buffering
+  // loader), and the book turns by itself the moment the page is ready.
+  const [pendingNext, setPendingNext] = useState(false);
+  const viewsRef = useRef(views);
+  viewsRef.current = views;
+  const go = useCallback(
+    (d: number) => {
+      const target = indexRef.current + d;
+      if (d > 0 && !forwardBlockedRef.current && viewsRef.current[target]?.kind === "loading" && indexRef.current < target) {
+        setPendingNext(true);
+        return;
+      }
+      setPendingNext(false);
+      turnTo(target);
+    },
+    [turnTo],
+  );
+  useEffect(() => {
+    if (!pendingNext) return;
+    const next = views[index + 1];
+    if (!next) return setPendingNext(false);
+    if (next.kind === "loading") return;
+    setPendingNext(false);
+    turnTo(index + 1);
+  }, [pendingNext, views, index, turnTo]);
 
   // When a new segment lands, turn to its first page.
   const segCount = story.segments.length;
@@ -766,8 +791,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
         <button className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 2}>
           {position}
         </button>
-        <button className="nav-btn nav-btn-next" onClick={() => go(1)} disabled={!canForward} aria-label="Next page">
-          ›
+        <button
+          className={`nav-btn nav-btn-next ${pendingNext ? "waiting" : ""}`}
+          onClick={() => go(1)}
+          disabled={!canForward && !pendingNext}
+          aria-label={pendingNext ? "Next page (getting it ready)" : "Next page"}
+          aria-busy={pendingNext}
+        >
+          {pendingNext ? <LeafLoader size={26} /> : "›"}
         </button>
       </nav>
       {overviewOpen && (
