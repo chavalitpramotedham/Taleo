@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateSegment, hasApiKey } from "@/server/claude";
+import { hasApiKey, streamSegment, type SegmentEvent } from "@/server/claude";
 import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
@@ -33,14 +33,37 @@ export async function POST(req: Request) {
   const g = await guard(parsed.kind === "start" ? "story" : "segment");
   if (!g.ok) return g.response;
 
-  if (!hasApiKey()) {
-    await new Promise((r) => setTimeout(r, 900)); // let the loading screen breathe
-    return NextResponse.json({ ...mockSegment(parsed), demo: true });
-  }
-  try {
-    return NextResponse.json(await generateSegment(parsed));
-  } catch (err) {
-    await g.release(); // a story that failed to write doesn't count
-    return errorResponse(err);
-  }
+  // Streams newline-delimited JSON events: {type:"pages"} each time another
+  // page is ready (so the reader can start on page 1 while the rest is
+  // still being written), then {type:"done"} with the finished segment, or
+  // {type:"error"}.
+  const encoder = new TextEncoder();
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: SegmentEvent | { type: "error"; error: string }) =>
+        controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      try {
+        if (!hasApiKey()) {
+          // Demo mode: the templated storyteller, "written" page by page.
+          const seg = mockSegment(parsed);
+          for (let i = 1; i <= seg.segment.pages.length; i++) {
+            await new Promise((r) => setTimeout(r, i === 1 ? 900 : 700));
+            send({ type: "pages", newCharacters: seg.newCharacters, pages: seg.segment.pages.slice(0, i) });
+          }
+          send({ type: "done", response: { ...seg, demo: true } });
+        } else {
+          for await (const event of streamSegment(parsed)) send(event);
+        }
+      } catch (err) {
+        await g.release(); // a story that failed to write doesn't count
+        const data = (await errorResponse(err).json().catch(() => ({}))) as { error?: string };
+        send({ type: "error", error: data.error || "The story got stuck. Let's try again!" });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+  return new Response(body, {
+    headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
+  });
 }

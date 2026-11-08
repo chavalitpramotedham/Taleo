@@ -16,7 +16,7 @@ import type {
   StoryRequest,
 } from "@/lib/types";
 import { characterDesignerPrompt, illustratorPrompt, writerPrompt } from "./prompts";
-import { CharacterDesignSchema, SegmentSchema, type SegmentOut } from "./schemas";
+import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
 type Effort = "low" | "medium" | "high";
 const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
@@ -24,7 +24,10 @@ const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
 
-export const hasApiKey = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+/** False in demo mode (no key), or when TALEO_MOCK=1 forces the templated
+ *  storyteller and painter - handy for testing flows without real stories. */
+export const hasApiKey = () =>
+  process.env.TALEO_MOCK !== "1" && Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
 let client: Anthropic | null = null;
 const getClient = () => (client ??= new Anthropic());
@@ -58,7 +61,8 @@ const modelSheet = (c: CharacterDef) =>
 const centralSheet = (c: CharacterDef) =>
   `${modelSheet(c)}${c.notes ? `\n  FAMILY NOTES about ${c.name}: "${c.notes.replace(/\s+/g, " ").trim()}"` : ""}`;
 
-export async function generateSegment(req: StoryRequest): Promise<SegmentResponse> {
+/** The writer's request for the next segment, and how to normalise its reply. */
+function buildSegmentRequest(req: StoryRequest) {
   const isStart = req.kind === "start";
   const age = ageById(isStart ? req.age : req.story.age);
   const minutes = isStart ? req.minutes : req.story.minutes;
@@ -125,8 +129,116 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
     `Use ${pagesPerSegment[0]}-${pagesPerSegment[1]} pages, ${age.words[0]}-${age.words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
   );
 
-  const out = await ask(SegmentSchema, writerPrompt(), parts.join("\n\n"));
-  return normalizeSegment(out, { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount });
+  return {
+    user: parts.join("\n\n"),
+    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount },
+  };
+}
+
+export async function generateSegment(req: StoryRequest): Promise<SegmentResponse> {
+  const { user, norm } = buildSegmentRequest(req);
+  const out = await ask(SegmentSchema, writerPrompt(), user);
+  return normalizeSegment(out, norm);
+}
+
+// ---------------------------------------------------------------- streaming
+
+/** What the story stream sends: each time another page is complete, every
+ *  page written so far (so the reader can show page 1 while the rest is
+ *  still being written), then the final, validated segment. */
+export type SegmentEvent =
+  | { type: "pages"; newCharacters: CharacterDef[]; pages: Page[] }
+  | { type: "done"; response: SegmentResponse };
+
+/** Finds the complete top-level items of the JSON array under `"key"` in a
+ *  still-streaming JSON document. `closed` once the array has ended. */
+function completeItems(json: string, key: string): { items: string[]; closed: boolean } | null {
+  const m = new RegExp(`"${key}"\\s*:\\s*\\[`).exec(json);
+  if (!m) return null;
+  const items: string[] = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+  for (let i = m.index + m[0].length; i < json.length; i++) {
+    const c = json[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (c === "\\") escaped = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+    if (c === '"') inString = true;
+    else if (c === "{" || c === "[") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (c === "}" || c === "]") {
+      if (depth === 0) return { items, closed: true }; // the array itself ended
+      depth--;
+      if (depth === 0 && start >= 0) {
+        items.push(json.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  return { items, closed: false };
+}
+
+/**
+ * Writes the next segment as a stream, so the reader doesn't wait for the
+ * whole thing: each page is passed on the moment it's complete (validated
+ * and normalised exactly like the final result), and the finished segment
+ * follows at the end.
+ */
+export async function* streamSegment(req: StoryRequest): AsyncGenerator<SegmentEvent> {
+  const { user, norm } = buildSegmentRequest(req);
+  const stream = getClient().beta.messages.stream({
+    model: STORY_MODEL,
+    max_tokens: 16000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    system: [{ type: "text", text: writerPrompt(), cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: user }],
+    output_config: { effort: STORY_EFFORT, format: betaZodOutputFormat(SegmentSchema) },
+  });
+
+  let text = "";
+  let sent = 0;
+  for await (const event of stream) {
+    // A new text block starts the JSON afresh (e.g. after a server-side
+    // fallback to another model mid-reply).
+    if (event.type === "content_block_start" && event.content_block.type === "text") {
+      text = "";
+      sent = 0;
+      continue;
+    }
+    if (event.type !== "content_block_delta" || event.delta.type !== "text_delta") continue;
+    text += event.delta.text;
+
+    const pagesSoFar = completeItems(text, "pages");
+    if (!pagesSoFar || pagesSoFar.items.length <= sent) continue;
+    const chars = completeItems(text, "newCharacters");
+    if (!chars?.closed) continue;
+    try {
+      const newCharacters = chars.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
+      const pages = pagesSoFar.items.map((p) => PageSchema.parse(JSON.parse(p)));
+      const partial = normalizeSegment(
+        { title: "", world: "", moral: "", newCharacters, pages, choice: null, ending: false },
+        { ...norm, isLast: false },
+      );
+      sent = pages.length;
+      yield { type: "pages", newCharacters: partial.newCharacters, pages: partial.segment.pages };
+    } catch {
+      // Not parseable yet (or odd) - the final result will carry it.
+    }
+  }
+
+  const final = await stream.finalMessage();
+  if (final.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
+  if (final.stop_reason === "max_tokens") throw new Error("The story came out jumbled. Please try again.");
+  const lastText = [...final.content].reverse().find((b) => b.type === "text");
+  const out = SegmentSchema.parse(JSON.parse(lastText && lastText.type === "text" ? lastText.text : text));
+  yield { type: "done", response: normalizeSegment(out, norm) };
 }
 
 function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; optionCount: number }): SegmentResponse {

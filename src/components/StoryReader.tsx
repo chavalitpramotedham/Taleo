@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CharacterDef, Page, SegmentResponse, Story } from "@/lib/types";
+import type { CharacterDef, Page, Segment, SegmentResponse, Story } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
@@ -149,25 +149,75 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
                 segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })),
               },
             };
+      // The new segment streams in page by page: the reader can start on
+      // its first page (and its picture starts painting) while the rest is
+      // still being written. The finished, validated segment then replaces
+      // the provisional one - keeping any paintings already done.
+      const base = s.segments.length;
+      const baseCast = s.cast;
+      const keepSvgs = (pages: Page[], prev: Segment | undefined) =>
+        pages.map((p, i) => ({ ...p, svg: prev?.pages[i]?.text === p.text ? (prev.pages[i].svg ?? null) : (p.svg ?? null) }));
+      let shown = false;
       try {
         const res = await fetch("/api/story", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(body),
         });
-        const data = (await res.json()) as SegmentResponse & { error?: string };
-        if (!res.ok || !data.segment) throw new Error(data.error || "The story got stuck. Let's try again!");
-        update?.((cur) => ({
-          ...cur,
-          title: cur.title || data.title || `${cur.hero.name}'s Story`,
-          world: cur.world || data.world || "",
-          moral: cur.moral || data.moral,
-          cast: [...cur.cast, ...data.newCharacters],
-          segments: [...cur.segments, data.segment],
-          status: data.ending ? "complete" : "in-progress",
-          demo: cur.demo || data.demo,
-        }));
+        if (!res.ok || !res.body) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error || "The story got stuck. Let's try again!");
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let finished = false;
+        const handle = (event: { type: string } & Record<string, unknown>) => {
+          if (event.type === "error") throw new Error((event.error as string) || "The story got stuck. Let's try again!");
+          if (event.type === "pages") {
+            const pages = event.pages as Page[];
+            const newCharacters = event.newCharacters as CharacterDef[];
+            shown = true;
+            update?.((cur) => ({
+              ...cur,
+              cast: [...baseCast, ...newCharacters],
+              segments: [...cur.segments.slice(0, base), { pages: keepSvgs(pages, cur.segments[base]), choice: null, chosen: null }],
+            }));
+          }
+          if (event.type === "done") {
+            const data = event.response as SegmentResponse;
+            finished = true;
+            update?.((cur) => ({
+              ...cur,
+              title: cur.title || data.title || `${cur.hero.name}'s Story`,
+              world: cur.world || data.world || "",
+              moral: cur.moral || data.moral,
+              cast: [...baseCast, ...data.newCharacters],
+              segments: [
+                ...cur.segments.slice(0, base),
+                { ...data.segment, pages: keepSvgs(data.segment.pages, cur.segments[base]) },
+              ],
+              status: data.ending ? "complete" : "in-progress",
+              demo: cur.demo || data.demo,
+            }));
+          }
+        };
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (value) buffer += decoder.decode(value, { stream: true });
+          let nl: number;
+          while ((nl = buffer.indexOf("\n")) >= 0) {
+            const line = buffer.slice(0, nl).trim();
+            buffer = buffer.slice(nl + 1);
+            if (line) handle(JSON.parse(line));
+          }
+          if (done) break;
+        }
+        if (!finished) throw new Error("The story got stuck. Let's try again!");
       } catch (e) {
+        // Never leave a half-written part behind: roll it back so "try
+        // again" writes it afresh.
+        if (shown) update?.((cur) => ({ ...cur, cast: baseCast, segments: cur.segments.slice(0, base) }));
         setError(e instanceof Error ? e.message : "Something went wrong.");
       } finally {
         setBusy(false);
@@ -223,13 +273,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, pictu
     prevSegCount.current = segCount;
   }, [segCount, views, turnTo]);
 
+  // When writing starts, turn once to the "writing" page. (Not on every
+  // page that streams in after - that would pull the reader away from the
+  // page they're on.)
+  const wasBusy = useRef(false);
   useEffect(() => {
-    if (busy) {
-      turnTo(views.length - 1, { force: true });
-      const t = window.setInterval(() => setLoadingLine((n) => (n + 1) % LOADING_LINES.length), 2600);
-      return () => window.clearInterval(t);
-    }
+    if (busy && !wasBusy.current) turnTo(views.length - 1, { force: true });
+    wasBusy.current = busy;
   }, [busy, views.length, turnTo]);
+  useEffect(() => {
+    if (!busy) return;
+    const t = window.setInterval(() => setLoadingLine((n) => (n + 1) % LOADING_LINES.length), 2600);
+    return () => window.clearInterval(t);
+  }, [busy]);
 
   // Once a story is finished and every page is painted, it joins the public
   // story store - or, if it was already published early (to share or rate
