@@ -3393,6 +3393,21 @@ html[data-night] .book {
 html[data-night] .book::after {
   background: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(255, 220, 170, 0.05));
 }
+/* Paintings keep their paper at night: the watercolour washes are
+   partly see-through, and over the dark page they'd show as grey,
+   cloudy patches - so they sit on a dim, lamplit parchment instead. */
+html[data-night] .hero-paint-canvas,
+html[data-night] .book-art:has(.painting) {
+  background: #cdbfa3;
+}
+html[data-night] .hero-paint-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(14, 9, 16, 0.2);
+}
 /* Illustrations stay visible - just softened, as if lamplit. */
 html[data-night] .book-art::after {
   content: "";
@@ -4537,13 +4552,15 @@ html[data-night] .modal-backdrop {
   }
 }
 .nav-begin-pill {
+  /* Flat and quiet: a soft rust tint with rust lettering - clearly the
+     thing to press, without a raised button in the menu. */
   gap: 5px;
   padding: 3px 12px 4px 8px;
   border-radius: 999px;
-  border: 1px solid var(--russet-dark);
-  background: var(--russet);
-  color: #fbf4e6;
-  box-shadow: 0 2px 0 var(--russet-dark);
+  border: 1px solid color-mix(in srgb, var(--russet) 34%, transparent);
+  background: color-mix(in srgb, var(--russet) 11%, transparent);
+  color: var(--russet-dark);
+  transition: background 0.2s ease, border-color 0.2s ease;
   font-family: var(--font-caps);
   font-size: 0.98rem;
   letter-spacing: 0.04em;
@@ -4551,8 +4568,9 @@ html[data-night] .modal-backdrop {
 }
 @media (hover: hover) {
   .nav-begin-pill:hover {
-    background: var(--russet-dark);
-    color: #fbf4e6;
+    background: color-mix(in srgb, var(--russet) 19%, transparent);
+    border-color: color-mix(in srgb, var(--russet) 50%, transparent);
+    color: var(--russet-dark);
   }
 }
 .nav-tools {
@@ -4690,6 +4708,10 @@ html[data-night] .modal-backdrop {
   z-index: 35;
   background: linear-gradient(to bottom, rgba(251, 247, 238, 0.97), rgba(247, 241, 228, 0.94));
   box-shadow: 0 8px 18px -14px rgba(70, 50, 30, 0.45);
+}
+html[data-night] .nav-begin-pill,
+html[data-night] .nav-begin-pill:hover {
+  color: var(--russet);
 }
 html[data-night] .topbar {
   background: linear-gradient(to bottom, rgba(24, 20, 28, 0.96), rgba(19, 16, 23, 0.92));

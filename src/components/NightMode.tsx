@@ -142,9 +142,22 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       el.style.setProperty("--bar-y", `${top}px`);
       el.style.setProperty("--lamp-y", `${top + 14 + 64 * 0.65}px`);
     };
+    // Re-measure whenever the menu could have moved - not just on window
+    // resize but when the bar or its tools change size (the avatar or
+    // fonts arriving, a wrap on a narrow screen) - so the light always
+    // stays on the lantern.
     place();
+    const ro = new ResizeObserver(place);
+    ["html", ".topbar", ".nav-row", ".nav-tools"].forEach((q) => {
+      const el = document.querySelector(q);
+      if (el) ro.observe(el);
+    });
+    document.fonts?.ready.then(place);
     window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", place);
+    };
   }, []);
 
   // Scrolling drifts the fireflies past at their own depths (nearer ones
