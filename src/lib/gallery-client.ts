@@ -1,15 +1,18 @@
 "use client";
 import type { GalleryEntry, Story } from "./types";
 
-export async function fetchGallery(): Promise<GalleryEntry[]> {
-  const res = await fetch("/api/gallery", { cache: "no-store" });
+export async function fetchGallery(opts: { sort?: "rating" | "recent"; limit?: number } = {}): Promise<GalleryEntry[]> {
+  const q = new URLSearchParams();
+  if (opts.sort) q.set("sort", opts.sort);
+  if (opts.limit) q.set("limit", String(opts.limit));
+  const res = await fetch(`/api/gallery${q.size ? `?${q}` : ""}`);
   if (!res.ok) return [];
   const data = (await res.json()) as { stories?: GalleryEntry[] };
   return data.stories ?? [];
 }
 
 export async function fetchGalleryStory(id: string): Promise<Story | null> {
-  const res = await fetch(`/api/gallery/${id}`, { cache: "no-store" });
+  const res = await fetch(`/api/gallery/${id}`);
   if (!res.ok) return null;
   const data = (await res.json()) as { story?: Story };
   return data.story ?? null;

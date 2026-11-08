@@ -107,7 +107,9 @@ function player(): HTMLAudioElement | null {
   if (!el) {
     el = new Audio();
     el.loop = true;
-    el.preload = "auto";
+    // Don't download the whole track up front (it would compete with the
+    // story and its pictures on a phone connection) - it streams on play.
+    el.preload = "none";
     el.volume = ducks.size ? DUCKED : VOLUME;
     el.addEventListener("pause", () => wanted && startWatchdog());
     el.addEventListener("playing", stopWatchdog);

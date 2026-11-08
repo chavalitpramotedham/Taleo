@@ -18,8 +18,24 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
+/** How many pages' paintings to send with the page itself - enough to show
+ *  the opening straight away; the rest load in the background after. */
+const EAGER_PICTURES = 2;
+
 export default async function GalleryStoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const story = await getGalleryStory(id);
-  return <GalleryStoryClient story={story} />;
+  if (!story) return <GalleryStoryClient story={null} />;
+  // Paintings are the heavy part of a story (often tens of KB each). Send
+  // only the first few with the page so it appears fast, especially on a
+  // phone; the reader fetches the full story right after.
+  let n = 0;
+  const light = {
+    ...story,
+    segments: story.segments.map((seg) => ({
+      ...seg,
+      pages: seg.pages.map((p) => (n++ < EAGER_PICTURES ? p : { ...p, svg: null })),
+    })),
+  };
+  return <GalleryStoryClient story={light} partial={n > EAGER_PICTURES} />;
 }

@@ -3,9 +3,23 @@ import { auth } from "@/server/auth";
 import { listGallery, publishStory } from "@/server/gallery";
 import type { Story } from "@/lib/types";
 
-export async function GET() {
-  const stories = await listGallery();
-  return NextResponse.json({ stories });
+const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? e.ratingSum / e.ratingCount : 0);
+
+/** The public library. `?sort=rating|recent` and `?limit=N` let a page ask
+ *  for just what it shows (the homepage needs 8 covers, not every story).
+ *  Cached briefly at the edge - new stories and ratings show within a minute. */
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const sort = url.searchParams.get("sort");
+  const limit = Math.min(200, Math.max(0, Number(url.searchParams.get("limit")) || 0));
+  let stories = await listGallery();
+  if (sort === "rating") stories = [...stories].sort((a, b) => avg(b) - avg(a) || b.createdAt - a.createdAt);
+  else if (sort === "recent") stories = [...stories].sort((a, b) => b.createdAt - a.createdAt);
+  if (limit) stories = stories.slice(0, limit);
+  return NextResponse.json(
+    { stories },
+    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } },
+  );
 }
 
 const MAX_BYTES = 4_000_000;

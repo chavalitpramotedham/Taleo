@@ -36,9 +36,12 @@ interface Props {
   update?: (fn: (s: Story) => Story) => void;
   readOnly?: boolean;
   onSaveCopy?: () => void;
+  /** Read-only stories whose later paintings are still loading in the
+   *  background: show a gentle placeholder for those pages, not a sketch. */
+  picturesPending?: boolean;
 }
 
-export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Props) {
+export function StoryReader({ story, update, readOnly = false, onSaveCopy, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
@@ -386,7 +389,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
     const key = pageKey(shown.seg, shown.n);
     const done = shown.page.svg;
     const partial = live[key];
-    const fallback = !done && (readOnly || failed[key]) ? composePainting(shown.page, castFor(story, shown.page)) : null;
+    const fallback = !done && ((readOnly && !picturesPending) || failed[key]) ? composePainting(shown.page, castFor(story, shown.page)) : null;
     const svg = done || partial || fallback;
     picture = (
       <>
@@ -399,6 +402,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy }: Pro
             live={Boolean(partial && !done)}
             target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
           />
+        ) : readOnly && picturesPending ? (
+          <div className="picture-wait">
+            <LeafLoader size={44} />
+          </div>
         ) : null}
         {!svg && (
           <div className="picture-wait" aria-live="polite">

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
 import { fetchGallery } from "@/lib/gallery-client";
 import { shareUrl, shareStory } from "@/lib/share";
@@ -44,11 +44,30 @@ export function GalleryShelf({
   const [error, setError] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // A limited shelf (the homepage) asks the server for just its top N in
+  // the chosen order - not every story and cover in the library - and keeps
+  // each order it has fetched so switching back is instant. The full
+  // library fetches everything once and sorts here.
+  const byOrder = useRef<Partial<Record<GallerySort, GalleryEntry[]>>>({});
   useEffect(() => {
-    fetchGallery()
-      .then(setStories)
-      .catch(() => setError(true));
-  }, []);
+    if (!limit && byOrder.current.recent) return;
+    const key: GallerySort = limit ? sort : "recent";
+    const have = byOrder.current[key];
+    if (have) {
+      setStories(have);
+      return;
+    }
+    let live = true;
+    fetchGallery(limit ? { sort, limit } : {})
+      .then((list) => {
+        byOrder.current[key] = list;
+        if (live) setStories(list);
+      })
+      .catch(() => live && setError(true));
+    return () => {
+      live = false;
+    };
+  }, [limit, sort]);
 
   const sorted = useMemo(() => {
     if (!stories) return [];
