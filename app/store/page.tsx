@@ -9,7 +9,7 @@ export default function StorePage() {
           <>
             <p className="eyebrow">Open to everyone</p>
             <h1>The library</h1>
-            <p className="sub">Every finished story, painted and shared by families like yours.</p>
+            <p className="sub">Every finished story, painted and shared by parents like you.</p>
           </>
         }
       />

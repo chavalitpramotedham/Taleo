@@ -61,7 +61,7 @@ export function SharedStoryWelcome({ story }: { story: SharedStorySummary }) {
           </div>
         )}
         <div className="shared-welcome-body">
-          <p className="eyebrow">A story shared with you</p>
+          <p className="eyebrow">From one parent to another</p>
           <h2 id="shared-welcome-title">{story.title}</h2>
           <p className="meta shared-welcome-by">by @{story.author}</p>
           <Ornament className="ornament small" />

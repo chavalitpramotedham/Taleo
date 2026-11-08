@@ -11,10 +11,10 @@ import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
 
 const STEPS = [
-  { n: "I.", title: "Set the age", text: "Words and choices grow with them." },
-  { n: "II.", title: "Choose a hero", text: "Pick a friend, or invent your own." },
-  { n: "III.", title: "Pick the tale", text: "Adventure, bedtime, or any idea." },
-  { n: "IV.", title: "Decide together", text: "Choose what happens, page by page." },
+  { n: "I.", title: "Set the age", text: "Words and choices grow with your child." },
+  { n: "II.", title: "Choose a hero", text: "Theirs, yours, or one you dream up together." },
+  { n: "III.", title: "Pick the tale", text: "Adventure, bedtime, or a lesson to share." },
+  { n: "IV.", title: "Decide together", text: "Read side by side, choosing page by page." },
 ];
 
 type HomeProps = { searchParams: Promise<{ story?: string | string[] }> };
@@ -67,10 +67,14 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="container home">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">A picture book you make together</p>
+          <p className="eyebrow hero-badge">
+            <MapleMark />
+            By parents, for parents
+          </p>
           <h1>Stories dreamt up at bedtime, painted just for you</h1>
           <p className="lead">
-            A watercolour picture book for your little one, where <em>you</em> decide what happens next.
+            Made by parents for bedtimes like yours: a watercolour picture book you and your little one shape <em>together</em>,
+            with a warm lesson in every story.
           </p>
           {/* Desktop: the call to action sits right here; touch devices get the floating bar instead. */}
           <div className="hero-actions desktop-only">
@@ -91,7 +95,12 @@ export default async function Home({ searchParams }: HomeProps) {
         <GalleryShelf
           limit={8}
           headClass="home-shelf-head"
-          heading={<h2>From the library</h2>}
+          heading={
+            <>
+              <h2>From the library</h2>
+              <p className="sub">Made and shared by parents like you.</p>
+            </>
+          }
         />
         <div className="home-shelf-more">
           <Link className="btn btn-soft" href="/store">

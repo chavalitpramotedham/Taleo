@@ -12,7 +12,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Taleo: picture books you make together",
   description:
-    "Create interactive, watercolour picture-book stories with your little one. Pick a character, choose a theme, and decide what happens next.",
+    "By parents, for parents: make watercolour picture books with your little one. Pick a hero and a tale, decide together what happens next, with a warm lesson in every story.",
   appleWebApp: {
     title: "Taleo",
     statusBarStyle: "default",

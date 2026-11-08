@@ -140,7 +140,7 @@ export default function ContactPage() {
   return (
     <div className="container contact">
       <header className="wizard-head">
-        <p className="eyebrow">We&apos;d love to hear from you</p>
+        <p className="eyebrow">We&apos;re parents too</p>
         <h1>Contact us</h1>
         <p className="sub">Ask for something new, or tell us about anything that isn&apos;t working.</p>
       </header>

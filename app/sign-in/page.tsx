@@ -9,7 +9,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="container empty">
-      <p className="eyebrow">Join Taleo</p>
+      <p className="eyebrow">Join parents like you</p>
       <h1>Sign in to begin</h1>
       <p className="meta">We use your Google account to know which stories are yours, so you can be credited and see who enjoyed them.</p>
       <Ornament className="ornament center" />

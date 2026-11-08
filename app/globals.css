@@ -4040,3 +4040,32 @@ g[filter="url(#tl-wash)"].hp-in {
     opacity: 0.6;
   }
 }
+
+/* The homepage's key message: a soft gold pill with the brand's leaf. */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 5px 10px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: rgba(196, 154, 62, 0.14);
+  border: 1px solid rgba(196, 154, 62, 0.35);
+  color: var(--russet-dark);
+  font-size: 1.02rem;
+  letter-spacing: 0.06em;
+}
+.hero-badge .maple-mark {
+  width: 1.2em;
+  height: 1.2em;
+  margin: -0.1em 0;
+}
+.home-shelf-head .sub {
+  margin-top: -6px;
+}
+@media (max-width: 760px) {
+  .hero-badge {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+}

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Taleo: picture books you make together",
     short_name: "Taleo",
-    description: "Create interactive, watercolour picture-book stories with your little one.",
+    description: "By parents, for parents: watercolour picture books you make with your little one.",
     start_url: "/",
     display: "standalone",
     background_color: "#f3ecdc",
