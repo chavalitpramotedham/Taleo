@@ -2984,3 +2984,19 @@ main {
     transition: none;
   }
 }
+
+/* ---------- busy buttons ----------
+   While a button is working (it shows the falling-leaves loader), it turns
+   a calm neutral grey with dark ink text - whatever its usual style - so
+   the coloured leaves sit on a quiet background instead of a washed-out
+   version of the button's colour. Applies to every button automatically. */
+.btn:has(.leaf-loader),
+.btn:has(.leaf-loader):disabled,
+.btn:has(.leaf-loader):hover {
+  background: #e6dfd2;
+  border-color: #cfc4b0;
+  color: var(--ink);
+  box-shadow: none;
+  opacity: 1;
+  cursor: progress;
+}
