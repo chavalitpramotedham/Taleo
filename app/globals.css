@@ -63,6 +63,11 @@ button {
   outline: 2px solid var(--russet);
   outline-offset: 3px;
 }
+/* No grey/blue system flash on tap: every tappable thing has its own
+   pressed and selected look, in the house colours. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
 .meta {
   color: var(--ink-soft);
   font-size: 0.95rem;
@@ -244,9 +249,11 @@ button {
   color: var(--ink-soft);
   border-bottom: 1px solid transparent;
 }
+@media (hover: hover) {
 .nav-link:hover {
   color: var(--ink);
   border-bottom-color: var(--rule-strong);
+}
 }
 
 main {
@@ -288,8 +295,10 @@ main {
   border-color: var(--russet-dark);
   box-shadow: 0 2px 0 var(--russet-dark);
 }
+@media (hover: hover) {
 .btn-primary:hover {
   background: var(--russet-dark);
+}
 }
 .btn-primary:disabled {
   background: #c9b5a2;
@@ -302,15 +311,19 @@ main {
   border-color: var(--rule-strong);
   color: var(--ink);
 }
+@media (hover: hover) {
 .btn-soft:hover {
   border-color: var(--ink-soft);
+}
 }
 .btn-ghost {
   background: transparent;
   color: var(--ink-soft);
 }
+@media (hover: hover) {
 .btn-ghost:hover {
   color: var(--ink);
+}
 }
 .btn-sm {
   padding: 6px 14px;
@@ -328,10 +341,15 @@ main {
   cursor: pointer;
   color: var(--ink-soft);
 }
-.icon-btn:hover,
 .icon-btn.on {
   color: var(--russet);
   border-color: var(--russet);
+}
+@media (hover: hover) {
+.icon-btn:hover {
+  color: var(--russet);
+  border-color: var(--russet);
+}
 }
 /* The background-music control: one pill, two tappable halves - left
    opens the tune picker, right mutes/unmutes - sharing .icon-btn's circle
@@ -358,8 +376,10 @@ main {
   color: var(--ink-soft);
   padding: 0;
 }
+@media (hover: hover) {
 .music-control-half:hover {
   color: var(--russet);
+}
 }
 .music-control-tune {
   border-right: 1px solid var(--rule);
@@ -412,8 +432,10 @@ main {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+@media (hover: hover) {
 .music-dropdown-item:hover {
   background: var(--sage-soft);
+}
 }
 .music-dropdown-item.on {
   color: var(--russet);
@@ -600,9 +622,11 @@ main {
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, border-color 0.15s ease, outline-color 0.15s ease;
 }
+@media (hover: hover) {
 .plate:hover {
   transform: translateY(-2px);
   outline-color: var(--rule-strong);
+}
 }
 .plate.selected {
   outline: 2px solid var(--russet);
@@ -640,9 +664,11 @@ main {
   opacity: 0.45;
   cursor: not-allowed;
 }
+@media (hover: hover) {
 .char-plate:disabled:hover {
   transform: none;
   outline-color: var(--rule);
+}
 }
 .selection-count {
   margin: -4px 0 16px;
@@ -692,9 +718,11 @@ main {
   color: var(--ink-soft);
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
+@media (hover: hover) {
 .chip:hover:not(.on) {
   border-color: var(--rule-strong);
   color: var(--ink);
+}
 }
 .chip.on {
   background: var(--russet);
@@ -754,8 +782,10 @@ main {
   cursor: pointer;
   color: var(--ink);
 }
+@media (hover: hover) {
 .hero-slot:hover:not(:disabled) {
   border-color: var(--rule-strong);
+}
 }
 .hero-slot-art {
   width: 100%;
@@ -774,9 +804,11 @@ main {
   font-size: 1.6rem;
   line-height: 1;
 }
+@media (hover: hover) {
 .hero-slot-empty:hover {
   color: var(--russet);
   border-color: var(--russet);
+}
 }
 .hero-slot-name {
   max-width: 100%;
@@ -1343,9 +1375,11 @@ main {
 .nav-btn-next {
   right: 18px;
 }
+@media (hover: hover) {
 .nav-btn:not(:disabled):hover {
   border-color: var(--russet);
   color: var(--russet);
+}
 }
 .nav-btn:disabled {
   opacity: 0.35;
@@ -1369,9 +1403,11 @@ main {
   cursor: pointer;
   white-space: nowrap;
 }
+@media (hover: hover) {
 .reader-index:not(:disabled):hover {
   border-color: var(--russet);
   color: var(--russet);
+}
 }
 .reader-index:disabled {
   cursor: default;
@@ -1410,9 +1446,11 @@ main {
   cursor: pointer;
   box-shadow: var(--shadow);
 }
+@media (hover: hover) {
 .wizard-back:hover {
   border-color: var(--russet);
   color: var(--russet);
+}
 }
 .wizard-cta {
   min-width: 200px;
@@ -1528,12 +1566,16 @@ main {
   letter-spacing: 0.03em;
   color: var(--ink-soft);
 }
+@media (hover: hover) {
 .overview-item:hover .overview-thumb {
   border-color: var(--russet);
 }
+}
+@media (hover: hover) {
 .overview-item:hover .overview-caption,
 .overview-item:hover .overview-thumb-label {
   color: var(--russet);
+}
 }
 .overview-item.current .overview-thumb {
   border: 2px solid var(--russet);
@@ -1579,10 +1621,12 @@ main {
   line-height: 1.25;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
+@media (hover: hover) {
 .option:hover {
   border-color: var(--russet);
   outline-color: var(--russet);
   transform: translateY(-2px);
+}
 }
 .option .o-num {
   font-family: var(--font-title);
@@ -1693,9 +1737,11 @@ main {
   fill: var(--ochre);
   stroke: var(--ochre);
 }
+@media (hover: hover) {
 .rating-pill:hover {
   border-color: var(--russet);
   color: var(--russet);
+}
 }
 .comment-input {
   width: 100%;
@@ -1760,8 +1806,10 @@ main {
   overflow: hidden;
   flex-shrink: 0;
 }
+@media (hover: hover) {
 .account-trigger:hover {
   color: var(--ink);
+}
 }
 .avatar {
   width: 100%;
@@ -1802,8 +1850,10 @@ main {
 .avatar-option.selected {
   border-color: var(--russet);
 }
+@media (hover: hover) {
 .avatar-option:hover {
   border-color: var(--rule-strong);
+}
 }
 .account-dropdown {
   position: absolute;
@@ -1838,8 +1888,10 @@ main {
   text-decoration: none;
   padding: 10px 18px;
 }
+@media (hover: hover) {
 .account-dropdown-item:hover {
   background: var(--sage-soft);
+}
 }
 .stars {
   display: flex;
@@ -1859,8 +1911,10 @@ main {
 .star-btn.on {
   color: var(--ochre);
 }
+@media (hover: hover) {
 .star-btn:not(:disabled):hover {
   transform: scale(1.12) rotate(-6deg);
+}
 }
 .star-btn:disabled {
   cursor: default;
@@ -2563,8 +2617,10 @@ main {
   text-decoration-thickness: 2px;
   text-underline-offset: 0.18em;
 }
+@media (hover: hover) {
 .word-tap:hover {
   text-decoration-style: solid;
+}
 }
 
 /* Short viewports (landscape phones): compact the music menu so all four
@@ -2642,9 +2698,11 @@ main {
   width: 100%;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
+@media (hover: hover) {
 .char-card:hover {
   transform: translateY(-2px);
   border-color: var(--rule-strong);
+}
 }
 .char-card .cover,
 .char-card .body {
@@ -2670,12 +2728,16 @@ main {
 .char-card-empty .char-card-title {
   color: var(--ink-soft);
 }
+@media (hover: hover) {
 .char-card-empty:hover {
   border-color: var(--russet);
 }
+}
+@media (hover: hover) {
 .char-card-empty:hover .char-card-plus,
 .char-card-empty:hover .char-card-title {
   color: var(--russet);
+}
 }
 .char-card-plus {
   font-family: var(--font-body);
@@ -3012,4 +3074,20 @@ main {
 .btn .leaf-loader,
 .mic .leaf-loader {
   margin: -0.9em -0.35em;
+}
+
+/* Selected always shows the same russet outline, whatever the pointer is
+   doing (a hover rule must never repaint a picked card another colour). */
+.plate.selected,
+.plate.selected:hover {
+  outline-color: var(--russet);
+  border-color: var(--russet);
+}
+.hero-slot.selected,
+.hero-slot.selected:hover:not(:disabled) {
+  border-color: var(--russet);
+}
+.avatar-option.selected,
+.avatar-option.selected:hover {
+  border-color: var(--russet);
 }
