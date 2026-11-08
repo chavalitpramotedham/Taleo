@@ -13,6 +13,7 @@ export interface MusicTrack {
 
 export const MUSIC_TRACKS: MusicTrack[] = [
   { id: "rainbow-connection", name: "Rainbow Connection", src: "/music/rainbow-connection.m4a" },
+  { id: "pure-imagination", name: "Pure Imagination", src: "/music/pure-imagination.m4a" },
   { id: "remember-me", name: "Remember Me", src: "/music/remember-me.m4a" },
   { id: "i-see-the-light", name: "I See the Light", src: "/music/i-see-the-light.m4a" },
   { id: "you-are-my-sunshine", name: "You Are My Sunshine", src: "/music/you-are-my-sunshine.m4a" },
