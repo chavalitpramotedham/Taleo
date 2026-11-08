@@ -37,6 +37,12 @@ export function AccountNav() {
       {open && (
         <div className="account-dropdown" role="menu">
           <p className="account-dropdown-name">@{session.user.username}</p>
+          <Link href="/my-stories" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+            My bookshelf
+          </Link>
+          <Link href="/my-characters" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+            My characters
+          </Link>
           <Link href="/account" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
             Manage account
           </Link>
