@@ -2,6 +2,14 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { getUser, upsertFromGoogle } from "./users";
 
+// Safety net: AUTH_URL must be a full address. Saved without its scheme
+// (e.g. "taleo-stories.app") Auth.js crashes on every sign-in request, so
+// add https:// if it's missing.
+for (const key of ["AUTH_URL", "NEXTAUTH_URL"] as const) {
+  const v = process.env[key]?.trim();
+  if (v && !/^https?:\/\//i.test(v)) process.env[key] = `https://${v.replace(/^\/+/, "")}`;
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
   session: { strategy: "jwt" },
