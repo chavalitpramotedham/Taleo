@@ -10,16 +10,26 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as { description?: unknown; name?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { description?: unknown; name?: unknown; current?: unknown } | null;
   const description = typeof body?.description === "string" ? body.description.trim().slice(0, 200) : "";
   const name = typeof body?.name === "string" ? body.name.trim().slice(0, 40) : undefined;
   if (!description) return NextResponse.json({ error: "Tell me about your character first!" }, { status: 400 });
+  // Redrawing a saved character: their current look and who they are.
+  const cur = body?.current as { look?: unknown; notes?: unknown; gender?: unknown } | undefined;
+  const current =
+    cur && typeof cur.look === "string"
+      ? {
+          look: cur.look.slice(0, 600),
+          notes: typeof cur.notes === "string" ? cur.notes.slice(0, 400) : null,
+          gender: cur.gender === "male" || cur.gender === "female" ? (cur.gender as "male" | "female") : null,
+        }
+      : undefined;
   const g = await guard("character");
   if (!g.ok) return g.response;
 
   if (!hasApiKey()) return NextResponse.json(mockCharacter({ description, name }));
   try {
-    const made = await withMetricsUser(g.session.user.id, () => designCharacter({ description, name }));
+    const made = await withMetricsUser(g.session.user.id, () => designCharacter({ description, name, current }));
     withMetricsUser(g.session.user.id, () => count({ characters: 1 }));
     return NextResponse.json(made);
   } catch (err) {

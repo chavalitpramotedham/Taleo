@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import type { SavedCharacter, CharacterGender } from "@/lib/types";
+import type { SavedCharacter, CharacterGender, CharacterResponse } from "@/lib/types";
+import { saveCharacterImage } from "@/lib/save-image";
+import { GrowingInput } from "@/components/GrowingInput";
+import { DictateButton } from "@/components/DictateButton";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { CharacterCreatorModal, CharacterNotesField } from "@/components/CharacterCreatorModal";
 import { GenderPicker } from "@/components/GenderPicker";
-import { LeafLoader } from "@/components/Icons";
+import { LeafLoader, MapleMark } from "@/components/Icons";
 import { PageLoading } from "@/components/PageLoading";
 
 export default function MyCharactersPage() {
@@ -92,6 +95,10 @@ export default function MyCharactersPage() {
             setCharacters((cur) => (cur ?? []).map((c) => (c.id === updated.id ? updated : c)));
             setEditing(null);
           }}
+          onUpdated={(updated) => {
+            setCharacters((cur) => (cur ?? []).map((c) => (c.id === updated.id ? updated : c)));
+            setEditing(updated);
+          }}
           onDeleted={(id) => {
             setCharacters((cur) => (cur ?? []).filter((c) => c.id !== id));
             setEditing(null);
@@ -106,11 +113,14 @@ function CharacterEditModal({
   character,
   onClose,
   onSaved,
+  onUpdated,
   onDeleted,
 }: {
   character: SavedCharacter;
   onClose: () => void;
   onSaved: (c: SavedCharacter) => void;
+  /** Saved without closing (e.g. a new look accepted). */
+  onUpdated: (c: SavedCharacter) => void;
   onDeleted: (id: string) => void;
 }) {
   const [name, setName] = useState(character.name);
@@ -122,6 +132,71 @@ function CharacterEditModal({
   const genderChanged = gender !== (character.gender ?? null);
   const canSave = Boolean(name.trim()) && (nameChanged || notesChanged || genderChanged) && !busy;
   const [error, setError] = useState<string | null>(null);
+
+  // The picture: tap it to save it or redraw it. A redraw keeps the name,
+  // notes and the current look as the starting point; the new picture is
+  // shown beside the old one to keep or discard.
+  const [stage, setStage] = useState<"idle" | "menu" | "redraw" | "drawing" | "compare">("idle");
+  const [change, setChange] = useState("");
+  const [redrawn, setRedrawn] = useState<{ look: string; svg: string | null } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const saveImage = async () => {
+    if (!character.svg || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await saveCharacterImage(character.svg, character.name);
+    } catch {
+      setError("Couldn't save the picture. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+  const redraw = async () => {
+    if (!change.trim() || stage === "drawing") return;
+    setStage("drawing");
+    setError(null);
+    try {
+      const res = await fetch("/api/character", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          description: change.trim(),
+          name: character.name,
+          current: { look: character.look, notes: character.notes, gender: character.gender },
+        }),
+      });
+      const data = (await res.json()) as CharacterResponse & { error?: string };
+      if (!res.ok || !data.character?.svg) throw new Error(data.error || "Couldn't paint that one. Try again?");
+      setRedrawn({ look: data.character.look, svg: data.character.svg });
+      setStage("compare");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setStage("redraw");
+    }
+  };
+  const acceptRedraw = async () => {
+    if (!redrawn || busy) return;
+    setBusy("save");
+    setError(null);
+    try {
+      const res = await fetch(`/api/characters/${character.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ look: redrawn.look, svg: redrawn.svg }),
+      });
+      const data = (await res.json()) as { character?: SavedCharacter; error?: string };
+      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't save the new look.");
+      setBusy(null);
+      setRedrawn(null);
+      setChange("");
+      setStage("idle");
+      onUpdated(data.character);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setBusy(null);
+    }
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -171,7 +246,101 @@ function CharacterEditModal({
             ✕
           </button>
         </div>
-        <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+        {stage === "compare" && redrawn ? (
+          <div className="redraw-compare">
+            <figure>
+              <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+              <figcaption>Before</figcaption>
+            </figure>
+            <figure className="redraw-new">
+              <CharacterPortrait character={{ preset: null, svg: redrawn.svg, name: character.name }} className="char-edit-portrait" />
+              <figcaption>New look</figcaption>
+            </figure>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className={`char-edit-picture ${stage === "menu" ? "open" : ""}`}
+            onClick={() => setStage((s) => (s === "menu" ? "idle" : s === "idle" ? "menu" : s))}
+            aria-expanded={stage === "menu"}
+            aria-label={`${character.name}'s picture - save it or redraw it`}
+            disabled={stage === "drawing"}
+          >
+            <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
+            {stage === "drawing" && (
+              <span className="char-edit-drawing" aria-hidden>
+                <LeafLoader size={44} />
+              </span>
+            )}
+          </button>
+        )}
+        {stage === "menu" && (
+          <div className="char-picture-actions">
+            <button type="button" className="btn btn-soft" onClick={() => void saveImage()} disabled={saving}>
+              {saving ? (
+                <>
+                  <LeafLoader size={16} /> Saving…
+                </>
+              ) : (
+                "Save image"
+              )}
+            </button>
+            <button type="button" className="btn btn-soft" onClick={() => setStage("redraw")}>
+              Redraw look
+            </button>
+          </div>
+        )}
+        {(stage === "redraw" || stage === "drawing") && (
+          <div className="char-redraw">
+            <p className="meta">What should change? {character.name} keeps their name and who they are.</p>
+            <div className="field-row">
+              <DictateButton onText={setChange} label="Describe by voice" />
+              <GrowingInput
+                value={change}
+                maxLength={200}
+                placeholder="A red scarf and bigger, floppier ears…"
+                onChange={setChange}
+                onEnter={() => void redraw()}
+                aria-label="What should change"
+                disabled={stage === "drawing"}
+              />
+            </div>
+            <div className="redraw-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setStage("idle")} disabled={stage === "drawing"}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary btn-block" onClick={() => void redraw()} disabled={!change.trim() || stage === "drawing"}>
+                {stage === "drawing" ? (
+                  <>
+                    <LeafLoader size={18} /> Painting…
+                  </>
+                ) : (
+                  <>
+                    <MapleMark />
+                    Redraw
+                  </>
+                )}
+              </button>
+            </div>
+            {stage === "drawing" && <p className="meta character-wait">Painting the new look with extra care - this can take a minute or two.</p>}
+          </div>
+        )}
+        {stage === "compare" && (
+          <div className="redraw-actions">
+            <button type="button" className="btn btn-soft" onClick={() => setStage("idle")} disabled={busy === "save"}>
+              Keep the old one
+            </button>
+            <button type="button" className="btn btn-primary btn-block" onClick={() => void acceptRedraw()} disabled={busy === "save"}>
+              {busy === "save" ? (
+                <>
+                  <LeafLoader size={18} /> Saving…
+                </>
+              ) : (
+                "Keep the new look"
+              )}
+            </button>
+          </div>
+        )}
         <input
           className="input"
           value={name}

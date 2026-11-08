@@ -7073,3 +7073,108 @@ html[data-night] .text-size button + button {
     left: calc(var(--art-w) - 1px);
   }
 }
+
+/* ---------- my characters: the picture can be saved or redrawn ---------- */
+.char-edit-picture {
+  position: relative;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 1px dashed transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .char-edit-picture:hover:not(:disabled) {
+    border-color: var(--rule-strong);
+  }
+}
+.char-edit-picture.open {
+  border-color: var(--russet);
+}
+.char-edit-picture:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.char-edit-picture:disabled {
+  cursor: default;
+}
+/* painting a new look: the leaves over the current picture */
+.char-edit-drawing {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--page) 62%, transparent);
+}
+.char-picture-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  animation: fadeIn 0.18s ease both;
+}
+.char-redraw {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.18s ease both;
+}
+.char-redraw .meta {
+  margin: 0;
+}
+/* old and new side by side */
+.redraw-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  animation: fadeIn 0.25s ease both;
+}
+.redraw-compare figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.redraw-compare .char-edit-portrait {
+  width: min(140px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+.redraw-compare figcaption {
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.redraw-new figcaption {
+  color: var(--russet);
+}
+.redraw-new .char-edit-portrait {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--russet);
+}
+.redraw-actions {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+/* The menu bar has a solid colour under its gradient: iPhone Safari takes
+   the status-bar area's colour (behind the time and the island) from the
+   bar pinned at the top of the page, and reads that solid colour - so the
+   area follows day and night as the bar does, blending during the switch. */
+.topbar {
+  background-color: #f9f4e9;
+}
+html[data-night] .topbar {
+  background-color: #16121a;
+}
+html.theme-switching .topbar {
+  transition-property: --ink, --ink-soft, --ink-faint, --page, --rule, --rule-strong, --russet, --russet-dark, --ochre, border-color, box-shadow, background-color;
+}

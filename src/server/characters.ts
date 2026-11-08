@@ -1,3 +1,4 @@
+import { sanitizeSvg } from "@/lib/svg-sanitize";
 import type { CharacterDef, SavedCharacter } from "@/lib/types";
 import { MAX_CHARACTERS, NOTES_MAX, asGender } from "@/lib/characters";
 import { readJson, writeJson } from "./store";
@@ -62,7 +63,7 @@ export async function saveCharacter(
 export async function updateCharacter(
   ownerId: string,
   id: string,
-  patch: { name?: string; notes?: string | null; gender?: string | null },
+  patch: { name?: string; notes?: string | null; gender?: string | null; look?: string; svg?: string | null },
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const i = list.findIndex((c) => c.id === id);
@@ -73,6 +74,9 @@ export async function updateCharacter(
     name: patch.name === undefined ? cur.name : patch.name.trim().slice(0, 40) || cur.name,
     notes: patch.notes === undefined ? cur.notes : cleanNotes(patch.notes),
     gender: patch.gender === undefined ? cur.gender : asGender(patch.gender),
+    // a redrawn look (the painting is cleaned again here, never trusted)
+    look: patch.look === undefined ? cur.look : patch.look.slice(0, 500) || cur.look,
+    svg: patch.svg === undefined ? cur.svg : sanitizeSvg(patch.svg ?? "") || cur.svg,
     updatedAt: Date.now(),
   };
   const next = [...list];

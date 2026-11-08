@@ -211,6 +211,10 @@ export interface IllustrateRequest {
 export interface CharacterRequest {
   description: string;
   name?: string;
+  /** Redrawing an existing character: their current model sheet, and who
+   *  they are (family notes, male/female) - kept, with the description
+   *  saying what to change. */
+  current?: { look: string; notes?: string | null; gender?: CharacterGender | null };
 }
 
 export interface CharacterResponse {

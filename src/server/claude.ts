@@ -397,9 +397,15 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
 // ---------------------------------------------------------------- characters
 
 export async function designCharacter(req: CharacterRequest): Promise<CharacterResponse> {
-  const user = `Design this character: "${req.description}".${
-    req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
-  }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
+  const user = req.current
+    ? `Redraw this existing character, named "${req.name ?? ""}"${genderNote({ gender: req.current.gender ?? null })}.` +
+      `\nTheir current model sheet: ${req.current.look}` +
+      (req.current.notes ? `\nWho they are (from their family): ${req.current.notes}` : "") +
+      `\nWhat to change: "${req.description}". Keep everything else about them the same (kind, colours, markings, accessories, personality) unless the change says otherwise, so they're clearly still the same character.` +
+      `\nReturn the same name, the updated model sheet ("look") and a new reference painting ("svg").`
+    : `Design this character: "${req.description}".${
+        req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
+      }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
   // (more room than other requests: high effort thinks longer before it paints)
   const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 20000, CHARACTER_EFFORT, "character");
   const svg = sanitizeSvg(out.svg);
