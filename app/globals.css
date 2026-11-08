@@ -122,10 +122,9 @@ main {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 22px;
-  height: 22px;
   opacity: 0;
   will-change: transform, opacity;
+  line-height: 0;
 }
 .pull-refresh-ring {
   /* the ring itself: only ever turns, about its own centre (its own GPU
@@ -4774,28 +4773,60 @@ html[data-night] .modal-backdrop {
   }
 }
 
-/* ---------- switching: one veil, nothing else animating ---------- */
-.night-veil {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  pointer-events: none;
-  opacity: 0;
+/* ---------- switching day and night ---------- */
+/* (see NightProvider) The contents fade out, the theme flips, the old
+   backgrounds melt into the new ones, and the contents fade back in. */
+html.theme-switching main,
+html.theme-switching .topbar > * {
+  transition: opacity 0.24s ease;
   will-change: opacity;
 }
-.night-veil.in {
-  animation: veilIn 0.34s ease-in forwards;
+html.theme-hidden main,
+html.theme-hidden .topbar > * {
+  opacity: 0;
 }
-.night-veil.out {
-  opacity: 1;
-  animation: veilOut 0.56s ease-out forwards;
+html.theme-switching:not(.theme-hidden) main,
+html.theme-switching:not(.theme-hidden) .topbar > * {
+  transition-duration: 0.45s;
 }
-@keyframes veilIn {
-  to {
-    opacity: 1;
-  }
+/* The theme being left, held over the new one and dissolved: the page's
+   background (a fixed layer behind everything) and the menu bar's (its own
+   ::before, under its contents). */
+.theme-fade {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  will-change: opacity;
 }
-@keyframes veilOut {
+.theme-fade.from-day {
+  background-color: #f3ecdc;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 252, 244, 0.9), transparent 70%),
+    radial-gradient(ellipse at 50% 120%, rgba(214, 196, 160, 0.35), transparent 60%);
+}
+.theme-fade.from-night {
+  background-color: #0f0c12;
+  background-image: radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
+}
+html.theme-switching .topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  will-change: opacity;
+}
+html.theme-switching:has(.theme-fade.from-day) .topbar::before {
+  background: linear-gradient(to bottom, #fbf7ee, #f7f1e4);
+}
+html.theme-switching:has(.theme-fade.from-night) .topbar::before {
+  background: linear-gradient(to bottom, #18141c, #131017);
+}
+html.theme-melting .theme-fade,
+html.theme-melting .topbar::before {
+  animation: themeMelt 0.75s ease-in-out forwards;
+}
+@keyframes themeMelt {
   from {
     opacity: 1;
   }

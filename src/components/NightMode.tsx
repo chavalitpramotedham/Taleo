@@ -11,11 +11,11 @@ import { LanternArt, MoonIcon, SunIcon } from "./NightLamp";
  * layout applies it before first paint, so there's never a flash of the
  * light theme.
  *
- * Switching is deliberately light on the device: one full-screen veil
- * fades in (dusk-dark going to night, cream going to light), the theme
- * flips instantly behind it, and the veil fades away - a single layer's
- * opacity, rather than animating every element's colours. The lantern
- * and fireflies only start once the switch is done.
+ * Switching never blanks the screen: the page's contents fade out, the
+ * theme flips while they're hidden, the old backgrounds (page and menu
+ * bar) melt into the new ones, and the contents fade back in. Every step
+ * is a layer's opacity (GPU work), not every element's colours animating.
+ * The lantern and fireflies only start once the switch is done.
  */
 
 const KEY = "taleo.night";
@@ -36,7 +36,8 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
   const [night, setNight] = useState(false);
   const [settled, setSettled] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [veil, setVeil] = useState<{ colour: string; phase: "in" | "out" } | null>(null);
+  /** While switching: the theme being left, whose backgrounds fade away. */
+  const [fadeFrom, setFadeFrom] = useState<"day" | "night" | null>(null);
   const busy = useRef(false);
 
   // The title's leaves start falling once the page has settled.
@@ -85,20 +86,24 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
       resume();
       return;
     }
-    if (!next) {
-      setLeaving(true); // the lantern rises away first
-      await sleep(420);
-    }
-    setVeil({ colour: next ? "#0f0c12" : "#f3ecdc", phase: "in" });
-    await sleep(340);
+    // 1. The contents fade out (and the lantern rises away, going to day).
+    root.classList.add("theme-switching", "theme-hidden");
+    if (!next) setLeaving(true);
+    await sleep(next ? 240 : 420);
+    // 2. Flip the theme behind the old backgrounds, which then melt away.
+    setFadeFrom(next ? "day" : "night");
+    await sleep(30);
     apply(next);
     setSettled(false);
     setNight(next);
     setLeaving(false);
-    await sleep(60);
-    setVeil((v) => (v ? { ...v, phase: "out" } : v));
-    await sleep(560);
-    setVeil(null);
+    root.classList.add("theme-melting");
+    // 3. The contents fade back in over the new backgrounds.
+    await sleep(260);
+    root.classList.remove("theme-hidden");
+    await sleep(520);
+    root.classList.remove("theme-switching", "theme-melting");
+    setFadeFrom(null);
     busy.current = false;
     resume();
   }, [night]);
@@ -107,7 +112,7 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     <Ctx.Provider value={{ night, leaving, settled, toggle }}>
       {children}
       {night && <NightAmbience leaving={leaving} settled={settled} />}
-      {veil && <div className={`night-veil ${veil.phase}`} style={{ background: veil.colour }} aria-hidden />}
+      {fadeFrom && <div className={`theme-fade from-${fadeFrom}`} aria-hidden />}
     </Ctx.Provider>
   );
 }
