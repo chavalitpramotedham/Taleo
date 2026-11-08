@@ -40,25 +40,19 @@ function note(
   o.stop(t0 + dur + 0.05);
 }
 
-/** A sustained drone pad: two slightly detuned oscillators for warmth, with
- *  a slow tremolo so it breathes rather than sitting static. */
+/** A soft, steady cushion underneath the melody: two slightly detuned sine
+ *  oscillators for warmth. Deliberately no tremolo/LFO - a slow pulse on a
+ *  sustained low tone is the classic horror-ambient trick, and a bedtime
+ *  tune should never flirt with that. */
 function pad(c: AudioContext, dest: AudioNode, t0: number, freq: number, dur: number, vol: number) {
   const g = c.createGain();
   g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(Math.max(0.0005, vol), t0 + 1.4);
-  g.gain.setValueAtTime(Math.max(0.0005, vol), t0 + dur - 1.4);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0005, vol), t0 + 1.2);
+  g.gain.setValueAtTime(Math.max(0.0005, vol), t0 + dur - 1.2);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   g.connect(dest);
 
-  const lfo = c.createOscillator();
-  const lfoGain = c.createGain();
-  lfo.frequency.value = 0.12;
-  lfoGain.gain.value = vol * 0.25;
-  lfo.connect(lfoGain).connect(g.gain);
-  lfo.start(t0);
-  lfo.stop(t0 + dur + 0.05);
-
-  for (const detune of [-4, 4]) {
+  for (const detune of [-3, 3]) {
     const o = c.createOscillator();
     o.type = "sine";
     o.frequency.value = freq;
@@ -70,6 +64,9 @@ function pad(c: AudioContext, dest: AudioNode, t0: number, freq: number, dur: nu
 }
 
 let noiseBuf: AudioBuffer | null = null;
+/** A very soft, narrow, high-pitched shimmer - like a distant, gentle
+ *  breeze - not a howl. Kept high and quiet so it reads as pleasant
+ *  texture, never as something unsettling. */
 function windNoise(c: AudioContext, dest: AudioNode, t0: number, dur: number, vol: number) {
   if (!noiseBuf || noiseBuf.sampleRate !== c.sampleRate) {
     noiseBuf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
@@ -81,10 +78,10 @@ function windNoise(c: AudioContext, dest: AudioNode, t0: number, dur: number, vo
   src.loop = true;
   const bp = c.createBiquadFilter();
   bp.type = "bandpass";
-  bp.Q.value = 0.6;
-  bp.frequency.setValueAtTime(420, t0);
-  bp.frequency.linearRampToValueAtTime(650, t0 + dur / 2);
-  bp.frequency.linearRampToValueAtTime(420, t0 + dur);
+  bp.Q.value = 1.2;
+  bp.frequency.setValueAtTime(1600, t0);
+  bp.frequency.linearRampToValueAtTime(2000, t0 + dur / 2);
+  bp.frequency.linearRampToValueAtTime(1600, t0 + dur);
   const g = c.createGain();
   g.gain.setValueAtTime(0.0001, t0);
   g.gain.exponentialRampToValueAtTime(Math.max(0.0005, vol), t0 + 2);
@@ -96,64 +93,68 @@ function windNoise(c: AudioContext, dest: AudioNode, t0: number, dur: number, vo
 }
 
 // Note names as hertz, to keep this self-contained (no note-name parser).
-const F2 = 87.31, A2 = 110.0, C3 = 130.81, D3 = 146.83, E3 = 164.81, F3 = 174.61, Fs3 = 185.0, G3 = 196.0;
-const A3 = 220.0, C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.0, A4 = 440.0;
+// All five tracks are deliberately in a major key with a continuous,
+// clearly singable melody - no long stretches of bare drone, no minor
+// tonality, nothing in the "ambient horror" register. The pad underneath
+// is always quieter than the melody, a cushion rather than the point.
+const C3 = 130.81, D3 = 146.83, E3 = 164.81, F3 = 174.61, G3 = 196.0, A3 = 220.0;
+const C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, Fs4 = 369.99, G4 = 392.0, A4 = 440.0, C5 = 523.25;
 
 export const MUSIC_TRACKS: MusicTrack[] = [
   {
     id: "starlight",
     name: "Starlight Lullaby",
     moods: ["bedtime", "feelings", "default"],
-    loopSeconds: 8,
+    loopSeconds: 7.2,
     schedule: (c, dest, t0) => {
-      pad(c, dest, t0, C3, 8, 0.05);
-      pad(c, dest, t0, G3, 8, 0.035);
-      [C4, E4, G4, A4, G4, E4].forEach((f, i) => note(c, dest, t0 + i * 1.3, f, 1.5, 0.045));
+      pad(c, dest, t0, C3, 7.2, 0.03);
+      pad(c, dest, t0, G3, 7.2, 0.02);
+      [C4, E4, G4, A4, G4, E4].forEach((f, i) => note(c, dest, t0 + i * 1.2, f, 1.3, 0.07, { type: "triangle" }));
     },
   },
   {
-    id: "moonlit",
-    name: "Moonlit Hush",
-    moods: ["mystery", "feelings", "bedtime"],
-    loopSeconds: 10,
+    id: "hush",
+    name: "Sleepy Hush",
+    moods: ["feelings", "bedtime"],
+    loopSeconds: 9,
     schedule: (c, dest, t0) => {
-      pad(c, dest, t0, A2, 10, 0.05);
-      pad(c, dest, t0, E3, 10, 0.03);
-      [A3, C4, E4, D4, C4].forEach((f, i) => note(c, dest, t0 + i * 1.9, f, 2.2, 0.04, { type: "triangle" }));
+      pad(c, dest, t0, G3, 9, 0.025);
+      pad(c, dest, t0, D4, 9, 0.018);
+      [G4, A4, G4, E4, D4, E4].forEach((f, i) => note(c, dest, t0 + i * 1.5, f, 1.7, 0.055, { type: "sine" }));
     },
   },
   {
     id: "waves",
     name: "Gentle Waves",
     moods: ["adventure", "nature", "mission"],
-    loopSeconds: 10,
+    loopSeconds: 7.2,
     schedule: (c, dest, t0) => {
-      pad(c, dest, t0, D3, 10, 0.055);
-      pad(c, dest, t0, Fs3, 10, 0.04);
-      pad(c, dest, t0, A3, 10, 0.035);
-      note(c, dest, t0 + 4.5, D4, 3, 0.03, { attack: 1.2 });
+      pad(c, dest, t0, D3, 7.2, 0.03);
+      pad(c, dest, t0, A3, 7.2, 0.02);
+      [D4, E4, Fs4, A4, Fs4, E4].forEach((f, i) => note(c, dest, t0 + i * 1.2, f, 1.3, 0.065, { type: "triangle" }));
     },
   },
   {
     id: "meadow",
     name: "Meadow Breeze",
-    moods: ["nature", "family", "sharing"],
-    loopSeconds: 12,
+    moods: ["nature", "family", "sharing", "mystery"],
+    loopSeconds: 7.2,
     schedule: (c, dest, t0) => {
-      windNoise(c, dest, t0, 12, 0.06);
-      pad(c, dest, t0, C3, 12, 0.04);
-      [E4, G4, A4].forEach((f, i) => note(c, dest, t0 + 3 + i * 3, f, 2, 0.028, { type: "triangle", attack: 0.8 }));
+      windNoise(c, dest, t0, 7.2, 0.02);
+      pad(c, dest, t0, F3, 7.2, 0.025);
+      pad(c, dest, t0, C4, 7.2, 0.018);
+      [F4, G4, A4, C5, A4, G4].forEach((f, i) => note(c, dest, t0 + i * 1.2, f, 1.3, 0.06, { type: "triangle" }));
     },
   },
   {
     id: "waltz",
     name: "Dreamy Waltz",
-    moods: ["party", "friends", "mission"],
-    loopSeconds: 9,
+    moods: ["party", "friends"],
+    loopSeconds: 7.2,
     schedule: (c, dest, t0) => {
-      pad(c, dest, t0, F2, 9, 0.05);
-      pad(c, dest, t0, C3, 9, 0.03);
-      [F3, A3, C4, F3, D4, A3, F3, A3, C4].forEach((f, i) => note(c, dest, t0 + i * 1, f, 1.1, 0.035, { type: "triangle" }));
+      pad(c, dest, t0, F3, 7.2, 0.03);
+      pad(c, dest, t0, C4, 7.2, 0.02);
+      [F4, A4, C5, A4, G4, F4].forEach((f, i) => note(c, dest, t0 + i * 1.2, f, 1.3, 0.065, { type: "triangle" }));
     },
   },
 ];
@@ -177,7 +178,7 @@ export const trackById = (id: string): MusicTrack => MUSIC_TRACKS.find((t) => t.
 
 let gainNode: GainNode | null = null;
 let generation = 0;
-let currentVolume = 0.5; // 0-1 "how loud when unmuted", independent of mute
+let currentVolume = 0.4; // 0-1 "how loud when unmuted", independent of mute
 let muted = false;
 
 function ensureGain(c: AudioContext): GainNode {
