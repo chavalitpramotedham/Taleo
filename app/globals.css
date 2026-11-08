@@ -7238,3 +7238,48 @@ main:has(.reader) {
 .character-preview .input {
   text-align: center;
 }
+
+/* ---------- confirming something that can't be undone ---------- */
+.confirm-panel {
+  max-width: 400px;
+  align-items: center;
+  text-align: center;
+}
+.confirm-panel h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+.confirm-portrait {
+  width: 96px;
+  height: 96px;
+  opacity: 0.85;
+}
+.confirm-warning {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.confirm-panel .redraw-choices {
+  width: 100%;
+}
+/* A destructive action: a deep red, raised like the primary button. */
+.btn-danger {
+  background: #a83a2c;
+  border-color: #a83a2c;
+  color: #fff8ef;
+  box-shadow: 0 3px 0 #7e2a20, 0 8px 16px -10px rgba(70, 30, 20, 0.55);
+}
+@media (hover: hover) {
+  .btn-danger:hover:not(:disabled) {
+    background: #93321f;
+    border-color: #93321f;
+    color: #fff8ef;
+  }
+}
+html[data-night] .btn-danger {
+  background: #c4523f;
+  border-color: #c4523f;
+  color: #1a1216;
+  box-shadow: 0 3px 0 #8e3628, 0 8px 16px -10px rgba(0, 0, 0, 0.7);
+}

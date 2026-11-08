@@ -140,6 +140,7 @@ function CharacterEditModal({
   const [change, setChange] = useState("");
   const [redrawn, setRedrawn] = useState<{ look: string; svg: string | null } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const saveImage = async () => {
     if (!character.svg || saving) return;
     setSaving(true);
@@ -224,7 +225,7 @@ function CharacterEditModal({
   };
 
   const remove = async () => {
-    if (busy || !window.confirm(`Delete ${character.name}? This can't be undone.`)) return;
+    if (busy) return;
     setBusy("delete");
     setError(null);
     try {
@@ -286,18 +287,41 @@ function CharacterEditModal({
             "Save changes"
           )}
         </button>
-        <button type="button" className="btn btn-soft btn-block" onClick={remove} disabled={Boolean(busy)}>
-          {busy === "delete" ? (
-            <>
-              <LeafLoader size={18} /> Deleting…
-            </>
-          ) : (
-            "Delete character"
-          )}
+        <button type="button" className="btn btn-soft btn-block" onClick={() => setConfirmDelete(true)} disabled={Boolean(busy)}>
+          Delete character
         </button>
-        {error && !redrawing && <p className="error">{error}</p>}
+        {error && !redrawing && !confirmDelete && <p className="error">{error}</p>}
       </div>
 
+      {confirmDelete && (
+        // Deleting is final: its own popup, with a clear warning, before
+        // anything happens.
+        <div className="modal-backdrop redraw-backdrop" onClick={(e) => (e.stopPropagation(), busy !== "delete" && setConfirmDelete(false))}>
+          <div className="modal-panel confirm-panel" role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title" onClick={(e) => e.stopPropagation()}>
+            <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="confirm-portrait" />
+            <h3 id="confirm-delete-title">Delete {character.name}?</h3>
+            <p className="confirm-warning">
+              This can&apos;t be undone. {character.name} will be gone for good - their picture, name and notes - and won&apos;t be
+              available for new stories. Stories they&apos;re already in stay as they are.
+            </p>
+            <div className="redraw-choices">
+              <button type="button" className="btn btn-danger btn-block" onClick={() => void remove()} disabled={busy === "delete"}>
+                {busy === "delete" ? (
+                  <>
+                    <LeafLoader size={18} /> Deleting…
+                  </>
+                ) : (
+                  `Yes, delete ${character.name}`
+                )}
+              </button>
+              <button type="button" className="btn btn-soft btn-block" onClick={() => setConfirmDelete(false)} disabled={busy === "delete"}>
+                Keep {character.name}
+              </button>
+            </div>
+            {error && <p className="error">{error}</p>}
+          </div>
+        </div>
+      )}
       {redrawing && (
         // The whole redraw in its own popup over the editor: say what should
         // change, watch it paint, then keep the new look or the old one.

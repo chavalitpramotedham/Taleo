@@ -150,4 +150,4 @@ ${LAYERS}
 
 ${PALETTE}
 
-Use about 30-70 elements. In "look", write a precise model sheet: kind, exact hex colours used, markings, proportions, accessories, personality.`;
+Use about 50-80 elements. In "look", write a precise model sheet: kind, exact hex colours used, markings, proportions, accessories, personality.`;
