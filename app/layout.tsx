@@ -12,6 +12,9 @@ import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // The site's home: link previews (story images in WhatsApp, iMessage...)
+  // always point at the real domain, never a temporary deployment address.
+  metadataBase: new URL("https://taleo-stories.app"),
   title: "Taleo: picture books you make together",
   description:
     "By parents, for parents: make watercolour picture books with your little one. Pick a hero and a tale, decide together what happens next, with a warm lesson in every story.",
