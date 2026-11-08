@@ -44,6 +44,9 @@ interface Props {
   picturesPending?: boolean;
 }
 
+const TEXT_SIZE_KEY = "taleo.textSize";
+const TEXT_SIZES = [0.8, 0.9, 1, 1.12, 1.25, 1.4];
+
 export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveCopyLabel, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
   // A brand-new story starts as a closed book (see BookCover): its cover
@@ -68,6 +71,24 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [customIdea, setCustomIdea] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [readAloud, setReadAloud] = useState(false);
+  // The words' size, chosen with the A− / A+ control and remembered on this
+  // device (a scale on the age level's own size).
+  const [textSize, setTextSize] = useState(1);
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem(TEXT_SIZE_KEY));
+      if (TEXT_SIZES.includes(v)) setTextSize(v);
+    } catch {}
+  }, []);
+  const changeTextSize = (d: 1 | -1) =>
+    setTextSize((cur) => {
+      const i = Math.max(0, Math.min(TEXT_SIZES.length - 1, TEXT_SIZES.indexOf(cur) + d));
+      const next = TEXT_SIZES[i < 0 ? 2 : i];
+      try {
+        localStorage.setItem(TEXT_SIZE_KEY, String(next));
+      } catch {}
+      return next;
+    });
 
 
   const [loadingLine, setLoadingLine] = useState(0);
@@ -777,7 +798,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   currentContentRef.current = { picture, words };
 
   return (
-    <div className={`reader age-${story.age}`}>
+    <div className={`reader age-${story.age}`} style={{ "--text-scale": textSize } as React.CSSProperties}>
       <div className="reader-top">
         {/* while the book is closed, its title is on the cover */}
         {cover !== "closed" && <h1 className="reader-title">{story.title || "A new story"}</h1>}
@@ -808,7 +829,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         {cover !== "closed" && (
       <div className="book">
         <div className="book-art">{picture}</div>
-        <div className="book-text">{words}</div>
+        <div className="book-text">
+          {cover === "open" && (
+            <div className="text-size" role="group" aria-label="Text size">
+              <button type="button" onClick={() => changeTextSize(-1)} disabled={textSize <= TEXT_SIZES[0]} aria-label="Smaller text">
+                A<span aria-hidden>−</span>
+              </button>
+              <button type="button" onClick={() => changeTextSize(1)} disabled={textSize >= TEXT_SIZES[TEXT_SIZES.length - 1]} aria-label="Bigger text">
+                A<span aria-hidden>+</span>
+              </button>
+            </div>
+          )}
+          {words}
+        </div>
         {outgoing && (
           <>
             <div key={`shade-${outgoing.n}`} className={`flip-shade flip-shade-${outgoing.dir > 0 ? "next" : "prev"}`} aria-hidden />

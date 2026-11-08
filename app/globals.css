@@ -6729,7 +6729,8 @@ html[data-night] .admin-spark.bad {
 .book-text {
   justify-content: flex-start;
 }
-.book-text > :first-child {
+.book-text > :first-child:not(.text-size),
+.book-text > .text-size + * {
   margin-top: auto;
 }
 .book-text > :last-child {
@@ -6973,5 +6974,90 @@ html[data-night] {
     background: var(--russet-dark);
     border-color: var(--russet-dark);
     color: var(--paper);
+  }
+}
+
+/* ---------- the words: a calmer default size, and A− / A+ ---------- */
+.story-text {
+  font-size: calc(clamp(1.2rem, 2.1vw, 1.55rem) * var(--text-scale, 1));
+}
+.age-1\.5-2 .story-text,
+.age-2-3 .story-text {
+  font-size: calc(clamp(1.45rem, 2.8vw, 1.95rem) * var(--text-scale, 1));
+}
+.aside {
+  font-size: calc(1.05rem * var(--text-scale, 1));
+}
+/* One glassy control at the top right of the words: smaller | bigger. */
+.text-size {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(to bottom, rgba(255, 253, 247, 0.78), rgba(250, 244, 232, 0.5));
+  border: 1px solid rgba(160, 136, 108, 0.32);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 6px 16px -10px rgba(70, 50, 30, 0.45);
+}
+.text-size button {
+  font: inherit;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  padding: 8px 12px 9px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.text-size button + button {
+  border-left: 1px solid rgba(160, 136, 108, 0.32);
+  font-size: 1.2rem;
+  padding-top: 6px;
+  padding-bottom: 7px;
+}
+.text-size button span {
+  font-family: var(--font-body);
+  font-size: 0.85em;
+  margin-left: 1px;
+}
+.text-size button:active:not(:disabled) {
+  background: rgba(160, 136, 108, 0.14);
+}
+.text-size button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+html[data-night] .text-size {
+  background: linear-gradient(to bottom, rgba(58, 48, 58, 0.55), rgba(30, 25, 32, 0.4));
+  border-color: rgba(255, 232, 200, 0.16);
+  box-shadow: 0 1px 0 rgba(255, 240, 220, 0.08) inset, 0 6px 16px -10px rgba(0, 0, 0, 0.8);
+}
+html[data-night] .text-size button + button {
+  border-left-color: rgba(255, 232, 200, 0.16);
+}
+/* keep the first line of words clear of the control */
+.book-text {
+  padding-top: max(52px, clamp(20px, 4vw, 48px));
+}
+
+/* Wide screens: the picture's side is exactly as wide as the picture needs
+   at the book's height (4:3), and the words take all the rest. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .book-stage {
+    container-type: size;
+  }
+  .book {
+    --art-w: min(62cqw, calc((100cqh - 2px) * 4 / 3));
+    grid-template-columns: var(--art-w) minmax(300px, 1fr);
+  }
+  .book::after {
+    left: calc(var(--art-w) - 1px);
   }
 }
