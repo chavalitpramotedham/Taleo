@@ -5,6 +5,7 @@ import { allPages } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
 import { SharedStoryWelcome, type SharedStorySummary } from "@/components/SharedStoryWelcome";
 import { HeroPainting } from "@/components/HeroPainting";
+import { StepsScroller } from "@/components/StepsScroller";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
@@ -82,16 +83,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <HeroPainting />
       </section>
 
-      <ol className="steps" aria-label="How it works">
-        {STEPS.map((s) => (
-          <li key={s.n} className="step">
-            <h3>
-              <span className="numeral">{s.n}</span> {s.title}
-            </h3>
-            <p>{s.text}</p>
-          </li>
-        ))}
-      </ol>
+      <StepsScroller steps={STEPS} />
 
       <OrnamentRule className="home-divider" />
 
