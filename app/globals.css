@@ -4334,7 +4334,7 @@ html[data-night] .modal-backdrop {
   hyphens: auto;
   -webkit-hyphens: auto;
 }
-.about-story .about-lead::first-letter {
+.about-story .about-drop {
   font-family: var(--font-title);
   float: left;
   font-size: 3.4em;

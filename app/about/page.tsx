@@ -25,40 +25,44 @@ export default function AboutPage() {
       </header>
 
       <article className="about-story">
+
         <p className="about-lead">
-          I am a young dad. By day I work in tech as a product manager, and by night I&apos;m mostly negotiating
-          bedtimes. Some of my favourite moments with my kids happen with a book open between us. It&apos;s where we laugh at
-          the same silly things, and where a lot of the important stuff gets said without it ever feeling like a lecture.
+          <span className="about-drop">I</span>
+          &apos;m a young dad to a little boy. By day, I work in tech as a product manager, and by night, I&apos;m slowly perfecting the art of bedtime.
         </p>
 
         <p>
-          I genuinely believe we&apos;re the first generation of parents where mums and dads are equally in it. Both of us
-          want a close bond with our children. Both of us want to be the one teaching them what&apos;s right, and helping
-          them find their way in the world. Taleo is my way of acting on that, as a dad.
+          As working parents, the time we get to spend with our children after work is so precious. Over the past few months, reading to him has become one of my favourite parts of our bedtime routine. It calms him down, slows me down, and gives us a little time that&apos;s just ours, with no distractions. I think these are some of the most precious moments we get to share with our little ones, and they&apos;re truly worth protecting.
         </p>
 
         <p>
-          If you&apos;re a parent, you&apos;ll know the other side of bedtime stories too. Kids have their favourite book,
-          and they want it again. And again. I love that they love it, but by the fiftieth reading even the best story starts
-          to drag, for me at least.
+          Becoming a dad has also made me think a lot about the years ahead. I&apos;ve spent time talking to other parents, watching and learning about raising young children, and one thing that keeps coming up is the role storytelling plays as they grow.
         </p>
 
         <p>
-          So I started wondering what it would be like to make the stories <em>together</em>. My kids pick the hero and
-          decide what happens next, and I get to weave in the lesson I&apos;d like them to take away.
+          Stories are a wonderful way for children to explore the world, let their imaginations run wild, and learn about things like kindness, courage and empathy, often without it ever feeling like a lesson.
         </p>
 
         <p>
-          I know a lot of parents are wary of AI around their children. Honestly, so am I, and I think that&apos;s a healthy
-          instinct. But I&apos;ve also seen how much it means to a child when something they imagined shows up on the page,
-          painted and read back to them. Used with care, I think it can help kids dream bigger, find their own words, and
-          pick up a few of life&apos;s lessons along the way. That&apos;s what I&apos;m trying to build, as a parent first.
+          But of course, parents also become the occasional &quot;victims&quot; of their children&apos;s favourite bedtime stories. Kids want it again. Then again. And again. By the fiftieth reading, even the best stories can start to lose a little of their magic.
         </p>
 
-        <p className="about-sign">
-          If you&apos;re a parent like us, I hope Taleo makes bedtime a little more fun in your home. If you have an idea, or
-          something isn&apos;t working, please tell me using the form below. I&apos;d really love to hear from you.
+        <p>
+          It got me wondering: what if parents and kids could make new stories together? What if children could choose their own heroes, imagine their own adventures, and have a say in where the story goes, while parents get to weave in the little lessons and values they&apos;d like to share? With every new story, there&apos;s a fresh adventure and a little surprise for everyone. And perhaps, for the first time in a while, the magic comes alive for parents just as much as it does for their children.
         </p>
+
+        <p>
+          That&apos;s the idea behind Taleo.
+        </p>
+
+        <p>
+          I know a lot of parents are wary of AI around their children. Honestly, so am I, and I think it&apos;s a healthy instinct. But as I&apos;ve worked on this project, I&apos;ve come to appreciate how magical it can be for a child to see something they&apos;ve imagined brought to life on a page, illustrated and read back to them, especially by the people they love most in the world. Used with care, I think generative AI can help kids dream bigger, find their own words, and pick up a few of life&apos;s lessons along the way.
+        </p>
+
+        <p>
+          That&apos;s what I&apos;m hoping to build with Taleo. A little more imagination, a little more connection, and a few more special moments at bedtime. All from a dad who&apos;s figuring it out along the way.
+        </p>
+
       </article>
 
       <OrnamentRule className="about-divider" />
