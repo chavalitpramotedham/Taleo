@@ -188,24 +188,89 @@ export function onSpeechProgress(fn: (p: SpeechProgress) => void): () => void {
   return () => listeners.delete(fn);
 }
 
-/** Estimated start time of each word in a clip of known length: time is
- *  shared out by word length, plus pauses after commas and sentence ends
- *  (the voice reads slowly, with long pauses between sentences). */
-function wordTimings(text: string, duration: number) {
+/**
+ * When each word starts in a voice clip, worked out from the audio itself:
+ * where speech actually begins and ends (clips have silence around them),
+ * and where the voice pauses - which are lined up with the text's commas
+ * and full stops, strongest pauses first. Within each phrase between
+ * pauses, time is shared out by word length. Much closer than spreading
+ * the clip's whole length evenly, since the reading is slow with long
+ * pauses between sentences.
+ */
+function wordTimings(text: string, buf: AudioBuffer) {
   const words = [...text.matchAll(/\S+/g)].map((m) => {
     const w = m[0];
-    const pause = /[.!?]["')\]]*$/.test(w) ? 7 : /[,;:\u2014-]["')\]]*$/.test(w) ? 3 : 0;
-    return { at: m.index ?? 0, weight: w.replace(/[^\p{L}\p{N}]/gu, "").length + 2 + pause };
+    const strength = /[.!?]["')\]]*$/.test(w) ? 2 : /[,;:\u2014-]["')\]]*$/.test(w) ? 1 : 0;
+    return { at: m.index ?? 0, weight: w.replace(/[^\p{L}\p{N}]/gu, "").length + 1.5, strength, start: 0 };
   });
-  const total = words.reduce((n, w) => n + w.weight, 0) || 1;
-  const lead = Math.min(0.25, duration * 0.04); // a breath before the first word
-  let t = lead;
-  return words.map((w) => {
-    const start = t;
-    t += ((duration - lead) * w.weight) / total;
-    return { at: w.at, start };
+  if (!words.length) return [];
+
+  // Loudness in 20ms frames.
+  const data = buf.getChannelData(0);
+  const hop = Math.max(1, Math.round(buf.sampleRate * 0.02));
+  const rms: number[] = [];
+  for (let i = 0; i < data.length; i += hop) {
+    let sum = 0;
+    const end = Math.min(data.length, i + hop);
+    for (let j = i; j < end; j++) sum += data[j] * data[j];
+    rms.push(Math.sqrt(sum / Math.max(1, end - i)));
+  }
+  const sorted = [...rms].sort((a, b) => a - b);
+  const loud = sorted[Math.floor(sorted.length * 0.9)] || 0;
+  const quiet = loud * 0.12;
+  const frame = (t: number) => t * 0.02;
+  let first = rms.findIndex((r) => r > quiet);
+  let last = rms.length - 1 - [...rms].reverse().findIndex((r) => r > quiet);
+  if (first < 0 || loud === 0) {
+    first = 0;
+    last = rms.length - 1;
+  }
+
+  // Pauses inside the speech: runs of quiet frames at least 140ms long.
+  const gaps: { from: number; to: number }[] = [];
+  let run = -1;
+  for (let i = first; i <= last; i++) {
+    if (rms[i] <= quiet) {
+      if (run < 0) run = i;
+    } else if (run >= 0) {
+      if (i - run >= 7) gaps.push({ from: run, to: i });
+      run = -1;
+    }
+  }
+
+  // Pair the strongest breaks in the text with the longest pauses, in order.
+  const breaks = words
+    .map((w, i) => ({ i, strength: w.strength }))
+    .filter((b) => b.strength > 0 && b.i < words.length - 1);
+  const n = Math.min(breaks.length, gaps.length);
+  const useBreaks = [...breaks].sort((a, b) => b.strength - a.strength || a.i - b.i).slice(0, n).sort((a, b) => a.i - b.i);
+  const useGaps = [...gaps].sort((a, b) => b.to - b.from - (a.to - a.from)).slice(0, n).sort((a, b) => a.from - b.from);
+
+  // Phrases (word ranges) with their stretch of audio.
+  const spans: { from: number; to: number; t0: number; t1: number }[] = [];
+  let w0 = 0;
+  let t0 = frame(first);
+  useBreaks.forEach((b, k) => {
+    spans.push({ from: w0, to: b.i, t0, t1: frame(useGaps[k].from) });
+    w0 = b.i + 1;
+    t0 = frame(useGaps[k].to);
   });
+  spans.push({ from: w0, to: words.length - 1, t0, t1: frame(last + 1) });
+
+  for (const sp of spans) {
+    const ws = words.slice(sp.from, sp.to + 1);
+    const total = ws.reduce((x, w) => x + w.weight, 0) || 1;
+    let t = sp.t0;
+    for (const w of ws) {
+      w.start = t;
+      t += ((sp.t1 - sp.t0) * w.weight) / total;
+    }
+  }
+  return words.map((w) => ({ at: w.at, start: w.start }));
 }
+
+/** The highlight follows just behind the voice, never ahead of it. */
+const HIGHLIGHT_LAG_S = 0.08;
 
 // ---------------------------------------------------------------- speaking
 
@@ -260,14 +325,14 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
         // Follow along word by word (estimated from the clip's length).
         let raf = 0;
         if (kind === "page") {
-          const marks = wordTimings(t, buf.duration);
+          const marks = wordTimings(t, buf);
           const t0 = c.currentTime;
           const tick = () => {
             if (!isCurrent()) return;
-            const el = c.currentTime - t0;
+            const el = c.currentTime - t0 - HIGHLIGHT_LAG_S;
             let i = 0;
             while (i + 1 < marks.length && marks[i + 1].start <= el) i++;
-            emit({ text: t, at: marks[i]?.at ?? 0 });
+            emit({ text: t, at: el < (marks[0]?.start ?? 0) ? -1 : (marks[i]?.at ?? 0) });
             raf = requestAnimationFrame(tick);
           };
           raf = requestAnimationFrame(tick);
