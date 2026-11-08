@@ -3546,8 +3546,8 @@ html[data-night] .modal-backdrop {
   z-index: 8;
   top: -2px;
   right: calc(100% - var(--lamp-x, 86%));
-  width: 74px;
-  margin-right: -37px;
+  width: 64px;
+  margin-right: -32px;
   pointer-events: none;
   animation: lampDrop 1s cubic-bezier(0.3, 1.35, 0.5, 1) both;
 }
@@ -3564,7 +3564,7 @@ html[data-night] .modal-backdrop {
 }
 .night-lamp-halo {
   animation: haloPulse 4.5s ease-in-out infinite;
-  transform-origin: 32px 104px;
+  transform-origin: 100px 300px;
 }
 .night-lamp.leaving {
   animation: lampRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
@@ -3610,8 +3610,8 @@ html[data-night] .modal-backdrop {
 }
 @media (max-width: 760px) {
   .night-lamp {
-    width: 58px;
-    margin-right: -29px;
+    width: 52px;
+    margin-right: -26px;
     top: -2px;
   }
 }

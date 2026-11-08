@@ -86,6 +86,9 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
       "Honour the FAMILY NOTES above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together.",
     );
   }
+  parts.push(`WORD LEVEL for this reader (each page's word to learn): ${age.vocab}`);
+  const taught = [...new Set(segments.flatMap((sg) => sg.pages.map((p) => p.action?.word?.trim().toLowerCase()).filter(Boolean)))];
+  if (taught.length) parts.push(`WORDS ALREADY TAUGHT in this book (don't reuse these or other forms of them): ${taught.join(", ")}`);
   if (cast.length) parts.push(`SUPPORTING CAST SO FAR:\n${cast.map(modelSheet).join("\n")}`);
 
   if (isStart) {

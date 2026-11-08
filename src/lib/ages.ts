@@ -20,6 +20,9 @@ export interface AgeLevel {
    *  page/choice counts to a chosen length. */
   secondsPerPage: number;
   guide: string;
+  /** What kind of word each page's tappable "word to learn" should be at
+   *  this age - from first concrete words up to richer vocabulary. */
+  vocab: string;
 }
 
 export const MIN_MINUTES = 3;
@@ -37,6 +40,8 @@ export const AGES: AgeLevel[] = [
     optionCount: 2,
     recommendedMinutes: 3,
     secondsPerPage: 17,
+    vocab:
+      "First words: everyday concrete nouns and very simple action words a toddler can point at or copy (ball, duck, splash, hug, clap, sleep). A fun sound word is fine now and then. Repeat the word in the text so it's heard twice.",
     guide:
       "Very first words. One short sentence per page (often 3-8 words). Use concrete nouns the child can point at in the picture (ball, duck, moon), animal sounds and fun noises, lots of repetition and a repeated refrain. Name colours and simple counting to 3. Present tense. No abstract ideas, no time jumps. Choices are between two very concrete things (e.g. 'the red ball' or 'the yellow duck').",
   },
@@ -51,6 +56,8 @@ export const AGES: AgeLevel[] = [
     optionCount: 2,
     recommendedMinutes: 4,
     secondsPerPage: 20,
+    vocab:
+      "Simple, vivid action words and familiar things (hop, roll, bubble, wave, peek, stomp). At most one sound word (like splash or pop) per segment - the rest should be real action words or objects.",
     guide:
       "Toddler talkers. 1-2 short sentences per page with simple words. Gentle repetition, rhymes and onomatopoeia ('Splish! Splash!'). Simple feelings (happy, sleepy, surprised). Short speech lines between characters. Simple cause and effect. Choices are concrete actions ('climb the tree' or 'look under the rock').",
   },
@@ -65,6 +72,8 @@ export const AGES: AgeLevel[] = [
     optionCount: 3,
     recommendedMinutes: 5,
     secondsPerPage: 19,
+    vocab:
+      "Lively, more specific verbs and describing words that grow vocabulary (tiptoe, wobble, scramble, gather, sparkle, gigantic). Avoid pure sound effects; prefer the word that names the action.",
     guide:
       "Pre-schoolers. 2-3 sentences per page. Playful dialogue, silly jokes and funny mix-ups, simple problem-solving, naming feelings, sharing and kindness. Vocabulary is everyday with one fun new word now and then (explained by context). Choices are meaningful actions with different consequences.",
   },
@@ -79,6 +88,8 @@ export const AGES: AgeLevel[] = [
     optionCount: 3,
     recommendedMinutes: 6,
     secondsPerPage: 22,
+    vocab:
+      "Richer words a 4-5 year old is ready to learn, made clear by the sentence and picture (scamper, glide, tumble, peer, rescue, enormous, delighted). No sound-effect words.",
     guide:
       "Older pre-schoolers. 3-4 sentences per page. A clear little plot with a problem, a try-fail-try-again moment and a satisfying solution. Witty dialogue and gentle humour (wordplay, silly exaggeration), richer descriptive words, a small mystery or surprise. Choices can involve kindness, cleverness or bravery.",
   },
@@ -93,6 +104,8 @@ export const AGES: AgeLevel[] = [
     optionCount: 3,
     recommendedMinutes: 7,
     secondsPerPage: 23,
+    vocab:
+      "'Big words' that stretch vocabulary, with the meaning made obvious by the sentence and the picture (astonished, tremble, gallop, discover, enormous, cautiously, triumphant). Feelings and describing words are welcome, not just actions. No sound-effect words.",
     guide:
       "Early readers. 3-5 sentences per page. Lively dialogue with distinct character voices, jokes that play with words, a plot with a twist, and characters who learn something. Varied sentence lengths and vivid verbs. Choices can be tricky dilemmas with no wrong answer.",
   },

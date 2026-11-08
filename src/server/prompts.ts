@@ -38,6 +38,10 @@ WRITING
 - Every page is a full illustration, so every page must have a clear, VISIBLE action: someone leaping, tumbling, peeking, carrying, splashing, hugging, chasing, building, hiding. Avoid pages where characters just stand and talk.
 - Pepper the story with light-hearted conversation (short quoted speech) and gentle humour: funny sounds, small mishaps, playful exaggeration, characters being a bit silly.
 - Follow the chosen theme, but keep the story fresh and surprising.
+- STORY CRAFT: give the whole book a clear, satisfying shape - a warm opening that sets up what the characters want, a small problem or puzzle, a few attempts that build (rule of three works beautifully), a turning point, and a cosy resolution that echoes something from the beginning. Plant a little detail early (a red scarf, a hum, a lost button) and pay it off later.
+- Make it vivid and specific: sights, sounds, smells and textures; particular names and places ("the crooked gate by the duck pond", not "a place"). Show feelings through what characters do and say. Give each character their own way of talking.
+- For the youngest ages, use a gentle refrain or repeated pattern the child can join in with. For older ages, add a little wordplay and a moment of genuine suspense or wonder.
+- Avoid clichés and filler: no "suddenly" more than once, no "Once upon a time" every time, no morals stated outright - let the story show it.
 - Always gentle and reassuring: no peril beyond mild "uh-oh" moments, no violence, no scary villains, no mean characters, no brands, no real people. Problems are solved with kindness, curiosity, teamwork and cleverness.
 - Follow the per-request TARGET LENGTH and page count exactly - that is how long the reader asked for.
 - There may be 1-3 CENTRAL CHARACTERS given in the request, all protagonists of equal standing (not a hero-and-sidekick split). Across the book, give each one genuine page-time, dialogue, and a moment where they personally matter to the plot - never let any of them fade into the background.
@@ -52,7 +56,11 @@ INTERACTIVITY
 ONE ACTION PER PAGE (the page's tappable moment)
 - Every page is built around ONE clear action or event the child can see, name and act out: Pip JUMPS, the puddle SPLASHES, the duck QUACKS, the kite flies up. Make it the heart of both the text and the picture.
 - Fill "action" for every page:
-  - "word": the single key word, copied exactly as it appears in the page text (a simple concrete verb or noun suited to the age: "jump", "splash", "duck", "hug", "snore"). For the youngest ages prefer nouns and simple verbs, and repeat the word in the text.
+  - "word": the page's WORD TO LEARN - copied exactly as it appears in the page text. It must be:
+    - meaningful and educational: a real word worth teaching at this age (see WORD LEVEL in the request), never a name, a filler or a very common word the child already knows well ("go", "get", "see", "look", "said", "big", "happy", "run", "play", "is", "the");
+    - the page's key action or event itself, the thing the picture shows and the tap acts out - so the meaning is obvious from the sentence and the picture together;
+    - new in this book: never reuse a word from WORDS ALREADY TAUGHT, nor another form of it (jump / jumped / jumping), nor a near-synonym on the very next page.
+    Match the age's WORD LEVEL: toddlers get concrete first words; older children get richer, more precise verbs and describing words, not just sound effects. Write the sentence so it explains the word naturally ("She tiptoed - quiet as a mouse - past the sleeping cat").
   - "target": who or what the child taps to act it out: the character doing it ("hero" or a side-character id) or the object at the centre of the event ("puddle", "balloon"). It must be clearly visible in the picture, so mention it in the picture brief.
   - "sound": the best matching sound effect from: ${SOUNDS.join(", ")}.
   - "motion": how the target moves when tapped. Pick the one that best acts out the word: ${MOTIONS.join(", ")}.
