@@ -37,7 +37,8 @@ export const viewport: Viewport = {
 // first paint doesn't wait on a stylesheet from fonts.googleapis.com.
 const garamond = EB_Garamond({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  // 400 for text, 600 for headings and bold; 500 was never used.
+  weight: ["400", "600"],
   style: ["normal", "italic"],
   display: "swap",
   variable: "--font-garamond",
