@@ -3792,10 +3792,9 @@ html[data-night] .modal-backdrop {
   }
 }
 
-/* The brush drifts slowly across the picture on one unhurried path, loosely
-   following what's being painted (sky, meadow, Bobo, Pip, the puddle),
-   with a gentle sway - never hopping. The whole layer moves (its own GPU
-   layer); the brush tip sits at its top-left corner. */
+/* The brush appears softly where the painting is happening, makes a small
+   stroke and fades away (see brushDrift). The whole layer moves (its own
+   GPU layer); the brush tip sits at its top-left corner. */
 .hero-brush {
   position: absolute;
   inset: 0;
@@ -3805,7 +3804,7 @@ html[data-night] .modal-backdrop {
   will-change: transform, opacity;
 }
 .hero-paint-canvas.playing .hero-brush {
-  animation: brushDrift var(--paint-ms, 15s) ease-in-out both;
+  animation: brushDrift var(--paint-ms, 15s) linear both;
 }
 .hero-art .hero-brush svg {
   /* (beats .hero-art svg, which sizes the painting to the frame) */
@@ -3818,50 +3817,127 @@ html[data-night] .modal-backdrop {
   transform-origin: 11px 1px;
   transform: rotate(150deg);
   filter: drop-shadow(2px 3px 2px rgba(60, 40, 20, 0.3));
-  animation: brushSway 3.2s ease-in-out infinite;
+  animation: brushSway 4.5s ease-in-out infinite;
 }
 .hero-brush-tip {
   fill: #9c4f32;
 }
+/* Six quiet visits, timed to what's being painted (sky, meadow, Bobo, Pip,
+   the puddle, finishing details). At each, the brush fades in, makes one
+   small slow stroke, and fades out; it only changes place while invisible,
+   so it never flies across the picture. */
 @keyframes brushDrift {
   0% {
-    transform: translate(16%, 20%);
+    transform: translate(30%, 16%);
     opacity: 0;
   }
-  5% {
-    opacity: 0.9;
+  4% {
+    opacity: 0.85;
   }
-  18% {
-    transform: translate(70%, 16%);
+  12% {
+    opacity: 0.85;
   }
-  32% {
-    transform: translate(36%, 56%);
+  15% {
+    transform: translate(37%, 18%);
+    opacity: 0;
   }
-  48% {
-    transform: translate(22%, 60%);
+  15.01% {
+    transform: translate(70%, 62%);
+    opacity: 0;
   }
-  64% {
-    transform: translate(62%, 52%);
+  17.01% {
+    opacity: 0;
   }
-  80% {
-    transform: translate(50%, 82%);
+  21% {
+    opacity: 0.85;
   }
-  93% {
-    transform: translate(78%, 70%);
-    opacity: 0.9;
+  27% {
+    opacity: 0.85;
+  }
+  30% {
+    transform: translate(75%, 64%);
+    opacity: 0;
+  }
+  30.01% {
+    transform: translate(16%, 46%);
+    opacity: 0;
+  }
+  32.01% {
+    opacity: 0;
+  }
+  36% {
+    opacity: 0.85;
+  }
+  44% {
+    opacity: 0.85;
+  }
+  47% {
+    transform: translate(21%, 49%);
+    opacity: 0;
+  }
+  47.01% {
+    transform: translate(56%, 44%);
+    opacity: 0;
+  }
+  49.01% {
+    opacity: 0;
+  }
+  53% {
+    opacity: 0.85;
+  }
+  63% {
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(62%, 46%);
+    opacity: 0;
+  }
+  66.01% {
+    transform: translate(44%, 82%);
+    opacity: 0;
+  }
+  68.01% {
+    opacity: 0;
+  }
+  72% {
+    opacity: 0.85;
+  }
+  79% {
+    opacity: 0.85;
+  }
+  82% {
+    transform: translate(49%, 84%);
+    opacity: 0;
+  }
+  82.01% {
+    transform: translate(76%, 30%);
+    opacity: 0;
+  }
+  84.01% {
+    opacity: 0;
+  }
+  88% {
+    opacity: 0.85;
+  }
+  94% {
+    opacity: 0.85;
+  }
+  97% {
+    transform: translate(80%, 32%);
+    opacity: 0;
   }
   100% {
-    transform: translate(84%, 64%);
+    transform: translate(80%, 32%);
     opacity: 0;
   }
 }
 @keyframes brushSway {
   0%,
   100% {
-    rotate: -4deg;
+    rotate: -2.5deg;
   }
   50% {
-    rotate: 4deg;
+    rotate: 2.5deg;
   }
 }
 
