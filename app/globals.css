@@ -148,6 +148,10 @@ button {
   height: 18px;
   flex-shrink: 0;
   overflow: visible;
+  /* The wordmark's glyphs sit in the upper half of their line box (no
+     descenders in "Taleo"), so centering the icon against the full line
+     leaves it looking low; nudge it up to match the text optically. */
+  transform: translateY(-4px);
 }
 .leaf-whirl {
   transform-box: fill-box;
@@ -155,11 +159,11 @@ button {
   animation-name: leaf-whirl;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  /* A soft, down-and-right shadow (light from the upper-left) - it rides
-     along with each leaf's own scale/opacity as it falls, so it reads as
-     closer and sharper when the leaf is near, fainter when far, rather
-     than a flat cutout. */
-  filter: drop-shadow(0.8px 1.6px 1px rgba(47, 34, 20, 0.45));
+  /* A soft shadow cast mostly straight down (light from directly above) -
+     it rides along with each leaf's own scale/opacity as it falls, so it
+     reads as closer and sharper when the leaf is near, fainter when far,
+     rather than a flat cutout. */
+  filter: drop-shadow(0.1px 1.6px 1px rgba(47, 34, 20, 0.25));
 }
 /* A whirlwind's own circling (around a vertical axis) reads, seen from the
    side, as side-to-side sway rather than a visible circle - so each leaf
