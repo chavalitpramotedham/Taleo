@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
-import { fetchGallery } from "@/lib/gallery-client";
+import { fetchGalleryShelf } from "@/lib/gallery-client";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
@@ -54,7 +54,8 @@ export function GalleryShelf({
 }) {
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<GallerySort>("rating");
-  // Category filter (full shelves only - not the homepage's top few).
+  // Category filter (the homepage asks the server for the top few of the
+  // chosen category; full shelves filter what they have).
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -63,33 +64,39 @@ export function GalleryShelf({
   // the chosen order - not every story and cover in the library - and keeps
   // each order it has fetched so switching back is instant. The full
   // library fetches everything once and sorts here.
-  const byOrder = useRef<Partial<Record<GallerySort, GalleryEntry[]>>>({});
+  const byOrder = useRef<Record<string, GalleryEntry[]>>({});
+  const [homeCategories, setHomeCategories] = useState<string[]>([]);
   useEffect(() => {
     if (!limit && byOrder.current.recent) return;
-    const key: GallerySort = limit ? sort : "recent";
+    // the homepage keeps each order (and category) it has fetched
+    const key = limit ? `${sort}|${category ?? ""}` : "recent";
     const have = byOrder.current[key];
     if (have) {
       setStories(have);
       return;
     }
     let live = true;
-    fetchGallery(limit ? { sort, limit } : {})
-      .then((all) => {
+    fetchGalleryShelf(limit ? { sort, limit, category } : {})
+      .then(({ stories: all, categories: cats }) => {
         const list = author ? all.filter((e) => e.authorUsername?.toLowerCase() === author.toLowerCase()) : all;
         byOrder.current[key] = list;
-        if (live) setStories(list);
+        if (live) {
+          setStories(list);
+          if (limit) setHomeCategories(cats);
+        }
       })
       .catch(() => live && setError(true));
     return () => {
       live = false;
     };
-  }, [limit, sort, author]);
+  }, [limit, sort, author, category]);
 
   const sorted = useMemo(() => {
     if (!stories) return [];
     const list = [...stories].sort((a, b) =>
       sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt,
     );
+    // (the homepage's few already come narrowed to the category)
     return limit ? list.slice(0, limit) : list.filter((e) => matchesCategory(e, category));
   }, [stories, sort, limit, category]);
 
@@ -101,9 +108,9 @@ export function GalleryShelf({
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  const categories = useMemo(() => (stories && !limit ? categoriesOf(stories) : []), [stories, limit]);
+  const categories = useMemo(() => (limit ? homeCategories : stories ? categoriesOf(stories) : []), [stories, limit, homeCategories]);
   const pills =
-    stories && stories.length > 1 ? (
+    stories && (stories.length > 1 || category) ? (
       <SortPills sort={sort} onChange={setSort}>
         {categories.length > 1 && <CategoryFilter options={categories} value={category} onChange={setCategory} />}
       </SortPills>

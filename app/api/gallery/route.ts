@@ -25,11 +25,19 @@ export async function GET(req: Request) {
     const detail = err instanceof Error ? err.message.replace(/https?:\/\/\S+/g, "").slice(0, 160) : "unknown";
     return NextResponse.json({ error: "The library can't be reached right now.", detail }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
+  // The keywords across the whole library (for the category filter), and
+  // an optional category to narrow to - applied before the limit, so a
+  // limited shelf (the homepage) shows the top few of that category.
+  const categories = [...new Map(stories.filter((e) => e.keyword?.trim()).map((e) => [e.keyword!.trim().toLowerCase(), e.keyword!.trim()])).values()].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const category = url.searchParams.get("category")?.trim().toLowerCase();
+  if (category) stories = stories.filter((e) => e.keyword?.trim().toLowerCase() === category);
   if (sort === "rating") stories = [...stories].sort((a, b) => avg(b) - avg(a) || b.createdAt - a.createdAt);
   else if (sort === "recent") stories = [...stories].sort((a, b) => b.createdAt - a.createdAt);
   if (limit) stories = stories.slice(0, limit);
   return NextResponse.json(
-    { stories },
+    { stories, categories },
     { headers: { "Cache-Control": "public, max-age=0, must-revalidate", "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } },
   );
 }
