@@ -12,10 +12,34 @@ import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
 
 const STEPS = [
-  { n: "I.", title: "Set the age", text: "Words and choices grow with your child." },
-  { n: "II.", title: "Choose a hero", text: "Theirs, yours, or one you dream up together." },
-  { n: "III.", title: "Pick the tale", text: "Adventure, bedtime, or a lesson to share." },
-  { n: "IV.", title: "Decide together", text: "Read side by side, choosing page by page." },
+  {
+    n: "I.",
+    title: "Set the age",
+    text: "Words and choices grow with your child.",
+    image: "/steps/step-1.jpg",
+    alt: "A dad measuring his giggling baby with a tape measure at bedtime",
+  },
+  {
+    n: "II.",
+    title: "Choose a hero",
+    text: "Theirs, yours, or one you dream up together.",
+    image: "/steps/step-2.jpg",
+    alt: "A dad and baby dreaming up a little knight riding a friendly dragon",
+  },
+  {
+    n: "III.",
+    title: "Pick the tale",
+    text: "Adventure, bedtime, or a lesson to share.",
+    image: "/steps/step-3.jpg",
+    alt: "A dad and baby reading, surrounded by dreams of bears, forests, foxes and castles",
+  },
+  {
+    n: "IV.",
+    title: "Decide together",
+    text: "Read side by side, choosing page by page.",
+    image: "/steps/step-4.jpg",
+    alt: "A laughing baby choosing what a little dragon does next: a sword, a treasure chest or a mountain",
+  },
 ];
 
 type HomeProps = { searchParams: Promise<{ story?: string | string[] }> };

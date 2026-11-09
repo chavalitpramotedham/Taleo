@@ -5,6 +5,9 @@ export interface StepItem {
   n: string;
   title: string;
   text: string;
+  /** An illustration for the step, shown with the dreamy painted edge. */
+  image?: string;
+  alt?: string;
 }
 
 /** "How it works": a sideways-scrolling row of small step boxes. When the
@@ -43,7 +46,13 @@ export function StepsScroller({ steps }: { steps: StepItem[] }) {
     <div className={`steps-wrap ${more ? "has-more" : ""}`}>
       <ol className="steps" aria-label="How it works" ref={ref}>
         {steps.map((s) => (
-          <li key={s.n} className="step">
+          <li key={s.n} className={`step ${s.image ? "step-pictured" : ""}`}>
+            {s.image && (
+              <span className="step-art">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="painted-edge-square" src={s.image} alt={s.alt ?? ""} width={560} height={560} loading="lazy" decoding="async" />
+              </span>
+            )}
             <h3>
               <span className="numeral">{s.n}</span> {s.title}
             </h3>

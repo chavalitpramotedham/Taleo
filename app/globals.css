@@ -7324,3 +7324,47 @@ html[data-night] .btn-danger {
     animation: none;
   }
 }
+
+/* ---------- homepage steps: little picture-book pages ---------- */
+/* Each step is an illustration with the dreamy painted edge (as on the
+   About page), with its numeral, title and line beneath - no box. */
+.step.step-pictured {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0 4px 6px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.step-art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 6px;
+}
+.step-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+html[data-night] .step-art img {
+  /* settled into the lamplit room, like the story paintings */
+  filter: brightness(0.86) saturate(0.95);
+}
+.step-pictured h3 {
+  margin: 0 0 4px;
+}
+.step-pictured p {
+  max-width: 22ch;
+  margin: 0 auto;
+}
+/* phones: a little wider, so the pictures read well */
+@media (max-width: 520px) {
+  .steps:has(.step-pictured) {
+    grid-auto-columns: 210px;
+    gap: 6px;
+  }
+}
