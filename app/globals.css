@@ -6646,8 +6646,9 @@ html[data-night] .admin-spark.bad {
   /* It stops a small, even gap below the menu bar - the pane's own top
      edge showing above it, like when the page is at the top - rather than
      tight against the bar. The gap is drawn with shadows above the picture
-     (the pane's edge line, then the page colour), so the words sliding up
-     beneath never show through it. */
+     in the book's own page colour, closed by a 1px top edge that meets the
+     book's side borders - so it reads as the book's top margin (no stray
+     side lines), and the words sliding up beneath never show through. */
   .book-art {
     --gap: 12px;
     position: sticky;
@@ -6655,15 +6656,15 @@ html[data-night] .admin-spark.bad {
     z-index: 3;
     background: var(--page);
     box-shadow:
-      0 -1px 0 0 var(--page-edge),
-      0 calc(-1px - var(--gap)) 0 0 var(--paper),
+      0 calc(-1 * var(--gap)) 0 0 var(--page),
+      0 calc(-1 * var(--gap)) 0 1px var(--page-edge),
       /* a soft edge where the words slide under it */
       0 10px 12px -12px rgba(60, 40, 20, 0.35);
   }
   html[data-night] .book-art {
     box-shadow:
-      0 -1px 0 0 #2e262c,
-      0 calc(-1px - var(--gap)) 0 0 #0f0c12,
+      0 calc(-1 * var(--gap)) 0 0 var(--page),
+      0 calc(-1 * var(--gap)) 0 1px #2e262c,
       0 10px 14px -12px rgba(0, 0, 0, 0.8);
   }
 }
