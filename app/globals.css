@@ -8099,11 +8099,7 @@ html[data-night] .story-card .story-card-title {
     margin-bottom: 8px;
   }
 }
-/* Drag to turn: sideways moves on the open book belong to the page (it
-   peels under the finger); up-and-down still scrolls and pinch still zooms. */
-.book-stage.open {
-  touch-action: pan-y pinch-zoom;
-}
+
 
 /* Sideways rows scroll sideways only. ("overflow-x: auto" quietly makes
    the other direction scrollable too, so a pill's press shadow or a touch
@@ -8979,4 +8975,17 @@ html[data-night] .icon-btn.on {
 .tech-more.tech-more-bottom {
   margin: 18px auto 0;
   animation: none;
+}
+
+/* A field with its button (Go, Save, Continue...): side by side, the field
+   takes all the room and the button keeps its size; when the button wraps
+   onto its own line (phones, a long answer), it spans the full width
+   rather than sitting there small. */
+.field-row > .input {
+  flex-grow: 999;
+}
+.field-row > .btn {
+  flex: 1 0 auto;
+  min-width: 96px;
+  justify-content: center;
 }
