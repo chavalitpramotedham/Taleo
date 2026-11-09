@@ -8040,3 +8040,34 @@ html[data-night] .tech-card::after {
   transform: scale(0.8);
   pointer-events: none;
 }
+
+/* Story cards at night: brighter, and catching the lantern. The picture's
+   night film is thinner on cards, the surface is lifted a touch toward
+   warm cream, and a soft amber reflection sits in the top-right corner
+   (where the lantern hangs) with a lit rim along the top and right edges,
+   like the glass cards on the homepage. */
+html[data-night] .story-card .paint-dim {
+  fill: rgba(14, 9, 16, 0.06);
+}
+html[data-night] .story-card {
+  position: relative;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--page) 86%, #ffd9a8) 0%, var(--page) 60%);
+  border-color: color-mix(in srgb, #ffc47a 20%, var(--page-edge));
+  box-shadow:
+    inset -1px 1px 0 rgba(255, 196, 122, 0.26),
+    0 14px 28px -16px rgba(0, 0, 0, 0.8),
+    0 0 24px -12px rgba(255, 186, 104, 0.18);
+}
+html[data-night] .story-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 100% 0%, rgba(255, 206, 140, 0.16), transparent 62%),
+    linear-gradient(115deg, transparent 38%, rgba(255, 222, 172, 0.07) 50%, transparent 62%);
+  mix-blend-mode: screen;
+}
+html[data-night] .story-card .story-card-title {
+  color: #f1e4cb;
+}
