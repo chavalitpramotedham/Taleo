@@ -24,6 +24,13 @@ const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
 const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
+/** The picture a reader is waiting on (each part's first page) is painted
+ *  by a quicker model: in side-by-side tests Sonnet 5.5 at medium effort
+ *  painted the same pages ~15% faster and at about half the cost, with
+ *  somewhat less careful characters - a fair trade for the one page that
+ *  holds everyone up. Every other page keeps the main painter. */
+const QUICK_ART_MODEL = process.env.TALEO_QUICK_ART_MODEL || "claude-sonnet-5-5";
+const QUICK_ART_EFFORT = (process.env.TALEO_QUICK_ART_EFFORT as Effort) || "medium";
 /** Designing a new character runs at high effort: their reference painting
  *  and model sheet are shown to the painter on every page they appear in,
  *  so getting them right once pays off across the whole book. */
@@ -374,16 +381,16 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     .join("\n\n");
 
   const stream = getClient().beta.messages.stream({
-    model: ART_MODEL,
+    model: req.quick ? QUICK_ART_MODEL : ART_MODEL,
     max_tokens: 32000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
     system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
-    output_config: { effort: req.quick ? "low" : ART_EFFORT },
+    output_config: { effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT },
   }, { signal });
 
-  const usage = streamUsageTracker("painting", ART_MODEL);
+  const usage = streamUsageTracker("painting", req.quick ? QUICK_ART_MODEL : ART_MODEL);
   try {
     for await (const event of stream) {
       usage.see(event);

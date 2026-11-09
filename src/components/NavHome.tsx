@@ -11,7 +11,8 @@ export function NavLinks() {
   const { status } = useSession();
   const home = status === "authenticated" ? "/home" : "/";
   const links = [
-    { href: home, label: "Home", on: path === "/home" || path === "/" },
+    // (signed in, the landing page isn't your Home - only /home lights it)
+    { href: home, label: "Home", on: path === home },
     // stories and bookshelves are part of the library
     { href: "/store", label: "Library", on: path.startsWith("/store") || path.startsWith("/author") },
     { href: "/about", label: "About", on: path.startsWith("/about") },
