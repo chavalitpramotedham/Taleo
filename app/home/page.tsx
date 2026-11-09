@@ -51,6 +51,15 @@ export default async function HomePage() {
         ))}
       </section>
 
+      {/* Desktop: begin right under the numbers (touch devices have the
+          floating bar instead). */}
+      <div className="home-dash-begin desktop-only">
+        <Link className="btn btn-primary hero-cta" href="/create">
+          <MapleMark />
+          Begin a story
+        </Link>
+      </div>
+
       <OrnamentRule className="home-divider" />
 
       <section className="home-creations">
@@ -82,13 +91,6 @@ export default async function HomePage() {
       </section>
 
       <FloatingBeginBar />
-      {/* (the floating bar covers touch devices; desktop gets a button here) */}
-      <div className="home-dash-begin desktop-only">
-        <Link className="btn btn-primary hero-cta" href="/create">
-          <MapleMark />
-          Begin a story
-        </Link>
-      </div>
     </div>
   );
 }

@@ -8475,3 +8475,67 @@ html[data-night] .home-stat {
     display: none;
   }
 }
+
+/* Wide screens: the closed book is as tall as the open book will be - it
+   fills the space below the menu bar (3:4, centred), and its lettering,
+   frame and picture grow with it rather than staying phone-sized. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .book-stage {
+    container-type: size;
+  }
+  .book-stage:not(.open) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .book-cover {
+    container-type: inline-size;
+    /* (clear of the page-turn buttons floating along the bottom) */
+    width: min(100cqw, calc((100cqh - 78px) * 0.75));
+    margin: 0 auto auto;
+  }
+  .book-cover-board {
+    padding: clamp(16px, 3.6cqw, 28px);
+  }
+  .book-cover-frame {
+    padding: clamp(22px, 6cqw, 46px) clamp(18px, 4.5cqw, 36px) clamp(16px, 4cqw, 30px);
+    gap: clamp(6px, 1.4cqw, 12px);
+  }
+  .book-cover-kicker {
+    font-size: clamp(0.78rem, 2.4cqw, 1.1rem);
+  }
+  .book-cover-orn {
+    width: clamp(120px, 28cqw, 200px);
+  }
+  .book-cover-title {
+    font-size: clamp(1.45rem, 7.6cqw, 3.3rem);
+  }
+  .book-cover-starring {
+    font-size: clamp(1rem, 3.4cqw, 1.5rem);
+  }
+  .book-cover-open {
+    font-size: clamp(0.9rem, 2.9cqw, 1.25rem);
+  }
+  .book-cover-status {
+    font-size: clamp(0.8rem, 2.4cqw, 1.05rem);
+  }
+}
+
+/* Larger screens: the lantern's light reaches farther across the bigger
+   room, and is a touch brighter. */
+@media (min-width: 1024px) {
+  .night-glow-halo {
+    background: radial-gradient(
+      circle at var(--lamp-x) var(--lamp-y),
+      rgba(255, 190, 110, 0.115) 0,
+      rgba(255, 172, 92, 0.058) 300px,
+      rgba(255, 160, 82, 0.024) 640px,
+      rgba(255, 160, 82, 0) 1000px
+    );
+  }
+}
+/* Home (desktop): Begin a story centred under the numbers */
+.home-dash-begin.desktop-only {
+  justify-content: center;
+  margin: 26px 0 4px;
+}
