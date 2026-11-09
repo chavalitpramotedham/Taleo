@@ -459,32 +459,144 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     return () => ro.disconnect();
   }, []);
 
-  // Swipe to turn: right-to-left = next page, left-to-right = previous.
-  // Only a clearly sideways, single-finger swipe counts, so scrolling a
-  // tall page or pinching never turns it by accident.
-  const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    const el = e.target as HTMLElement;
-    if (e.touches.length !== 1 || el.closest("input, textarea, select")) {
-      touchStart.current = null;
+  // Drag to turn: a finger on the page peels it away like paper - the same
+  // page-turn animation as the buttons, but held under the finger (its
+  // progress follows the drag; nothing re-renders while dragging, only the
+  // leaf's transform moves). Let go past ~40% or with a flick and it turns;
+  // otherwise it falls back. A quick swipe still turns as before, and
+  // anything that can't be dragged (the cover, a page still being written,
+  // an unanswered choice) falls back to the plain swipe.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    t: number;
+    dir?: 1 | -1;
+    from?: number;
+    width?: number;
+    anims?: Animation[];
+    progress?: number;
+    lastX?: number;
+    lastT?: number;
+    vx?: number;
+    cancelling?: boolean;
+    declined?: boolean;
+  } | null>(null);
+  const TURN_MS = 800;
+  const FLIP_ANIMS = new Set(["leafTurnNext", "leafTurnPrev", "leafShade", "shadeSweep", "shadeSweepBack"]);
+
+  const canDragTo = (dir: 1 | -1) => {
+    if (coverRef.current !== "open") return false;
+    const from = indexRef.current;
+    const target = from + dir;
+    if (target < 0 || target > lastIndex) return false;
+    if (dir > 0 && (forwardBlockedRef.current || viewsRef.current[target]?.kind === "loading")) return false;
+    return true;
+  };
+  const setDragProgress = (p: number) => {
+    const d = drag.current;
+    if (!d?.anims) return;
+    d.progress = p;
+    for (const a of d.anims) a.currentTime = p * TURN_MS;
+  };
+  // The leaf has just been laid over the page for a drag: hold its
+  // animation still (before it's ever painted) so the finger can drive it.
+  useEffect(() => {
+    const d = drag.current;
+    const stage = stageRef.current;
+    if (!d || d.dir === undefined || d.anims || !outgoing || !stage) return;
+    d.anims = stage.getAnimations({ subtree: true }).filter((a) => FLIP_ANIMS.has((a as CSSAnimation).animationName));
+    for (const a of d.anims) a.pause();
+    setDragProgress(d.progress ?? 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outgoing]);
+
+  /** A drag let go short of turning: the leaf falls back and the page it
+   *  was peeled from is simply put back underneath. */
+  const restoreAfterCancel = () => {
+    const d = drag.current;
+    if (!d?.cancelling || d.from === undefined) return;
+    drag.current = null;
+    indexRef.current = d.from;
+    setIndex(d.from);
+    setOutgoing(null);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || !e.isPrimary) return;
+    if ((e.target as HTMLElement).closest("input, textarea, select")) return;
+    if (drag.current?.cancelling) restoreAfterCancel();
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now() };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId || d.declined) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (d.dir === undefined) {
+      // Wait until it's clearly a sideways drag (not a scroll or a tap).
+      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      const dir: 1 | -1 = dx < 0 ? 1 : -1;
+      if (!canDragTo(dir)) {
+        d.declined = true;
+        return;
+      }
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      d.dir = dir;
+      d.from = indexRef.current;
+      d.width = stageRef.current?.getBoundingClientRect().width || window.innerWidth;
+      d.progress = 0;
+      d.lastX = e.clientX;
+      d.lastT = performance.now();
+      d.vx = 0;
+      setPendingNext(false);
+      turnTo(indexRef.current + dir);
       return;
     }
-    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() };
+    const now = performance.now();
+    const step = (e.clientX - (d.lastX ?? e.clientX)) / Math.max(1, now - (d.lastT ?? now));
+    d.vx = 0.7 * step + 0.3 * (d.vx ?? 0);
+    d.lastX = e.clientX;
+    d.lastT = now;
+    // Peeling all the way across the page takes the leaf right over.
+    const travel = -dx * d.dir;
+    setDragProgress(Math.max(0, Math.min(0.98, travel / ((d.width ?? 1) * 0.85))));
   };
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) touchStart.current = null;
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const start = touchStart.current;
-    touchStart.current = null;
-    if (!start) return;
-    const dx = e.changedTouches[0].clientX - start.x;
-    const dy = e.changedTouches[0].clientY - start.y;
-    const fast = Date.now() - start.t < 300;
-    // A light flick (24px quick, 38px slow) turns the page; it just needs
-    // to be more sideways than up-and-down.
-    if (Math.abs(dx) < (fast ? 24 : 38) || Math.abs(dx) < Math.abs(dy) * 1.25) return;
-    go(dx < 0 ? 1 : -1);
+  const onPointerUp = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    if (d.dir === undefined) {
+      drag.current = null;
+      if (e.type === "pointercancel") return;
+      // Not a drag: the plain swipe, as before.
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      const fast = performance.now() - d.t < 300;
+      if (Math.abs(dx) < (fast ? 24 : 38) || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+      go(dx < 0 ? 1 : -1);
+      return;
+    }
+    const p = d.progress ?? 0;
+    // A flick only counts if the finger was still moving when it let go.
+    const moving = performance.now() - (d.lastT ?? 0) < 90;
+    const flick = moving ? -(d.vx ?? 0) * d.dir : 0; // px per ms, in the turning direction
+    const commit = e.type !== "pointercancel" && (p > 0.4 || (flick > 0.35 && p > 0.03));
+    const anims = d.anims ?? [];
+    if (commit) {
+      drag.current = null;
+      // Carry on from where the finger left it (the leaf's own end clears it).
+      for (const a of anims) a.play();
+      if (!anims.length) setOutgoing(null);
+      return;
+    }
+    d.cancelling = true;
+    if (!anims.length) return restoreAfterCancel();
+    for (const a of anims) {
+      a.playbackRate = -1.6;
+      a.play();
+    }
+    void anims[0].finished.then(restoreAfterCancel, restoreAfterCancel);
   };
 
   // ---------------------------------------------------------------- read aloud
@@ -825,7 +937,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         </div>
       </div>
 
-      <div className={`book-stage ${cover}`} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div
+        ref={stageRef}
+        className={`book-stage ${cover}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
         {cover !== "closed" && (
       <div className="book">
         <div className="book-art">{picture}</div>
@@ -849,7 +968,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               key={`leaf-${outgoing.n}`}
               className={`flip-leaf flip-leaf-${outgoing.dir > 0 ? "next" : "prev"}`}
               aria-hidden
-              onAnimationEnd={(e) => e.target === e.currentTarget && setOutgoing(null)}
+              onAnimationEnd={(e) => {
+                if (e.target !== e.currentTarget) return;
+                // A drag let go early plays the turn backwards to its start.
+                if (drag.current?.cancelling) return restoreAfterCancel();
+                if (drag.current?.dir !== undefined && !drag.current.cancelling) return;
+                setOutgoing(null);
+              }}
             >
               <div className="book-art">{outgoing.picture}</div>
               <div className="book-text">{outgoing.words}</div>

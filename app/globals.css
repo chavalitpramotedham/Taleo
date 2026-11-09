@@ -8094,3 +8094,8 @@ html[data-night] .story-card .story-card-title {
     margin-bottom: 8px;
   }
 }
+/* Drag to turn: sideways moves on the open book belong to the page (it
+   peels under the finger); up-and-down still scrolls and pinch still zooms. */
+.book-stage.open {
+  touch-action: pan-y pinch-zoom;
+}

@@ -48,8 +48,8 @@ export function TechShowcase() {
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
-        <p className="tech-eyebrow">GenAI, For Our Little Ones</p>
-        <h2 id="tech-title">Keeping the magic alive</h2>
+        <p className="tech-eyebrow">Gently powered by generative AI</p>
+        <h2 id="tech-title">To keep the magic alive</h2>
       </header>
       <div className="tech-grid">
         {SPECS.map((s, i) => (
