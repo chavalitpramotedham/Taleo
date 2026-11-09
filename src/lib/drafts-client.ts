@@ -8,7 +8,9 @@ import type { Story } from "./types";
  * a write per change. Finishing the story clears the draft.
  */
 
-const DELAY_MS = 5000;
+// (a burst of paintings finishing - several a minute - becomes one save;
+// leaving the story saves at once, so nothing is lost)
+const DELAY_MS = 12000;
 let timer: number | undefined;
 let pending: Story | null = null;
 
@@ -37,10 +39,30 @@ export function flushDraft() {
   if (s) void send(s);
 }
 
+// Finished stories whose draft this device has already cleared - so
+// re-opening a finished story doesn't ask the server again every time.
+const CLEARED = "taleo.draftsCleared.v1";
+const cleared = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(CLEARED) || "[]") as string[];
+  } catch {
+    return [];
+  }
+};
+
 export function clearDraftFor(id: string) {
   window.clearTimeout(timer);
   if (pending?.id === id) pending = null;
-  void fetch(`/api/draft?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+  const done = cleared();
+  if (done.includes(id)) return;
+  void fetch(`/api/draft?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+    .then((r) => {
+      if (!r.ok) return;
+      try {
+        localStorage.setItem(CLEARED, JSON.stringify([id, ...done].slice(0, 200)));
+      } catch {}
+    })
+    .catch(() => {});
 }
 
 export async function fetchDraft(): Promise<Story | null> {
