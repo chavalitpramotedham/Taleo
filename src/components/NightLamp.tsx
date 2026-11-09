@@ -87,17 +87,11 @@ export const MoonIcon = ({ on }: { on: boolean }) => (
     {/* the crescent and its sparkle lean right and up as drawn: shifted so
         the whole mark sits on the button's centre */}
     <g transform="translate(-0.9 0.7)">
-      <path d="M19.5 14.6A7.6 7.6 0 0 1 9.4 4.5a7.6 7.6 0 1 0 10.1 10.1Z" fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.18 : 0} />
+      {/* switched on: a solid crescent in the highlight colour */}
+      <path d="M19.5 14.6A7.6 7.6 0 0 1 9.4 4.5a7.6 7.6 0 1 0 10.1 10.1Z" fill={on ? "currentColor" : "none"} />
       <path d="M16.6 3.6v2.6M15.3 4.9h2.6" opacity={on ? 1 : 0.6} />
       <circle cx="20.2" cy="8.6" r="0.55" fill="currentColor" stroke="none" opacity={on ? 1 : 0.6} />
     </g>
   </svg>
 );
 
-/** Shown on the switch at night: back to daylight. */
-export const SunIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="12" cy="12" r="4.2" fill="currentColor" fillOpacity="0.18" />
-    <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1M5.5 5.5l1.5 1.5M17 17l1.5 1.5M5.5 18.5L7 17M17 7l1.5-1.5" />
-  </svg>
-);

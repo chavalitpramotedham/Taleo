@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { LanternArt, MoonIcon, SunIcon } from "./NightLamp";
+import { LanternArt, MoonIcon } from "./NightLamp";
 
 /**
  * Night mode for the whole site: a cosy, dim bedtime theme with a little
@@ -154,8 +154,9 @@ export function NightToggle() {
         aria-label={night ? "Turn off night mode" : "Turn on night mode"}
         title={night ? "Back to daylight" : "Night mode"}
       >
-        {/* the mode it switches to: the moon by day, the sun at night */}
-        {night ? <SunIcon /> : <MoonIcon on={false} />}
+        {/* always the moon: an on/off switch for night mode, lit (a solid
+            crescent and a bright sparkle) while it's on */}
+        <MoonIcon on={night} />
       </button>
     </span>
   );
