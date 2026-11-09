@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-/** The menu's page links - Home, Library, About us - with the page you're
+/** The menu's page links - Home, Library, About - with the page you're
  *  on picked out (darker, heavier lettering). "Home" is your own home page
  *  when signed in, the welcome page otherwise. */
 export function NavLinks() {
@@ -14,7 +14,7 @@ export function NavLinks() {
     { href: home, label: "Home", on: path === "/home" || path === "/" },
     // stories and bookshelves are part of the library
     { href: "/store", label: "Library", on: path.startsWith("/store") || path.startsWith("/author") },
-    { href: "/about", label: "About us", on: path.startsWith("/about") },
+    { href: "/about", label: "About", on: path.startsWith("/about") },
   ];
   return (
     <>
