@@ -19,7 +19,8 @@ export async function fetchGalleryShelf(
   // A failure is an error, not "an empty library".
   if (!res.ok) throw new Error(`Library unavailable (${res.status})`);
   const data = (await res.json()) as { stories?: GalleryEntry[]; categories?: string[] };
-  return { stories: data.stories ?? [], categories: data.categories ?? [] };
+  const gone = typeof window === "undefined" ? new Set<string>() : deletedStoryIds();
+  return { stories: (data.stories ?? []).filter((e) => !gone.has(e.id)), categories: data.categories ?? [] };
 }
 
 export async function fetchGalleryStory(id: string): Promise<Story | null> {
@@ -60,4 +61,37 @@ export async function rateGalleryStory(id: string, rating: number, previousRatin
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------- deleting
+const DELETED_KEY = "taleo.deletedStories";
+/** Stories deleted on this device: hidden from shelves straight away (the
+ *  library list is cached at the edge for a minute or so). */
+export function deletedStoryIds(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(DELETED_KEY) || "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
+export const STORY_DELETED_EVENT = "taleo:story-deleted";
+
+/** Delete one of your own stories from the library (for good), then let
+ *  every shelf on the page drop it. Throws with a friendly message. */
+export async function deleteGalleryStory(id: string): Promise<void> {
+  const res = await fetch(`/api/gallery/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || "Couldn't delete the story. Please try again.");
+  }
+  try {
+    const ids = [...deletedStoryIds(), id].slice(-100);
+    localStorage.setItem(DELETED_KEY, JSON.stringify(ids));
+  } catch {}
+  // its copy kept on this device, if there is one
+  try {
+    const { deleteStory } = await import("./storage");
+    deleteStory(id);
+  } catch {}
+  window.dispatchEvent(new CustomEvent(STORY_DELETED_EVENT, { detail: { id } }));
 }

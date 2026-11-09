@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
-import { fetchGalleryShelf } from "@/lib/gallery-client";
+import { STORY_DELETED_EVENT, fetchGalleryShelf } from "@/lib/gallery-client";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
@@ -59,6 +59,16 @@ export function GalleryShelf({
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  // A story deleted from its preview leaves the shelf at once.
+  useEffect(() => {
+    const drop = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      setStories((list) => (list ? list.filter((s) => s.id !== id) : list));
+      setOpenId(null);
+    };
+    window.addEventListener(STORY_DELETED_EVENT, drop);
+    return () => window.removeEventListener(STORY_DELETED_EVENT, drop);
+  }, []);
 
   // A limited shelf (the homepage) asks the server for just its top N in
   // the chosen order - not every story and cover in the library - and keeps

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { STORY_DELETED_EVENT } from "@/lib/gallery-client";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
@@ -47,6 +48,18 @@ export default function MyStoriesPage() {
   const categories = useMemo(() => categoriesOf(stories ?? []), [stories]);
 
   const [openId, setOpenId] = useState<string | null>(null);
+  // A story deleted from its preview leaves the bookshelf at once.
+  useEffect(() => {
+    const drop = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      setStories((list) => (list ? list.filter((s) => s.id !== id) : list));
+      setOpenId(null);
+      setToast("Story deleted.");
+      window.setTimeout(() => setToast(null), 2400);
+    };
+    window.addEventListener(STORY_DELETED_EVENT, drop);
+    return () => window.removeEventListener(STORY_DELETED_EVENT, drop);
+  }, []);
   const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
 
   const flash = (msg: string) => {

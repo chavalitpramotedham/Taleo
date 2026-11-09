@@ -8654,3 +8654,68 @@ html[data-night] .nav-link.current {
 .account-trigger.on {
   box-shadow: 0 0 0 1px var(--russet);
 }
+
+/* ---------- managing your own story ---------- */
+.story-manage {
+  position: relative;
+  display: inline-block;
+}
+.story-manage-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--russet);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--russet) 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+/* the menu: the same page-coloured, rounded dropdown as the others */
+.story-manage-menu {
+  top: calc(100% + 8px);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  min-width: 170px;
+  border-radius: 14px;
+  padding: 6px 0;
+  animation: fadeIn 0.12s ease both;
+  text-align: left;
+}
+.story-manage-delete {
+  color: #b5533a;
+}
+html[data-night] .story-manage-delete {
+  color: #e08a6c;
+}
+@media (hover: hover) {
+  .story-manage-delete:hover {
+    background: color-mix(in srgb, #b5533a 10%, transparent);
+  }
+}
+/* the delete confirmation shows the story's cover, like a character's
+   portrait in theirs */
+.confirm-cover {
+  display: block;
+  width: min(62%, 220px);
+  aspect-ratio: 4 / 3;
+  margin: 2px auto 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px -12px rgba(60, 40, 20, 0.6);
+}
+.confirm-cover svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* "by @you · Manage": room around the dot; the menu in upright type (the
+   line it hangs from is italic) */
+.story-preview-by .dot {
+  margin: 0 6px;
+}
+.story-manage-menu,
+.story-manage-menu .music-dropdown-item {
+  font-style: normal;
+}

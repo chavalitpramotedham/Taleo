@@ -1,10 +1,19 @@
 "use client";
 import Link, { useLinkStatus } from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useSession } from "next-auth/react";
+import { deleteGalleryStory } from "@/lib/gallery-client";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
-import { ClockIcon, LeafLoader, MapleMark, ShareIcon, StarGlyph } from "./Icons";
+import {
+  ClockIcon,
+  LeafLoader,
+  MapleMark,
+  ShareIcon,
+  StarGlyph,
+} from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -41,7 +50,9 @@ export function summaryFromEntry(e: GalleryEntry): StorySummary {
 }
 
 const joinNames = (names: string[]) =>
-  names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
+  names.length <= 1
+    ? names.join("")
+    : `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
 
 /** A story's preview, as a popup: the cover, title, keyword and key
  *  details, with whatever actions the caller puts underneath (read, share,
@@ -63,7 +74,9 @@ export function StoryPreview({
   const [showArt, setShowArt] = useState(false);
   useEffect(() => {
     let b = 0;
-    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => setShowArt(true))));
+    const a = requestAnimationFrame(
+      () => (b = requestAnimationFrame(() => setShowArt(true))),
+    );
     return () => {
       cancelAnimationFrame(a);
       cancelAnimationFrame(b);
@@ -85,25 +98,41 @@ export function StoryPreview({
         aria-modal="true"
         aria-labelledby="story-preview-title"
       >
-        <button type="button" className="icon-btn story-preview-close" onClick={onClose} aria-label="Close">
+        <button
+          type="button"
+          className="icon-btn story-preview-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
           ✕
         </button>
         <div className="story-preview-cover">
           {story.cover && showArt ? (
-            <Painting svg={story.cover} title={story.title} className="story-preview-art" />
+            <Painting
+              svg={story.cover}
+              title={story.title}
+              className="story-preview-art"
+            />
           ) : (
             <span className="story-preview-wait" aria-hidden>
               <LeafLoader size={40} />
             </span>
           )}
-          <span className="cover-time" aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} pages` : ""}`}>
-            <ClockIcon /> {story.minutes} min{story.pages ? ` · ${story.pages} pages` : ""}
+          <span
+            className="cover-time"
+            aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} ${story.pages === 1 ? "page" : "pages"}` : ""}`}
+          >
+            <ClockIcon /> {story.minutes} min
+            {story.pages
+              ? ` · ${story.pages} ${story.pages === 1 ? "page" : "pages"}`
+              : ""}
           </span>
           <span className="cover-meta">
             <span className="cover-rating">
               {story.ratingAvg != null ? (
                 <>
-                  <StarGlyph /> {story.ratingAvg.toFixed(1)} ({story.ratingCount})
+                  <StarGlyph /> {story.ratingAvg.toFixed(1)} (
+                  {story.ratingCount})
                 </>
               ) : (
                 "Not yet rated"
@@ -128,9 +157,13 @@ export function StoryPreview({
           </p>
           <p className="meta story-preview-by">
             by{" "}
-            <Link className="story-preview-author" href={`/author/${encodeURIComponent(story.author)}`}>
+            <Link
+              className="story-preview-author"
+              href={`/author/${encodeURIComponent(story.author)}`}
+            >
               @{story.author}
             </Link>
+            <ManageStory story={story} onDeleted={onClose} />
           </p>
           {children}
         </div>
@@ -141,13 +174,29 @@ export function StoryPreview({
 
 /** The preview's buttons: the main "read" button, left, taking the room,
  *  with a small round share button beside it. */
-export function PreviewButtons({ href, label, onShare, onRead }: { href: string; label: string; onShare: () => void; onRead?: () => void }) {
+export function PreviewButtons({
+  href,
+  label,
+  onShare,
+  onRead,
+}: {
+  href: string;
+  label: string;
+  onShare: () => void;
+  onRead?: () => void;
+}) {
   return (
     <div className="story-preview-buttons">
       <Link className="btn btn-primary" href={href} onClick={onRead}>
         <ReadLabel label={label} />
       </Link>
-      <button type="button" className="icon-btn story-preview-share" onClick={onShare} aria-label="Share story" title="Share">
+      <button
+        type="button"
+        className="icon-btn story-preview-share"
+        onClick={onShare}
+        aria-label="Share story"
+        title="Share"
+      >
         <ShareIcon />
       </button>
     </div>
@@ -168,6 +217,140 @@ function ReadLabel({ label }: { label: string }) {
     <>
       <MapleMark />
       {label}
+    </>
+  );
+}
+
+/** For the story's own author: "· Manage" after their name, opening a
+ *  small menu (just Delete for now). Deleting asks first, in its own
+ *  dialog, then removes the story everywhere. */
+function ManageStory({
+  story,
+  onDeleted,
+}: {
+  story: StorySummary;
+  onDeleted: () => void;
+}) {
+  const { data: session } = useSession();
+  const mine =
+    Boolean(session?.user?.username) &&
+    session!.user.username!.toLowerCase() === story.author.toLowerCase();
+  const [menu, setMenu] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const wrap = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const close = (e: PointerEvent) =>
+      !wrap.current?.contains(e.target as Node) && setMenu(false);
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [menu]);
+
+  if (!mine) return null;
+
+  const remove = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteGalleryStory(story.id);
+      setConfirm(false);
+      onDeleted();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't delete the story.");
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <span className="dot" aria-hidden>
+        ·
+      </span>
+      <span className="story-manage" ref={wrap}>
+        <button
+          type="button"
+          className="story-manage-link"
+          onClick={() => setMenu((m) => !m)}
+          aria-haspopup="menu"
+          aria-expanded={menu}
+        >
+          Manage
+        </button>
+        {menu && (
+          <span className="music-dropdown story-manage-menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="music-dropdown-item story-manage-delete"
+              onClick={() => {
+                setMenu(false);
+                setConfirm(true);
+              }}
+            >
+              Delete story
+            </button>
+          </span>
+        )}
+      </span>
+      {confirm &&
+        createPortal(
+          // (on the page itself, not inside the italic "by" line it opens from)
+          <div
+            className="modal-backdrop redraw-backdrop"
+            onClick={(e) => (e.stopPropagation(), !busy && setConfirm(false))}
+          >
+            <div
+              className="modal-panel confirm-panel"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="confirm-story-delete"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {story.cover && (
+                <span className="confirm-cover">
+                  <Painting svg={story.cover} title={story.title} />
+                </span>
+              )}
+              <h3 id="confirm-story-delete">
+                Delete &ldquo;{story.title}&rdquo;?
+              </h3>
+              <p className="confirm-warning">
+                This can&apos;t be undone. The story will be gone for good -
+                from the library, your bookshelf and anyone&apos;s saved links -
+                along with its ratings.
+              </p>
+              <div className="redraw-choices">
+                <button
+                  type="button"
+                  className="btn btn-danger btn-block"
+                  onClick={() => void remove()}
+                  disabled={busy}
+                >
+                  {busy ? (
+                    <>
+                      <LeafLoader size={18} /> Deleting…
+                    </>
+                  ) : (
+                    "Yes, delete this story"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-soft btn-block"
+                  onClick={() => setConfirm(false)}
+                  disabled={busy}
+                >
+                  Keep it
+                </button>
+              </div>
+              {error && <p className="error">{error}</p>}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

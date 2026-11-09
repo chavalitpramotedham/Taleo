@@ -105,6 +105,16 @@ export async function linkStory(ownerId: string, characterIds: string[], storyId
   if (changed) await writeJson(path(ownerId), next);
 }
 
+/** Forget a deleted story on the owner's characters ("starred in" links). */
+export async function unlinkStory(ownerId: string, storyId: string): Promise<void> {
+  const list = await listCharacters(ownerId);
+  if (!list.some((c) => c.storyIds.includes(storyId))) return;
+  await writeJson(
+    path(ownerId),
+    list.map((c) => (c.storyIds.includes(storyId) ? { ...c, storyIds: c.storyIds.filter((s) => s !== storyId) } : c)),
+  );
+}
+
 export async function deleteCharacter(ownerId: string, id: string): Promise<void> {
   const list = await listCharacters(ownerId);
   await writeJson(

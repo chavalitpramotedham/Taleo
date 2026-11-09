@@ -155,6 +155,25 @@ export function myRating(ratings: RatingRecord[], userId: string): RatingRecord 
 
 /** Removes every story this user published (and each one's ratings file).
  *  Returns how many were deleted. */
+export class NotYourStoryError extends Error {}
+
+/** Delete one story from the library - only its author can. Removes it
+ *  from the index (so every shelf, bookshelf and count drops it) along
+ *  with the story itself and its ratings. Returns the author's username,
+ *  for refreshing their bookshelf page. */
+export async function deleteStory(storyId: string, authorId: string): Promise<{ authorUsername: string } | null> {
+  const index = await listGallery();
+  const entry = index.find((e) => e.id === storyId);
+  if (!entry) return null;
+  if (entry.authorId !== authorId) throw new NotYourStoryError("Only the story's author can delete it.");
+  await writeJson(
+    INDEX_PATH,
+    index.filter((e) => e.id !== storyId),
+  );
+  await Promise.all([deleteJson(storyPath(storyId)).catch(() => {}), deleteJson(ratingsPath(storyId)).catch(() => {})]);
+  return { authorUsername: entry.authorUsername };
+}
+
 export async function deleteMyStories(authorId: string): Promise<number> {
   const index = await listGallery();
   const mine = index.filter((e) => e.authorId === authorId);

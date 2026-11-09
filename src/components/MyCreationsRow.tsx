@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
-import { fetchGalleryShelf } from "@/lib/gallery-client";
+import { STORY_DELETED_EVENT, fetchGalleryShelf } from "@/lib/gallery-client";
+import { useRouter } from "next/navigation";
 import { MapleMark } from "./Icons";
 import { SideScroll } from "./SideScroll";
 import { StoryCard } from "./StoryCard";
@@ -20,6 +21,20 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   const [mine, setMine] = useState<GalleryEntry[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // A story deleted from its preview leaves the row, and the page's
+  // numbers (worked out on the server) are refreshed.
+  const router = useRouter();
+  useEffect(() => {
+    const drop = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      setMine((list) => (list ? list.filter((s) => s.id !== id) : list));
+      setOpenId(null);
+      router.refresh();
+    };
+    window.addEventListener(STORY_DELETED_EVENT, drop);
+    return () => window.removeEventListener(STORY_DELETED_EVENT, drop);
+  }, [router]);
 
   useEffect(() => {
     if (!username) return setMine([]);
