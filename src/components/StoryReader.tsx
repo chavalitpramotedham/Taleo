@@ -599,6 +599,33 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     void anims[0].finished.then(restoreAfterCancel, restoreAfterCancel);
   };
 
+  // On tall screens the picture sticks under the menu bar as the words
+  // scroll (see .book-art in the CSS). Note when it's stuck, so the gap
+  // above it is only filled in then - at rest the page's own margin shows.
+  const bookRef = useRef<HTMLDivElement>(null);
+  const [artStuck, setArtStuck] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const book = bookRef.current;
+      if (!book) return;
+      const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 64;
+      setArtStuck(book.getBoundingClientRect().top < bar + 12 - 0.5);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [cover]);
+
   // ---------------------------------------------------------------- read aloud
   const speak = useCallback((text: string) => speakText(text, { kind: "page" }), []);
 
@@ -946,7 +973,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         onPointerCancel={onPointerUp}
       >
         {cover !== "closed" && (
-      <div className="book">
+      <div className={`book ${artStuck ? "art-stuck" : ""}`} ref={bookRef}>
         <div className="book-art">{picture}</div>
         <div className="book-text">
           {cover === "open" && (
