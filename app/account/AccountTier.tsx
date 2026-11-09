@@ -20,7 +20,6 @@ type Card = {
   name: string;
   tagline: string;
   price: string;
-  priceNote: string;
   button: string;
   current: boolean;
   intro: string;
@@ -34,7 +33,7 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   name: t.name,
   tagline: t.blurb,
   price: t.id === "admin" ? "Unlimited" : "Free",
-  priceNote: t.id === "admin" ? "the keys to the castle" : "for every family",
+  // (only the admin sees the safety limits)
   button: current ? "Current plan" : "",
   current,
   intro: t.id === "admin" ? "Everything, without limits:" : "Every family gets:",
@@ -47,8 +46,7 @@ const COMING: Card = {
   icon: <SeedlingMark />,
   name: "More plans",
   tagline: "Growing soon, for families who read together every day.",
-  price: "Soon",
-  priceNote: "we'll let you know",
+  price: "Coming soon",
   button: "",
   current: false,
   intro: "Everything in Free, and more of:",
@@ -96,9 +94,10 @@ export function AccountPlans({ isAdmin }: { isAdmin: boolean }) {
   // plan is a step down (shown, never switchable); for a family on Free the
   // paid plans are upgrades - offered once they actually exist.
   const others = (c: Card, label: string): Card => ({ ...c, button: label });
+  const noCaps = (c: Card): Card => ({ ...c, caps: undefined });
   const cards: Card[] = isAdmin
     ? [others(fromTier(TIERS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
-    : [fromTier(TIERS.free, true), others(COMING, "Upgrade - coming soon")];
+    : [noCaps(fromTier(TIERS.free, true)), others(COMING, "Upgrade - coming soon")];
   return (
     <div className="account-plans">
       {isAdmin && (
@@ -168,23 +167,22 @@ function PlanRow({ cards }: { cards: Card[] }) {
 function PlanCard({ card }: { card: Card }) {
   return (
     <article className={`plan-card plan-${card.key} ${card.current ? "current" : ""}`}>
+      {/* icon and name on one line; the pill says whether it's yours, and its price */}
       <div className="plan-top">
-        <span className="tier-badge" aria-hidden>
+        <span className="tier-badge plan-badge" aria-hidden>
           {card.icon}
         </span>
-        {card.current && <span className="plan-current-pill">Your plan</span>}
+        <h4 className="plan-name">{card.name}</h4>
+        <span className={`plan-pill ${card.current ? "current" : ""}`}>{card.current ? `Current · ${card.price}` : card.price}</span>
       </div>
-      <h4 className="plan-name">{card.name}</h4>
       <p className="plan-tagline">{card.tagline}</p>
-      <p className="plan-price">
-        <b>{card.price}</b>
-        <span>{card.priceNote}</span>
-      </p>
       {/* (no plan can be switched to yet: the current plan says so, the rest
           are shown as they will work, disabled) */}
-      <button type="button" className={`btn btn-block plan-btn ${card.current ? "btn-soft" : "btn-primary"}`} disabled aria-disabled="true">
-        {card.button}
-      </button>
+      {!card.current && (
+        <button type="button" className="btn btn-block btn-primary plan-btn" disabled aria-disabled="true">
+          {card.button}
+        </button>
+      )}
       <div className="plan-features">
         <p>{card.intro}</p>
         <ul>
