@@ -9848,3 +9848,20 @@ html[data-night] .tier-badge {
   margin-top: 12px;
   padding-top: 10px;
 }
+/* The story's tools never run off a narrow screen: the row takes the
+   width it has, and the song's name gives way (it already trails off
+   with "…") so the buttons beside it always fit. */
+.reader-tools {
+  min-width: 0;
+  max-width: 100%;
+}
+.reader-tools > .music-control {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.reader-tools > .music-control .music-control-tune {
+  min-width: 0;
+}
+.reader-tools > :not(.music-control) {
+  flex: none;
+}
