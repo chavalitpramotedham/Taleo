@@ -221,7 +221,14 @@ export function AccountForm({
 
       <section className="panel">
         <h3>Danger zone</h3>
-        <p className="meta">These can&apos;t be undone.</p>
+        {isAdmin ? (
+          <p className="meta">
+            This is the admin account: it owns the original library, so deleting all its stories or the account itself is switched off here.
+          </p>
+        ) : (
+          <p className="meta">These can&apos;t be undone.</p>
+        )}
+        {!isAdmin && (
         <div className="card-actions">
           {/* The admin account owns the whole legacy library - no bulk delete. */}
           {!isAdmin && (
@@ -235,6 +242,7 @@ export function AccountForm({
             </button>
           )}
         </div>
+        )}
         {notice && <p className="meta">{notice}</p>}
       </section>
     </>
