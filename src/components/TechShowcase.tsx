@@ -75,8 +75,9 @@ export function TechShowcase() {
         }}
       >
         <span>{open ? "Show less" : "Learn more"}</span>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M6 9l6 6 6-6" />
+        {/* a double chevron: down to open, up (turned over) to fold away */}
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M7 6l5 5 5-5M7 13l5 5 5-5" />
         </svg>
       </button>
       <div className={`tech-fold ${open ? "open" : ""}`} id={gridId} inert={!open}>

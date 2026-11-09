@@ -77,12 +77,24 @@ export function CategoryFilter({
   return (
     <>
       <span ref={anchor} className={`chip category-chip ${value ? "on" : ""}`}>
-        <button type="button" className="category-chip-label" onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open}>
+        <button
+          type="button"
+          className={`category-chip-label ${value ? "" : "category-chip-icon"}`}
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={value ? `Category: ${value} - change` : "Filter by category"}
+          title={value ? undefined : "Filter by category"}
+        >
+          {/* Not filtering: just a category icon. Filtering: the category's
+              name (with the clear button beside it). */}
           {value ?? (
-            <>
-              <span className="category-long">By category</span>
-              <span className="category-short">Category</span>
-            </>
+            <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden className="category-icon">
+              <rect x="2.5" y="2.5" width="6.2" height="6.2" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="11.3" y="2.5" width="6.2" height="6.2" rx="3.1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="2.5" y="11.3" width="6.2" height="6.2" rx="3.1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <rect x="11.3" y="11.3" width="6.2" height="6.2" rx="1.8" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
           )}
           {!value && (
             <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden className={`category-caret ${open ? "up" : ""}`}>

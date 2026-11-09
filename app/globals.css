@@ -8552,3 +8552,85 @@ html[data-night] .home-stat {
   text-wrap: nowrap;
   font-size: clamp(1.3rem, 6.4vw, 2.6rem);
 }
+
+/* The category filter, not in use: just an icon and a small caret (no
+   words) - a compact pill beside Favourites / Newest. */
+.category-chip-label.category-chip-icon {
+  gap: 5px;
+  padding-left: 12px;
+  padding-right: 10px;
+}
+.category-icon {
+  display: block;
+  flex: none;
+}
+/* The category pill holds two buttons (open the menu, clear the filter),
+   so its own enlarged touch area would sit over both and swallow the tap.
+   The buttons get the taller touch areas instead. */
+@media (pointer: coarse) {
+  .category-chip::after {
+    content: none;
+  }
+  .category-chip {
+    overflow: visible;
+  }
+  .category-chip-label,
+  .category-chip-clear {
+    position: relative;
+    border-radius: inherit;
+  }
+  .category-chip-label::after,
+  .category-chip-clear::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+}
+
+/* Learn more / Show less without lag: the fold opens and closes at once
+   (no height animation, which re-laid-out the page every frame); opening,
+   the cards fade and rise in one after another - opacity and transform
+   only. Plain, upright words with a double chevron. */
+.tech-fold {
+  display: block;
+  transition: none;
+}
+.tech-fold:not(.open) {
+  display: none;
+}
+.tech-fold-inner {
+  overflow: visible;
+}
+.tech-fold .tech-grid {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+.tech-fold.open .tech-card {
+  animation: techCardIn 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes techCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.tech-more {
+  font-style: normal;
+  font-family: var(--font-caps);
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+}
+.tech-more.open svg {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tech-fold.open .tech-card {
+    animation: none;
+  }
+}
