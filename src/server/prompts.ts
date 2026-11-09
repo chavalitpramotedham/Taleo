@@ -21,7 +21,15 @@ const LAYERS = `SVG FORMAT (strict)
   <g class="paint"> flat colour fills for scenery, objects and characters (no strokes needed; the filter adds pooled edges)
   <g class="ink" fill="none" stroke="#4F3A2A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"> fine pen linework drawn ON TOP of the fills: contours (often broken, not fully closed), fur/feather ticks, folds, grass, whiskers, motion lines
   <g class="detail"> small crisp marks: eyes (#2A1E15 dot with a tiny white highlight), noses, tiny highlights
-- Glaze with opacity (0.3-0.6) for shadows and to make far things paler.`;
+- Glaze with opacity (0.3-0.6) for shadows and to make far things paler.
+- Ink contours trace the painted shapes they belong to: build each outline from the same coordinates as its fill (a slightly broken copy of that path), so line and colour sit together. Never draw a body's outline as a separate, differently-shaped line that drifts off its paint.`;
+
+const HUMANS = `PEOPLE (babies, children, grown-ups) - cute, round and well built
+- Build every person from a few simple, overlapping rounded shapes, in this order: body (a soft pear or bean), head (a big circle, overlapping the top of the body - no gap, no neck stalk), then exactly TWO arms from the shoulders and TWO legs from the hips, each a short tapered, rounded tube with a bend at the elbow/knee. Hands are small rounded mittens (a thumb bump at most - no spiky fingers); feet are small ovals or little shoes. Count the limbs before finishing: two arms, two legs, each attached to the correct side.
+- Storybook proportions, cute and chunky: babies and toddlers have a head about 1/2 to 1/3 of their whole height, a round tummy and short, chubby limbs; children about 1/4; grown-ups about 1/5 (still soft and rounded, never realistic or lanky).
+- Faces sit low and simple: eyes just below the middle of the head (lower still for babies), set wide apart, as dark dots or ovals with a white highlight; a tiny nose; a small curved mouth; rosy cheeks under the eyes; ears at eye level on the sides; hair as a soft cap that follows the top of the head (a curl or tuft for babies). Keep the face front-on or a gentle three-quarter turn - never a hard profile.
+- Choose poses that read instantly: standing, sitting, toddling, waving, reaching up, hugging, holding something with both hands. Babies sit upright with legs out in front, or toddle front-on with arms up. For hard poses (crawling, lying down, sleeping, tumbling), draw the simplest clear version: a crawling baby seen from the front three-quarter with the head up, two hands and two knees on the ground under a round body; a sleeping child tucked under a blanket with only the head showing. Never twist a body into a confusing side-on shape.
+- Skin in soft natural tones painted as one smooth wash with a gentle darker glaze for shading (e.g. light #F2D6C2, medium #D9A882, deep #A86F4C, very deep #7A4E35), matching any skin tone given. Clothes are simple shapes that follow the body (a romper, a dress, dungarees, a jumper) with a few ink folds.`;
 
 // ---------------------------------------------------------------- writer
 
@@ -77,6 +85,7 @@ ONE ACTION PER PAGE (the page's tappable moment)
 
 PICTURE BRIEFS (you art-direct every page)
 - For each page write "picture": the single most dynamic moment of that page, for a full-page painting. Describe what each character's whole body is doing (mid-leap with legs stretched, tumbling head over heels, tip-toeing, tugging, peeking round a tree), what their arms/paws and legs are doing (pointing, hugging, hands on hips, waving, covering a giggle), their facial expression (eyebrows, eyes, mouth) and where they look, the key objects, the setting details and weather, and the camera: vary between wide shots for journeys and places, mid shots for action, and close-ups for feelings; sometimes a low or high angle.
+- People (especially babies and toddlers) read best in simple, clear poses: sitting, standing, toddling with arms up, waving, reaching, hugging, holding something. When the story calls for a harder pose, brief its simplest version (a crawling baby "seen from the front, head up, on hands and knees"; a sleeping child "tucked under the blanket, only the head showing") rather than a twisted side-on view.
 - Keep the world consistent with the book's art direction ("world") and keep each character's look consistent with their model sheet.
 - Side characters: reuse a preset look when it fits exactly (${presets}); otherwise set preset to null and write a precise model sheet in "look" (kind, exact hex colours, markings, size compared with the hero, any clothing). Animals should be naturalistic, as in classic country picture books. Introduce at most 2 new side characters per segment.
 
@@ -106,6 +115,8 @@ HOW TO BUILD CHARACTERS SO THEY CAN MOVE
 - Heads always join the body: overlap the head onto the shoulders or paint a short neck in the body colour (with a chest bib or fur continuing up into it). Never leave a gap between head and body, and never let a head float.
 - Match each character's model sheet exactly: same colours, markings, proportions and accessories on every page. Reference paintings show each character's personality in one lively pose; reuse their colours, shapes and facial style, but re-pose and re-express the character completely for this moment.
 - Food and object characters move with thin ink-line arms and legs (stroke-width about 2.2), little round hands and small dark boots or feet.
+
+${HUMANS}
 
 VOLUME (nothing should look flat or cut-out)
 - The light comes from the upper left. The app adds a soft rounding glaze to every painted group, but also paint form shading yourself, as layered watercolour glazes inside the paint groups:
@@ -143,6 +154,9 @@ export const characterDesignerPrompt = () => `You are the character designer for
 Turn a child's or parent's description into one charming, kid-friendly character that fits beside these presets: a wild rabbit, a bear cub, a tabby kitten, a fox cub, a tawny owl, a strawberry, a china teapot and a tin toy robot. If the description is scary or inappropriate for small children, design the closest gentle, friendly version (a "scary monster" becomes a shaggy, shy, smiling little creature).
 
 Give them solid, rounded volume: the head joined to the body by a neck or overlap, light from the upper left, a darker crescent glaze on the lower-right of the head, body and limbs, a pale highlight on the upper-left, and a shadow under the chin. Make them a real storybook character with personality: give them a characterful, gesturing pose (waving, hands on hips, arms flung wide, mid-skip…) with clearly drawn arms and legs, and an expressive face with eyebrows, bright eyes with highlights, an open or cheeky mouth and rosy cheeks. Add fine pen detail: contours, fur ticks or texture marks, and a few short hatching strokes in the shadows.
+
+${HUMANS}
+- For a person's reference portrait, prefer a simple, front-facing standing or sitting pose (a baby sitting upright, a child standing and waving) so their proportions and face are clear to reuse on every page.
 
 Paint this reference portrait on a 200x200 canvas, standing or sitting with its feet or base at y≈188, centred, fitting within x 15-185 and y 10-190, with a soft shadow ellipse beneath (fill #CFC6AC, opacity 0.6).
 
