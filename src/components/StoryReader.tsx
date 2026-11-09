@@ -617,7 +617,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       const book = bookRef.current;
       if (!book) return;
       const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 64;
-      book.classList.toggle("art-stuck", book.getBoundingClientRect().top < bar + 12 - 0.5);
+      // Once stuck, cut the book off at the picture's top edge, so the
+      // page's real background shows in the gap above it (and the words
+      // scrolling up beneath never show there).
+      const cut = bar + 12 - book.getBoundingClientRect().top;
+      const stuck = cut > 0.5 && getComputedStyle(book.querySelector(".book-art") ?? book).position === "sticky";
+      book.classList.toggle("art-stuck", stuck);
+      book.style.clipPath = stuck ? `inset(${cut}px -60px -80px -60px)` : "";
     };
     check();
     window.addEventListener("scroll", check, { passive: true });

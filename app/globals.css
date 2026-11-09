@@ -6658,17 +6658,17 @@ html[data-night] .admin-spark.bad {
   }
   /* Only once it's stuck (the reader adds .art-stuck): at rest, the page's
      normal margin shows above the book. */
+  /* (the book is cut off at the picture's top edge - see the reader - so
+     the real background shows in the gap; the picture gets the book's top
+     edge line, and a soft edge where the words slide under it) */
   .book.art-stuck .book-art {
     box-shadow:
-      0 calc(-1 * var(--gap)) 0 0 var(--page),
-      0 calc(-1 * var(--gap)) 0 1px var(--page-edge),
-      /* a soft edge where the words slide under it */
+      inset 0 1px 0 var(--page-edge),
       0 10px 12px -12px rgba(60, 40, 20, 0.35);
   }
   html[data-night] .book.art-stuck .book-art {
     box-shadow:
-      0 calc(-1 * var(--gap)) 0 0 var(--page),
-      0 calc(-1 * var(--gap)) 0 1px #2e262c,
+      inset 0 1px 0 #2e262c,
       0 10px 14px -12px rgba(0, 0, 0, 0.8);
   }
 }
