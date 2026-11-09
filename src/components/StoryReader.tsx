@@ -667,7 +667,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     readFor.current = text;
     if (turned) cancelSpeech();
     window.clearTimeout(readTimer.current);
-    readTimer.current = window.setTimeout(() => speak(text), turned ? 1100 : 250);
+    // After a turn, a calm pause (the page settles and you look at the picture)
+    // before the voice begins; turning read-aloud on starts almost at once.
+    readTimer.current = window.setTimeout(() => speak(text), turned ? 1700 : 250);
   }, [readAloud, view, speak, story.segments, cover]);
 
   // Have the voice ready before it's needed: this page's tappable word, and
