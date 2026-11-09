@@ -603,26 +603,22 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // scroll (see .book-art in the CSS). Note when it's stuck, so the gap
   // above it is only filled in then - at rest the page's own margin shows.
   const bookRef = useRef<HTMLDivElement>(null);
-  const [artStuck, setArtStuck] = useState(false);
+  // Toggled straight on the element (no re-render of the whole reader in
+  // the middle of a scroll, which made the page judder on phones), in the
+  // same frame as the scroll.
   useEffect(() => {
-    let raf = 0;
     const check = () => {
-      raf = 0;
       const book = bookRef.current;
       if (!book) return;
       const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 64;
-      setArtStuck(book.getBoundingClientRect().top < bar + 12 - 0.5);
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(check);
+      book.classList.toggle("art-stuck", book.getBoundingClientRect().top < bar + 12 - 0.5);
     };
     check();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
     };
   }, [cover]);
 
@@ -973,7 +969,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         onPointerCancel={onPointerUp}
       >
         {cover !== "closed" && (
-      <div className={`book ${artStuck ? "art-stuck" : ""}`} ref={bookRef}>
+      <div className="book" ref={bookRef}>
         <div className="book-art">{picture}</div>
         <div className="book-text">
           {cover === "open" && (

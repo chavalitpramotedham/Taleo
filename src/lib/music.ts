@@ -23,7 +23,7 @@ export const defaultTrack = MUSIC_TRACKS[0];
 
 export const trackById = (id: string): MusicTrack => MUSIC_TRACKS.find((t) => t.id === id) ?? defaultTrack;
 
-const VOLUME = 0.35;
+const VOLUME = 0.2; // quietly in the background: the voice is the focus
 
 let el: HTMLAudioElement | null = null;
 let wanted = false;
@@ -95,7 +95,7 @@ export function holdMusic(reason: string, on: boolean, opts: { pause?: boolean }
 // over roughly a second while the voice speaks, and drifts back up a
 // little more slowly afterwards.
 const ducks = new Set<string>();
-const DUCKED = VOLUME * 0.34; // a bit softer under the voice - never silent
+const DUCKED = VOLUME * 0.22; // well under the voice while it reads - never silent
 const DOWN_S = 0.32; // time constant easing down (~1s to settle)
 const UP_S = 0.5; // ... and back up (~1.5s)
 let gain: GainNode | null = null;
