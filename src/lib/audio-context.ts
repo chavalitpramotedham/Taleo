@@ -119,3 +119,15 @@ export function holdAudioOpen(on: boolean) {
     holdSrc = null;
   }
 }
+
+/** Leaving the app (another app, the home screen, the phone locked): put
+ *  every sound to sleep - nothing plays in the background. */
+export function sleepAudio() {
+  if (ctx && ctx.state === "running") void ctx.suspend().catch(() => {});
+  keepAlive?.pause();
+}
+/** Back in the app: the silent keep-alive (older iPhones) picks up again;
+ *  everything else wakes on its own or on the next tap. */
+export function stirAudio() {
+  if (keepAlive?.paused) void keepAlive.play().catch(() => {});
+}

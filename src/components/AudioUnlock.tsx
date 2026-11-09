@@ -1,7 +1,9 @@
 "use client";
 import { useEffect } from "react";
 import { unlockAudio } from "@/lib/sfx";
-import { wakeAudio } from "@/lib/audio-context";
+import { sleepAudio, stirAudio, wakeAudio } from "@/lib/audio-context";
+import { holdMusic } from "@/lib/music";
+import { cancelSpeech } from "@/lib/speech";
 import { unlockSpeech } from "@/lib/speech";
 
 /** Primes Web Audio and speech synthesis on the very first tap anywhere in
@@ -27,7 +29,24 @@ export function AudioUnlock() {
     // turn) still play - silent mode included.
     window.addEventListener("pointerdown", wakeAudio, { passive: true });
     window.addEventListener("touchend", wakeAudio, { passive: true });
+    // Leaving the app stops all sound - the music pauses (and stays paused
+    // rather than being nudged back on), any reading stops; coming back
+    // picks the music up again.
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        holdMusic("hidden", true, { pause: true });
+        cancelSpeech();
+        sleepAudio();
+      } else {
+        stirAudio();
+        holdMusic("hidden", false);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onVisibility);
     return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onVisibility);
       window.removeEventListener("pointerdown", wakeAudio);
       window.removeEventListener("touchend", wakeAudio);
       window.removeEventListener("pointerdown", unlock);

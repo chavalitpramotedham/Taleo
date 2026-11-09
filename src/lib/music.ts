@@ -23,7 +23,7 @@ export const defaultTrack = MUSIC_TRACKS[0];
 
 export const trackById = (id: string): MusicTrack => MUSIC_TRACKS.find((t) => t.id === id) ?? defaultTrack;
 
-const VOLUME = 0.2; // quietly in the background: the voice is the focus
+const VOLUME = 0.23; // quietly in the background: the voice is the focus
 
 let el: HTMLAudioElement | null = null;
 let wanted = false;
