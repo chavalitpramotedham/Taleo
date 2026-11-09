@@ -371,7 +371,7 @@ export function SaveStoryButton({ id, author }: { id: string; author?: string })
   const toggle = async () => {
     const next = !saved;
     const ok = await setStorySaved(userId, id, next);
-    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that just now. Please try again.");
+    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that. Please try again.", ok ? (next ? "done" : "removed") : "error");
   };
   return (
     <button

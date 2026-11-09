@@ -55,7 +55,7 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
     if (!userId) return;
     const next = !saved;
     const ok = await setStorySaved(userId, story.id, next);
-    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that just now. Please try again.");
+    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that. Please try again.", ok ? (next ? "done" : "removed") : "error");
   };
   const label = !signedIn ? "Sign in to create your own" : saved ? "Saved to your bookshelf ✓" : "Save to my bookshelf";
   const action = !signedIn ? signInToKeep : mine || saved === null ? undefined : toggleSaved;
