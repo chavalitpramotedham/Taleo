@@ -86,20 +86,14 @@ export function MyCreationsRow({ username }: { username: string | null }) {
         {mine.slice(0, SHOWN).map((s) => (
           <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
         ))}
-        {mine.length > SHOWN && (
-          <Link href={shelf} className="creations-more" aria-label={`See all ${mine.length} on my bookshelf`}>
-            <span className="creations-more-arrow" aria-hidden>
-              →
-            </span>
-            <span>See all {mine.length}</span>
-          </Link>
-        )}
-      </SideScroll>
-      <div className="home-shelf-more">
-        <Link className="btn btn-soft" href={shelf}>
-          Open my bookshelf
+        {/* the way to your whole bookshelf, at the end of the row */}
+        <Link href={shelf} className="creations-more">
+          <span className="creations-more-arrow" aria-hidden>
+            →
+          </span>
+          <span>View all in bookshelf</span>
         </Link>
-      </div>
+      </SideScroll>
       {open && (
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(mine.slice(0, SHOWN), open.id, setOpenId)}>
           <LibraryActions
