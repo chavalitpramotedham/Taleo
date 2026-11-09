@@ -161,7 +161,11 @@ html.pull-reloading main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px clamp(16px, 4vw, 44px);
+  /* On wide screens the bar's contents line up with the page's content
+     column (its background and line still run edge to edge). */
+  --col: 1120px;
+  --col-pad: clamp(16px, 4vw, 44px);
+  padding: 14px max(var(--col-pad), calc((100% - var(--col)) / 2 + var(--col-pad)));
   border-bottom: 1px solid var(--rule);
   background: linear-gradient(to bottom, rgba(251, 247, 238, 0.7), rgba(251, 247, 238, 0));
 }
@@ -7290,6 +7294,11 @@ main {
 }
 main:has(.reader) {
   padding-bottom: 0;
+}
+/* (a story's book is a wider column) */
+html:has(.reader) .topbar {
+  --col: 1360px;
+  --col-pad: clamp(10px, 3vw, 36px);
 }
 /* Save is a compact icon button (the main action), Redraw a quiet one. */
 .char-save-btn {
