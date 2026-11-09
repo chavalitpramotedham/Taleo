@@ -8910,3 +8910,68 @@ html[data-night] .reader-tools .read-control-toggle {
   color: var(--ink-faint);
   font-size: 0.88em;
 }
+
+/* Two-part pills (music, read-aloud) when on: everything inside in the
+   highlight colour - icons, the tune's name, the arrow - with the solid
+   parts of the icons filled in, and the pill's outline in it too. */
+.music-control.playing,
+.reader-tools .music-control.playing,
+html[data-night] .reader-tools .music-control.playing {
+  border-color: color-mix(in srgb, var(--russet) 70%, transparent);
+}
+.music-control.playing .music-control-half,
+.music-control.playing .music-control-name {
+  color: var(--russet);
+}
+html[data-night] .music-control.playing .music-control-half,
+html[data-night] .music-control.playing .music-control-name {
+  color: #e39566;
+}
+/* filled shapes: the note heads, the speaker cone, the speaking head */
+.music-control.playing .music-control-tune svg path:nth-child(odd),
+.music-control.playing .music-control-mute svg path:first-child,
+.read-control.playing .speech-icon > svg path {
+  fill: currentColor;
+}
+/* Every round icon button when it's on (night mode, the open profile
+   menu, read-aloud...): the icon in the highlight colour with its solid
+   parts filled in, matching the two-part pills. */
+.icon-btn.on {
+  color: var(--russet);
+}
+html[data-night] .icon-btn.on {
+  color: #e39566;
+}
+.icon-btn.on > svg > circle,
+.icon-btn.on > svg > path:first-of-type,
+.icon-btn.on .speech-icon > svg path {
+  fill: currentColor;
+}
+/* The leaf-only pill: the label is taken out entirely (Safari kept room
+   for it), and the leaf sits dead centre in a pill of fixed width. */
+.nav-begin-pill:not(.can-expand) .nav-begin-label {
+  display: none;
+}
+.nav-begin-pill:not(.can-expand) {
+  width: 42px;
+  padding: 0;
+  justify-content: center;
+}
+@media (max-width: 1023px) {
+  .nav-begin-pill .nav-begin-label {
+    display: none;
+  }
+  .nav-begin-pill {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+.nav-begin-pill .maple-mark {
+  margin: 0;
+}
+@media (min-width: 1024px) {
+  .nav-begin-pill.can-expand .maple-mark {
+    margin-left: -2px;
+  }
+}

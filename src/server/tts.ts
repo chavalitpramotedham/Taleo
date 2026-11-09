@@ -44,22 +44,17 @@ const voice = provider ? process.env.TTS_VOICE || DEFAULT_VOICE[provider] : "";
 
 export const ttsEnabled = () => provider !== null;
 
-/** OpenAI's built-in voices, which readers can choose between in the story
- *  reader (when there's an OpenAI key). Each name with a word on its feel. */
+/** The OpenAI voices readers can choose between in the story reader (when
+ *  there's an OpenAI key), each with a word on its feel. */
 export const OPENAI_VOICES: { id: string; name: string; note: string }[] = [
+  // a short list of the gentlest voices for bedtime (of OpenAI's 13)
   { id: "sage", name: "Sage", note: "calm, gentle" },
+  { id: "shimmer", name: "Shimmer", note: "soft, soothing" },
   { id: "coral", name: "Coral", note: "warm, bright" },
-  { id: "shimmer", name: "Shimmer", note: "soft, light" },
-  { id: "nova", name: "Nova", note: "friendly, lively" },
   { id: "fable", name: "Fable", note: "storyteller" },
-  { id: "alloy", name: "Alloy", note: "clear, even" },
-  { id: "ballad", name: "Ballad", note: "lilting" },
   { id: "marin", name: "Marin", note: "natural, warm" },
-  { id: "cedar", name: "Cedar", note: "natural, deep" },
-  { id: "verse", name: "Verse", note: "expressive" },
-  { id: "ash", name: "Ash", note: "soft, low" },
-  { id: "echo", name: "Echo", note: "steady" },
-  { id: "onyx", name: "Onyx", note: "deep" },
+  { id: "ballad", name: "Ballad", note: "lilting" },
+  { id: "cedar", name: "Cedar", note: "deep, cosy" },
 ];
 const OPENAI_VOICE_IDS = new Set(OPENAI_VOICES.map((v) => v.id));
 /** The voices a reader can choose from (none unless OpenAI is set up). */
