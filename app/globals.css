@@ -7989,3 +7989,13 @@ html[data-night] .tech-card::after {
 .tech-grid .tech-title {
   text-wrap: balance;
 }
+/* the longer eyebrow stays on one line on small phones */
+@media (max-width: 400px) {
+  .tech-eyebrow {
+    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+  }
+}
+.tech-eyebrow {
+  text-wrap: balance;
+}
