@@ -5208,6 +5208,13 @@ html[data-night] .topbar {
 .firefly.f10 { left: 94%; top: 70%; animation-delay: -12s; }
 .firefly.f11 { left: 11%; top: 52%; animation-delay: -6s; }
 .firefly.f12 { left: 83%; top: 46%; animation-delay: -14s; }
+/* Twelve in all: four of the low ones stay home (less to animate). */
+.firefly.f1,
+.firefly.f4,
+.firefly.f7,
+.firefly.f10 {
+  display: none;
+}
 /* the risers */
 .firefly.f13 { left: 29%; top: 96%; }
 .firefly.f14 { left: 64%; top: 97%; }
@@ -9179,10 +9186,10 @@ html[data-night] .icon-btn.on {
 }
 
 /* While reading a story, the room is quieter (less for the phone to animate,
-   and less moving over the words): ten fireflies instead of sixteen, and
+   and less moving over the words): eight fireflies instead of twelve, and
    the lantern's light holds steady rather than breathing and shimmering
    across the whole screen. The lantern itself still flickers. */
-html:has(.reader) .firefly:nth-child(n + 11) {
+html:has(.reader) .firefly:nth-child(n + 13) {
   display: none;
 }
 html:has(.reader) .night-glow-halo,
