@@ -159,7 +159,7 @@ export function GalleryShelf({
 /** A library story's preview actions: read it (the main button) with a
  *  small share button beside it, and - only if you've rated it - your
  *  rating underneath. (Rating itself happens at the end of the story.) */
-function LibraryActions({
+export function LibraryActions({
   entry,
   onCopied,
 }: {

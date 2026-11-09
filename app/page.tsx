@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/server/auth";
 import type { Metadata } from "next";
 import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
@@ -93,7 +96,16 @@ async function sharedSummary(id: string | null): Promise<SharedStorySummary | nu
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  const shared = await sharedSummary(await sharedId(searchParams));
+  const id = await sharedId(searchParams);
+  // Signed-in parents arriving from outside the site (typing the address,
+  // the home-screen app, a link elsewhere) land on their own home page.
+  // Moving around inside the site - e.g. tapping the Taleo title - still
+  // shows this welcome page. Shared story links always open here.
+  if (!id) {
+    const site = (await headers()).get("sec-fetch-site");
+    if (site !== "same-origin" && (await auth())?.user) redirect("/home");
+  }
+  const shared = await sharedSummary(id);
   return (
     <div className="container home">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd({ "@context": "https://schema.org", "@graph": [ORGANIZATION, WEBSITE, WEB_APPLICATION] })} />

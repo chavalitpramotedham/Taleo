@@ -8,7 +8,7 @@ import { MapleMark } from "./Icons";
  *  the maple leaf; everywhere else the leaf sits in a small "Begin" pill. */
 export function NavBegin() {
   const path = usePathname();
-  const quiet = path === "/" || path.startsWith("/create");
+  const quiet = path === "/" || path === "/home" || path.startsWith("/create");
   return (
     <Link
       href="/create"

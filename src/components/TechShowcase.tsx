@@ -53,7 +53,12 @@ export function TechShowcase() {
   const [open, setOpen] = useState(false);
   const gridId = useId();
   return (
-    <section className="tech" aria-labelledby="tech-title">
+    <section
+      className={`tech ${open ? "" : "tech-closed"}`}
+      aria-labelledby="tech-title"
+      // folded away, the whole panel opens it
+      onClick={open ? undefined : () => setOpen(true)}
+    >
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
         <p className="tech-eyebrow">Gently powered by generative AI</p>
@@ -64,7 +69,10 @@ export function TechShowcase() {
         className={`tech-more ${open ? "open" : ""}`}
         aria-expanded={open}
         aria-controls={gridId}
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
       >
         <span>{open ? "Show less" : "Learn more"}</span>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

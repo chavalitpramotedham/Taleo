@@ -8263,3 +8263,161 @@ html[data-night] .story-card .story-card-title {
     transition: none;
   }
 }
+
+/* ---------- a signed-in parent's home ---------- */
+.home-dash-head {
+  text-align: center;
+  padding-top: clamp(8px, 2vw, 22px);
+}
+.home-dash-head h1 {
+  margin: 0;
+  text-wrap: balance;
+}
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 2vw, 16px);
+  max-width: 720px;
+  margin: clamp(20px, 3.5vw, 32px) auto 0;
+}
+.home-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: clamp(14px, 2.5vw, 20px) 8px;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--page) 80%, transparent);
+  box-shadow: 0 10px 22px -18px rgba(70, 50, 30, 0.5);
+  text-align: center;
+}
+.home-stat-value {
+  font-family: var(--font-title);
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+  line-height: 1;
+  color: var(--russet);
+  font-variant-numeric: tabular-nums;
+}
+.home-stat-label {
+  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+html[data-night] .home-stat {
+  box-shadow:
+    inset -1px 1px 0 rgba(255, 196, 122, 0.14),
+    0 12px 24px -16px rgba(0, 0, 0, 0.8);
+}
+.home-creations-head {
+  margin-bottom: 18px;
+}
+/* My creations: one sideways row */
+.creations-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(150px, 42%, 230px);
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 4px 2px 14px;
+}
+.creations-row::-webkit-scrollbar {
+  display: none;
+}
+.creations-row > * {
+  scroll-snap-align: start;
+}
+.creations-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 4px;
+  color: var(--russet);
+  text-decoration: none;
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+}
+.creations-more-arrow {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  font-size: 1.4rem;
+  box-shadow: 0 3px 0 var(--rule-strong);
+}
+.creations-empty {
+  padding: 18px 0 8px;
+}
+.home-dash-begin {
+  text-align: center;
+  margin-top: 28px;
+}
+
+/* "Learn more", quietly: grey words with a small bouncing arrow (no pill);
+   while folded away the whole panel is the button. */
+.tech-more {
+  border: 0;
+  background: none;
+  padding: 6px 10px;
+  margin-top: -2px;
+  color: var(--ink-faint);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.98rem;
+  letter-spacing: 0;
+  animation: techMoreBounce 2.2s ease-in-out infinite;
+}
+.tech-more svg {
+  animation: none;
+}
+.tech-more.open {
+  animation: none;
+}
+@keyframes techMoreBounce {
+  0%,
+  60%,
+  100% {
+    translate: 0 0;
+  }
+  75% {
+    translate: 0 4px;
+  }
+  88% {
+    translate: 0 -1px;
+  }
+}
+@media (hover: hover) {
+  .tech-more:hover {
+    background: none;
+    color: var(--ink-soft);
+  }
+}
+.tech.tech-closed {
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .tech.tech-closed:hover .tech-more {
+    color: var(--ink-soft);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tech-more {
+    animation: none;
+  }
+}
+/* the home dashboard's numbers in clear lining figures */
+.home-stat-value {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
