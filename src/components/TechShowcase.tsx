@@ -26,7 +26,7 @@ const SPECS: { label: string; title: string; text: string; icon: React.ReactNode
   {
     label: "Generative AI",
     title: "Painted just for you",
-    text: "AI writes the text and draws the picture for each page, so every book is new.",
+    text: "Every story is written for your child, with each picture painted before your eyes.",
     icon: ICONS.spark,
   },
   {
