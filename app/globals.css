@@ -9865,3 +9865,15 @@ html[data-night] .tier-badge {
 .reader-tools > :not(.music-control) {
   flex: none;
 }
+/* the end-of-row card's words: centred on every line, with breathing room */
+.creations-more {
+  text-align: center;
+  padding: 0 14px;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+/* Page-turn arrows sit in the middle of the button's face (the raised lip
+   underneath makes the face sit higher than the box). */
+.nav-btn {
+  padding-bottom: 12px;
+}
