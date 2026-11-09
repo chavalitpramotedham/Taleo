@@ -1,3 +1,6 @@
+"use client";
+import { useId, useState } from "react";
+
 /** The technology behind Taleo, told for parents: four glassy spec cards (a row where
  *  they fit, two by two where they don't) - a modern counterpoint to the storybook pages around it. Every
  *  point is something the app really does. */
@@ -44,6 +47,11 @@ const SPECS: { label: string; title: string; text: string; icon: React.ReactNode
 ];
 
 export function TechShowcase() {
+  // Collapsed by default: a pulsing "Learn more" opens the four cards, and
+  // "Show less" folds them away again. (The cards stay in the page either
+  // way, for search engines; folded away they're hidden from everyone else.)
+  const [open, setOpen] = useState(false);
+  const gridId = useId();
   return (
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
@@ -51,6 +59,20 @@ export function TechShowcase() {
         <p className="tech-eyebrow">Gently powered by generative AI</p>
         <h2 id="tech-title">To keep the magic alive</h2>
       </header>
+      <button
+        type="button"
+        className={`tech-more ${open ? "open" : ""}`}
+        aria-expanded={open}
+        aria-controls={gridId}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span>{open ? "Show less" : "Learn more"}</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      <div className={`tech-fold ${open ? "open" : ""}`} id={gridId} inert={!open}>
+        <div className="tech-fold-inner">
       <div className="tech-grid">
         {SPECS.map((s, i) => (
           <article key={s.label} className="tech-card" style={{ "--i": i } as React.CSSProperties}>
@@ -65,6 +87,8 @@ export function TechShowcase() {
             <p className="tech-text">{s.text}</p>
           </article>
         ))}
+      </div>
+        </div>
       </div>
     </section>
   );

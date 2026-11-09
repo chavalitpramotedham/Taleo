@@ -8176,3 +8176,90 @@ html[data-night] .story-card .story-card-title {
   color: var(--ink-faint);
   font-style: italic;
 }
+
+/* ---------- "Learn more" on the technology section ----------
+   Folded away by default; the button below the heading opens the cards.
+   The fold opens with grid rows (0fr -> 1fr) so its height animates
+   without measuring, and the cards fade and settle in. */
+.tech-more {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px auto 0;
+  padding: 8px 16px;
+  border: 1px solid color-mix(in srgb, var(--russet) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--page) 70%, transparent);
+  color: var(--russet);
+  font-family: var(--font-caps);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.tech-more svg {
+  transition: transform 0.3s ease;
+  animation: techMorePulse 1.8s ease-in-out infinite;
+}
+.tech-more.open svg {
+  transform: rotate(180deg);
+  animation: none;
+}
+@keyframes techMorePulse {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
+  50% {
+    translate: 0 3px;
+    opacity: 0.6;
+  }
+}
+@media (hover: hover) {
+  .tech-more:hover {
+    background: color-mix(in srgb, var(--russet) 10%, var(--page));
+  }
+}
+.tech-more:active {
+  transform: translateY(1px);
+}
+.tech-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s ease;
+}
+.tech-fold.open {
+  grid-template-rows: 1fr;
+}
+.tech-fold-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.tech-fold .tech-grid {
+  /* room so the cards' shadows aren't clipped by the fold */
+  padding: 22px 4px 12px;
+  margin: 0 -4px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.35s ease, transform 0.45s ease;
+}
+.tech-fold.open .tech-grid {
+  opacity: 1;
+  transform: none;
+}
+/* with the cards folded away, the heading and button are the whole panel */
+.tech:has(.tech-fold:not(.open)) .tech-head {
+  margin-bottom: 18px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tech-more svg {
+    animation: none;
+  }
+  .tech-fold,
+  .tech-fold .tech-grid {
+    transition: none;
+  }
+}
