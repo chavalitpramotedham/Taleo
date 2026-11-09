@@ -7602,3 +7602,235 @@ html[data-night] .step-art img {
   font-size: 0.95rem;
   font-style: italic;
 }
+
+/* ---------- "The magic inside": the technology, as glassy spec cards ---------- */
+/* A modern moment inside the storybook: frosted-glass squares with crisp,
+   spec-sheet labels, set in a soft panel that uses the app's own warm
+   palette (so it belongs on the page, by day and by lamplight). */
+.tech {
+  --tech-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: clamp(40px, 6vw, 72px) 0 0;
+  padding: clamp(26px, 4vw, 44px) clamp(16px, 3vw, 36px) clamp(28px, 4vw, 40px);
+  border-radius: 28px;
+  background:
+    radial-gradient(60% 80% at 12% 0%, rgba(196, 154, 62, 0.16), transparent 70%),
+    radial-gradient(50% 70% at 95% 100%, rgba(156, 79, 50, 0.12), transparent 70%),
+    linear-gradient(165deg, #f1e8d6, #e9dec9);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 24px 48px -32px rgba(70, 50, 30, 0.45);
+}
+.tech-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(40% 60% at 70% 20%, rgba(255, 252, 244, 0.55), transparent 70%);
+}
+.tech-head {
+  text-align: center;
+  margin-bottom: clamp(18px, 3vw, 26px);
+}
+.tech-eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--tech-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--russet);
+}
+.tech-head h2 {
+  margin: 0;
+}
+.tech-sub {
+  margin: 6px auto 0;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+/* the row: sideways, snapping, cards bleeding gently off both edges */
+.tech-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(200px, 23%, 248px);
+  gap: 14px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * clamp(16px, 3vw, 36px));
+  padding: 6px clamp(16px, 3vw, 36px) 14px;
+  scroll-padding: 0 clamp(16px, 3vw, 36px);
+}
+.tech-track::-webkit-scrollbar {
+  display: none;
+}
+.tech-card {
+  position: relative;
+  scroll-snap-align: start;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  overflow: hidden;
+  /* frosted cream glass */
+  background: linear-gradient(150deg, rgba(255, 253, 248, 0.82), rgba(255, 250, 240, 0.42));
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(160, 130, 90, 0.08) inset,
+    0 14px 28px -18px rgba(70, 50, 30, 0.45);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+/* a soft sheen across the glass */
+.tech-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%);
+  opacity: 0.6;
+}
+@media (hover: hover) {
+  .tech-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 22px 36px -20px rgba(70, 50, 30, 0.5);
+  }
+}
+.tech-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: #fff8ec;
+  background: linear-gradient(145deg, #c0703f, #8f4429);
+  box-shadow: 0 6px 14px -8px rgba(127, 62, 38, 0.8), 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.tech-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.tech-label {
+  position: relative;
+  margin: auto 0 4px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-family: var(--tech-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.tech-label span {
+  color: var(--russet);
+  font-variant-numeric: tabular-nums;
+}
+.tech-title {
+  position: relative;
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.tech-text {
+  position: relative;
+  margin: 0;
+  font-family: var(--tech-sans);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.tech .side-scroll-btn {
+  top: 50%;
+}
+
+/* Night: smoky glass in the lamplit room. The lantern hangs at the top
+   right, so each card catches its warm light there - an amber rim along
+   the top and right edges and a soft glow in that corner. */
+html[data-night] .tech {
+  background:
+    radial-gradient(55% 70% at 88% 0%, rgba(255, 186, 110, 0.12), transparent 70%),
+    radial-gradient(50% 70% at 8% 100%, rgba(70, 58, 110, 0.18), transparent 70%),
+    linear-gradient(165deg, rgba(34, 28, 38, 0.85), rgba(22, 18, 26, 0.85));
+  border-color: rgba(255, 232, 200, 0.08);
+  box-shadow: 0 1px 0 rgba(255, 236, 205, 0.06) inset, 0 28px 50px -30px rgba(0, 0, 0, 0.9);
+}
+html[data-night] .tech-glow {
+  background: radial-gradient(35% 50% at 85% 10%, rgba(255, 200, 130, 0.1), transparent 70%);
+}
+html[data-night] .tech-card {
+  background: linear-gradient(150deg, rgba(255, 244, 228, 0.1), rgba(255, 244, 228, 0.025));
+  border: 1px solid rgba(255, 236, 205, 0.12);
+  box-shadow:
+    /* the lantern's light caught on the top and right edges */
+    inset -1px 1px 0 rgba(255, 196, 122, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 18px 34px -20px rgba(0, 0, 0, 0.85);
+}
+html[data-night] .tech-card::before {
+  background:
+    radial-gradient(70% 55% at 100% 0%, rgba(255, 190, 112, 0.2), transparent 70%),
+    linear-gradient(125deg, rgba(255, 240, 220, 0.08) 0%, transparent 40%);
+  opacity: 1;
+}
+html[data-night] .tech-icon {
+  background: linear-gradient(145deg, #e0955e, #a85a35);
+  box-shadow: 0 0 18px -4px rgba(255, 170, 90, 0.45), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  color: #1a1216;
+}
+@media (hover: hover) {
+  html[data-night] .tech-card:hover {
+    box-shadow:
+      inset -1px 1px 0 rgba(255, 206, 140, 0.55),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+      0 24px 40px -20px rgba(0, 0, 0, 0.9),
+      0 0 30px -12px rgba(255, 180, 100, 0.35);
+  }
+}
+/* phones: cards a touch smaller, two-and-a-bit in view */
+@media (max-width: 520px) {
+  .tech {
+    border-radius: 22px;
+  }
+  .tech-track {
+    grid-auto-columns: 196px;
+    gap: 12px;
+  }
+  .tech-card {
+    padding: 16px 16px 14px;
+    border-radius: 18px;
+  }
+}
+/* the cards fade softly at the panel's edges rather than being cut off */
+.tech-track {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 clamp(14px, 2.5vw, 30px), #000 calc(100% - clamp(14px, 2.5vw, 30px)), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 clamp(14px, 2.5vw, 30px), #000 calc(100% - clamp(14px, 2.5vw, 30px)), transparent 100%);
+}
+/* The icon tile never squashes; on phones a card grows to fit its words
+   (a strict square there would crowd them). */
+.tech-icon {
+  flex: none;
+}
+@media (max-width: 520px) {
+  .tech-card {
+    aspect-ratio: auto;
+    min-height: 220px;
+  }
+  .tech-label {
+    margin-top: 18px;
+  }
+  .tech-title {
+    font-size: 1.12rem;
+  }
+}

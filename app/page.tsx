@@ -7,6 +7,7 @@ import { storyKeyword } from "@/lib/keywords";
 import { SharedStoryWelcome, type SharedStorySummary } from "@/components/SharedStoryWelcome";
 import { HeroPainting } from "@/components/HeroPainting";
 import { StepsScroller } from "@/components/StepsScroller";
+import { TechShowcase } from "@/components/TechShowcase";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
@@ -120,6 +121,8 @@ export default async function Home({ searchParams }: HomeProps) {
         <p className="sub">Dream up a bedtime story together, one magical page at a time.</p>
       </header>
       <StepsScroller steps={STEPS} />
+
+      <TechShowcase />
 
       <OrnamentRule className="home-divider" />
 
