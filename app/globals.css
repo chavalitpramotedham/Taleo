@@ -3800,9 +3800,9 @@ html[data-night] .modal-backdrop {
    stroke - it reads as dabs of paint and stays light on phones. */
 .hero-paint-canvas {
   position: relative;
-  /* The brush layer moves as a whole and would otherwise poke past the
-     picture (and widen the page); it only ever visits inside the frame. */
-  overflow: hidden;
+  /* Not clipped: the brush's handle may reach out past the picture's edge
+     (as a real brush would). The page itself never widens - html/body
+     clip sideways overflow. */
 }
 .hero-layers {
   position: relative;
@@ -9119,10 +9119,10 @@ html[data-night] .icon-btn.on {
 }
 
 /* While reading a story, the room is quieter (less for the phone to animate,
-   and less moving over the words): six fireflies instead of sixteen, and
+   and less moving over the words): ten fireflies instead of sixteen, and
    the lantern's light holds steady rather than breathing and shimmering
    across the whole screen. The lantern itself still flickers. */
-html:has(.reader) .firefly:nth-child(n + 7) {
+html:has(.reader) .firefly:nth-child(n + 11) {
   display: none;
 }
 html:has(.reader) .night-glow-halo,
