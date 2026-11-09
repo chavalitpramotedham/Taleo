@@ -7452,9 +7452,6 @@ html[data-night] .step-art img {
 .drafted-portrait .character-preview-portrait {
   margin: 0;
 }
-.drafted-hero {
-  margin-top: -6px;
-}
 .field-box-foot .btn {
   height: 34px;
   padding: 0 14px;
@@ -7498,14 +7495,6 @@ html[data-night] .step-art img {
     inset: -8px;
     border-radius: 50%;
   }
-  /* (the phone filter row scrolls sideways, which would clip the taller
-     touch areas - give them room) */
-  .filter-row {
-    padding-top: 7px;
-    padding-bottom: 7px;
-    margin-top: -7px;
-    margin-bottom: -7px;
-  }
 }
 /* not-found states: the page's main heading, sized like the others */
 .empty .empty-title {
@@ -7532,12 +7521,6 @@ html[data-night] .step-art img {
 /* The pills sit a touch smaller and lighter on phones, with clear space
    between them and the cards below. (The touch-area padding on the row
    no longer pulls the cards up underneath it.) */
-@media (pointer: coarse) {
-  .filter-row {
-    margin-bottom: 0;
-  }
-}
-.home-shelf-head,
 .wizard-head:has(.filter-row) {
   margin-bottom: clamp(18px, 3vw, 26px);
 }
@@ -7566,4 +7549,56 @@ html[data-night] .step-art img {
 /* (the category pill's padding lives on its inner button, not its shell) */
 .filter-row .chip.category-chip {
   padding: 0;
+}
+
+/* "Dream up a hero" with no characters yet: one inviting button. */
+.hero-dream-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px dashed var(--rule-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.08s ease;
+}
+@media (hover: hover) {
+  .hero-dream-btn:hover {
+    border-color: var(--russet);
+  }
+}
+.hero-dream-btn:active {
+  transform: scale(0.99);
+}
+.hero-dream-plus {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--russet);
+  color: var(--paper);
+  font-size: 1.6rem;
+  line-height: 1;
+  padding-bottom: 3px;
+}
+.hero-dream-btn > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hero-dream-title {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+}
+.hero-dream-sub {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  font-style: italic;
 }

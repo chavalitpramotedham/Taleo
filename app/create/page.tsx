@@ -246,35 +246,48 @@ export default function CreatePage() {
                 )}
               </span>
             </div>
-            <SideScroll className="hero-slots" label="More of your characters">
-              {/* your characters, then one "New" slot while there's room */}
-              {[...saved, ...(saved.length < MAX_CHARACTERS ? [null] : [])].map((c, i) => {
-                if (!c) {
+            {saved.length === 0 ? (
+              // No characters yet: one clear invitation, not an empty grid.
+              <button type="button" className="hero-dream-btn" onClick={() => setCreatingCharacter(true)}>
+                <span className="hero-dream-plus" aria-hidden>
+                  +
+                </span>
+                <span>
+                  <span className="hero-dream-title">Dream up your own character</span>
+                  <span className="hero-dream-sub">Describe them - we&apos;ll paint them.</span>
+                </span>
+              </button>
+            ) : (
+              <SideScroll className="hero-slots" label="More of your characters">
+                {/* your characters, then one "New" slot while there's room */}
+                {[...saved, ...(saved.length < MAX_CHARACTERS ? [null] : [])].map((c, i) => {
+                  if (!c) {
+                    return (
+                      <button key={`empty-${i}`} type="button" className="hero-slot hero-slot-empty" onClick={() => setCreatingCharacter(true)} aria-label="Create a new character">
+                        <span className="hero-slot-art">+</span>
+                        <span className="hero-slot-name">New</span>
+                      </button>
+                    );
+                  }
+                  const uid = `saved:${c.id}`;
+                  const selected = selectedUids.includes(uid);
                   return (
-                    <button key={`empty-${i}`} type="button" className="hero-slot hero-slot-empty" onClick={() => setCreatingCharacter(true)} aria-label="Create a new character">
-                      <span className="hero-slot-art">+</span>
-                      <span className="hero-slot-name">New</span>
+                    <button
+                      key={uid}
+                      type="button"
+                      className={`hero-slot ${selected ? "selected" : ""}`}
+                      aria-pressed={selected}
+                      data-order={selected ? selectedUids.indexOf(uid) + 1 : undefined}
+                      disabled={!selected && atCap}
+                      onClick={() => toggleSelect(uid)}
+                    >
+                      <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} className="hero-slot-art" />
+                      <span className="hero-slot-name">{c.name}</span>
                     </button>
                   );
-                }
-                const uid = `saved:${c.id}`;
-                const selected = selectedUids.includes(uid);
-                return (
-                  <button
-                    key={uid}
-                    type="button"
-                    className={`hero-slot ${selected ? "selected" : ""}`}
-                    aria-pressed={selected}
-                    data-order={selected ? selectedUids.indexOf(uid) + 1 : undefined}
-                    disabled={!selected && atCap}
-                    onClick={() => toggleSelect(uid)}
-                  >
-                    <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} className="hero-slot-art" />
-                    <span className="hero-slot-name">{c.name}</span>
-                  </button>
-                );
-              })}
-            </SideScroll>
+                })}
+              </SideScroll>
+            )}
           </section>
 
           {creatingCharacter && (

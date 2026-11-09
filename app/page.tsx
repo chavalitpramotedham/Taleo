@@ -117,7 +117,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <OrnamentRule className="home-divider" />
       <header className="home-shelf-head home-steps-head">
         <h2>Get started</h2>
-        <p className="sub">Four steps to your own picture book.</p>
+        <p className="sub">Dream up a bedtime story together, one magical page at a time.</p>
       </header>
       <StepsScroller steps={STEPS} />
 
