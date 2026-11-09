@@ -428,6 +428,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     void generate(next);
   };
 
+  // A tapped option lights up at once and holds for a beat (so it's clear
+  // what was chosen) before the book turns to the waiting page.
+  const [picked, setPicked] = useState<string | null>(null);
+  const pick = (text: string, custom: boolean) => {
+    if (picked || busy || !text.trim()) return;
+    setPicked(text);
+    window.setTimeout(() => {
+      setPicked(null);
+      choose(text, custom);
+    }, 550);
+  };
+
   // ---------------------------------------------------------------- navigation
   // The page-jump strip opens with the page you're on centred in it.
   const stripRef = useRef<HTMLDivElement>(null);
@@ -666,6 +678,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       if (c) text = `${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?`;
     }
     if (view.kind === "end") text = "The end.";
+    // waiting on the next part after a choice: the choice, echoed back
+    if (view.kind === "loading") {
+      const last = story.segments[story.segments.length - 1];
+      if (last?.chosen) text = `Great choice! ${last.chosen.custom ? "Your idea" : "You said"}: ${last.chosen.text}.`;
+    }
     // Only when the words to read change (the page re-renders for other
     // reasons too, e.g. a painting arriving - that mustn't restart it).
     if (!text || text === readFor.current) return;
@@ -791,9 +808,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // ---------------------------------------------------------------- words
   let words: React.ReactNode = null;
   if (!view || view.kind === "loading") {
+    // Waiting on the next part after a choice: echo it back, so there's
+    // something to read (and read aloud) while it's written.
+    const lastSeg = story.segments[story.segments.length - 1];
+    const echo = lastSeg?.chosen && lastSeg.choice ? { prompt: lastSeg.choice.prompt, said: lastSeg.chosen.text, custom: lastSeg.chosen.custom } : null;
     words = (
       <div className="loading" aria-live="polite">
-        <p className="once">{story.segments.length === 0 ? "Once upon a time…" : "And then…"}</p>
+        {echo ? (
+          <div className="chosen-echo">
+            <p className="chosen-echo-prompt">{echo.prompt}</p>
+            <p className="chosen-echo-great">Great choice!</p>
+            <p className="chosen-echo-said">
+              {echo.custom ? "Your idea" : "You said"} - <q>{echo.said}</q>
+            </p>
+          </div>
+        ) : (
+          <p className="once">{story.segments.length === 0 ? "Once upon a time…" : "And then…"}</p>
+        )}
         <LeafLoader size={48} />
         <p className="meta">{LOADING_LINES[loadingLine]}</p>
       </div>
@@ -856,17 +887,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                 maxLength={160}
                 placeholder="Say it out loud, or type your own idea…"
                 onChange={setCustomIdea}
-                onEnter={() => customIdea.trim() && !busy && choose(customIdea, true)}
+                onEnter={() => customIdea.trim() && !busy && !picked && pick(customIdea, true)}
                 aria-label="Your own idea for what happens next"
               />
-              <button className="btn btn-primary" disabled={!customIdea.trim() || busy} onClick={() => choose(customIdea, true)}>
+              <button className={`btn btn-primary ${picked && picked === customIdea ? "picked" : ""}`} disabled={!customIdea.trim() || busy || Boolean(picked)} onClick={() => pick(customIdea, true)}>
                 Go
               </button>
             </div>
             <p className="divider-label">Or pick one</p>
             <div className="options">
               {c.options.map((o, i) => (
-                <button key={o.label} className="option" disabled={busy} onClick={() => choose(o.label, false)}>
+                <button
+                  key={o.label}
+                  className={`option ${picked === o.label ? "picked" : ""} ${picked && picked !== o.label ? "not-picked" : ""}`}
+                  disabled={busy || Boolean(picked)}
+                  aria-pressed={picked === o.label}
+                  onClick={() => pick(o.label, false)}
+                >
                   <span className="o-num">{["i", "ii", "iii", "iv"][i]}.</span>
                   <span>{o.label}</span>
                 </button>

@@ -8808,3 +8808,70 @@ html[data-night] .story-manage-delete {
   scale: 0.9;
   pointer-events: none;
 }
+
+/* ---------- making a choice ---------- */
+/* The tapped option lights up at once (filled in the house colour, a
+   little lift) and the others step back, for a beat before the turn. */
+.option.picked,
+.option.picked:disabled {
+  opacity: 1;
+  border-color: var(--russet);
+  outline-color: color-mix(in srgb, var(--paper) 50%, transparent);
+  background: var(--russet);
+  color: var(--paper);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 20px -12px rgba(120, 50, 30, 0.6);
+  animation: optionPicked 0.35s ease both;
+}
+.option.picked .o-num {
+  color: color-mix(in srgb, var(--paper) 80%, transparent);
+}
+.option.not-picked:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+html[data-night] .option.picked {
+  background: var(--russet);
+  color: #fff8ec;
+  border-color: var(--russet);
+}
+@keyframes optionPicked {
+  0% {
+    transform: scale(0.98);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+/* While the next part is written: what was chosen, echoed back */
+.chosen-echo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  animation: fadeIn 0.4s ease both;
+}
+.chosen-echo-prompt {
+  margin: 0;
+  font-family: var(--font-title);
+  font-style: italic;
+  font-size: clamp(1.15rem, 2.6vw, 1.45rem);
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+.chosen-echo-great {
+  margin: 4px 0 0;
+  font-family: var(--font-title);
+  font-size: clamp(1.7rem, 3.6vw, 2.3rem);
+  color: var(--russet);
+}
+.chosen-echo-said {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.chosen-echo-said q {
+  font-style: italic;
+}
