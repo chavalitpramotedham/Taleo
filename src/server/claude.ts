@@ -21,7 +21,9 @@ import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, t
 
 type Effort = "low" | "medium" | "high";
 const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
-const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
+/** Each job has its own model and effort setting, independent of the
+ *  others (changing the story writer never changes the painter). */
+const ART_MODEL = process.env.TALEO_ART_MODEL || "claude-opus-5-5";
 /** The character designer has its own model setting (it used to follow the
  *  story writer's). */
 const CHARACTER_MODEL = process.env.TALEO_CHARACTER_MODEL || "claude-opus-5-5";
