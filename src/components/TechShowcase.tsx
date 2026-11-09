@@ -14,30 +14,31 @@ const ICONS = {
   spark: <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" />,
 };
 
-/** Written for parents: four things the technology does for their child. */
+/** Written for parents: what each part of the technology does, and how it
+ *  helps their child. Plain facts, no slogans. */
 const SPECS: { label: string; title: string; text: string; icon: React.ReactNode }[] = [
   {
     label: "Generative AI",
-    title: "Made fresh, just for them",
-    text: "State-of-the-art AI writes and paints every page of every story.",
+    title: "New text and pictures each time",
+    text: "AI writes the text and draws the picture for each page, so every book is new.",
     icon: ICONS.spark,
   },
   {
-    label: "Adaptive",
-    title: "Your characters, your story",
-    text: "Bring in your own characters and shape the plot together, page by page.",
+    label: "Adaptive stories",
+    title: "Your characters, your choices",
+    text: "Add your own characters, then decide together what happens on each page.",
     icon: ICONS.family,
   },
   {
     label: "Read-aloud",
-    title: "Soothing sound, clear voice",
-    text: "Gentle music and a natural voice that reads along, helping with pronunciation.",
+    title: "Natural voice and calm music",
+    text: "Every page is read aloud clearly, which helps children learn how words sound.",
     icon: ICONS.voice,
   },
   {
-    label: "Grows with them",
-    title: "Learning at every age",
-    text: "Stories and vocabulary grow richer as your child does, from toddlers to young readers.",
+    label: "Age-appropriate",
+    title: "Matched to your child's age",
+    text: "Sentence length and vocabulary adjust to their age, from toddlers to early readers.",
     icon: ICONS.grow,
   },
 ];
@@ -47,9 +48,9 @@ export function TechShowcase() {
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
-        <p className="tech-eyebrow">Thoughtful technology</p>
-        <h2 id="tech-title">The magic inside</h2>
-        <p className="tech-sub">Generative AI, used gently and for good - to help little imaginations grow.</p>
+        <p className="tech-eyebrow">For parents</p>
+        <h2 id="tech-title">The technology behind Taleo</h2>
+        <p className="tech-sub">What it does, and how it helps your child read and imagine.</p>
       </header>
       <div className="tech-grid">
         {SPECS.map((s, i) => (

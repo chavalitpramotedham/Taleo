@@ -7962,7 +7962,7 @@ html[data-night] .tech-card::after {
     gap: 5px;
   }
 }
-@media (max-width: 359px) {
+@media (max-width: 370px) {
   .tech-grid .tech-label {
     white-space: normal;
   }
