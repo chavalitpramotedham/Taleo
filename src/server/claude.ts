@@ -16,7 +16,7 @@ import type {
   SegmentResponse,
   StoryRequest,
 } from "@/lib/types";
-import { characterDesignerPrompt, illustratorPrompt, writerPrompt } from "./prompts";
+import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, writerPrompt } from "./prompts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
 type Effort = "low" | "medium" | "high";
@@ -463,17 +463,56 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
   return CharacterDesignSchema.parse(JSON.parse(lastText && lastText.type === "text" ? lastText.text : text));
 }
 
+/** A quick art-director pass over the parent's description (see
+ *  characterBriefPrompt): a clear, fuller brief for the designer that keeps
+ *  everything they said. If it fails, the design simply goes ahead from
+ *  their own words. */
+const BRIEF_MODEL = process.env.TALEO_BRIEF_MODEL || "claude-sonnet-5-5";
+async function characterBrief(req: CharacterRequest): Promise<string | null> {
+  const about = [
+    req.name ? `Their name: ${req.name}` : "",
+    req.current ? `They already exist - their current model sheet: ${req.current.look}` : "",
+    req.current?.notes ? `Who they are (from their family): ${req.current.notes}` : "",
+    req.current?.relationships ? `Their relationships (from their family): ${req.current.relationships}` : "",
+    `The parent's description${req.current ? " of how they should look now" : ""}: "${req.description}"`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  try {
+    const res = await getClient().beta.messages.create({
+      model: BRIEF_MODEL,
+      max_tokens: 1500,
+      system: characterBriefPrompt(),
+      messages: [{ role: "user", content: about }],
+      output_config: { effort: "low" },
+    });
+    recordAi("character", BRIEF_MODEL, res.usage);
+    const text = res.content.find((b) => b.type === "text");
+    const brief = text && text.type === "text" ? text.text.trim() : "";
+    return brief.length > 40 ? brief.slice(0, 2500) : null;
+  } catch (err) {
+    console.error("[character] brief failed - designing from the parent's words", err);
+    return null;
+  }
+}
+
 export async function designCharacter(req: CharacterRequest, onProgress?: (p: CharacterProgress) => void): Promise<CharacterResponse> {
+  onProgress?.({ stage: "thinking" });
+  const brief = await characterBrief(req);
+  const briefNote = brief
+    ? `\nOur art director's brief, expanding on that (the parent's own words above always win if anything differs): ${brief}`
+    : "";
   const user = req.current
     ? `Redraw this existing character, named "${req.name ?? ""}"${genderNote({ gender: req.current.gender ?? null })}.` +
       `\nTheir current model sheet: ${req.current.look}` +
       (req.current.notes ? `\nWho they are (from their family): ${req.current.notes}` : "") +
       (req.current.relationships ? `\nTheir relationships (from their family): ${req.current.relationships}` : "") +
       `\nTheir description is now: "${req.description}". Redraw them to match it. Anything it doesn't mention stays as in the current model sheet (kind, colours, markings, accessories, personality), so they're clearly still the same character.` +
+      briefNote +
       `\nReturn the same name, the updated model sheet ("look") and a new reference painting ("svg").`
     : `Design this character: "${req.description}".${
         req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
-      }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
+      }${briefNote}\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
   const out = await streamCharacterDesign(user, onProgress);
   const svg = sanitizeSvg(out.svg);
   return {
