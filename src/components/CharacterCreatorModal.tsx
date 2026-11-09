@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CharacterDef, CharacterGender, CharacterResponse, SavedCharacter } from "@/lib/types";
 import { GenderPicker } from "@/components/GenderPicker";
 import { CharacterPortrait } from "@/components/art/Painting";
@@ -25,6 +25,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
+  const prefilled = useRef("");
   const [gender, setGender] = useState<CharacterGender | null>(null);
   const [drafted, setDrafted] = useState<CharacterDef | null>(null);
   const [drawing, setDrawing] = useState(false);
@@ -52,6 +53,13 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
       setDrafted(data.character);
       setName(data.character.name);
+      // The description they painted from starts off their "About" notes
+      // (the storyteller reads these), ready to add relationships and the
+      // like. A repaint updates it - unless they've written their own.
+      const used = description.trim().slice(0, NOTES_MAX);
+      const before = prefilled.current;
+      prefilled.current = used;
+      setNotes((cur) => (!cur.trim() || cur === before ? used : cur));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
