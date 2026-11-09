@@ -8,6 +8,7 @@ import { MyCreationsRow } from "@/components/MyCreationsRow";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
+import { ReadingChart } from "@/components/ReadingChart";
 
 export const metadata: Metadata = { title: "Home", robots: { index: false, follow: true } };
 
@@ -50,6 +51,9 @@ export default async function HomePage() {
           </div>
         ))}
       </section>
+
+      {/* The days you've read together, with the current streak. */}
+      <ReadingChart />
 
       {/* Desktop: begin right under the numbers (touch devices have the
           floating bar instead). */}

@@ -19,6 +19,8 @@ import { MusicControl } from "./MusicControl";
 import { ReadAloudControl } from "./ReadAloudControl";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 import { StoryProgressBar, countShapes } from "./StoryProgressBar";
+import { logReadingToday } from "@/lib/reading-client";
+import { useSession } from "next-auth/react";
 
 /** Strokes a page's painting needs before the waiting page opens onto it. */
 const RELEASE_SHAPES = 70;
@@ -500,6 +502,15 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go, overviewOpen]);
+
+  // A few pages into any story (yours or the library's), today counts as a
+  // reading day on your Home chart - logged at most once a day.
+  const { data: readerSession } = useSession();
+  const readerId = readerSession?.user?.id;
+  useEffect(() => {
+    if (!readerId || cover !== "open") return;
+    if (index >= 2 || view?.kind === "end") logReadingToday(readerId);
+  }, [readerId, cover, index, view?.kind]);
 
   // A new page keeps the reader's scroll, so the picture stays where it
   // was - unless the words had been scrolled up under the stuck picture:
