@@ -70,7 +70,7 @@ function structured(story: Story) {
       },
       breadcrumbs([
         { name: "Taleo", path: "/" },
-        { name: "Library", path: "/store" },
+        { name: "Public Library", path: "/store" },
         { name: title, path: `/store/${story.id}` },
       ]),
     ],

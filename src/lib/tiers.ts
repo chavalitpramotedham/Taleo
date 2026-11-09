@@ -57,7 +57,7 @@ export const TIERS: Record<TierId, TierInfo> = {
     rows: [
       { label: "New stories", value: "1 per day" },
       { label: "Custom characters", value: `${FREE_CHARACTERS} saved` },
-      { label: "Reading the library", value: "Unlimited" },
+      { label: "Reading the Public Library", value: "Unlimited" },
       { label: "Saving others' stories", value: "Unlimited" },
     ],
     caps: caps(false),
@@ -69,7 +69,7 @@ export const TIERS: Record<TierId, TierInfo> = {
     rows: [
       { label: "New stories", value: "Unlimited" },
       { label: "Custom characters", value: "Unlimited" },
-      { label: "Reading the library", value: "Unlimited" },
+      { label: "Reading the Public Library", value: "Unlimited" },
       { label: "Saving others' stories", value: "Unlimited" },
       { label: "Admin dashboard", value: "Full access" },
     ],

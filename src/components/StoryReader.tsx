@@ -906,7 +906,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               </>
             )}
             <Link className="end-back" href="/store">
-              Back to the library
+              Back to the Public Library
             </Link>
           </p>
         ) : (

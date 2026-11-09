@@ -78,7 +78,7 @@ export default async function HomePage() {
           headClass="home-shelf-head"
           heading={
             <>
-              <h2>Discover more from the library</h2>
+              <h2>Discover more from the Public Library</h2>
               <p className="sub">Made and shared by parents like you.</p>
             </>
           }

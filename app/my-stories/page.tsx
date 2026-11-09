@@ -150,7 +150,7 @@ export default function MyStoriesPage() {
       )}
       {savedSorted.length > 0 && (
         <>
-          <h2 className="shelf-section-title">Saved from the library</h2>
+          <h2 className="shelf-section-title">Saved from the Public Library</h2>
           <div className="shelf">
             {savedSorted.map((s) => (
               <StoryCard key={s.id} entry={s} onOpen={() => setOpenSavedId(s.id)} />

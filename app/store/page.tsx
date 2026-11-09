@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { OG_IMAGE, SITE_URL, breadcrumbs, jsonLd } from "@/lib/seo";
 
-const TITLE = "The library: free bedtime stories for kids";
+const TITLE = "The Public Library: free bedtime stories for kids";
 const DESCRIPTION =
   "Read bedtime picture-book stories made and shared by parents: free to read, with a watercolour picture on every page. Sort by favourites or newest, or browse by kind of story.";
 
@@ -30,7 +30,7 @@ const STRUCTURED = {
     },
     breadcrumbs([
       { name: "Taleo", path: "/" },
-      { name: "Library", path: "/store" },
+      { name: "Public Library", path: "/store" },
     ]),
   ],
 };
@@ -44,7 +44,7 @@ export default function StorePage() {
         heading={
           <>
             <p className="eyebrow">Open to everyone</p>
-            <h1>The library</h1>
+            <h1>The Public Library</h1>
             <p className="sub">Every finished story, painted and shared by parents like you.</p>
           </>
         }

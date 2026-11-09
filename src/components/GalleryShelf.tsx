@@ -135,13 +135,13 @@ export function GalleryShelf({
         <ShelfSkeleton count={limit ?? 6} />
       ) : error ? (
         <div className="empty">
-          <h2>The library couldn&apos;t open just now</h2>
+          <h2>The Public Library couldn&apos;t open just now</h2>
           <p className="meta">Please try again in a moment.</p>
         </div>
       ) : sorted.length === 0 ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
-          <h2>{author ? "No stories here yet" : "The library is empty, for now"}</h2>
+          <h2>{author ? "No stories here yet" : "The Public Library is empty, for now"}</h2>
           <p className="meta">{author ? `Stories @${author} shares will appear here.` : "Finished stories appear here for anyone to read."}</p>
           <Link className="btn btn-primary" href="/create">
             <MapleMark />

@@ -65,7 +65,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
       },
       breadcrumbs([
         { name: "Taleo", path: "/" },
-        { name: "Library", path: "/store" },
+        { name: "Public Library", path: "/store" },
         { name: `@${shown}`, path: `/author/${encodeURIComponent(shown)}` },
       ]),
     ],

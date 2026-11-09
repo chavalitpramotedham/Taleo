@@ -150,7 +150,7 @@ export default async function Home({ searchParams }: HomeProps) {
           headClass="home-shelf-head"
           heading={
             <>
-              <h2>From the library</h2>
+              <h2>From the Public Library</h2>
               <p className="sub">Made and shared by parents like you.</p>
             </>
           }

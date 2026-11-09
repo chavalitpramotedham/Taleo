@@ -43,7 +43,7 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
         <h1 className="empty-title">We couldn&apos;t find that story</h1>
         <p className="meta">It may have been removed from the library.</p>
         <Link className="btn btn-primary" href="/store">
-          Back to the library
+          Back to the Public Library
         </Link>
       </div>
     );
