@@ -48,22 +48,20 @@ export function TechShowcase() {
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
-        <p className="tech-eyebrow">Generative AI, For Our Little Ones</p>
+        <p className="tech-eyebrow">GenAI, For Our Little Ones</p>
         <h2 id="tech-title">Keeping the magic alive</h2>
       </header>
       <div className="tech-grid">
         {SPECS.map((s, i) => (
           <article key={s.label} className="tech-card" style={{ "--i": i } as React.CSSProperties}>
-            <span className="tech-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                {s.icon}
-              </svg>
-            </span>
-            <p className="tech-label">
-              <span>{String(i + 1).padStart(2, "0")}</span>
-              {s.label}
-            </p>
-            <h3 className="tech-title">{s.title}</h3>
+            <div className="tech-card-head">
+              <span className="tech-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  {s.icon}
+                </svg>
+              </span>
+              <h3 className="tech-title">{s.title}</h3>
+            </div>
             <p className="tech-text">{s.text}</p>
           </article>
         ))}
