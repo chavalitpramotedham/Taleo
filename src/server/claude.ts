@@ -408,8 +408,10 @@ export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { s
 async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void) {
   const stream = getClient().beta.messages.stream({
     model: STORY_MODEL,
-    // (more room than other requests: high effort thinks longer before it paints)
-    max_tokens: 20000,
+    // (plenty of room: at high effort it thinks at length before it paints,
+    // and a design cut off at the limit fails outright - in testing one in
+    // nine designs ran past 24k)
+    max_tokens: 32000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
     system: [{ type: "text", text: characterDesignerPrompt(), cache_control: { type: "ephemeral" } }],
