@@ -15,11 +15,17 @@ const ICONS = {
 };
 
 /** Written for parents: what each part of the technology does, and how it
- *  helps their child. Plain facts, no slogans. */
+ *  helps their child. */
 const SPECS: { label: string; title: string; text: string; icon: React.ReactNode }[] = [
   {
+    label: "Age-appropriate",
+    title: "Matched to your child's age",
+    text: "Sentence length and vocabulary adjust to their age, from toddlers to early readers.",
+    icon: ICONS.grow,
+  },
+  {
     label: "Generative AI",
-    title: "New text and pictures each time",
+    title: "Painted just for you",
     text: "AI writes the text and draws the picture for each page, so every book is new.",
     icon: ICONS.spark,
   },
@@ -34,12 +40,6 @@ const SPECS: { label: string; title: string; text: string; icon: React.ReactNode
     title: "Natural voice and calm music",
     text: "Every page is read aloud clearly, which helps children learn how words sound.",
     icon: ICONS.voice,
-  },
-  {
-    label: "Age-appropriate",
-    title: "Matched to your child's age",
-    text: "Sentence length and vocabulary adjust to their age, from toddlers to early readers.",
-    icon: ICONS.grow,
   },
 ];
 

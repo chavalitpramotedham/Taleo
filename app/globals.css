@@ -7986,3 +7986,6 @@ html[data-night] .tech-card::after {
 .tech-head h2 {
   text-wrap: balance;
 }
+.tech-grid .tech-title {
+  text-wrap: balance;
+}
