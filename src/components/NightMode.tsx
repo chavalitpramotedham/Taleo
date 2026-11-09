@@ -205,7 +205,10 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   // glass at 65%) - so it's right even mid drop-in.
   useLayoutEffect(() => {
     const place = () => {
-      const sw = document.querySelector(".night-switch");
+      // In a story it hangs from the right-most button instead, out past
+      // the sound controls, so it never hangs over them.
+      const inStory = Boolean(document.querySelector(".reader-tools"));
+      const sw = (inStory && document.querySelector(".nav-tools > :last-child")) || document.querySelector(".night-switch");
       const bar = document.querySelector(".topbar");
       const el = root.current;
       if (!sw || !bar || !el) return;
@@ -215,8 +218,13 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       // (small on a phone, never more than 28px wide).
       // A touch bigger than it used to be, but on a shorter cord, so it still
       // hangs no lower than about the homepage title's "bedtime" line.
-      const w = Math.round(Math.min(34, Math.max(22, window.innerWidth / 32)));
-      const cord = w <= 24 ? 6 : 12;
+      // Its glass about the size of the moon icon on a phone, growing on
+      // larger screens up to about the night switch itself.
+      // (The drawing includes its cord and space around the glass: at 40px
+      // the glass matches the 19px moon; 60px - glass about 28px, just under
+      // the switch - is the most it grows to.)
+      const w = Math.round(Math.min(60, Math.max(40, window.innerWidth / 24)));
+      let cord = w <= 24 ? 6 : 12;
       // Screen coordinates: the bar is fixed to the top, and so is this layer.
       const x = s.left + s.width / 2;
       const top = b.bottom;
@@ -232,7 +240,8 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     // stays on the lantern.
     place();
     const ro = new ResizeObserver(place);
-    ["html", ".topbar", ".nav-row", ".nav-tools"].forEach((q) => {
+    // (and the page itself, so opening a story moves it)
+    ["html", "body", ".topbar", ".nav-row", ".nav-tools"].forEach((q) => {
       const el = document.querySelector(q);
       if (el) ro.observe(el);
     });
