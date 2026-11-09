@@ -4982,9 +4982,9 @@ html[data-night] .topbar {
 .night-glow-halo {
   background: radial-gradient(
     circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 190, 110, 0.15) 0,
-    rgba(255, 172, 92, 0.08) 220px,
-    rgba(255, 160, 82, 0.035) 480px,
+    rgba(255, 190, 110, 0.135) 0,
+    rgba(255, 172, 92, 0.072) 220px,
+    rgba(255, 160, 82, 0.032) 480px,
     rgba(255, 160, 82, 0) 780px
   );
   animation: haloBreathe 7s ease-in-out infinite;
@@ -4992,9 +4992,9 @@ html[data-night] .topbar {
 .night-glow-core {
   background: radial-gradient(
     circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 224, 150, 0.26) 0,
-    rgba(255, 204, 124, 0.17) 40px,
-    rgba(255, 188, 104, 0.08) 110px,
+    rgba(255, 224, 150, 0.234) 0,
+    rgba(255, 204, 124, 0.153) 40px,
+    rgba(255, 188, 104, 0.072) 110px,
     rgba(255, 180, 96, 0) 230px
   );
   animation: lanternBreathe 3.6s ease-in-out infinite;
@@ -5002,8 +5002,8 @@ html[data-night] .topbar {
 .night-glow-shimmer {
   background: radial-gradient(
     circle at var(--lamp-x) var(--lamp-y),
-    rgba(255, 232, 170, 0.12) 0,
-    rgba(255, 210, 132, 0.05) 60px,
+    rgba(255, 232, 170, 0.108) 0,
+    rgba(255, 210, 132, 0.045) 60px,
     rgba(255, 200, 120, 0) 170px
   );
   animation: lanternShimmer 1.7s steps(1, end) infinite;
