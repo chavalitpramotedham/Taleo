@@ -1245,6 +1245,26 @@ main {
   text-align: center;
   padding: 20px;
 }
+/* A new page's painting fades in once the turning page has gone (it waits
+   under the falling leaves while the page turns). */
+.book > .book-art > .painting:not(.live) {
+  animation: paintingIn 0.35s ease both;
+}
+@keyframes paintingIn {
+  from {
+    opacity: 0;
+  }
+}
+.picture-wait.turning-wait {
+  position: absolute;
+  inset: 0;
+  justify-content: center;
+}
+.next-wait {
+  min-height: 6em;
+  display: grid;
+  place-items: center;
+}
 .wait-portrait {
   width: min(220px, 50%) !important;
   height: auto !important;
@@ -1337,7 +1357,10 @@ main {
   inset: 0;
   z-index: 6;
   display: grid;
-  grid-template-rows: inherit;
+  /* (the page's rows, but sized by the leaf's own content - inheriting
+     them would size them to the new page beneath) */
+  grid-template-rows: auto auto;
+  align-content: start;
   grid-template-columns: inherit;
   overflow: hidden;
   background: var(--page);
@@ -1348,6 +1371,20 @@ main {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.42, 0, 0.5, 1);
   animation-fill-mode: both;
+}
+/* Its picture is placed by the reader (not stuck within the leaf, which
+   would push it down the leaf), over the words like the page's own. */
+.flip-leaf > .book-art {
+  position: relative;
+  top: 0;
+  z-index: 3;
+  background: var(--page);
+}
+/* The leaf is a still copy of the page left behind: its words and
+   picture don't fade in again. */
+.flip-leaf .page-anim,
+.flip-leaf .painting {
+  animation: none !important;
 }
 /* the leaf's own shading, drawn over its content */
 .flip-leaf::after {
@@ -2347,6 +2384,10 @@ main {
 
 /* Landscape tablets & desktops: an open book, picture on the left page, words on the right. */
 @media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .flip-leaf {
+    grid-template-rows: minmax(0, 1fr);
+    align-content: stretch;
+  }
   .book {
     grid-template-rows: 1fr;
     grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
@@ -8492,10 +8533,22 @@ html[data-night] .home-stat {
     justify-content: center;
   }
   .book-cover {
-    container-type: inline-size;
     /* (clear of the page-turn buttons floating along the bottom) */
     width: min(100cqw, calc((100cqh - 78px) * 0.75));
     margin: 0 auto auto;
+  }
+}
+/* Tablets and up: the cover's lettering, frame and picture grow with the
+   cover rather than staying phone-sized. Upright tablets also get a cover
+   nearer the width of the pages that follow it (not phone-sized). */
+@media (min-width: 700px) and (not ((min-width: 760px) and (min-aspect-ratio: 5/4))) {
+  .book-cover {
+    width: min(100%, 52dvh, max(420px, 70vw));
+  }
+}
+@media (min-width: 700px) {
+  .book-cover {
+    container-type: inline-size;
   }
   .book-cover-board {
     padding: clamp(16px, 3.6cqw, 28px);
@@ -8521,6 +8574,47 @@ html[data-night] .home-stat {
   }
   .book-cover-status {
     font-size: clamp(0.8rem, 2.4cqw, 1.05rem);
+  }
+}
+
+/* Short wide screens (a phone on its side): the closed book is small, so
+   its lettering, frame and picture shrink with it all the way (no
+   phone-sized minimums) - everything stays inside the cover. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) and (max-height: 560px) {
+  /* as tall as it can be beside the low page-turn buttons */
+  .book-cover {
+    width: min(100cqw, calc((100cqh - 72px) * 0.75));
+  }
+  .book-cover-board {
+    padding: 3.4cqw;
+  }
+  .book-cover-frame {
+    padding: 7cqw 4cqw 4cqw;
+    gap: 1.6cqw;
+    outline-offset: -2.6cqw;
+  }
+  .book-cover-kicker {
+    font-size: 3.6cqw;
+  }
+  .book-cover-orn {
+    width: 34cqw;
+  }
+  .book-cover-title {
+    margin: 0.5cqw 0 1cqw;
+    font-size: 8cqw;
+  }
+  .book-cover-oval {
+    width: 64%;
+  }
+  .book-cover-starring {
+    margin-top: 1cqw;
+    font-size: 4.6cqw;
+  }
+  .book-cover-open {
+    font-size: 4.4cqw;
+  }
+  .book-cover-status {
+    font-size: 4cqw;
   }
 }
 

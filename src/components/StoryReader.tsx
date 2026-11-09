@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, Segment, SegmentResponse, Story } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
@@ -320,8 +320,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // A snapshot of the page being left is laid over the book as a single
   // leaf that turns away, revealing the new page (already rendered
   // beneath it).
-  const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; dir: 1 | -1; n: number } | null>(null);
-  const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode }>({ picture: null, words: null });
+  const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; art: string | null; dir: 1 | -1; n: number } | null>(null);
+  const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode; art: string | null }>({ picture: null, words: null, art: null });
   const indexRef = useRef(index);
   indexRef.current = index;
   /** True while sitting on a choice the child hasn't answered: no reading ahead. */
@@ -342,15 +342,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       if (to > from && forwardBlockedRef.current && !opts.force) return;
       flipCount.current += 1;
       setOutgoing({ ...currentContentRef.current, dir: to > from ? 1 : -1, n: flipCount.current });
+      setPendingNext(false);
       indexRef.current = to;
       setIndex(to);
     },
     [lastIndex],
   );
-  // Tapping Next onto a page that's still being written doesn't flip to a
-  // blank "writing" page: the Next button shows it's waiting (a buffering
-  // loader), and the book turns by itself the moment the page is ready.
+  // Tapping Next onto a page that's still being written turns the page at
+  // once, onto a waiting page (falling leaves where the picture will be);
+  // the page itself is revealed there the moment it's ready.
   const [pendingNext, setPendingNext] = useState(false);
+  const pendingRef = useRef(false);
+  pendingRef.current = pendingNext;
   const viewsRef = useRef(views);
   viewsRef.current = views;
   const coverRef = useRef(cover);
@@ -366,13 +369,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         }
         return;
       }
+      if (pendingRef.current) {
+        // already turned onto the waiting page: Back turns back from it
+        if (d > 0) return;
+        flipCount.current += 1;
+        setOutgoing({ ...currentContentRef.current, dir: -1, n: flipCount.current });
+        setPendingNext(false);
+        return;
+      }
       if (d < 0 && indexRef.current === 0) return closeBook();
       const target = indexRef.current + d;
       if (d > 0 && !forwardBlockedRef.current && viewsRef.current[target]?.kind === "loading" && indexRef.current < target) {
+        flipCount.current += 1;
+        setOutgoing({ ...currentContentRef.current, dir: 1, n: flipCount.current });
+        cancelSpeech();
         setPendingNext(true);
         return;
       }
-      setPendingNext(false);
       turnTo(target);
     },
     [turnTo, openBook, closeBook],
@@ -382,9 +395,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     const next = views[index + 1];
     if (!next) return setPendingNext(false);
     if (next.kind === "loading") return;
+    // already turned: just reveal it (no second page-turn)
     setPendingNext(false);
-    turnTo(index + 1);
-  }, [pendingNext, views, index, turnTo]);
+    indexRef.current = index + 1;
+    setIndex(index + 1);
+  }, [pendingNext, views, index]);
 
   // When a new segment lands, turn to its first page.
   const segCount = story.segments.length;
@@ -470,9 +485,28 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     return () => window.removeEventListener("keydown", onKey);
   }, [go, overviewOpen]);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0 });
-  }, [index]);
+  // A new page keeps the reader's scroll, so the picture stays where it
+  // was - unless the words had been scrolled up under the stuck picture:
+  // then just enough is undone to show the new page's first line in full.
+  // (On wide screens only the words column scrolls: it starts at the top.)
+  const shownAt = useRef("");
+  useLayoutEffect(() => {
+    const art = document.querySelector(".book > .book-art");
+    const text = document.querySelector<HTMLElement>(".book > .book-text");
+    if (!art || !text) return;
+    const at = `${index}-${pendingNext}`;
+    if (shownAt.current !== at) {
+      shownAt.current = at;
+      text.scrollTop = 0;
+      const hidden = art.getBoundingClientRect().bottom - text.getBoundingClientRect().top;
+      if (hidden > 0.5) window.scrollBy({ top: -hidden, behavior: "instant" as ScrollBehavior });
+    }
+    // The turning page shows its picture just where the page's own picture
+    // sits on screen (stuck under the menu bar or not), so it doesn't jump.
+    const leafArt = document.querySelector<HTMLElement>(".flip-leaf > .book-art");
+    const book = document.querySelector(".book");
+    if (leafArt && book) leafArt.style.top = `${Math.max(0, art.getBoundingClientRect().top - book.getBoundingClientRect().top)}px`;
+  }, [index, pendingNext, outgoing?.n]);
 
   // The menu bar's height, for the layout: an open book fills exactly the
   // screen below it, and on tall screens the picture stops just under it.
@@ -624,8 +658,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   };
 
   // ---------------------------------------------------------------- picture
+  // A page turn starts the moment Next is tapped: the new page's painting
+  // (slow to draw) waits under falling leaves until the turning page has
+  // gone, then fades in - so the turn never waits on it.
+  const artKey = pendingNext ? null : shown ? pageKey(shown.seg, shown.n) : null;
+  const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey);
   let picture: React.ReactNode;
-  if (!shown) {
+  if (artHeld) {
+    picture = (
+      <div className="picture-wait turning-wait" aria-hidden>
+        <LeafLoader size={40} />
+      </div>
+    );
+  } else if (!shown) {
     picture = (
       <div className="picture-wait">
         <CharacterPortrait character={story.hero} className="wait-portrait" />
@@ -676,7 +721,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   // ---------------------------------------------------------------- words
   let words: React.ReactNode = null;
-  if (!view || view.kind === "loading") {
+  if (pendingNext) {
+    words = (
+      <div className="loading next-wait" aria-live="polite">
+        <p className="meta">The next page is on its way…</p>
+      </div>
+    );
+  } else if (!view || view.kind === "loading") {
     // Waiting on the next part after a choice: echo it back, so there's
     // something to read (and read aloud) while it's written.
     const lastSeg = story.segments[story.segments.length - 1];
@@ -841,7 +892,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const onCover = cover !== "open";
   const canBack = !onCover;
   const canForward = onCover ? cover === "closed" && Boolean(firstPage) : index < lastIndex && !atChoiceUnanswered;
-  const position = onCover ? "Cover" : view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
+  const position = onCover ? "Cover" : pendingNext ? "" : view?.kind === "page" ? `Page ${view.number} of ${totalPages}` : view?.kind === "choice" ? "Your turn" : view?.kind === "end" ? "The End" : "";
   const jumpable = views
     .map((v, i) => ({ v, i }))
     .filter((x): x is { v: Extract<View, { kind: "page" | "choice" | "end" }>; i: number } => x.v.kind === "page" || x.v.kind === "choice" || x.v.kind === "end");
@@ -850,7 +901,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   // Remember what's on the page right now, so the next go() can hand a
   // snapshot of it to the outgoing flip layer.
-  currentContentRef.current = { picture, words };
+  currentContentRef.current = { picture, words, art: artKey };
+
+  const textSizeButtons = (
+    <div className="text-size" role="group" aria-label="Text size">
+      <button type="button" onClick={() => changeTextSize(-1)} disabled={textSize <= TEXT_SIZES[0]} aria-label="Smaller text">
+        A<span aria-hidden>−</span>
+      </button>
+      <button type="button" onClick={() => changeTextSize(1)} disabled={textSize >= TEXT_SIZES[TEXT_SIZES.length - 1]} aria-label="Bigger text">
+        A<span aria-hidden>+</span>
+      </button>
+    </div>
+  );
 
   return (
     <div className={`reader age-${story.age}`} style={{ "--text-scale": textSize } as React.CSSProperties}>
@@ -898,16 +960,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       <div className="book">
         <div className="book-art">{picture}</div>
         <div className="book-text">
-          {cover === "open" && (
-            <div className="text-size" role="group" aria-label="Text size">
-              <button type="button" onClick={() => changeTextSize(-1)} disabled={textSize <= TEXT_SIZES[0]} aria-label="Smaller text">
-                A<span aria-hidden>−</span>
-              </button>
-              <button type="button" onClick={() => changeTextSize(1)} disabled={textSize >= TEXT_SIZES[TEXT_SIZES.length - 1]} aria-label="Bigger text">
-                A<span aria-hidden>+</span>
-              </button>
-            </div>
-          )}
+          {cover === "open" && textSizeButtons}
           {words}
         </div>
         {outgoing && (
@@ -920,7 +973,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               onAnimationEnd={(e) => e.target === e.currentTarget && setOutgoing(null)}
             >
               <div className="book-art">{outgoing.picture}</div>
-              <div className="book-text">{outgoing.words}</div>
+              <div className="book-text">
+                {/* a still copy of the page's A−/A+ (it turns with the page) */}
+                <div className="text-size" aria-hidden>
+                  <button type="button" tabIndex={-1}>
+                    A<span>−</span>
+                  </button>
+                  <button type="button" tabIndex={-1}>
+                    A<span>+</span>
+                  </button>
+                </div>
+                {outgoing.words}
+              </div>
             </div>
           </>
         )}
@@ -937,13 +1001,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           {position}
         </button>
         <button
-          className={`nav-btn nav-btn-next ${pendingNext ? "waiting" : ""}`}
+          className="nav-btn nav-btn-next"
           onClick={() => go(1)}
-          disabled={!canForward && !pendingNext}
-          aria-label={pendingNext ? "Next page (getting it ready)" : "Next page"}
-          aria-busy={pendingNext}
+          disabled={!canForward || pendingNext}
+          aria-label="Next page"
         >
-          {pendingNext ? <LeafLoader size={26} /> : "›"}
+          ›
         </button>
       </nav>
       {overviewOpen && (

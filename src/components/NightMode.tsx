@@ -198,17 +198,16 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Hang the lantern from the menu bar's bottom edge under the switch, and
+  // Hang the lantern from the menu bar's bottom edge under the right-most button, and
   // centre the light on its glass. Measured from things
   // that never animate (the bar and the switch), using the lantern's
   // resting geometry (CSS: a --lamp-cord cord, then 64px-per-28px-wide of lantern with the
   // glass at 65%) - so it's right even mid drop-in.
   useLayoutEffect(() => {
     const place = () => {
-      // In a story it hangs from the right-most button instead, out past
-      // the sound controls, so it never hangs over them.
-      const inStory = Boolean(document.querySelector(".reader-tools"));
-      const sw = (inStory && document.querySelector(".nav-tools > :last-child")) || document.querySelector(".night-switch");
+      // Hangs from the right-most menu button (the profile), out past the
+      // night switch and, in a story, past the sound controls.
+      const sw = document.querySelector(".nav-tools > :last-child") || document.querySelector(".night-switch");
       const bar = document.querySelector(".topbar");
       const el = root.current;
       if (!sw || !bar || !el) return;
