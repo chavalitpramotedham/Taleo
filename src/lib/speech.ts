@@ -150,7 +150,7 @@ function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, 
   // and an unhurried pace; single words a touch slower and clearer.
   u.pitch = 1;
   // Slow and gentle, like reading to a baby.
-  u.rate = kind === "word" ? 0.7 : 0.76;
+  u.rate = kind === "word" ? 0.7 : 0.7;
   if (kind === "page") {
     u.onboundary = (e) => {
       if (isCurrent() && e.name === "word") emit({ text, at: e.charIndex });
