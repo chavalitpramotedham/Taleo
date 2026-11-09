@@ -48,9 +48,8 @@ export function TechShowcase() {
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
-        <p className="tech-eyebrow">For parents</p>
-        <h2 id="tech-title">The technology behind Taleo</h2>
-        <p className="tech-sub">What it does, and how it helps your child read and imagine.</p>
+        <p className="tech-eyebrow">Generative AI, for good</p>
+        <h2 id="tech-title">Technology that keeps the magic alive</h2>
       </header>
       <div className="tech-grid">
         {SPECS.map((s, i) => (
