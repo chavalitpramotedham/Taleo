@@ -15,12 +15,13 @@ export async function POST(req: Request) {
   const name = typeof body?.name === "string" ? body.name.trim().slice(0, 40) : undefined;
   if (!description) return NextResponse.json({ error: "Tell me about your character first!" }, { status: 400 });
   // Redrawing a saved character: their current look and who they are.
-  const cur = body?.current as { look?: unknown; notes?: unknown; gender?: unknown } | undefined;
+  const cur = body?.current as { look?: unknown; notes?: unknown; relationships?: unknown; gender?: unknown } | undefined;
   const current =
     cur && typeof cur.look === "string"
       ? {
           look: cur.look.slice(0, 600),
           notes: typeof cur.notes === "string" ? cur.notes.slice(0, 400) : null,
+          relationships: typeof cur.relationships === "string" ? cur.relationships.slice(0, 400) : null,
           gender: cur.gender === "male" || cur.gender === "female" ? (cur.gender as "male" | "female") : null,
         }
       : undefined;

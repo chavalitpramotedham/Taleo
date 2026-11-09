@@ -27,6 +27,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
+  const [relationships, setRelationships] = useState("");
   const prefilled = useRef("");
   const [gender, setGender] = useState<CharacterGender | null>(null);
   const [drafted, setDrafted] = useState<CharacterDef | null>(null);
@@ -70,7 +71,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null, gender, prompt: prefilled.current || description.trim() }, replaceId }),
+        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null, relationships: relationships.trim() || null, gender, prompt: prefilled.current || description.trim() }, replaceId }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string; limitReached?: boolean };
       if (!res.ok || !data.character) {
@@ -174,6 +175,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
             {drawing && <CharacterProgressBar progress={progress} name={name} />}
 
             <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || drafted.name} disabled={confirming} />
+            <CharacterRelationshipsField value={relationships} onChange={setRelationships} disabled={confirming} />
 
             <div className="redraw-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={confirming}>
@@ -256,7 +258,37 @@ export function CharacterNotesField({
         maxLength={NOTES_MAX}
         disabled={disabled}
         rows={2}
-        placeholder="Who they are and who they know - e.g. Pip's big sister"
+        placeholder="Personality and favourite things - e.g. loves puddles, a little shy"
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+/** Optional box for their relationships, kept apart from "About": how
+ *  they're related to the family and to other characters. The storyteller
+ *  follows these exactly. Shared by the creator and the edit popup. */
+export function CharacterRelationshipsField({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="field-box">
+      <span className="field-box-label">
+        Relationships <span className="field-box-optional">optional</span>
+      </span>
+      <textarea
+        className="field-box-input notes-input"
+        value={value}
+        maxLength={NOTES_MAX}
+        disabled={disabled}
+        rows={2}
+        placeholder="Who they are to your family and friends - e.g. Colin's big sister, Grandma's cat"
         onChange={(e) => onChange(e.target.value)}
       />
     </label>

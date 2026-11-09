@@ -76,7 +76,9 @@ const modelSheet = (c: CharacterDef) =>
 /** A central character's model sheet plus the family's notes about them
  *  (personality, relationships), which only the writer sees. */
 const centralSheet = (c: CharacterDef) =>
-  `${modelSheet(c)}${c.notes ? `\n  FAMILY NOTES about ${c.name}: "${c.notes.replace(/\s+/g, " ").trim()}"` : ""}`;
+  `${modelSheet(c)}${c.notes ? `\n  FAMILY NOTES about ${c.name}: "${c.notes.replace(/\s+/g, " ").trim()}"` : ""}${
+    c.relationships ? `\n  RELATIONSHIPS of ${c.name} (from the family - exactly as given): "${c.relationships.replace(/\s+/g, " ").trim()}"` : ""
+  }`;
 
 /** The writer's request for the next segment, and how to normalise its reply. */
 function buildSegmentRequest(req: StoryRequest) {
@@ -110,9 +112,9 @@ function buildSegmentRequest(req: StoryRequest) {
       `GENDER, as the family chose it - follow exactly, every page: ${gendered.map((h) => `${h.name} is ${h.gender === "male" ? "male (he/him)" : "female (she/her)"}`).join("; ")}.`,
     );
   }
-  if (heroes.some((h) => h.notes)) {
+  if (heroes.some((h) => h.notes || h.relationships)) {
     parts.push(
-      "Honour the FAMILY NOTES above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together. The relationships must be exactly as the notes say (who is whose sister, parent, grandparent, friend) - never swapped, changed or contradicted.",
+      "Honour the FAMILY NOTES and RELATIONSHIPS above throughout this segment: let each character's personality and, above all, any relationship between them show in what they say and do together. The relationships must be exactly as given (who is whose sister, parent, grandparent, friend) - never swapped, changed or contradicted.",
     );
   }
   parts.push(`WORD LEVEL for this reader (each page's word to learn): ${age.vocab}`);
@@ -457,6 +459,7 @@ export async function designCharacter(req: CharacterRequest, onProgress?: (p: Ch
     ? `Redraw this existing character, named "${req.name ?? ""}"${genderNote({ gender: req.current.gender ?? null })}.` +
       `\nTheir current model sheet: ${req.current.look}` +
       (req.current.notes ? `\nWho they are (from their family): ${req.current.notes}` : "") +
+      (req.current.relationships ? `\nTheir relationships (from their family): ${req.current.relationships}` : "") +
       `\nTheir description is now: "${req.description}". Redraw them to match it. Anything it doesn't mention stays as in the current model sheet (kind, colours, markings, accessories, personality), so they're clearly still the same character.` +
       `\nReturn the same name, the updated model sheet ("look") and a new reference painting ("svg").`
     : `Design this character: "${req.description}".${

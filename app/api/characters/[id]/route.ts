@@ -8,18 +8,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
   const { id } = await params;
-  const body = (await req.json().catch(() => null)) as { name?: unknown; notes?: unknown; gender?: unknown; look?: unknown; svg?: unknown; prompt?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { name?: unknown; notes?: unknown; relationships?: unknown; gender?: unknown; look?: unknown; svg?: unknown; prompt?: unknown } | null;
   // A redrawn look (accepted after comparing old and new).
   const look = typeof body?.look === "string" && body.look.trim() ? body.look : undefined;
   const svg = typeof body?.svg === "string" && body.svg.length < 200_000 ? body.svg : undefined;
   const prompt = typeof body?.prompt === "string" ? body.prompt : undefined;
   const name = typeof body?.name === "string" ? body.name.trim() : undefined;
   const notes = typeof body?.notes === "string" ? body.notes : body?.notes === null ? null : undefined;
+  const relationships = typeof body?.relationships === "string" ? body.relationships : body?.relationships === null ? null : undefined;
   const gender = body && "gender" in body ? (typeof body.gender === "string" ? body.gender : null) : undefined;
   if (name !== undefined && !name) return NextResponse.json({ error: "Give them a name first." }, { status: 400 });
-  if (name === undefined && notes === undefined && gender === undefined && look === undefined && svg === undefined && prompt === undefined) return NextResponse.json({ error: "Nothing to change." }, { status: 400 });
+  if (name === undefined && notes === undefined && relationships === undefined && gender === undefined && look === undefined && svg === undefined && prompt === undefined) return NextResponse.json({ error: "Nothing to change." }, { status: 400 });
   try {
-    const character = await updateCharacter(session.user.id, id, { name, notes, gender, look, svg, prompt });
+    const character = await updateCharacter(session.user.id, id, { name, notes, relationships, gender, look, svg, prompt });
     return NextResponse.json({ character });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Couldn't update that character." }, { status: 400 });

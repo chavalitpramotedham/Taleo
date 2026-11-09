@@ -10,7 +10,7 @@ import { GrowingInput } from "@/components/GrowingInput";
 import { DictateButton } from "@/components/DictateButton";
 import { MAX_CHARACTERS } from "@/lib/characters";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { CharacterCreatorModal, CharacterNotesField } from "@/components/CharacterCreatorModal";
+import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField } from "@/components/CharacterCreatorModal";
 import { GenderPicker } from "@/components/GenderPicker";
 import { DownloadIcon, LeafLoader, MapleMark } from "@/components/Icons";
 import { PageLoading } from "@/components/PageLoading";
@@ -127,12 +127,14 @@ function CharacterEditModal({
 }) {
   const [name, setName] = useState(character.name);
   const [notes, setNotes] = useState(character.notes ?? "");
+  const [relationships, setRelationships] = useState(character.relationships ?? "");
   const [gender, setGender] = useState<CharacterGender | null>(character.gender ?? null);
   const [busy, setBusy] = useState<"save" | "delete" | null>(null);
   const nameChanged = name.trim() !== character.name;
   const notesChanged = notes.trim() !== (character.notes ?? "");
+  const relationshipsChanged = relationships.trim() !== (character.relationships ?? "");
   const genderChanged = gender !== (character.gender ?? null);
-  const canSave = Boolean(name.trim()) && (nameChanged || notesChanged || genderChanged) && !busy;
+  const canSave = Boolean(name.trim()) && (nameChanged || notesChanged || relationshipsChanged || genderChanged) && !busy;
   const [error, setError] = useState<string | null>(null);
 
   // The picture: tap it to save it or redraw it. A redraw keeps the name,
@@ -163,7 +165,7 @@ function CharacterEditModal({
     setError(null);
     try {
       const data = await requestCharacter(
-        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, gender: character.gender } },
+        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender } },
         setProgress,
       );
       if (!data.character.svg) throw new Error("Couldn't paint that one. Try again?");
@@ -212,7 +214,7 @@ function CharacterEditModal({
       const res = await fetch(`/api/characters/${character.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...(nameChanged ? { name: name.trim() } : {}), ...(notesChanged ? { notes: notes.trim() || null } : {}), ...(genderChanged ? { gender } : {}) }),
+        body: JSON.stringify({ ...(nameChanged ? { name: name.trim() } : {}), ...(notesChanged ? { notes: notes.trim() || null } : {}), ...(relationshipsChanged ? { relationships: relationships.trim() || null } : {}), ...(genderChanged ? { gender } : {}) }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string };
       if (!res.ok || !data.character) throw new Error(data.error || "Couldn't save those changes.");
@@ -285,6 +287,7 @@ function CharacterEditModal({
         />
         <GenderPicker value={gender} onChange={setGender} disabled={Boolean(busy)} />
         <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || character.name} disabled={Boolean(busy)} />
+        <CharacterRelationshipsField value={relationships} onChange={setRelationships} disabled={Boolean(busy)} />
         <button type="button" className="btn btn-primary btn-block" onClick={save} disabled={!canSave}>
           {busy === "save" && !redrawing ? (
             <>

@@ -19,6 +19,10 @@ export interface CharacterDef {
    *  relationships ("Pip's big sister", "Grandma's cat"). Fed to the story
    *  writer, never the illustrator. */
   notes?: string | null;
+  /** How they're related to the family and to other characters ("Colin's
+   *  big sister", "Grandma's cat", "best friends with Dot"), kept in its own
+   *  box apart from the notes. Fed to the story writer only. */
+  relationships?: string | null;
   /** The SavedCharacter this came from, if it's one of the user's own. */
   savedId?: string | null;
   gender?: CharacterGender | null;
@@ -33,6 +37,8 @@ export interface SavedCharacter {
   svg: string | null;
   /** Optional freeform description / relationships (see CharacterDef.notes). */
   notes: string | null;
+  /** Their relationships, in their own box (see CharacterDef.relationships). */
+  relationships?: string | null;
   /** The last prompt their picture was painted from: the description they
    *  were first created with, or the latest redraw request. Kept apart
    *  from the notes. */
@@ -218,7 +224,7 @@ export interface CharacterRequest {
   /** Redrawing an existing character: their current model sheet, and who
    *  they are (family notes, male/female) - kept, with the description
    *  saying what to change. */
-  current?: { look: string; notes?: string | null; gender?: CharacterGender | null };
+  current?: { look: string; notes?: string | null; relationships?: string | null; gender?: CharacterGender | null };
 }
 
 export interface CharacterResponse {

@@ -20,7 +20,7 @@ export class CharacterLimitError extends Error {}
 export async function listCharacters(ownerId: string): Promise<SavedCharacter[]> {
   const list = (await readJson<SavedCharacter[]>(path(ownerId))) ?? [];
   // Back-fill fields added after the first characters were saved.
-  return list.map((c) => ({ ...c, notes: c.notes ?? null, gender: asGender(c.gender), storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
+  return list.map((c) => ({ ...c, notes: c.notes ?? null, relationships: c.relationships ?? null, gender: asGender(c.gender), storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
 }
 
 /** Saves a newly designed character, or - if `replaceId` is given -
@@ -33,13 +33,14 @@ const cleanPrompt = (p: string | null | undefined) => (typeof p === "string" ? p
 
 export async function saveCharacter(
   ownerId: string,
-  input: { name: string; look: string; svg: string | null; notes?: string | null; gender?: string | null; prompt?: string | null },
+  input: { name: string; look: string; svg: string | null; notes?: string | null; relationships?: string | null; gender?: string | null; prompt?: string | null },
   replaceId?: string,
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const name = input.name.trim().slice(0, 40) || "Friend";
   const look = input.look.trim().slice(0, 500);
   const notes = cleanNotes(input.notes);
+  const relationships = cleanNotes(input.relationships);
   const gender = asGender(input.gender);
   const prompt = cleanPrompt(input.prompt);
   const now = Date.now();
@@ -47,7 +48,7 @@ export async function saveCharacter(
   if (replaceId) {
     const i = list.findIndex((c) => c.id === replaceId);
     if (i < 0) throw new Error("That character doesn't exist any more.");
-    const updated: SavedCharacter = { ...list[i], name, look, svg: input.svg, notes, gender, prompt, storyIds: [], updatedAt: now };
+    const updated: SavedCharacter = { ...list[i], name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], updatedAt: now };
     const next = [...list];
     next[i] = updated;
     await writeJson(path(ownerId), next);
@@ -57,7 +58,7 @@ export async function saveCharacter(
   if (list.length >= MAX_CHARACTERS) {
     throw new CharacterLimitError(`You can save up to ${MAX_CHARACTERS} characters - replace one to add another.`);
   }
-  const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, gender, prompt, storyIds: [], createdAt: now, updatedAt: now };
+  const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], createdAt: now, updatedAt: now };
   await writeJson(path(ownerId), [...list, created]);
   return created;
 }
@@ -67,7 +68,7 @@ export async function saveCharacter(
 export async function updateCharacter(
   ownerId: string,
   id: string,
-  patch: { name?: string; notes?: string | null; gender?: string | null; look?: string; svg?: string | null; prompt?: string | null },
+  patch: { name?: string; notes?: string | null; relationships?: string | null; gender?: string | null; look?: string; svg?: string | null; prompt?: string | null },
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const i = list.findIndex((c) => c.id === id);
@@ -77,6 +78,7 @@ export async function updateCharacter(
     ...cur,
     name: patch.name === undefined ? cur.name : patch.name.trim().slice(0, 40) || cur.name,
     notes: patch.notes === undefined ? cur.notes : cleanNotes(patch.notes),
+    relationships: patch.relationships === undefined ? (cur.relationships ?? null) : cleanNotes(patch.relationships),
     gender: patch.gender === undefined ? cur.gender : asGender(patch.gender),
     // a redrawn look (the painting is cleaned again here, never trusted)
     look: patch.look === undefined ? cur.look : patch.look.slice(0, 500) || cur.look,
@@ -118,6 +120,7 @@ export const toCharacterDef = (c: SavedCharacter, id: string): CharacterDef => (
   preset: null,
   svg: c.svg,
   notes: c.notes,
+  relationships: c.relationships ?? null,
   savedId: c.id,
   gender: c.gender,
 });
