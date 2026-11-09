@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { STORY_DELETED_EVENT } from "@/lib/gallery-client";
+import { SAVED_EVENT } from "@/lib/saved-client";
+import { LibraryActions } from "@/components/GalleryShelf";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
@@ -34,7 +36,32 @@ export default function MyStoriesPage() {
     fetch("/api/gallery/mine")
       .then((r) => r.json())
       .then((d: { stories?: GalleryEntry[] }) => setStories(d.stories ?? []));
+    // Stories saved from the library (their own section, only if any).
+    fetch("/api/user/saved")
+      .then((r) => (r.ok ? r.json() : { stories: [] }))
+      .then((d: { stories?: GalleryEntry[] }) => setSaved(d.stories ?? []))
+      .catch(() => setSaved([]));
   }, [status]);
+
+  // Unsaving a story (from its preview) takes it off the Saved shelf.
+  const [saved, setSaved] = useState<GalleryEntry[]>([]);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
+      if (d && !d.saved) setSaved((list) => list.filter((s) => s.id !== d.id));
+    };
+    window.addEventListener(SAVED_EVENT, on);
+    return () => window.removeEventListener(SAVED_EVENT, on);
+  }, []);
+  const savedSorted = useMemo(
+    () =>
+      saved
+        .filter((e) => matchesCategory(e, category))
+        .sort((a, b) => (sort === "rating" ? avg(b) - avg(a) || 0 : 0)),
+    [saved, sort, category],
+  );
+  const [openSavedId, setOpenSavedId] = useState<string | null>(null);
+  const openSaved = openSavedId ? saved.find((e) => e.id === openSavedId) ?? null : null;
 
   const sorted = useMemo(
     () =>
@@ -45,7 +72,7 @@ export default function MyStoriesPage() {
         : [],
     [stories, sort, category],
   );
-  const categories = useMemo(() => categoriesOf(stories ?? []), [stories]);
+  const categories = useMemo(() => categoriesOf([...(stories ?? []), ...saved]), [stories, saved]);
 
   const [openId, setOpenId] = useState<string | null>(null);
   // A story deleted from its preview leaves the bookshelf at once.
@@ -83,7 +110,7 @@ export default function MyStoriesPage() {
       <header className="wizard-head">
         <p className="eyebrow">Just yours</p>
         <h1>My bookshelf</h1>
-        {stories.length > 1 && (
+        {stories.length + saved.length > 1 && (
           <div className="filter-row">
             <button className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => setSort("recent")}>
               Newest
@@ -101,6 +128,7 @@ export default function MyStoriesPage() {
         )}
       </header>
 
+      {saved.length > 0 && <h2 className="shelf-section-title">My stories</h2>}
       {sorted.length === 0 ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
@@ -117,6 +145,21 @@ export default function MyStoriesPage() {
             <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
           ))}
         </div>
+      )}
+      {savedSorted.length > 0 && (
+        <>
+          <h2 className="shelf-section-title">Saved from the library</h2>
+          <div className="shelf">
+            {savedSorted.map((s) => (
+              <StoryCard key={s.id} entry={s} onOpen={() => setOpenSavedId(s.id)} />
+            ))}
+          </div>
+        </>
+      )}
+      {openSaved && (
+        <StoryPreview story={summaryFromEntry(openSaved)} eyebrow="Saved to your bookshelf" onClose={() => setOpenSavedId(null)} {...stepper(savedSorted, openSaved.id, setOpenSavedId)}>
+          <LibraryActions entry={openSaved} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
+        </StoryPreview>
       )}
       {open && (
         <StoryPreview story={summaryFromEntry(open)} eyebrow="On your bookshelf" onClose={() => setOpenId(null)} {...stepper(sorted, open.id, setOpenId)}>

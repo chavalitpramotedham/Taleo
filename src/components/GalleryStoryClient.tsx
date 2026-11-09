@@ -4,14 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Story } from "@/lib/types";
-import { newId, saveStory } from "@/lib/storage";
+import { useSaved, setStorySaved } from "@/lib/saved-client";
 import { StoryReader } from "./StoryReader";
 import { fetchGalleryStory } from "@/lib/gallery-client";
 
 export function GalleryStoryClient({ story: initial, partial = false }: { story: Story | null; partial?: boolean }) {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const signedIn = status === "authenticated";
+  const me = session?.user?.username?.toLowerCase();
+  const mine = Boolean(me && initial?.authorUsername?.toLowerCase() === me);
+  const saved = useSaved(initial?.id ?? "", signedIn && !mine && Boolean(initial));
   // Reading is open to everyone; signed out, the end page invites you to
   // sign in and create your own story instead of keeping a copy.
   const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent("/create")}`);
@@ -43,14 +46,11 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
       </div>
     );
 
-  const saveCopy = async () => {
-    // Keep a copy with every painting (never a half-pictured one that would
-    // need repainting).
-    const complete = (await loadFull()) ?? story;
-    const copy: Story = { ...complete, id: newId(), createdAt: Date.now(), rating: 0, published: false };
-    saveStory(copy);
-    router.push(`/story/${copy.id}`);
-  };
+  // Someone else's story can be saved to your bookshelf (a bookmark to the
+  // library's copy - it stays theirs); your own is on your shelf already.
+  const toggleSaved = () => void setStorySaved(story.id, !saved);
+  const label = !signedIn ? "Sign in to create your own" : saved ? "Saved to your bookshelf ✓" : "Save to my bookshelf";
+  const action = !signedIn ? signInToKeep : mine || saved === null ? undefined : toggleSaved;
 
-  return <StoryReader story={story} readOnly onSaveCopy={signedIn ? saveCopy : signInToKeep} saveCopyLabel={signedIn ? undefined : "Sign in to create your own"} picturesPending={partial && story === initial} />;
+  return <StoryReader story={story} readOnly onSaveCopy={action} saveCopyLabel={label} picturesPending={partial && story === initial} />;
 }

@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { deleteGalleryStory } from "@/lib/gallery-client";
+import { setStorySaved, useSaved } from "@/lib/saved-client";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
 import {
+  BookmarkIcon,
   ClockIcon,
   LeafLoader,
   MapleMark,
@@ -230,17 +232,21 @@ export function PreviewButtons({
   label,
   onShare,
   onRead,
+  extra,
 }: {
   href: string;
   label: string;
   onShare: () => void;
   onRead?: () => void;
+  /** another small round button beside Share (e.g. Save) */
+  extra?: React.ReactNode;
 }) {
   return (
     <div className="story-preview-buttons">
       <Link className="btn btn-primary" href={href} onClick={onRead}>
         <ReadLabel label={label} />
       </Link>
+      {extra}
       <button
         type="button"
         className="icon-btn story-preview-share"
@@ -251,6 +257,29 @@ export function PreviewButtons({
         <ShareIcon />
       </button>
     </div>
+  );
+}
+
+/** Save someone else's library story to your bookshelf (or take it off) -
+ *  for signed-in readers, never on your own stories. */
+export function SaveStoryButton({ id, author }: { id: string; author?: string }) {
+  const { data: session, status } = useSession();
+  const me = session?.user?.username?.toLowerCase();
+  const allowed = status === "authenticated" && (!author || author.toLowerCase() !== me);
+  const saved = useSaved(id, allowed);
+  if (!allowed) return null;
+  return (
+    <button
+      type="button"
+      className={`icon-btn story-preview-share story-preview-save ${saved ? "on" : ""}`}
+      onClick={() => void setStorySaved(id, !saved)}
+      disabled={saved === null}
+      aria-pressed={Boolean(saved)}
+      aria-label={saved ? "Saved to your bookshelf - tap to remove" : "Save to my bookshelf"}
+      title={saved ? "Saved to your bookshelf" : "Save to my bookshelf"}
+    >
+      <BookmarkIcon on={Boolean(saved)} />
+    </button>
   );
 }
 
@@ -267,7 +296,14 @@ function ReadLabel({ label }: { label: string }) {
   ) : (
     <>
       <MapleMark />
-      {label}
+      {/* ("Read the story": just "Read" where three buttons share a narrow row) */}
+      {label.startsWith("Read ") ? (
+        <>
+          Read<span className="read-rest">{label.slice(4)}</span>
+        </>
+      ) : (
+        label
+      )}
     </>
   );
 }

@@ -106,6 +106,13 @@ export const ShareIcon = () => (
   </svg>
 );
 
+/** A ribbon bookmark: "save to my bookshelf" (filled once saved). */
+export const BookmarkIcon = ({ on = false }: { on?: boolean }) => (
+  <svg {...base}>
+    <path d="M7 3.8h10a.8.8 0 0 1 .8.8v15.2l-5.8-3.9-5.8 3.9V4.6a.8.8 0 0 1 .8-.8z" fill={on ? "currentColor" : "none"} />
+  </svg>
+);
+
 /** A storybook take on the usual "person" icon: a head and shoulders, with
  *  a small accent dot echoing the brand mark (the dot before "Taleo"). */
 export const AccountIcon = () => (

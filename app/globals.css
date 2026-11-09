@@ -9253,3 +9253,37 @@ html:has(.reader) .night-glow-core {
 html:has(.reader) .night-glow-shimmer {
   display: none;
 }
+/* ---------- bookshelf: my stories, then the ones saved from the library ---------- */
+.shelf-section-title {
+  margin: clamp(18px, 3vw, 28px) 0 12px;
+  font-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  text-align: center;
+}
+.shelf + .shelf-section-title {
+  margin-top: clamp(36px, 6vw, 56px);
+}
+/* the Save button, once saved: filled bookmark in the active russet */
+.story-preview-save.on {
+  color: var(--russet);
+}
+/* With Save beside Share, the read button keeps to one line: the two
+   small buttons slim down and the label never wraps. */
+.story-preview-buttons:has(.story-preview-save) {
+  gap: 8px;
+}
+.story-preview-buttons:has(.story-preview-save) .story-preview-share {
+  width: 46px;
+}
+.story-preview-buttons .btn-primary {
+  white-space: nowrap;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+@media (max-width: 400px) {
+  .story-preview-buttons:has(.story-preview-save) .read-rest {
+    display: none;
+  }
+}
+.read-rest {
+  white-space: pre;
+}
