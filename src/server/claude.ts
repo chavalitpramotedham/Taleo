@@ -22,6 +22,9 @@ import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, t
 type Effort = "low" | "medium" | "high";
 const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
 const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
+/** The character designer has its own model setting (it used to follow the
+ *  story writer's). */
+const CHARACTER_MODEL = process.env.TALEO_CHARACTER_MODEL || "claude-opus-5-5";
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
 /** The pictures a reader is waiting on (the first page or two of each part - see app/api/illustrate) are painted
@@ -415,7 +418,7 @@ export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { s
  *  (the reply is JSON in schema order: name, look, then the svg). */
 async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void) {
   const stream = getClient().beta.messages.stream({
-    model: STORY_MODEL,
+    model: CHARACTER_MODEL,
     // (plenty of room: at high effort it thinks at length before it paints,
     // and a design cut off at the limit fails outright - in testing one in
     // nine designs ran past 24k)
@@ -426,7 +429,7 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
     messages: [{ role: "user", content: user }],
     output_config: { effort: CHARACTER_EFFORT, format: betaZodOutputFormat(CharacterDesignSchema) },
   });
-  const usage = streamUsageTracker("character", STORY_MODEL);
+  const usage = streamUsageTracker("character", CHARACTER_MODEL);
   let text = "";
   let stage: CharacterProgress["stage"] | null = null;
   let shapes = 0;
