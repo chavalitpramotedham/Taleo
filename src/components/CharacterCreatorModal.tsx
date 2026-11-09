@@ -53,13 +53,9 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
       setDrafted(data.character);
       setName(data.character.name);
-      // The description they painted from starts off their "About" notes
-      // (the storyteller reads these), ready to add relationships and the
-      // like. A repaint updates it - unless they've written their own.
-      const used = description.trim().slice(0, NOTES_MAX);
-      const before = prefilled.current;
-      prefilled.current = used;
-      setNotes((cur) => (!cur.trim() || cur === before ? used : cur));
+      // The description they were painted from is kept as their prompt
+      // (shown in its own box); "About" is left for extra details.
+      prefilled.current = description.trim();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -138,38 +134,52 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
 
         {drafted && !replacing && (
           <>
-            <div className="character-preview">
-              <CharacterPortrait character={drafted} className="character-preview-portrait" />
-              <input className="input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
+            {/* Who they are: picture, name, and male/female/open. */}
+            <div className="drafted-hero">
+              <span className="drafted-portrait">
+                <CharacterPortrait character={drafted} className="character-preview-portrait" />
+                {drawing && (
+                  <span className="char-edit-drawing" aria-hidden>
+                    <LeafLoader size={40} />
+                  </span>
+                )}
+              </span>
+              <input className="input char-name-input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
+              <GenderPicker value={gender} onChange={setGender} disabled={confirming} />
             </div>
-            <GenderPicker value={gender} onChange={setGender} disabled={confirming} />
-            <p className="meta">
-              {drawing ? "Painting them again with extra care - this can take a minute or two." : "Not quite right? Edit the description and paint them again."}
-            </p>
-            <div className="field-row">
+
+            {/* What they were painted from - edit it and repaint. */}
+            <label className="field-box">
+              <span className="field-box-label">Description</span>
               <GrowingInput
+                className="field-box-input"
                 value={description}
                 maxLength={200}
                 onChange={setDescription}
                 onEnter={draw}
-                aria-label="Describe your character"
+                aria-label="Description"
+                disabled={drawing}
               />
-              <button type="button" className="btn btn-soft" onClick={draw} disabled={!description.trim() || drawing}>
-                {drawing ? (
-                  <>
-                    <LeafLoader size={16} /> Painting…
-                  </>
-                ) : (
-                  "Regenerate"
-                )}
-              </button>
-            </div>
+              <span className="field-box-foot">
+                <button type="button" className="btn btn-soft btn-sm" onClick={draw} disabled={!description.trim() || drawing}>
+                  {drawing ? (
+                    <>
+                      <LeafLoader size={14} /> Painting…
+                    </>
+                  ) : (
+                    "Repaint"
+                  )}
+                </button>
+              </span>
+            </label>
+
             <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || drafted.name} disabled={confirming} />
-            <div className="field-row">
+
+            <div className="redraw-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={confirming}>
                 Cancel
               </button>
-              <button type="button" className="btn btn-primary btn-block" onClick={() => confirm()} disabled={!name.trim() || confirming}>
+              <button type="button" className="btn btn-primary btn-block" onClick={() => confirm()} disabled={!name.trim() || confirming || drawing}>
                 {confirming ? (
                   <>
                     <LeafLoader size={18} /> Saving…
@@ -177,7 +187,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 ) : (
                   <>
                     <MapleMark />
-                    Confirm &amp; save
+                    Save
                   </>
                 )}
               </button>
@@ -236,16 +246,17 @@ export function CharacterNotesField({
   disabled?: boolean;
 }) {
   return (
-    <label className="notes-field">
-      <span className="notes-label">
-        About {name || "them"} <span className="meta">(optional)</span>
+    <label className="field-box">
+      <span className="field-box-label">
+        About {name || "them"} <span className="field-box-optional">optional</span>
       </span>
       <textarea
-        className="input comment-input notes-input"
+        className="field-box-input notes-input"
         value={value}
         maxLength={NOTES_MAX}
         disabled={disabled}
-        placeholder="Anything that matters: who they are, what they love, and how they know the others (e.g. Pip's big sister, always looks out for him)."
+        rows={2}
+        placeholder="Who they are and who they know - e.g. Pip's big sister"
         onChange={(e) => onChange(e.target.value)}
       />
     </label>

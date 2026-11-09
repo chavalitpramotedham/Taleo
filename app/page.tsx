@@ -113,6 +113,12 @@ export default async function Home({ searchParams }: HomeProps) {
         <HeroPainting />
       </section>
 
+      {/* The steps get their own little chapter: a divider and heading. */}
+      <OrnamentRule className="home-divider" />
+      <header className="home-shelf-head home-steps-head">
+        <h2>Get started</h2>
+        <p className="sub">Four steps to your own picture book.</p>
+      </header>
       <StepsScroller steps={STEPS} />
 
       <OrnamentRule className="home-divider" />

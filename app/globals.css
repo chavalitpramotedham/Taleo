@@ -7368,3 +7368,100 @@ html[data-night] .step-art img {
     gap: 6px;
   }
 }
+
+/* ---------- a newly painted character: tidy form ---------- */
+.drafted-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.drafted-portrait {
+  position: relative;
+  display: block;
+}
+.drafted-portrait .character-preview-portrait {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+.drafted-hero .char-name-input {
+  width: min(100%, 280px);
+  flex: none;
+}
+/* A labelled box for a field: description, notes. */
+.field-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--page) 70%, transparent);
+  cursor: text;
+}
+.field-box:focus-within {
+  border-color: var(--russet);
+}
+.field-box-label {
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.field-box-optional {
+  font-family: var(--font-body);
+  font-style: italic;
+  letter-spacing: 0;
+  margin-left: 2px;
+}
+.field-box .field-box-input,
+.field-box .field-box-input:focus {
+  border: 0;
+  outline: 0;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--ink);
+  resize: none;
+}
+.field-box .notes-input {
+  height: auto;
+  min-height: 2.9em;
+}
+.field-box-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+.field-box-foot .btn-sm {
+  padding: 6px 14px;
+  min-height: 0;
+  font-size: 0.9rem;
+}
+/* (.input's flex-basis is meant for rows; in a column box it became a
+   height) */
+.field-box .field-box-input {
+  flex: none;
+}
+.drafted-portrait .character-preview-portrait {
+  margin: 0;
+}
+.drafted-hero {
+  margin-top: -6px;
+}
+.field-box-foot .btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 0.88rem;
+  box-shadow: 0 2px 0 var(--rule-strong);
+}
+/* "Get started" above the steps */
+.home-steps-head + .steps-wrap .steps {
+  margin-top: clamp(14px, 2.5vw, 24px);
+}
