@@ -3511,7 +3511,12 @@ html[data-night] body {
   background-color: #0f0c12;
   /* (no warm patch baked in here: the lantern's own light, which follows
      the lantern, is the only warm light on the page) */
-  background-image: radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
+  /* Two layers, like the day background: an (invisible) wash in the night
+     colour across the top as well as the faint violet in the corner. With
+     only the corner glow, the browser repainted the whole screen on every
+     scroll frame; built like this it scrolls at a steady 60fps. */
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(15, 12, 18, 0.9), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
 }
 /* Switching themes: colours glide rather than snap. */
 /* The book: lit from a lamp above its top-right corner, so it throws a
