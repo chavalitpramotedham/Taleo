@@ -222,7 +222,12 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       // (The drawing includes its cord and space around the glass: at 40px
       // the glass matches the 19px moon; 60px - glass about 28px, just under
       // the switch - is the most it grows to.)
-      const w = Math.round(Math.min(60, Math.max(40, window.innerWidth / 24)));
+      // It grows with the page's content column, not the window: once the
+      // content stops growing (1120px, or a story's wider 1360px book), so
+      // does the lantern - at its largest just as the content reaches full width.
+      const col = parseFloat(getComputedStyle(bar).getPropertyValue("--col")) || 1120;
+      const content = Math.min(window.innerWidth, col);
+      const w = Math.round(Math.min(60, Math.max(40, (content * 60) / col)));
       let cord = w <= 24 ? 6 : 12;
       // Screen coordinates: the bar is fixed to the top, and so is this layer.
       const x = s.left + s.width / 2;

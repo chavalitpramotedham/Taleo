@@ -4980,29 +4980,17 @@ html.theme-melting .topbar::before {
   width: 0;
   height: 0;
   will-change: transform;
-  animation: lanternFlyX 3.4s ease-in-out infinite alternate;
+  /* it arrives once the lantern has come down and the room is lit */
+  animation:
+    lanternFlyX 3.4s ease-in-out infinite alternate,
+    lightOn 1.6s ease 1.6s both;
 }
 .lantern-firefly-y {
   position: absolute;
   will-change: transform;
   animation: lanternFlyY 2.3s ease-in-out -1.1s infinite alternate;
 }
-/* (close to the lamp it glows most of the time, dimming only now and then) */
-.lantern-firefly .firefly-light {
-  animation: lanternFlyGlow 2.8s ease-in-out infinite;
-}
-@keyframes lanternFlyGlow {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  45% {
-    opacity: 0.35;
-  }
-  70% {
-    opacity: 1;
-  }
-}
+
 @keyframes lanternFlyX {
   from {
     transform: translateX(calc(var(--lamp-w, 28px) * -0.95));
@@ -5011,12 +4999,15 @@ html.theme-melting .topbar::before {
     transform: translateX(calc(var(--lamp-w, 28px) * 0.95));
   }
 }
+/* (close to the lamp it glows most of the time, dimming as it dips) */
 @keyframes lanternFlyY {
   from {
     transform: translateY(calc(var(--lamp-w, 28px) * -0.55));
+    opacity: 1;
   }
   to {
     transform: translateY(calc(var(--lamp-w, 28px) * 0.5));
+    opacity: 0.45;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -5180,9 +5171,6 @@ html[data-night] .topbar {
   box-shadow:
     0 0 5px 1px rgba(255, 214, 120, 0.5),
     0 0 14px 5px rgba(255, 196, 92, 0.16);
-  opacity: 0;
-  will-change: opacity;
-  animation: twinkle 3.6s ease-in-out infinite;
 }
 .firefly:nth-child(3n + 1) {
   animation-name: wanderB;
@@ -5197,14 +5185,12 @@ html[data-night] .topbar {
   height: 3px;
   left: -1.5px;
   top: -1.5px;
-  animation-duration: 4.8s;
 }
 .firefly:nth-child(5n + 2) .firefly-light {
   width: 5px;
   height: 5px;
   left: -2.5px;
   top: -2.5px;
-  animation-duration: 2.9s;
 }
 /* Like real fireflies, most hover low, near the ground (the bottom third
    of the screen); a few drift in the middle, a couple up high; and three
@@ -5242,48 +5228,51 @@ html[data-night] .topbar {
   80% { transform: translate(18px, -58vh); opacity: 0.5; }
   100% { transform: translate(-6px, -74vh); opacity: 0; }
 }
-.firefly.f1 .firefly-light { animation-delay: -1.2s; }
-.firefly.f2 .firefly-light { animation-delay: -2.4s; }
-.firefly.f3 .firefly-light { animation-delay: -0.6s; }
-.firefly.f5 .firefly-light { animation-delay: -3.1s; }
-.firefly.f6 .firefly-light { animation-delay: -1.8s; }
-.firefly.f7 .firefly-light { animation-delay: -2.9s; }
-.firefly.f9 .firefly-light { animation-delay: -0.9s; }
-.firefly.f10 .firefly-light { animation-delay: -2.2s; }
-.firefly.f11 .firefly-light { animation-delay: -3.4s; }
-.firefly.f13 .firefly-light { animation-delay: -1.5s; }
-.firefly.f14 .firefly-light { animation-delay: -2.6s; }
-.firefly.f15 .firefly-light { animation-delay: -0.3s; }
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 0.12;
-  }
-  45% {
-    opacity: 0.72;
-  }
-  60% {
-    opacity: 0.5;
-  }
-}
+/* Performance: each firefly is ONE moving dot - a still picture (the dot
+   and its glow, drawn once) whose drift and twinkle are a single animation
+   of transform + opacity on one element, which the graphics card plays by
+   itself (as the leaf loader does). (They used to twinkle with a second,
+   separate animation on an inner element, which kept the browser busy on
+   every frame.) */
 @keyframes wanderA {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(26px, -18px); }
-  50% { transform: translate(8px, -42px); }
-  75% { transform: translate(-22px, -24px); }
-  100% { transform: translate(-6px, 10px); }
+  0% { transform: translate(0, 0); opacity: 0.15; }
+  9% { opacity: 0.7; }
+  17% { opacity: 0.3; }
+  25% { transform: translate(26px, -18px); opacity: 0.68; }
+  34% { opacity: 0.14; }
+  42% { opacity: 0.72; }
+  50% { transform: translate(8px, -42px); opacity: 0.4; }
+  58% { opacity: 0.12; }
+  67% { opacity: 0.7; }
+  75% { transform: translate(-22px, -24px); opacity: 0.35; }
+  84% { opacity: 0.66; }
+  92% { opacity: 0.14; }
+  100% { transform: translate(-6px, 10px); opacity: 0.6; }
 }
 @keyframes wanderB {
-  0% { transform: translate(0, 0); }
-  30% { transform: translate(-30px, -14px); }
-  60% { transform: translate(-12px, 22px); }
-  100% { transform: translate(24px, -8px); }
+  0% { transform: translate(0, 0); opacity: 0.6; }
+  8% { opacity: 0.12; }
+  17% { opacity: 0.7; }
+  30% { transform: translate(-30px, -14px); opacity: 0.2; }
+  39% { opacity: 0.72; }
+  48% { opacity: 0.35; }
+  60% { transform: translate(-12px, 22px); opacity: 0.66; }
+  70% { opacity: 0.13; }
+  80% { opacity: 0.7; }
+  90% { opacity: 0.3; }
+  100% { transform: translate(24px, -8px); opacity: 0.12; }
 }
 @keyframes wanderC {
-  0% { transform: translate(0, 0); }
-  35% { transform: translate(18px, 26px); }
-  70% { transform: translate(-16px, 12px); }
-  100% { transform: translate(-4px, -30px); }
+  0% { transform: translate(0, 0); opacity: 0.4; }
+  11% { opacity: 0.72; }
+  22% { opacity: 0.12; }
+  35% { transform: translate(18px, 26px); opacity: 0.66; }
+  46% { opacity: 0.3; }
+  57% { opacity: 0.7; }
+  70% { transform: translate(-16px, 12px); opacity: 0.14; }
+  80% { opacity: 0.68; }
+  90% { opacity: 0.25; }
+  100% { transform: translate(-4px, -30px); opacity: 0.7; }
 }
 
 /* ---------- page changes ---------- */
@@ -5342,8 +5331,9 @@ html[data-night] .keyword-pill {
 .night-glow {
   animation: lightOn 1.4s ease both;
 }
+/* (the fireflies drift in after the lantern has come down) */
 .fireflies {
-  animation: lightOn 2.4s ease both;
+  animation: lightOn 2.4s ease 0.8s both;
 }
 .nav-lantern.settled .nav-lantern-drop {
   animation: lightOn 0.9s ease both;
