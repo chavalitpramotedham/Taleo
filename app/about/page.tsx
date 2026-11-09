@@ -54,7 +54,7 @@ export default function AboutPage() {
         </p>
 
         <p>
-          But of course, parents also become the occasional &quot;victims&quot; of their children&apos;s favourite bedtime stories. Kids want it again. Then again. And again. By the fiftieth reading, even the best stories can start to lose a little of their magic.
+          But of course, parents also become the occasional &quot;victims&quot; of their children&apos;s favourite bedtime stories. Kids want it again. Then again. And again. By the fiftieth reading, even the best stories can start to lose a little bit of their magic.
         </p>
 
         <p>
