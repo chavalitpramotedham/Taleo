@@ -80,3 +80,42 @@ export function unlockAudio() {
     src.start(0);
   } catch {}
 }
+
+/** Call inside any tap: if the audio has gone quiet since (iPhone suspends
+ *  or "interrupts" it - more readily in silent mode), bring it back while
+ *  the tap still counts as permission. Cheap when it's already running. */
+export function wakeAudio() {
+  playThroughSilentSwitch();
+  if (!ctx || ctx.state !== "running") unlockAudio();
+}
+
+/** While read-aloud is on, play an inaudible tone on a loop so the phone
+ *  never parks the audio between pages - otherwise a page read on a timer
+ *  (after the turn, not inside a tap) can't restart it, and in silent mode
+ *  only the tapped words were heard. */
+let holdSrc: AudioBufferSourceNode | null = null;
+export function holdAudioOpen(on: boolean) {
+  if (!on) {
+    try {
+      holdSrc?.stop();
+    } catch {}
+    holdSrc = null;
+    return;
+  }
+  if (holdSrc) return;
+  const c = getAudioContext();
+  if (!c) return;
+  try {
+    const buf = c.createBuffer(1, c.sampleRate, c.sampleRate); // 1s of silence
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const g = c.createGain();
+    g.gain.value = 0;
+    src.connect(g).connect(c.destination);
+    src.start();
+    holdSrc = src;
+  } catch {
+    holdSrc = null;
+  }
+}

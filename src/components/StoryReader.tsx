@@ -7,6 +7,7 @@ import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { usePaintings } from "@/lib/usePaintings";
+import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
@@ -71,6 +72,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [customIdea, setCustomIdea] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [readAloud, setReadAloud] = useState(false);
+  // While reading aloud, keep the phone's audio from parking between pages.
+  useEffect(() => {
+    holdAudioOpen(readAloud);
+    return () => holdAudioOpen(false);
+  }, [readAloud]);
   // The words' size, chosen with the A− / A+ control and remembered on this
   // device (a scale on the age level's own size).
   const [textSize, setTextSize] = useState(1);
@@ -943,7 +949,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
             className={`icon-btn ${readAloud ? "on" : ""}`}
             onClick={() => {
               if (readAloud) cancelSpeech();
-              else unlockSpeech();
+              else {
+                unlockSpeech();
+                wakeAudio();
+              }
               setReadAloud((r) => !r);
             }}
             aria-pressed={readAloud}

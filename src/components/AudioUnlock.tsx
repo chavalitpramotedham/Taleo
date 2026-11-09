@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { unlockAudio } from "@/lib/sfx";
+import { wakeAudio } from "@/lib/audio-context";
 import { unlockSpeech } from "@/lib/speech";
 
 /** Primes Web Audio and speech synthesis on the very first tap anywhere in
@@ -21,7 +22,14 @@ export function AudioUnlock() {
     window.addEventListener("pointerdown", unlock, { once: true, passive: true });
     window.addEventListener("touchend", unlock, { once: true, passive: true });
     window.addEventListener("keydown", unlock, { once: true });
+    // Every later tap too: wake the audio if the phone has parked it, so
+    // sounds that start a moment after a tap (a page read aloud after the
+    // turn) still play - silent mode included.
+    window.addEventListener("pointerdown", wakeAudio, { passive: true });
+    window.addEventListener("touchend", wakeAudio, { passive: true });
     return () => {
+      window.removeEventListener("pointerdown", wakeAudio);
+      window.removeEventListener("touchend", wakeAudio);
       window.removeEventListener("pointerdown", unlock);
       window.removeEventListener("touchend", unlock);
       window.removeEventListener("keydown", unlock);
