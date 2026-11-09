@@ -9278,9 +9278,18 @@ html:has(.reader) .night-glow-shimmer {
 .shelf + .shelf-section-title {
   margin-top: clamp(36px, 6vw, 56px);
 }
-/* the Save button, once saved: filled bookmark in the active russet */
-.story-preview-save.on {
-  color: var(--russet);
+/* the Save button, once saved: the whole button filled in russet, the
+   bookmark an outline in cream - unmistakably "on" */
+.story-preview-buttons .story-preview-save.on,
+.story-preview-buttons .story-preview-save.on:hover {
+  background: var(--russet);
+  border-color: var(--russet);
+  color: #fbf4e6;
+}
+html[data-night] .story-preview-buttons .story-preview-save.on {
+  background: var(--russet);
+  border-color: var(--russet);
+  color: #1d1720;
 }
 /* With Save beside Share, the read button keeps to one line: the two
    small buttons slim down and the label never wraps. */
@@ -9941,4 +9950,15 @@ html[data-night] .glass-toast {
   background: rgba(30, 24, 32, 0.68);
   border-color: rgba(255, 236, 205, 0.16);
   box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.8);
+}
+/* (the generic "on" icon fill doesn't apply: the bookmark stays an outline) */
+.icon-btn.story-preview-save.on > svg > path:first-of-type {
+  fill: none;
+}
+/* The rating on a preview's cover is a button, in a strip that otherwise
+   lets taps through to the cover - it takes its own taps. */
+.cover-meta .cover-rating-btn {
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }

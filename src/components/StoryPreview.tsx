@@ -383,7 +383,7 @@ export function SaveStoryButton({ id, author }: { id: string; author?: string })
       aria-label={saved ? "Saved to your bookshelf - tap to remove" : "Save to my bookshelf"}
       title={saved ? "Saved to your bookshelf" : "Save to my bookshelf"}
     >
-      <BookmarkIcon on={Boolean(saved)} />
+      <BookmarkIcon />
     </button>
   );
 }
