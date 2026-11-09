@@ -7527,3 +7527,43 @@ html[data-night] .step-art img {
     padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 }
+
+/* ---------- shelf pills: a little more air ---------- */
+/* The pills sit a touch smaller and lighter on phones, with clear space
+   between them and the cards below. (The touch-area padding on the row
+   no longer pulls the cards up underneath it.) */
+@media (pointer: coarse) {
+  .filter-row {
+    margin-bottom: 0;
+  }
+}
+.home-shelf-head,
+.wizard-head:has(.filter-row) {
+  margin-bottom: clamp(18px, 3vw, 26px);
+}
+.home-shelf-head .sub {
+  margin-bottom: 6px;
+}
+@media (max-width: 520px) {
+  .filter-row .chip,
+  .filter-row .category-chip-label {
+    font-size: 0.88rem;
+    padding-top: 6px;
+    padding-bottom: 7px;
+  }
+  .filter-row:has(.category-chip) {
+    gap: 8px;
+  }
+  .filter-split {
+    margin: 0 4px;
+  }
+}
+/* pills keep their own height (the row's taller touch areas mustn't
+   stretch them) */
+.filter-row {
+  align-items: center;
+}
+/* (the category pill's padding lives on its inner button, not its shell) */
+.filter-row .chip.category-chip {
+  padding: 0;
+}
