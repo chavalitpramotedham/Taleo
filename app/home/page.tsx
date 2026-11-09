@@ -25,7 +25,7 @@ export default async function HomePage() {
   const pages = mine.reduce((n, e) => n + (e.pages ?? 0), 0);
   const minutes = mine.reduce((n, e) => n + (e.minutes || ageById(e.age).recommendedMinutes), 0);
   const stats = [
-    { value: mine.length, label: mine.length === 1 ? "story made" : "stories made" },
+    { value: mine.length, label: mine.length === 1 ? "story created" : "stories created" },
     // every page teaches one new word (the tappable word on each page)
     { value: pages, label: pages === 1 ? "new word learned" : "new words learned" },
     { value: minutes, label: minutes === 1 ? "minute of stories" : "minutes of stories" },
