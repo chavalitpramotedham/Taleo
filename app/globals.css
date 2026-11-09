@@ -8051,12 +8051,12 @@ html[data-night] .story-card .paint-dim {
 }
 html[data-night] .story-card {
   position: relative;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--page) 86%, #ffd9a8) 0%, var(--page) 60%);
-  border-color: color-mix(in srgb, #ffc47a 20%, var(--page-edge));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--page) 91%, #ffd9a8) 0%, var(--page) 60%);
+  border-color: color-mix(in srgb, #ffc47a 14%, var(--page-edge));
   box-shadow:
-    inset -1px 1px 0 rgba(255, 196, 122, 0.26),
+    inset -1px 1px 0 rgba(255, 196, 122, 0.17),
     0 14px 28px -16px rgba(0, 0, 0, 0.8),
-    0 0 24px -12px rgba(255, 186, 104, 0.18);
+    0 0 24px -12px rgba(255, 186, 104, 0.11);
 }
 html[data-night] .story-card::after {
   content: "";
@@ -8064,8 +8064,8 @@ html[data-night] .story-card::after {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 70% at 100% 0%, rgba(255, 206, 140, 0.16), transparent 62%),
-    linear-gradient(115deg, transparent 38%, rgba(255, 222, 172, 0.07) 50%, transparent 62%);
+    radial-gradient(120% 70% at 100% 0%, rgba(255, 206, 140, 0.09), transparent 62%),
+    linear-gradient(115deg, transparent 38%, rgba(255, 222, 172, 0.04) 50%, transparent 62%);
   mix-blend-mode: screen;
 }
 html[data-night] .story-card .story-card-title {
