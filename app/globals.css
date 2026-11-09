@@ -6643,12 +6643,7 @@ html[data-night] .admin-spark.bad {
    stays there while the words scroll up beneath it - so the picture never
    leaves the screen. */
 @media not ((min-width: 760px) and (min-aspect-ratio: 5/4)) {
-  /* It stops a small, even gap below the menu bar - the pane's own top
-     edge showing above it, like when the page is at the top - rather than
-     tight against the bar. The gap is drawn with shadows above the picture
-     in the book's own page colour, closed by a 1px top edge that meets the
-     book's side borders - so it reads as the book's top margin (no stray
-     side lines), and the words sliding up beneath never show through. */
+  /* It stops a small, even gap below the menu bar (see the strip below). */
   .book-art {
     --gap: 12px;
     position: sticky;
@@ -6656,20 +6651,27 @@ html[data-night] .admin-spark.bad {
     z-index: 3;
     background: var(--page);
   }
-  /* Only once it's stuck (the reader adds .art-stuck): at rest, the page's
-     normal margin shows above the book. */
-  /* (the book is cut off at the picture's top edge - see the reader - so
-     the real background shows in the gap; the picture gets the book's top
-     edge line, and a soft edge where the words slide under it) */
-  .book.art-stuck .book-art {
-    box-shadow:
-      inset 0 1px 0 var(--page-edge),
-      0 10px 12px -12px rgba(60, 40, 20, 0.35);
+  /* The gap above the stuck picture: a strip in the page's own background
+     colour, held just under the menu bar by the browser itself (no
+     scripts, so it never lags a fast scroll). At rest it sits in the
+     reader's empty top margin; once the page scrolls, it hides whatever
+     slides up beneath it, so the picture always stops with a clean gap. */
+  .reader {
+    padding-top: 12px;
   }
-  html[data-night] .book.art-stuck .book-art {
-    box-shadow:
-      inset 0 1px 0 #2e262c,
-      0 10px 14px -12px rgba(0, 0, 0, 0.8);
+  .reader::before {
+    content: "";
+    display: block;
+    position: sticky;
+    top: var(--topbar-h, 64px);
+    z-index: 4;
+    height: 12px;
+    /* in the top margin, taking no room (the reader's gap is 12px) */
+    margin: -12px calc(-1 * clamp(10px, 3vw, 36px)) -12px;
+    background: var(--paper);
+  }
+  html[data-night] .reader::before {
+    background: #0f0c12;
   }
 }
 /* Wide screens: the open book fills exactly the screen below the menu bar

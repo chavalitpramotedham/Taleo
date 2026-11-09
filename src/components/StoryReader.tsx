@@ -514,40 +514,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     go(dx < 0 ? 1 : -1);
   };
 
-  // On tall screens the picture sticks under the menu bar as the words
-  // scroll (see .book-art in the CSS). Note when it's stuck, so the gap
-  // above it is only filled in then - at rest the page's own margin shows.
-  const bookRef = useRef<HTMLDivElement>(null);
-  // Toggled straight on the element (no re-render of the whole reader in
-  // the middle of a scroll, which made the page judder on phones), in the
-  // same frame as the scroll.
-  useEffect(() => {
-    // One simple measure: how far the sticky picture has slid down inside
-    // its own book. Zero at rest; once it's stuck, cut the book off at the
-    // picture's top edge so the real background shows in the gap above it.
-    // (Relative to the book, so it stays right while the whole page is
-    // being pulled down to refresh.)
-    const check = () => {
-      const book = bookRef.current;
-      const art = book?.querySelector<HTMLElement>(".book-art");
-      if (!book || !art) return;
-      // (the picture is the book's first child: at rest it sits right at the
-      // book's inner top edge)
-      const slid = art.getBoundingClientRect().top - book.getBoundingClientRect().top - book.clientTop;
-      const cut = slid > 0.5 ? Math.round(slid + book.clientTop) : 0;
-      if (book.dataset.cut === String(cut)) return;
-      book.dataset.cut = String(cut);
-      book.classList.toggle("art-stuck", cut > 0);
-      book.style.clipPath = cut ? `inset(${cut}px -60px -80px -60px)` : "";
-    };
-    check();
-    window.addEventListener("scroll", check, { passive: true });
-    window.addEventListener("resize", check);
-    return () => {
-      window.removeEventListener("scroll", check);
-      window.removeEventListener("resize", check);
-    };
-  }, [cover]);
 
   // ---------------------------------------------------------------- read aloud
   const speak = useCallback((text: string) => speakText(text, { kind: "page" }), []);
@@ -929,7 +895,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         onTouchEnd={onTouchEnd}
       >
         {cover !== "closed" && (
-      <div className="book" ref={bookRef}>
+      <div className="book">
         <div className="book-art">{picture}</div>
         <div className="book-text">
           {cover === "open" && (
