@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { Avatar } from "@/components/Avatar";
 import { getUserByUsername } from "@/server/users";
+import { OG_IMAGE, SITE_URL, breadcrumbs, jsonLd } from "@/lib/seo";
 
 // Built on first visit and served from Vercel's cache, refreshed at most
 // every 5 minutes (only the author's avatar comes from the server; their
@@ -14,7 +15,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const { username } = await params;
   const name = decodeURIComponent(username);
-  return { title: `@${name}'s bookshelf · Taleo`, description: `Picture-book stories by @${name}, painted and shared on Taleo.` };
+  const profile = await getUserByUsername(name, { cacheSeconds: revalidate }).catch(() => null);
+  const shown = profile?.username || name;
+  const title = `@${shown}'s bookshelf`;
+  const description = `Bedtime picture-book stories by @${shown}, painted and shared on Taleo. Free to read, with a watercolour picture on every page.`;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/author/${encodeURIComponent(shown)}` },
+    openGraph: { type: "profile", siteName: "Taleo", url: `/author/${encodeURIComponent(shown)}`, title, description, username: shown, images: [OG_IMAGE] },
+    // Unknown names and private bookshelves stay out of search results.
+    robots: profile && profile.visibility !== "private" ? undefined : { index: false, follow: true },
+  };
 }
 
 /** An author's bookshelf: every story they've shared to the library. */
@@ -39,8 +51,28 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
       </div>
     );
   }
+  const url = `${SITE_URL}/author/${encodeURIComponent(shown)}`;
+  const structured = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "@id": url,
+        url,
+        name: `@${shown}'s bookshelf`,
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        mainEntity: { "@type": "Person", name: `@${shown}`, alternateName: shown, url },
+      },
+      breadcrumbs([
+        { name: "Taleo", path: "/" },
+        { name: "Library", path: "/store" },
+        { name: `@${shown}`, path: `/author/${encodeURIComponent(shown)}` },
+      ]),
+    ],
+  };
   return (
     <div className="container">
+      {profile && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(structured)} />}
       <GalleryShelf
         author={shown}
         headClass="wizard-head"

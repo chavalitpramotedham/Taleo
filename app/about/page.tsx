@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
+import { OG_IMAGE } from "@/lib/seo";
 import { OrnamentRule } from "@/components/Icons";
 
 export const metadata: Metadata = {
-  title: "About us · Taleo",
+  title: "About us",
   description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    type: "website",
+    siteName: "Taleo",
+    url: "/about",
+    title: "About Taleo: by parents, for parents",
+    description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
+    images: [OG_IMAGE],
+  },
 };
 
 /** About Taleo: the founder's story, and the "Say hello" form. */

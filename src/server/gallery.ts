@@ -21,8 +21,9 @@ function cardDetails(story: Story): Pick<GalleryEntry, "keyword" | "starring" | 
   };
 }
 
-export async function listGallery(): Promise<GalleryEntry[]> {
-  let entries = (await readJson<GalleryEntry[]>(INDEX_PATH)) ?? [];
+/** `cacheSeconds`: only for pages that are themselves cached (the sitemap). */
+export async function listGallery(opts: { cacheSeconds?: number } = {}): Promise<GalleryEntry[]> {
+  let entries = (await readJson<GalleryEntry[]>(INDEX_PATH, opts)) ?? [];
   // One-off back-fill of card details for entries published before they
   // were stored: read those stories once, then save the index.
   const missing = entries.filter((e) => !e.keyword || !e.starring);

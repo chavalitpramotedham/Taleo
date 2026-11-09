@@ -9,19 +9,46 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
 import { AccountNav } from "@/components/AccountNav";
 import { Providers } from "@/components/Providers";
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
   // always point at the real domain, never a temporary deployment address.
-  metadataBase: new URL("https://taleo-stories.app"),
-  title: "Taleo: picture books you make together",
-  description:
-    "By parents, for parents: make watercolour picture books with your little one. Pick a hero and a tale, decide together what happens next, with a warm lesson in every story.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: "%s · Taleo" },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: SITE_KEYWORDS,
+  category: "education",
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    locale: "en_GB",
+    images: [OG_IMAGE],
+  },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: [OG_IMAGE] },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  // Ownership checks for Google Search Console / Bing Webmaster Tools: set
+  // the code each one gives you as an environment variable on Vercel.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
+  },
   appleWebApp: {
     title: "Taleo",
     statusBarStyle: "default",
   },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {

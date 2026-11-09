@@ -11,6 +11,7 @@ import { TechShowcase } from "@/components/TechShowcase";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
+import { ORGANIZATION, WEB_APPLICATION, WEBSITE, jsonLd } from "@/lib/seo";
 
 const STEPS = [
   {
@@ -56,14 +57,17 @@ const sharedId = async (searchParams: HomeProps["searchParams"]) => {
 export async function generateMetadata({ searchParams }: HomeProps): Promise<Metadata> {
   const id = await sharedId(searchParams);
   const story = id ? await getGalleryStory(id).catch(() => null) : null;
-  if (!story) return {};
+  if (!story) return { alternates: { canonical: "/" } };
   const title = story.title || "An untitled story";
   const description = `A Taleo picture-book story starring ${story.hero.name}. Painted and shared for anyone to read.`;
   const image = `/store/${story.id}/opengraph-image`;
   return {
-    title: `${title} · Taleo`,
+    // (The "· Taleo" template only applies to pages below this one.)
+    title: { absolute: `${title} · Taleo` },
     description,
-    openGraph: { title, description, type: "article", images: [image] },
+    // The same story has its own page; search engines should list that one.
+    alternates: { canonical: `/store/${story.id}` },
+    openGraph: { title, description, type: "article", siteName: "Taleo", url: `/store/${story.id}`, images: [image] },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
@@ -92,6 +96,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const shared = await sharedSummary(await sharedId(searchParams));
   return (
     <div className="container home">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd({ "@context": "https://schema.org", "@graph": [ORGANIZATION, WEBSITE, WEB_APPLICATION] })} />
       <section className="hero">
         <div className="hero-copy">
           <h1>

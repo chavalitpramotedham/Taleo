@@ -32,6 +32,7 @@ export function BookCover({
   canOpen,
   ready,
   onOpen,
+  isHeading = false,
 }: {
   story: Story;
   /** Swinging open (CSS animation) - the book underneath shows through. */
@@ -42,7 +43,11 @@ export function BookCover({
    *  the cover simply waits to be opened. */
   ready: boolean;
   onOpen: () => void;
+  /** The page's main heading while the book is closed (the reader's own
+   *  title only shows once it's open) - for screen readers and search. */
+  isHeading?: boolean;
 }) {
+  const Title = isHeading ? "h1" : "h2";
   const first = story.segments[0]?.pages[0];
   const heroes = [story.hero, ...(story.companions ?? [])];
   const names = heroes.map((h) => h.name);
@@ -55,7 +60,7 @@ export function BookCover({
         <div className="book-cover-frame">
           <p className="book-cover-kicker">A Taleo picture book</p>
           <Ornament className="book-cover-orn" />
-          <h2 className={`book-cover-title ${story.title ? "shown" : ""}`}>{story.title || " "}</h2>
+          <Title className={`book-cover-title ${story.title ? "shown" : ""}`}>{story.title || " "}</Title>
           <div className="book-cover-oval">
             {first?.svg ? (
               <Painting svg={first.svg} title={story.title} className="book-cover-art" />

@@ -858,7 +858,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         )}
       </div>
         )}
-        {cover !== "open" && <BookCover story={story} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
+        {cover !== "open" && <BookCover story={story} isHeading={cover === "closed"} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
       </div>
 
       <nav className={`reader-nav ${cover === "opening" ? "hidden-until-open" : ""}`} aria-label="Turn the page">

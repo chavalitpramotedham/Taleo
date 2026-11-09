@@ -6,7 +6,7 @@ import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
 import { anthropicCosts, anthropicCostsEnabled, type AnthropicCosts } from "@/server/anthropic-costs";
 
-export const metadata: Metadata = { title: "Admin dashboard · Taleo", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin dashboard", robots: { index: false, follow: false } };
 
 const DAYS = 30;
 
