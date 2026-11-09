@@ -99,6 +99,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd({ "@context": "https://schema.org", "@graph": [ORGANIZATION, WEBSITE, WEB_APPLICATION] })} />
       <section className="hero">
         <div className="hero-copy">
+          <p className="eyebrow hero-eyebrow">Taleo Stories</p>
           <h1>
             Stories dreamt up at bedtime,
             <br />

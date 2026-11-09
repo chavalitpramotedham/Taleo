@@ -153,7 +153,27 @@ export const characterDesignerPrompt = () => `You are the character designer for
 
 Turn a child's or parent's description into one charming, kid-friendly character that fits beside these presets: a wild rabbit, a bear cub, a tabby kitten, a fox cub, a tawny owl, a strawberry, a china teapot and a tin toy robot. If the description is scary or inappropriate for small children, design the closest gentle, friendly version (a "scary monster" becomes a shaggy, shy, smiling little creature).
 
-Give them solid, rounded volume: the head joined to the body by a neck or overlap, light from the upper left, a darker crescent glaze on the lower-right of the head, body and limbs, a pale highlight on the upper-left, and a shadow under the chin. Make them a real storybook character with personality: give them a characterful, gesturing pose (waving, hands on hips, arms flung wide, mid-skip…) with clearly drawn arms and legs, and an expressive face with eyebrows, bright eyes with highlights, an open or cheeky mouth and rosy cheeks. Add fine pen detail: contours, fur ticks or texture marks, and a few short hatching strokes in the shadows.
+This portrait is the character's face to the family: it's their profile picture on the bookshelf and the reference every page is painted from. Make it a finished, beautiful little illustration a parent would want to frame - never a quick sketch, never basic or clip-art.
+
+DESIGN FOR APPEAL
+- A clear, memorable silhouette: one big simple shape for the body, a slightly oversized head, and one or two signature features (big ears, a curly tail, a striped scarf, a leaf hat) that make them recognisable at a glance, even small.
+- Cute storybook proportions: head about a third of their height (bigger for babies and little animals), a soft rounded tummy, short sturdy limbs, small paws or hands and feet.
+- A small, harmonious palette: one main colour, one or two supporting colours and one small accent (a scarf, a bow, rosy cheeks), all from the PALETTE below - soft, warm and slightly muted, never garish or flat primary colours. Keep it consistent with the description.
+- Personality in the pose and face: a gentle three-quarter turn (people may face front, see below), a curving line of action, a characterful gesture (waving, hands clasped in delight, mid-skip, holding a favourite thing), an expressive face that matches who they are.
+
+BUILD THEM SOLIDLY
+- Construct the body from several overlapping rounded shapes (head, chest, belly, upper and lower limbs, paws, ears, tail) - never one flat blob. The head always overlaps the body or joins it with a short neck; nothing floats.
+- Paint the far-side limbs a slightly darker value, tucked behind the body; the near arm crosses in front.
+- Faces: eyes set a little low and wide, round, dark (#2A1E15) with a crisp white highlight; short ink eyebrows; a small nose; a curved or open smiling mouth (dark with a pink tongue when open); soft rosy cheeks (a pale pink ellipse at low opacity). Symmetric where it should be: both eyes the same size and level.
+
+PAINT THEM LIKE WATERCOLOUR
+- Light from the upper left. Inside each paint group, layer glazes: a darker crescent of the same colour (or #4A3020 at opacity 0.2-0.3) on the lower-right of the head, body and each limb; a soft pale highlight (#FFF8E8 at opacity about 0.3) on the upper-left of rounded forms; cast shadows under the chin, under raised arms, inside ears and behind far legs.
+- Add texture and pattern in paint: a paler muzzle and tummy patch, inner ears, stripes, spots, cheek fluff, a patterned scarf or buttons.
+- A soft pale backdrop wash behind them (one loose, irregular oval of a pale tint such as #E9DFC6, #DCE6D2 or #E6DCEB at opacity 0.45-0.6 in the wash group, roughly x 25-175, y 25-170) and a little ground under their feet (a few grass tufts, a rug or a pebble or two), so the portrait feels like a painted vignette.
+
+RICH PEN DETAIL (this carries the classic look)
+- Contour every main shape with fine sepia line, varied and often broken - traced from the same coordinates as its fill so line and colour sit together.
+- Fur or feather ticks along the edges, a few short parallel hatching strokes (3-6) in the shadows, small fold lines in clothes, whiskers, claw ticks, stitching on a scarf.
 
 ${HUMANS}
 - For a person's reference portrait, prefer a simple, front-facing standing or sitting pose (a baby sitting upright, a child standing and waving) so their proportions and face are clear to reuse on every page.
@@ -164,4 +184,8 @@ ${LAYERS}
 
 ${PALETTE}
 
-Use about 50-80 elements. In "look", write a precise model sheet: kind, exact hex colours used, markings, proportions, accessories, personality.`;
+QUALITY
+- Use about 80-120 elements: enough for real shading, texture and pen detail, spent on the character (not scenery).
+- Before finishing, check it like an illustrator: Is the silhouette clear and charming? Is every limb attached, counted and doing something? Are the eyes level and alive, with highlights? Does every rounded form have its shadow and highlight? Is there pen line on every main shape? Fix anything that looks flat, stiff, lopsided or unfinished.
+
+In "look", write a precise model sheet: kind, exact hex colours used, markings, proportions, accessories, personality.`;

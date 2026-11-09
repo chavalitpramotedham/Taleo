@@ -27,13 +27,42 @@ export async function POST(req: Request) {
   const g = await guard("character");
   if (!g.ok) return g.response;
 
-  if (!hasApiKey()) return NextResponse.json(mockCharacter({ description, name }));
-  try {
-    const made = await withMetricsUser(g.session.user.id, () => designCharacter({ description, name, current }));
-    withMetricsUser(g.session.user.id, () => count({ characters: 1 }));
-    return NextResponse.json(made);
-  } catch (err) {
-    await g.release();
-    return errorResponse(err);
-  }
+  // The reply streams as lines of JSON: progress while the character is
+  // designed (so the waiting screen can show real headway), then the
+  // finished character - or an error.
+  const userId = g.session.user.id;
+  const enc = new TextEncoder();
+  const body$ = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (o: unknown) => controller.enqueue(enc.encode(JSON.stringify(o) + "\n"));
+      try {
+        let made;
+        if (!hasApiKey()) {
+          // Test mode: walk through the same stages, a little faster.
+          const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+          send({ type: "progress", stage: "thinking" });
+          await wait(1800);
+          send({ type: "progress", stage: "sheet" });
+          await wait(700);
+          for (let n = 3; n <= 90; n += 6) {
+            send({ type: "progress", stage: "painting", shapes: n });
+            await wait(120);
+          }
+          made = mockCharacter({ description, name });
+        } else {
+          made = await withMetricsUser(userId, () => designCharacter({ description, name, current }, (p) => send({ type: "progress", ...p })));
+          withMetricsUser(userId, () => count({ characters: 1 }));
+        }
+        send({ type: "done", ...made });
+      } catch (err) {
+        await g.release();
+        const res = await errorResponse(err);
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        send({ type: "error", error: data.error || "Couldn't paint that one. Try again?" });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+  return new Response(body$, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store" } });
 }

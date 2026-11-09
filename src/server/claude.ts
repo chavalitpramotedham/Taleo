@@ -396,7 +396,63 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
 
 // ---------------------------------------------------------------- characters
 
-export async function designCharacter(req: CharacterRequest): Promise<CharacterResponse> {
+/** How far a character design has got, for the waiting screen: thinking it
+ *  through, writing the model sheet, then painting (with the number of
+ *  brush strokes - SVG shapes - laid down so far). */
+export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { stage: "painting"; shapes: number };
+
+/** The design request, streamed so progress can be reported as it goes
+ *  (the reply is JSON in schema order: name, look, then the svg). */
+async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void) {
+  const stream = getClient().beta.messages.stream({
+    model: STORY_MODEL,
+    // (more room than other requests: high effort thinks longer before it paints)
+    max_tokens: 20000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    system: [{ type: "text", text: characterDesignerPrompt(), cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: user }],
+    output_config: { effort: CHARACTER_EFFORT, format: betaZodOutputFormat(CharacterDesignSchema) },
+  });
+  const usage = streamUsageTracker("character", STORY_MODEL);
+  let text = "";
+  let stage: CharacterProgress["stage"] | null = null;
+  let shapes = 0;
+  onProgress?.({ stage: "thinking" });
+  try {
+    for await (const event of stream) {
+      usage.see(event);
+      if (event.type === "content_block_start" && event.content_block.type === "text") {
+        text = "";
+        continue;
+      }
+      if (event.type !== "content_block_delta" || event.delta.type !== "text_delta") continue;
+      text += event.delta.text;
+      const svgAt = text.indexOf('"svg"');
+      if (svgAt < 0) {
+        if (stage !== "sheet") onProgress?.({ stage: (stage = "sheet") });
+        continue;
+      }
+      // Count the shapes painted so far (each element opens with "<" plus a
+      // letter); report every few so the stream stays light.
+      const n = (text.slice(svgAt).match(/<[a-z]/g) || []).length;
+      if (stage !== "painting" || n >= shapes + 3) {
+        stage = "painting";
+        shapes = n;
+        onProgress?.({ stage: "painting", shapes });
+      }
+    }
+  } finally {
+    usage.finish();
+  }
+  const final = await stream.finalMessage();
+  if (final.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't design that one.");
+  if (final.stop_reason === "max_tokens") throw new Error("The painting came out jumbled. Please try again.");
+  const lastText = [...final.content].reverse().find((b) => b.type === "text");
+  return CharacterDesignSchema.parse(JSON.parse(lastText && lastText.type === "text" ? lastText.text : text));
+}
+
+export async function designCharacter(req: CharacterRequest, onProgress?: (p: CharacterProgress) => void): Promise<CharacterResponse> {
   const user = req.current
     ? `Redraw this existing character, named "${req.name ?? ""}"${genderNote({ gender: req.current.gender ?? null })}.` +
       `\nTheir current model sheet: ${req.current.look}` +
@@ -406,8 +462,7 @@ export async function designCharacter(req: CharacterRequest): Promise<CharacterR
     : `Design this character: "${req.description}".${
         req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
       }\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
-  // (more room than other requests: high effort thinks longer before it paints)
-  const out = await ask(CharacterDesignSchema, characterDesignerPrompt(), user, 20000, CHARACTER_EFFORT, "character");
+  const out = await streamCharacterDesign(user, onProgress);
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

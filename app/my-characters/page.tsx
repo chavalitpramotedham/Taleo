@@ -1,8 +1,10 @@
 "use client";
+import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import type { SavedCharacter, CharacterGender, CharacterResponse } from "@/lib/types";
+import type { SavedCharacter, CharacterGender } from "@/lib/types";
 import { saveCharacterImage } from "@/lib/save-image";
 import { GrowingInput } from "@/components/GrowingInput";
 import { DictateButton } from "@/components/DictateButton";
@@ -139,6 +141,7 @@ function CharacterEditModal({
   const [stage, setStage] = useState<"idle" | "menu" | "redraw" | "drawing" | "compare">("idle");
   const [change, setChange] = useState("");
   const [redrawn, setRedrawn] = useState<{ look: string; svg: string | null } | null>(null);
+  const [progress, setProgress] = useState<CharacterProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const saveImage = async () => {
@@ -156,19 +159,14 @@ function CharacterEditModal({
   const redraw = async () => {
     if (!change.trim() || stage === "drawing") return;
     setStage("drawing");
+    setProgress(null);
     setError(null);
     try {
-      const res = await fetch("/api/character", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          description: change.trim(),
-          name: character.name,
-          current: { look: character.look, notes: character.notes, gender: character.gender },
-        }),
-      });
-      const data = (await res.json()) as CharacterResponse & { error?: string };
-      if (!res.ok || !data.character?.svg) throw new Error(data.error || "Couldn't paint that one. Try again?");
+      const data = await requestCharacter(
+        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, gender: character.gender } },
+        setProgress,
+      );
+      if (!data.character.svg) throw new Error("Couldn't paint that one. Try again?");
       setRedrawn({ look: data.character.look, svg: data.character.svg });
       setStage("compare");
     } catch (e) {
@@ -414,7 +412,7 @@ function CharacterEditModal({
                     </>
                   )}
                 </button>
-                {stage === "drawing" && <p className="meta character-wait">Painting the new look with extra care - this can take a minute or two.</p>}
+                {stage === "drawing" && <CharacterProgressBar progress={progress} name={character.name} />}
               </>
             )}
             {error && <p className="error">{error}</p>}

@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import type { CharacterDef, CharacterGender, CharacterResponse, SavedCharacter } from "@/lib/types";
+import type { CharacterDef, CharacterGender, SavedCharacter } from "@/lib/types";
 import { GenderPicker } from "@/components/GenderPicker";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { GrowingInput } from "@/components/GrowingInput";
 import { LeafLoader, MapleMark } from "@/components/Icons";
 import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
+import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 
 interface Props {
   onClose: () => void;
@@ -29,6 +31,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [gender, setGender] = useState<CharacterGender | null>(null);
   const [drafted, setDrafted] = useState<CharacterDef | null>(null);
   const [drawing, setDrawing] = useState(false);
+  const [progress, setProgress] = useState<CharacterProgress | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,15 +45,10 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const draw = async () => {
     if (!description.trim() || drawing) return;
     setDrawing(true);
+    setProgress(null);
     setError(null);
     try {
-      const res = await fetch("/api/character", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ description, name: name.trim() || undefined }),
-      });
-      const data = (await res.json()) as CharacterResponse & { error?: string };
-      if (!res.ok || !data.character) throw new Error(data.error || "Couldn't paint that one. Try again?");
+      const data = await requestCharacter({ description, name: name.trim() || undefined }, setProgress);
       setDrafted(data.character);
       setName(data.character.name);
       // The description they were painted from is kept as their prompt
@@ -128,7 +126,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 )}
               </button>
             </div>
-            {drawing && <p className="meta character-wait">Painting them with extra care - this can take a minute or two.</p>}
+            {drawing && <CharacterProgressBar progress={progress} name={name} />}
           </>
         )}
 
@@ -172,6 +170,8 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 </button>
               </span>
             </label>
+
+            {drawing && <CharacterProgressBar progress={progress} name={name} />}
 
             <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || drafted.name} disabled={confirming} />
 

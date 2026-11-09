@@ -8123,3 +8123,56 @@ html[data-night] .story-card .story-card-title {
 .category-menu .music-dropdown-item {
   text-align: right;
 }
+
+/* ---------- character painting progress ---------- */
+.char-progress {
+  margin: 12px 0 2px;
+  padding: 12px 14px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--page) 70%, var(--paper));
+}
+.char-progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.char-progress-label {
+  font-family: var(--font-title);
+  color: var(--ink);
+  font-size: 1rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.char-progress-pct {
+  color: var(--russet);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  flex: none;
+}
+.char-progress-track {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--rule);
+  overflow: hidden;
+}
+/* scaleX, not width: the bar only moves on the GPU */
+.char-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c0703f, #e0a05a);
+  transform-origin: left center;
+  transition: transform 0.6s ease-out;
+}
+.char-progress-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  font-style: italic;
+}
