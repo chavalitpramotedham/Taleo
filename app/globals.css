@@ -8996,3 +8996,18 @@ html[data-night] .icon-btn.on {
   min-width: 96px;
   justify-content: center;
 }
+
+/* While reading a story, the room is quieter (less for the phone to animate,
+   and less moving over the words): six fireflies instead of sixteen, and
+   the lantern's light holds steady rather than breathing and shimmering
+   across the whole screen. The lantern itself still flickers. */
+html:has(.reader) .firefly:nth-child(n + 7) {
+  display: none;
+}
+html:has(.reader) .night-glow-halo,
+html:has(.reader) .night-glow-core {
+  animation: none;
+}
+html:has(.reader) .night-glow-shimmer {
+  display: none;
+}
