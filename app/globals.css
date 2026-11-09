@@ -8725,29 +8725,76 @@ html[data-night] .story-manage-delete {
 .account-dropdown-item {
   text-align: right;
 }
-/* Phones: the Begin pill is just the leaf in its tinted pill (no word) -
-   the menu row is too packed for it. */
-@media (max-width: 640px) {
-  .nav-begin-pill span {
-    display: none;
-  }
-  .nav-begin-pill {
-    padding: 0;
-    width: 40px;
-    justify-content: center;
-  }
+
+/* The Begin pill: the leaf alone by default; on wide screens, on pages
+   without their own Begin button, the words slide out beside it. */
+.nav-begin-pill {
+  padding: 0 11px;
+  gap: 0;
 }
-/* Wider screens have the room: "Begin a story" in full. (Phones: just the
-   leaf; in between: "Begin".) */
-.nav-begin-more {
-  display: none;
+.nav-begin-pill .nav-begin-label {
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.35s ease, opacity 0.25s ease, margin 0.35s ease;
 }
 @media (min-width: 1024px) {
-  .nav-begin-pill .nav-begin-more {
-    display: inline;
-    position: static;
+  .nav-begin-pill.can-expand {
+    padding-right: 13px;
   }
-  .nav-begin-pill {
-    padding-right: 12px;
+  .nav-begin-pill.can-expand .nav-begin-label {
+    max-width: 9em;
+    opacity: 1;
+    margin-left: 6px;
   }
+}
+
+/* Shelves centre when there aren't enough cards to fill a row (and a last,
+   part-filled row centres too): the same column widths as before, laid out
+   as wrapping rows instead of a fixed grid. */
+.shelf {
+  --cols: 2;
+  --gap: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap);
+}
+.shelf > * {
+  flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+  min-width: 0;
+}
+@media (min-width: 640px) {
+  .shelf {
+    --cols: 3;
+    --gap: 20px;
+  }
+}
+@media (min-width: 900px) {
+  .shelf {
+    --cols: 4;
+    --gap: 26px;
+  }
+}
+@media (min-width: 1180px) {
+  .shelf {
+    --cols: 5;
+  }
+}
+/* My creations: centred while the row fits; once it runs past the edge it
+   scrolls from the left as usual (auto margins, which never clip). */
+.creations-row {
+  display: flex;
+  grid-auto-flow: unset;
+}
+.creations-row > * {
+  flex: 0 0 clamp(150px, 42%, 230px);
+}
+.creations-row > :first-child {
+  margin-left: auto;
+}
+.creations-row > :last-child {
+  margin-right: auto;
 }
