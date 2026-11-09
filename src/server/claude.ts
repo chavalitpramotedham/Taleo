@@ -31,10 +31,11 @@ const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
  *  holds everyone up. Every other page keeps the main painter. */
 const QUICK_ART_MODEL = process.env.TALEO_QUICK_ART_MODEL || "claude-sonnet-5-5";
 const QUICK_ART_EFFORT = (process.env.TALEO_QUICK_ART_EFFORT as Effort) || "medium";
-/** Designing a new character runs at high effort: their reference painting
- *  and model sheet are shown to the painter on every page they appear in,
- *  so getting them right once pays off across the whole book. */
-const CHARACTER_EFFORT = (process.env.TALEO_CHARACTER_EFFORT as Effort) || "high";
+/** Designing a character runs at medium effort: with the art director's
+ *  brief to work from (see characterBrief) it needs less thinking of its
+ *  own, and designs finish well inside the 300-second limit (at high effort
+ *  they took up to ~5 minutes). TALEO_CHARACTER_EFFORT overrides. */
+const CHARACTER_EFFORT = (process.env.TALEO_CHARACTER_EFFORT as Effort) || "medium";
 
 /** False in demo mode (no key), or when TALEO_MOCK=1 forces the templated
  *  storyteller and painter - handy for testing flows without real stories. */
