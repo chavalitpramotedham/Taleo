@@ -8545,3 +8545,10 @@ html[data-night] .home-stat {
   width: min(100%, 480px);
   justify-content: center;
 }
+/* Home title: always two clean lines - each line kept whole, and the size
+   scaled to the screen so the longer one fits. */
+.home-dash-head h1 {
+  white-space: nowrap;
+  text-wrap: nowrap;
+  font-size: clamp(1.3rem, 6.4vw, 2.6rem);
+}
