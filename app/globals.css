@@ -8875,3 +8875,38 @@ html[data-night] .option.picked {
 .chosen-echo-said q {
   font-style: italic;
 }
+
+/* Read-aloud: a two-part pill like the music one - on/off, then a small
+   arrow for the voice picker. */
+.read-control .read-control-toggle {
+  width: 42px;
+  border-right: 1px solid var(--rule);
+  border-radius: 999px 0 0 999px;
+}
+.read-control .read-control-pick {
+  width: 30px;
+  border-radius: 0 999px 999px 0;
+}
+/* reading on = active, like music playing */
+.read-control.playing {
+  border-color: color-mix(in srgb, var(--russet) 55%, transparent);
+}
+.read-control.playing .read-control-toggle {
+  color: var(--russet);
+}
+.reader-tools .read-control-toggle {
+  border-right-color: rgba(160, 136, 108, 0.28);
+}
+html[data-night] .reader-tools .read-control-toggle {
+  border-right-color: rgba(255, 232, 200, 0.12);
+}
+.read-control-menu {
+  min-width: 210px;
+}
+.read-control-note {
+  margin-left: 6px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink-faint);
+  font-size: 0.88em;
+}

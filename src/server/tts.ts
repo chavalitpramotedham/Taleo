@@ -44,21 +44,45 @@ const voice = provider ? process.env.TTS_VOICE || DEFAULT_VOICE[provider] : "";
 
 export const ttsEnabled = () => provider !== null;
 
+/** OpenAI's built-in voices, which readers can choose between in the story
+ *  reader (when there's an OpenAI key). Each name with a word on its feel. */
+export const OPENAI_VOICES: { id: string; name: string; note: string }[] = [
+  { id: "sage", name: "Sage", note: "calm, gentle" },
+  { id: "coral", name: "Coral", note: "warm, bright" },
+  { id: "shimmer", name: "Shimmer", note: "soft, light" },
+  { id: "nova", name: "Nova", note: "friendly, lively" },
+  { id: "fable", name: "Fable", note: "storyteller" },
+  { id: "alloy", name: "Alloy", note: "clear, even" },
+  { id: "ballad", name: "Ballad", note: "lilting" },
+  { id: "marin", name: "Marin", note: "natural, warm" },
+  { id: "cedar", name: "Cedar", note: "natural, deep" },
+  { id: "verse", name: "Verse", note: "expressive" },
+  { id: "ash", name: "Ash", note: "soft, low" },
+  { id: "echo", name: "Echo", note: "steady" },
+  { id: "onyx", name: "Onyx", note: "deep" },
+];
+const OPENAI_VOICE_IDS = new Set(OPENAI_VOICES.map((v) => v.id));
+/** The voices a reader can choose from (none unless OpenAI is set up). */
+export const voiceChoices = () => (OPENAI_KEY ? OPENAI_VOICES : []);
+/** A reader's chosen OpenAI voice, if it's a real one and OpenAI is set up. */
+export const chosenVoice = (v: string | null | undefined) => (OPENAI_KEY && v && OPENAI_VOICE_IDS.has(v) ? v : null);
+
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
 
 // The tone, written once for every provider that takes direction.
 const OPENAI_TONE: Record<TtsKind, string> = {
   page:
-    "Voice: a calm, gentle, well-spoken British woman (soft Received Pronunciation) reading a picture book aloud to a small child at bedtime. " +
+    "Voice: a calm, gentle, well-spoken British storyteller (soft Received Pronunciation) reading a picture book aloud to a small child at bedtime. " +
     "Tone: warm, soothing and kind, with a hint of a smile; never loud or dramatic. " +
     "Pacing: very slow and gentle, like reading a picture book to a baby at bedtime - a little slower than two-thirds of normal speaking speed, every word clear, with soft pauses at commas and a long, calm pause between sentences. Never rushed. " +
     "Give characters' speech a light, playful lift, but keep it cosy and quiet.",
   word:
-    "Voice: a calm, gentle, well-spoken British woman (soft Received Pronunciation) teaching a small child a new word. " +
+    "Voice: a calm, gentle, well-spoken British storyteller (soft Received Pronunciation) teaching a small child a new word. " +
     "Say the single word very slowly, clearly and warmly, once, as if teaching it to a baby.",
 };
 
-async function synthesise(text: string, kind: TtsKind): Promise<Buffer> {
+async function synthesise(text: string, kind: TtsKind, picked: string | null): Promise<Buffer> {
+  if (picked) return openaiSpeech(text, kind, picked);
   if (provider === "elevenlabs") {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_96`, {
       method: "POST",
@@ -74,15 +98,7 @@ async function synthesise(text: string, kind: TtsKind): Promise<Buffer> {
     return Buffer.from(await res.arrayBuffer());
   }
 
-  if (provider === "openai") {
-    const res = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gpt-4o-mini-tts", voice, input: text, instructions: OPENAI_TONE[kind], response_format: "mp3" }),
-    });
-    if (!res.ok) throw new Error(`OpenAI TTS ${res.status}: ${await res.text().catch(() => "")}`);
-    return Buffer.from(await res.arrayBuffer());
-  }
+  if (provider === "openai") return openaiSpeech(text, kind, voice);
 
   // Azure
   const prosody = kind === "word" ? `rate="-30%" pitch="+2%"` : `rate="-30%" pitch="-1%"`;
@@ -101,8 +117,18 @@ async function synthesise(text: string, kind: TtsKind): Promise<Buffer> {
   return Buffer.from(await res.arrayBuffer());
 }
 
-const cacheKey = (text: string, kind: TtsKind) =>
-  `tts/${provider}-${voice.replace(/[^\w-]/g, "")}-${kind === "page" ? "slow3" : "slow2"}/${createHash("sha256").update(`${kind}\n${text}`).digest("hex").slice(0, 32)}.mp3`;
+async function openaiSpeech(text: string, kind: TtsKind, v: string): Promise<Buffer> {
+  const res = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "gpt-4o-mini-tts", voice: v, input: text, instructions: OPENAI_TONE[kind], response_format: "mp3" }),
+  });
+  if (!res.ok) throw new Error(`OpenAI TTS ${res.status}: ${await res.text().catch(() => "")}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+const cacheKey = (text: string, kind: TtsKind, picked: string | null) =>
+  `tts/${picked ? "openai" : provider}-${(picked ?? voice).replace(/[^\w-]/g, "")}-${kind === "page" ? "slow3" : "slow2"}/${createHash("sha256").update(`${kind}\n${text}`).digest("hex").slice(0, 32)}.mp3`;
 
 async function readCache(key: string): Promise<Buffer | null> {
   try {
@@ -135,19 +161,19 @@ async function writeCache(key: string, audio: Buffer) {
 }
 
 /** A clip that's already been made (free to serve to anyone), or null. */
-export async function cachedClip(text: string, kind: TtsKind): Promise<Buffer | null> {
+export async function cachedClip(text: string, kind: TtsKind, picked: string | null = null): Promise<Buffer | null> {
   if (!provider) return null;
-  return readCache(cacheKey(text, kind));
+  return readCache(cacheKey(text, kind, picked));
 }
 
 /** MP3 audio for a phrase, from the cache or freshly synthesised. Callers
  *  must check the requester may create new clips (see /api/tts). */
-export async function speechClip(text: string, kind: TtsKind): Promise<Buffer> {
+export async function speechClip(text: string, kind: TtsKind, picked: string | null = null): Promise<Buffer> {
   if (!provider) throw new Error("No text-to-speech provider configured.");
-  const key = cacheKey(text, kind);
+  const key = cacheKey(text, kind, picked);
   const cached = await readCache(key);
   if (cached) return cached;
-  const audio = await synthesise(text, kind);
+  const audio = await synthesise(text, kind, picked);
   await writeCache(key, audio);
   return audio;
 }

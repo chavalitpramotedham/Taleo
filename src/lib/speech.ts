@@ -22,10 +22,37 @@ export type SpeechKind = "page" | "word";
 let neuralOn: Promise<boolean> | null = null;
 /** Settled answer once known: true/false, or null while still checking. */
 let neuralKnown: boolean | null = null;
+export type VoiceChoice = { id: string; name: string; note: string };
+let voiceList: VoiceChoice[] = [];
+const voiceListeners = new Set<(v: VoiceChoice[]) => void>();
+/** The voices the reader can pick from (empty until known, or if none). */
+export function onVoiceChoices(fn: (v: VoiceChoice[]) => void) {
+  voiceListeners.add(fn);
+  fn(voiceList);
+  return () => void voiceListeners.delete(fn);
+}
+const VOICE_KEY = "taleo.voice";
+/** The reader's chosen voice on this device (null = the default). */
+export function chosenVoice(): string | null {
+  try {
+    return localStorage.getItem(VOICE_KEY);
+  } catch {
+    return null;
+  }
+}
+export function chooseVoice(id: string) {
+  try {
+    localStorage.setItem(VOICE_KEY, id);
+  } catch {}
+}
 function neuralEnabled(): Promise<boolean> {
   neuralOn ??= fetch("/api/tts")
     .then((r) => (r.ok ? r.json() : { enabled: false }))
-    .then((d: { enabled?: boolean }) => Boolean(d.enabled))
+    .then((d: { enabled?: boolean; voices?: VoiceChoice[] }) => {
+      voiceList = d.voices ?? [];
+      voiceListeners.forEach((fn) => fn(voiceList));
+      return Boolean(d.enabled);
+    })
     .catch(() => false)
     .then((on) => (neuralKnown = on));
   return neuralOn;
@@ -48,13 +75,19 @@ export function setSpeechStory(id: string | null) {
 }
 
 const clips = new Map<string, Promise<AudioBuffer | null>>();
-const clipKey = (text: string, kind: SpeechKind) => `${kind}\n${text}`;
+/** The chosen voice, if it's one the server offers. */
+const voiceParam = () => {
+  const v = chosenVoice();
+  return v && voiceList.some((x) => x.id === v) ? v : null;
+};
+const clipKey = (text: string, kind: SpeechKind) => `${voiceParam() ?? ""}\n${kind}\n${text}`;
 
 function loadClip(text: string, kind: SpeechKind): Promise<AudioBuffer | null> {
   const key = clipKey(text, kind);
   const have = clips.get(key);
   if (have) return have;
-  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}`)
+  const v = voiceParam();
+  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}`)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((buf) => {
       const c = getAudioContext();

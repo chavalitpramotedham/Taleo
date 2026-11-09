@@ -16,7 +16,8 @@ import { BookCover, coverStyle } from "./BookCover";
 import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
-import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon, SpeechIcon } from "./Icons";
+import { ReadAloudControl } from "./ReadAloudControl";
+import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -72,6 +73,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [customIdea, setCustomIdea] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [readAloud, setReadAloud] = useState(false);
+  const [voiceTick, setVoiceTick] = useState(0);
   // While reading aloud, keep the phone's audio from parking between pages.
   useEffect(() => {
     holdAudioOpen(readAloud);
@@ -699,7 +701,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     // After a turn, a calm pause (the page settles and you look at the picture)
     // before the voice begins; turning read-aloud on starts almost at once.
     readTimer.current = window.setTimeout(() => speak(text), turned ? 2000 : 250);
-  }, [readAloud, view, speak, story.segments, cover]);
+  }, [readAloud, view, speak, story.segments, cover, voiceTick]);
 
   // Have the voice ready before it's needed: this page's tappable word, and
   // (when reading aloud) the next page's text.
@@ -996,9 +998,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         {cover !== "closed" && <h1 className="reader-title">{story.title || "A new story"}</h1>}
         <div className="reader-tools">
           <MusicControl />
-          <button
-            className={`icon-btn ${readAloud ? "on" : ""}`}
-            onClick={() => {
+          <ReadAloudControl
+            on={readAloud}
+            speaking={readAloud && spoken !== null}
+            onToggle={() => {
               if (readAloud) cancelSpeech();
               else {
                 unlockSpeech();
@@ -1006,12 +1009,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               }
               setReadAloud((r) => !r);
             }}
-            aria-pressed={readAloud}
-            aria-label={readAloud ? "Stop reading aloud" : "Read aloud"}
-            title={readAloud ? "Stop reading aloud" : "Read to me"}
-          >
-            <SpeechIcon on={readAloud} speaking={readAloud && spoken !== null} />
-          </button>
+            onVoiceChange={() => {
+              // read the page again, in the new voice (and turn reading on)
+              cancelSpeech();
+              unlockSpeech();
+              wakeAudio();
+              readFor.current = null;
+              setVoiceTick((t) => t + 1);
+              setReadAloud(true);
+            }}
+          />
           {revisit && (
             <button className="icon-btn" onClick={share} aria-label="Share story" title="Share">
               <ShareIcon />

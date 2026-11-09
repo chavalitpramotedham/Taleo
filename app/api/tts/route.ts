@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedClip, speechClip, ttsEnabled, type TtsKind } from "@/server/tts";
+import { cachedClip, chosenVoice, speechClip, ttsEnabled, voiceChoices, type TtsKind } from "@/server/tts";
 import { auth } from "@/server/auth";
 import { guard } from "@/server/limits";
 import { count } from "@/server/metrics";
@@ -48,13 +48,15 @@ const audio = (clip: Buffer) =>
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const text = (url.searchParams.get("t") || "").replace(/\s+/g, " ").trim();
-  if (!text) return NextResponse.json({ enabled: ttsEnabled() });
+  if (!text) return NextResponse.json({ enabled: ttsEnabled(), voices: voiceChoices() });
   if (!ttsEnabled()) return NextResponse.json({ error: "Neural voice isn't configured." }, { status: 501 });
   if (text.length > MAX_CHARS) return NextResponse.json({ error: "Too long." }, { status: 413 });
   const kind: TtsKind = url.searchParams.get("k") === "word" ? "word" : "page";
+  // the reader's chosen voice (OpenAI's built-in ones), or the default
+  const picked = chosenVoice(url.searchParams.get("v"));
 
   try {
-    const existing = await cachedClip(text, kind);
+    const existing = await cachedClip(text, kind, picked);
     if (existing) {
       count({ tts_cached: 1 });
       return audio(existing);
@@ -65,7 +67,7 @@ export async function GET(req: Request) {
       const g = await guard("tts");
       if (!g.ok) return g.response;
       try {
-        const clip = await speechClip(text, kind);
+        const clip = await speechClip(text, kind, picked);
         count({ tts_clips: 1, tts_chars: text.length });
         return audio(clip);
       } catch (e) {
@@ -80,7 +82,7 @@ export async function GET(req: Request) {
     if (!allowed?.has(norm(text))) {
       return NextResponse.json({ error: "Sign in to hear this read aloud." }, { status: 401 });
     }
-    const clip = await speechClip(text, kind);
+    const clip = await speechClip(text, kind, picked);
     count({ tts_clips: 1, tts_chars: text.length });
     return audio(clip);
   } catch (e) {
