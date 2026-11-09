@@ -3890,7 +3890,7 @@ html[data-night] .modal-backdrop {
 .hero-art .hero-brush svg {
   /* (beats .hero-art svg, which sizes the painting to the frame) */
   /* sized with the picture, so it reaches the same way on every screen */
-  --bw: clamp(22px, 7.4cqw, 40px);
+  --bw: clamp(16.5px, 5.55cqw, 30px);
   width: var(--bw);
   height: calc(var(--bw) * 3);
   max-width: none;
