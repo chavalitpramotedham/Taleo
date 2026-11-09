@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 /** The technology behind Taleo, told for parents: four glassy spec cards (a row where
  *  they fit, two by two where they don't) - a modern counterpoint to the storybook pages around it. Every
@@ -52,8 +52,39 @@ export function TechShowcase() {
   // way, for search engines; folded away they're hidden from everyone else.)
   const [open, setOpen] = useState(false);
   const gridId = useId();
+  const sectionRef = useRef<HTMLElement>(null);
+  const toggle = (
+    <button
+      type="button"
+      className={`tech-more ${open ? "open tech-more-bottom" : ""}`}
+      aria-expanded={open}
+      aria-controls={gridId}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (open) {
+          setOpen(false);
+          // folding away from the bottom: bring the section's top back
+          // into view if it has scrolled off the top of the screen
+          requestAnimationFrame(() => {
+            const sec = sectionRef.current;
+            const bar = document.querySelector(".topbar")?.getBoundingClientRect().bottom ?? 0;
+            if (sec && sec.getBoundingClientRect().top < bar) {
+              window.scrollTo({ top: window.scrollY + sec.getBoundingClientRect().top - bar - 16, behavior: "smooth" });
+            }
+          });
+        } else setOpen(true);
+      }}
+    >
+      <span>{open ? "Show less" : "Learn more"}</span>
+      {/* a double chevron: down to open, up (turned over) to fold away */}
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M7 6l5 5 5-5M7 13l5 5 5-5" />
+      </svg>
+    </button>
+  );
   return (
     <section
+      ref={sectionRef}
       className={`tech ${open ? "" : "tech-closed"}`}
       aria-labelledby="tech-title"
       // folded away, the whole panel opens it
@@ -64,22 +95,7 @@ export function TechShowcase() {
         <p className="tech-eyebrow">Gently powered by generative AI</p>
         <h2 id="tech-title">To keep the magic alive</h2>
       </header>
-      <button
-        type="button"
-        className={`tech-more ${open ? "open" : ""}`}
-        aria-expanded={open}
-        aria-controls={gridId}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-      >
-        <span>{open ? "Show less" : "Learn more"}</span>
-        {/* a double chevron: down to open, up (turned over) to fold away */}
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M7 6l5 5 5-5M7 13l5 5 5-5" />
-        </svg>
-      </button>
+      {!open && toggle}
       <div className={`tech-fold ${open ? "open" : ""}`} id={gridId} inert={!open}>
         <div className="tech-fold-inner">
       <div className="tech-grid">
@@ -99,6 +115,8 @@ export function TechShowcase() {
       </div>
         </div>
       </div>
+      {/* opened: "Show less" waits at the bottom, under the cards */}
+      {open && toggle}
     </section>
   );
 }

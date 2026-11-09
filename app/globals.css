@@ -8975,3 +8975,8 @@ html[data-night] .icon-btn.on {
     margin-left: -2px;
   }
 }
+/* "Show less", under the opened cards */
+.tech-more.tech-more-bottom {
+  margin: 18px auto 0;
+  animation: none;
+}
