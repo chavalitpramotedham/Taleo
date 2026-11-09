@@ -3468,6 +3468,64 @@ html[data-night] .canvas-wait {
   gap: 0;
   overflow-x: hidden;
 }
+/* Previous / next story: round arrows like the "Get started" steps',
+   beside the preview on wider screens, over its cover's edges on phones. */
+.story-preview-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: 100%;
+  display: flex;
+}
+.story-preview-wrap > .story-preview {
+  width: 100%;
+}
+.preview-step {
+  position: absolute;
+  z-index: 3;
+  top: 140px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  color: var(--russet);
+  font-family: var(--font-body);
+  font-size: 1.7rem;
+  line-height: 1;
+  padding-bottom: 4px;
+  box-shadow: 0 3px 0 var(--rule-strong), 0 8px 18px -10px rgba(40, 25, 10, 0.5);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.preview-step:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--rule-strong);
+}
+.preview-step:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.preview-step-prev {
+  left: -58px;
+}
+.preview-step-next {
+  right: -58px;
+}
+@media (max-width: 539px) {
+  .preview-step {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+  .preview-step-prev {
+    left: 8px;
+  }
+  .preview-step-next {
+    right: 8px;
+  }
+}
 .story-preview-close {
   position: absolute;
   top: 10px;
@@ -6783,27 +6841,23 @@ html[data-night] .admin-spark.bad {
     z-index: 3;
     background: var(--page);
   }
-  /* The gap above the stuck picture: a strip in the page's own background
-     colour, held just under the menu bar by the browser itself (no
-     scripts, so it never lags a fast scroll). At rest it sits in the
-     reader's empty top margin; once the page scrolls, it hides whatever
-     slides up beneath it, so the picture always stops with a clean gap. */
-  .reader {
-    padding-top: 12px;
-  }
-  .reader::before {
+  /* The gap above the stuck picture: a strip of the book's own page,
+     held just under the menu bar by the browser itself (no scripts, so it
+     never lags a fast scroll). It lives inside the book, so it only ever
+     hides the story's words sliding up under the picture - the buttons
+     above the book scroll away under the menu bar as usual. At rest it is
+     simply the top edge of the page above the picture. */
+  .book::before {
     content: "";
-    display: block;
+    grid-row: 1;
+    grid-column: 1 / -1;
+    align-self: start;
     position: sticky;
     top: var(--topbar-h, 64px);
     z-index: 4;
     height: 12px;
-    /* in the top margin, taking no room (the reader's gap is 12px) */
-    margin: -12px calc(-1 * clamp(10px, 3vw, 36px)) -12px;
-    background: var(--paper);
-  }
-  html[data-night] .reader::before {
-    background: #0f0c12;
+    background: var(--page);
+    pointer-events: none;
   }
 }
 /* Wide screens: the open book fills exactly the screen below the menu bar
