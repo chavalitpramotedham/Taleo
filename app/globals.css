@@ -8070,6 +8070,7 @@ html[data-night] .story-card::after {
 }
 html[data-night] .story-card .story-card-title {
   color: #f1e4cb;
+}
 /* Icon and title side by side, the description underneath (no numbered
    label). */
 .tech-grid .tech-card {
