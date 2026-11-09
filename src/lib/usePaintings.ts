@@ -53,10 +53,11 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             cast: castFor(s, page),
             page: { text: page.text, picture: page.picture || page.text, characters: page.characters, action: page.action ?? null },
             previous: prev?.picture ?? null,
-            // The first picture of each part - the one the reader is waiting
-            // on, at the start and after every decision - is painted by the
-            // quicker painter (see paintPage); the rest follow in parallel.
-            quick: idx === 0,
+            // The first picture(s) of each part - what the reader is waiting
+            // on, at the start and after every decision - are painted by the
+            // quicker painter (the server decides how many, by plan); the
+            // rest follow in parallel.
+            pageInPart: idx,
           }),
         });
         if (!res.ok || !res.body) throw new Error("paint failed");

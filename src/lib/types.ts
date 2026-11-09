@@ -214,8 +214,12 @@ export interface IllustrateRequest {
   cast: CharacterDef[]; // characters in this picture (hero included when present)
   page: Pick<Page, "text" | "picture" | "characters" | "action">;
   previous?: string | null; // previous page's picture brief, for continuity
-  /** Paint at a lighter effort (the first picture after a decision). */
+  /** Paint with the quicker painter (set by the server from `pageInPart`
+   *  and the account's plan). */
   quick?: boolean;
+  /** This page's place in its part (0 = the first page after the story
+   *  begins or after a decision). */
+  pageInPart?: number;
 }
 
 export interface CharacterRequest {

@@ -24,7 +24,7 @@ const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
 const ART_MODEL = process.env.TALEO_ART_MODEL || STORY_MODEL;
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
-/** The picture a reader is waiting on (each part's first page) is painted
+/** The pictures a reader is waiting on (the first page or two of each part - see app/api/illustrate) are painted
  *  by a quicker model: in side-by-side tests Sonnet 5.5 at medium effort
  *  painted the same pages ~15% faster and at about half the cost, with
  *  somewhat less careful characters - a fair trade for the one page that

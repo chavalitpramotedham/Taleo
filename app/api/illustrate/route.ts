@@ -19,6 +19,12 @@ export async function POST(req: Request) {
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
   const g = await guard("illustrate");
   if (!g.ok) return g.response;
+  // The quick painter takes the pages a reader waits on at the start of each
+  // part (the story's beginning, and after every decision): the first two
+  // on the Free plan, just the first for the admin; the rest get the main
+  // painter.
+  const quickPages = g.session.user.isAdmin ? 1 : 2;
+  parsed.quick = parsed.pageInPart !== undefined && parsed.pageInPart < quickPages;
 
   // If the reader leaves (closes the tab, moves to another page), stop the
   // model straight away: nobody will receive the rest, so finishing it
