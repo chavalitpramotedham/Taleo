@@ -9304,128 +9304,194 @@ html:has(.reader) .night-glow-shimmer {
   white-space: pre;
 }
 
-/* ---------- Manage account: Account tier ---------- */
-.tier-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--rule-strong);
-  background: linear-gradient(135deg, rgba(226, 174, 74, 0.14), rgba(226, 174, 74, 0.02));
-}
-.tier-admin {
-  background: linear-gradient(135deg, rgba(178, 68, 58, 0.12), rgba(226, 174, 74, 0.12));
-}
+/* ---------- Manage account: Account tier (plan cards) ---------- */
 .tier-badge {
   flex: none;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--page);
   border: 1px solid var(--rule-strong);
   box-shadow: 0 3px 0 var(--rule-strong);
 }
 .tier-badge .maple-mark {
-  width: 26px;
-  height: 30px;
+  width: 28px;
+  height: 32px;
 }
 .tier-badge .crown-mark {
+  width: 34px;
+  height: 28px;
+}
+.tier-badge .seedling-mark {
   width: 32px;
-  height: 26px;
+  height: 32px;
 }
-.tier-card-text p {
-  margin: 0;
+html[data-night] .tier-badge {
+  background: #1d1720;
 }
-.tier-name {
-  font-family: var(--font-title);
-  font-size: 1.45rem;
-  line-height: 1.1;
-}
-.tier-rows {
-  list-style: none;
-  margin: 14px 0 0;
-  padding: 0;
-}
-.tier-rows li {
+/* the cards, side by side; one in view at a time on phones */
+.plan-row {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 2px;
-  border-bottom: 1px dashed var(--rule);
+  gap: 14px;
+  margin: 12px calc(-1 * clamp(16px, 3vw, 26px)) 0;
+  padding: 4px clamp(16px, 3vw, 26px) 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 clamp(16px, 3vw, 26px);
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
-.tier-rows li:last-child {
-  border-bottom: 0;
+.plan-row::-webkit-scrollbar {
+  display: none;
 }
-.tier-rows b {
-  text-align: right;
+.plan-row > .plan-card {
+  flex: 0 0 min(100%, 340px);
+  scroll-snap-align: start;
 }
-.tier-details {
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule-strong);
+  border-radius: 18px;
+  background: var(--page);
+  padding: 18px 18px 14px;
+  box-shadow: 0 10px 22px -18px rgba(60, 40, 20, 0.5);
+}
+.account-tier > .plan-card {
   margin-top: 12px;
 }
-.tier-details summary {
+.plan-card.current {
+  border-color: var(--russet);
+  background: linear-gradient(160deg, rgba(226, 174, 74, 0.12), transparent 55%), var(--page);
+}
+.plan-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.plan-current-pill {
+  padding: 3px 12px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--russet);
+  color: var(--russet);
+  font-family: var(--font-caps);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+.plan-name {
+  margin: 14px 0 2px;
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+.plan-tagline {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 14px 0 12px;
+}
+.plan-price b {
+  white-space: nowrap;
+  font-family: var(--font-title);
+  font-size: 1.9rem;
+  font-weight: 400;
+}
+.plan-price span {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+.plan-btn:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.plan-features {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+.plan-features > p {
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+}
+.plan-features ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plan-features li {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0;
+}
+.plan-tick {
+  color: var(--russet);
+  flex: none;
+}
+.plan-caps {
+  margin-top: 10px;
+}
+.plan-caps summary {
   cursor: pointer;
   font-family: var(--font-caps);
   letter-spacing: 0.04em;
   color: var(--russet);
-  padding: 6px 0;
+  padding: 4px 0;
 }
-.tier-table-wrap {
-  overflow-x: auto;
-  margin-top: 8px;
-}
-.tier-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-}
-.tier-table th,
-.tier-table td {
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--rule);
-  text-align: left;
-  vertical-align: top;
-}
-.tier-table thead th {
-  font-family: var(--font-caps);
-  letter-spacing: 0.04em;
-}
-.tier-table tbody th {
-  font-weight: 400;
-}
-.tier-table td {
-  font-weight: 600;
-}
-.tier-table-group th {
-  padding-top: 16px;
-  font-family: var(--font-caps);
-  letter-spacing: 0.04em;
-}
-.tier-table-group .meta {
-  font-family: var(--font-body);
-  letter-spacing: 0;
-  font-style: italic;
-}
-.tier-coming {
-  margin: 14px 0 0;
-  color: var(--ink-soft);
-}
-.tier-coming-pill {
-  display: inline-block;
-  margin-right: 6px;
-  padding: 1px 10px 2px;
-  border-radius: 999px;
-  border: 1px solid var(--rule-strong);
-  font-family: var(--font-caps);
+.plan-caps .meta {
+  margin: 4px 0 6px;
   font-size: 0.85rem;
-  letter-spacing: 0.05em;
-  color: var(--russet);
 }
-html[data-night] .tier-badge {
-  background: #1d1720;
+.plan-caps li {
+  justify-content: space-between;
+  font-size: 0.92rem;
+  border-bottom: 1px dashed var(--rule);
+}
+.plan-caps li b {
+  text-align: right;
+}
+/* dots under the row: one per plan, the plan in view a long bar */
+.plan-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.plan-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 99px;
+  background: var(--rule-strong);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+.plan-dot.on {
+  width: 26px;
+  background: var(--russet);
+}
+/* the admin's own plan, then a line, then the plans everyone else sees */
+.tier-other-plans {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 0;
+  color: var(--ink-faint);
+  font-family: var(--font-caps);
+  letter-spacing: 0.05em;
+}
+.tier-other-plans::before,
+.tier-other-plans::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule-strong);
 }
 /* the waiting page's progress bar (after a choice) */
 .story-progress {
