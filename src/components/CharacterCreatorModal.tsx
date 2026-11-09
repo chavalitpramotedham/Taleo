@@ -135,13 +135,8 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
           <>
             {/* Who they are: picture, name, and male/female/open. */}
             <div className="drafted-hero">
-              <span className="drafted-portrait">
+              <span className={`drafted-portrait ${drawing ? "repainting" : ""}`}>
                 <CharacterPortrait character={drafted} className="character-preview-portrait" />
-                {drawing && (
-                  <span className="char-edit-drawing" aria-hidden>
-                    <LeafLoader size={40} />
-                  </span>
-                )}
               </span>
               <input className="input char-name-input" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} aria-label="Character name" />
               <GenderPicker value={gender} onChange={setGender} disabled={confirming} />

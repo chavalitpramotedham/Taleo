@@ -378,13 +378,8 @@ function CharacterEditModal({
               </>
             ) : (
               <>
-                <div className="char-edit-picture redraw-current">
+                <div className={`char-edit-picture redraw-current ${stage === "drawing" ? "repainting" : ""}`}>
                   <CharacterPortrait character={{ preset: null, svg: character.svg, name: character.name }} className="char-edit-portrait" />
-                  {stage === "drawing" && (
-                    <span className="char-edit-drawing" aria-hidden>
-                      <LeafLoader size={44} />
-                    </span>
-                  )}
                 </div>
                 <p className="meta">
                   {character.prompt

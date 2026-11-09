@@ -8421,3 +8421,57 @@ html[data-night] .home-stat {
   font-weight: 600;
   font-variant-numeric: lining-nums tabular-nums;
 }
+
+/* While a character is being repainted: the current picture fades back
+   and breathes gently, and a soft band of light passes over it now and
+   then (the progress panel below says what's happening). Opacity and a
+   sliding layer only - nothing is redrawn. */
+.repainting {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+}
+.repainting > svg,
+.repainting > .character-preview-portrait,
+.repainting > .char-edit-portrait {
+  animation: repaintBreathe 2.6s ease-in-out infinite;
+}
+.repainting::after {
+  content: "";
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 50%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 0%, color-mix(in srgb, var(--page) 70%, transparent) 50%, transparent 100%);
+  transform: translateX(-120%) skewX(-12deg);
+  animation: repaintSheen 2.8s ease-in-out infinite;
+}
+@keyframes repaintBreathe {
+  0%,
+  100% {
+    opacity: 0.38;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes repaintSheen {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  70%,
+  100% {
+    transform: translateX(260%) skewX(-12deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .repainting > * {
+    animation: none !important;
+    opacity: 0.5;
+  }
+  .repainting::after {
+    display: none;
+  }
+}
