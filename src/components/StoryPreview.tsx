@@ -61,11 +61,17 @@ export function StoryPreview({
   story,
   eyebrow,
   onClose,
+  onPrev,
+  onNext,
   children,
 }: {
   story: StorySummary;
   eyebrow?: string;
   onClose: () => void;
+  /** Step to the previous / next story in the list it was opened from
+   *  (omitted at either end of the list). */
+  onPrev?: () => void;
+  onNext?: () => void;
   children: React.ReactNode;
 }) {
   // The popup appears the moment the card is tapped; the cover painting
@@ -81,19 +87,52 @@ export function StoryPreview({
       cancelAnimationFrame(a);
       cancelAnimationFrame(b);
     };
-  }, []);
+    // (again for each story stepped to)
+  }, [story.id]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && onPrev) onPrev();
+      if (e.key === "ArrowRight" && onNext) onNext();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, onPrev, onNext]);
+
+  // A sideways swipe on the preview steps through the list too.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => (swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY });
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const from = swipe.current;
+    swipe.current = null;
+    if (!from) return;
+    const dx = e.changedTouches[0].clientX - from.x;
+    const dy = e.changedTouches[0].clientY - from.y;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0) onNext?.();
+    else onPrev?.();
+  };
+  const stepping = Boolean(onPrev || onNext);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
+      <div className="story-preview-wrap" onClick={(e) => e.stopPropagation()}>
+      {/* Previous / next story in the same list - like the steps' arrows */}
+      {stepping && (
+        <>
+          <button type="button" className="preview-step preview-step-prev" onClick={onPrev} disabled={!onPrev} aria-label="Previous story">
+            ‹
+          </button>
+          <button type="button" className="preview-step preview-step-next" onClick={onNext} disabled={!onNext} aria-label="Next story">
+            ›
+          </button>
+        </>
+      )}
       <div
         className="modal-panel story-preview"
-        onClick={(e) => e.stopPropagation()}
+        onTouchStart={stepping ? onTouchStart : undefined}
+        onTouchEnd={stepping ? onTouchEnd : undefined}
         role="dialog"
         aria-modal="true"
         aria-labelledby="story-preview-title"
@@ -168,8 +207,20 @@ export function StoryPreview({
           {children}
         </div>
       </div>
+      </div>
     </div>
   );
+}
+
+/** Previous / next handlers for a preview opened from a list: steps only
+ *  within that list (as currently sorted and filtered), none at its ends. */
+export function stepper(list: { id: string }[], id: string, open: (id: string) => void) {
+  const i = list.findIndex((e) => e.id === id);
+  if (i < 0) return {};
+  return {
+    onPrev: i > 0 ? () => open(list[i - 1].id) : undefined,
+    onNext: i < list.length - 1 ? () => open(list[i + 1].id) : undefined,
+  };
 }
 
 /** The preview's buttons: the main "read" button, left, taking the room,

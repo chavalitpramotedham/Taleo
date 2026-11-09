@@ -7,7 +7,7 @@ import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
 import { StoryCard } from "./StoryCard";
-import { PreviewButtons, StoryPreview, summaryFromEntry } from "./StoryPreview";
+import { PreviewButtons, StoryPreview, stepper, summaryFromEntry } from "./StoryPreview";
 import { MyRatingNote } from "./InlineRating";
 import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter";
 import { PRESETS, presetCharacter } from "@/lib/presets";
@@ -157,7 +157,7 @@ export function GalleryShelf({
         </div>
       )}
       {open && (
-        <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)}>
+        <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(sorted, open.id, setOpenId)}>
           <LibraryActions entry={open} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
         </StoryPreview>
       )}

@@ -9,7 +9,7 @@ import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark, StarGlyph } from "@/components/Icons";
 import { StoryCard } from "@/components/StoryCard";
-import { PreviewButtons, StoryPreview, summaryFromEntry } from "@/components/StoryPreview";
+import { PreviewButtons, StoryPreview, stepper, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { CategoryFilter, categoriesOf, matchesCategory } from "@/components/CategoryFilter";
 import { ShelfSkeleton } from "@/components/ShelfSkeleton";
@@ -119,7 +119,7 @@ export default function MyStoriesPage() {
         </div>
       )}
       {open && (
-        <StoryPreview story={summaryFromEntry(open)} eyebrow="On your bookshelf" onClose={() => setOpenId(null)}>
+        <StoryPreview story={summaryFromEntry(open)} eyebrow="On your bookshelf" onClose={() => setOpenId(null)} {...stepper(sorted, open.id, setOpenId)}>
           <div className="story-preview-actions">
             <PreviewButtons
               href={`/store/${open.id}`}

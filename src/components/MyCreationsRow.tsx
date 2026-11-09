@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { MapleMark } from "./Icons";
 import { SideScroll } from "./SideScroll";
 import { StoryCard } from "./StoryCard";
-import { StoryPreview, summaryFromEntry } from "./StoryPreview";
+import { StoryPreview, stepper, summaryFromEntry } from "./StoryPreview";
 import { LibraryActions } from "./GalleryShelf";
 import { ShelfSkeleton } from "./ShelfSkeleton";
 
@@ -81,7 +81,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
         )}
       </SideScroll>
       {open && (
-        <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)}>
+        <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(mine.slice(0, SHOWN), open.id, setOpenId)}>
           <LibraryActions
             entry={open}
             onCopied={() => {
