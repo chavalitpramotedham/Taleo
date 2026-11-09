@@ -7291,3 +7291,36 @@ html[data-night] .btn-danger {
   margin: 0 3px;
   background: var(--rule-strong);
 }
+
+/* Begin: leaf on the homepage, pill elsewhere. The leaf has its own clear
+   border (otherwise it borrows the text colour, and the pill's border
+   fades in from that - a pale ring at night), and the pill eases in when
+   it appears rather than jumping out from the leaf. */
+.nav-begin-leaf {
+  border: 1px solid transparent;
+}
+.nav-begin-pill {
+  animation: beginPillIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.nav-begin-pill span {
+  animation: beginPillLabel 0.32s ease-out both;
+}
+@keyframes beginPillIn {
+  from {
+    opacity: 0.4;
+    transform: scale(0.9);
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+@keyframes beginPillLabel {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-begin-pill,
+  .nav-begin-pill span {
+    animation: none;
+  }
+}
