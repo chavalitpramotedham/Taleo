@@ -8539,3 +8539,9 @@ html[data-night] .home-stat {
   justify-content: center;
   margin: 26px 0 4px;
 }
+/* ...and wide: from the middle of the first card to the middle of the
+   last (two thirds of the 720px row of numbers) */
+.home-dash-begin .btn {
+  width: min(100%, 480px);
+  justify-content: center;
+}
