@@ -27,7 +27,7 @@ export default function AboutPage() {
             as the story illustrations. */}
         <figure className="about-hero">
           <svg viewBox="0 0 400 400" className="painted-edge-square" role="img" aria-label="A dad reading a picture book to his laughing baby at bedtime, the moon outside the window">
-            <image href="/about/bedtime-story.jpg" width="400" height="400" preserveAspectRatio="xMidYMid slice" />
+            <image href="/about/bedtime-story.webp" width="400" height="400" preserveAspectRatio="xMidYMid slice" />
             <rect className="paint-dim" width="400" height="400" />
           </svg>
         </figure>

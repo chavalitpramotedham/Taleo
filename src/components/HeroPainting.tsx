@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { preload } from "react-dom";
 import { HOME_LAYERS } from "@/lib/art/homeLayers";
 
 const TITLE = "Pip the rabbit leaps over a puddle after a falling leaf while Bobo the bear laughs";
@@ -26,6 +27,8 @@ const SCHEDULE: { start: number; dur: number; stage: string }[] = [
   { start: 13600, dur: 1400, stage: "Finishing touches…" },
 ];
 const PAINT_MS = 15200; // all parts in
+/** Layers fetched straight away (the rest wait until painting begins). */
+const EAGER = 2;
 const HOLD_MS = 4200; // admire the finished picture
 const FADE_MS = 1200; // soft fade before it starts again
 const CAPTION_START = 2400;
@@ -45,6 +48,18 @@ const CAPTION_CHAR_MS = 66;
  * motion shows the finished picture.
  */
 export function HeroPainting() {
+  // The pre-painted layers are asked for from the very first byte of the
+  // page (the big base wash first, at high priority) rather than when the
+  // picture is reached - the painting waits on them, and so does the
+  // page's largest picture.
+  // Only the first two (the washes painted in the first second) are asked
+  // for up front; the rest are requested once painting begins, so on a slow
+  // connection they don't hold up the first ones - they arrive well before
+  // their turn, a few seconds into the painting.
+  HOME_LAYERS.slice(0, EAGER).forEach((l, i) => {
+    if ("src" in l) preload(l.src, { as: "image", fetchPriority: i === 0 ? "high" : "auto" });
+  });
+  const [rest, setRest] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const [typed, setTyped] = useState(CAPTION.length);
   const [live, setLive] = useState(false);
@@ -72,10 +87,18 @@ export function HeroPainting() {
     let stop: (() => void) | null = null;
     let cancelled = false;
     const start = async () => {
-      // Every pre-painted layer decoded first, so none pops in late.
-      await Promise.all(Array.from(root.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
+      // Start once the base wash (painted first) is ready - the later
+      // layers are already on their way and arrive long before their turn
+      // in the painting, so the picture begins seconds sooner on a slow
+      // connection without anything popping in.
+      const imgs = Array.from(root.querySelectorAll("img"));
+      await Promise.race([
+        Promise.all(imgs.slice(0, EAGER).map((img) => img.decode().catch(() => {}))),
+        new Promise((r) => window.setTimeout(r, 4000)),
+      ]);
       if (cancelled) return;
       root.classList.remove("hero-paint-pending");
+      setRest(true);
       play();
       stop = run();
     };
@@ -84,7 +107,7 @@ export function HeroPainting() {
     setLive(true);
     const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
     let wait = 0;
-    const idle = ric(() => (wait = window.setTimeout(() => void start(), 500)), { timeout: 1500 }) as number;
+    const idle = ric(() => (wait = window.setTimeout(() => void start(), 120)), { timeout: 900 }) as number;
 
     const run = () => {
       // A light clock that only advances while the picture is on screen,
@@ -183,7 +206,7 @@ export function HeroPainting() {
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={l.src} alt="" className={`hero-layer hp-g hp-g-${l.kind}`} style={style} decoding="async" />
+              <img key={i} src={i < EAGER || rest ? l.src : undefined} alt="" className={`hero-layer hp-g hp-g-${l.kind}`} style={style} decoding="async" />
             );
           })}
           <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
