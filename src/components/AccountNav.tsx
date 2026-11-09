@@ -10,9 +10,6 @@ export function AccountNav() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const path = usePathname() || "/";
-  // The account's own pages: the button stays lit there, like a current tab.
-  const ACCOUNT_PAGES = ["/my-stories", "/my-characters", "/account", "/admin"];
-  const onAccountPage = ACCOUNT_PAGES.some((p) => path.startsWith(p));
   const item = (href: string) => `account-dropdown-item ${path.startsWith(href) ? "current" : ""}`;
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +42,7 @@ export function AccountNav() {
 
   return (
     <div className="account-menu" ref={ref}>
-      <button type="button" className={`icon-btn account-trigger ${open || onAccountPage ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
+      <button type="button" className={`icon-btn account-trigger ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
         {session.user.avatarKey ? <Avatar avatarKey={session.user.avatarKey} /> : <AccountIcon />}
       </button>
       {open && (

@@ -10,8 +10,45 @@ function getCtor() {
   return window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 }
 
+/** On iPhone, a web page's Web Audio counts as "ambient" sound, which the
+ *  ring/silent switch mutes - so in silent mode the read-aloud voice, the
+ *  music and the tap sounds all went quiet. Ask for media playback instead
+ *  (like a video or a music app), which plays whatever the switch says.
+ *  Safari 17+ supports this directly; for older iPhones a silent, looping
+ *  media element started inside the first tap switches the whole page into
+ *  media playback too. */
+function playThroughSilentSwitch() {
+  try {
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session && session.type !== "playback") session.type = "playback";
+  } catch {}
+}
+let keepAlive: HTMLAudioElement | null = null;
+function startSilentMedia() {
+  if (keepAlive || typeof document === "undefined") return;
+  // (only needed where the audio session can't be set directly)
+  if ((navigator as Navigator & { audioSession?: unknown }).audioSession) return;
+  try {
+    keepAlive = document.createElement("audio");
+    keepAlive.setAttribute("x-webkit-airplay", "deny");
+    keepAlive.loop = true;
+    keepAlive.preload = "auto";
+    keepAlive.muted = false;
+    keepAlive.volume = 0.01;
+    // a quarter-second of silence
+    keepAlive.src =
+      "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    void keepAlive.play().catch(() => {
+      keepAlive = null;
+    });
+  } catch {
+    keepAlive = null;
+  }
+}
+
 export function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
+  playThroughSilentSwitch();
   try {
     const Ctor = getCtor();
     if (!Ctor) return null;
@@ -31,6 +68,8 @@ export function getAudioContext(): AudioContext | null {
  *  otherwise created in a "suspended" state and its first sound can be lost
  *  while resume() is still pending. Safe to call repeatedly. */
 export function unlockAudio() {
+  playThroughSilentSwitch();
+  startSilentMedia();
   const c = getAudioContext();
   if (!c) return;
   try {
