@@ -21,14 +21,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const kind = storyKeyword(story).toLowerCase();
   const subject = ["mission", "mystery", "celebration"].includes(kind) ? `a ${kind}` : kind;
   const rating = story.ratingCount ? ` Rated ${(story.ratingSum! / story.ratingCount).toFixed(1)}/5 by parents.` : "";
-  const description = `A bedtime picture book about ${subject}, starring ${listNames(cast(story))}, for ages ${ages(story)}. Free to read on Taleo, with a watercolour picture on every page.${rating}`;
+  const description = `A bedtime picture book about ${subject}, starring ${listNames(cast(story))}, for ages ${ages(story)}. Free to read on Noomi, with a watercolour picture on every page.${rating}`;
   return {
     title,
     description,
     keywords: [...cast(story), `${kind} story`, "bedtime story", "picture book", "children's story", "read aloud"],
     authors: story.authorUsername ? [{ name: `@${story.authorUsername}`, url: `/author/${encodeURIComponent(story.authorUsername)}` }] : undefined,
     alternates: { canonical: `/store/${story.id}` },
-    openGraph: { title, description, type: "article", siteName: "Taleo", url: `/store/${story.id}`, publishedTime: new Date(story.createdAt).toISOString() },
+    openGraph: { title, description, type: "article", siteName: "Noomi", url: `/store/${story.id}`, publishedTime: new Date(story.createdAt).toISOString() },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -69,7 +69,7 @@ function structured(story: Story) {
           : {}),
       },
       breadcrumbs([
-        { name: "Taleo", path: "/" },
+        { name: "Noomi", path: "/" },
         { name: "Library", path: "/store" },
         { name: title, path: `/store/${story.id}` },
       ]),

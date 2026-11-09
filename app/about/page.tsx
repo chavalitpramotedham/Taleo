@@ -5,19 +5,19 @@ import { OrnamentRule } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: "About us",
-  description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
+  description: "Why a young dad built Noomi: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
   alternates: { canonical: "/about" },
   openGraph: {
     type: "website",
-    siteName: "Taleo",
+    siteName: "Noomi",
     url: "/about",
-    title: "About Taleo: by parents, for parents",
-    description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
+    title: "About Noomi: by parents, for parents",
+    description: "Why a young dad built Noomi: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
     images: [OG_IMAGE],
   },
 };
 
-/** About Taleo: the founder's story, and the "Say hello" form. */
+/** About Noomi: the founder's story, and the "Say hello" form. */
 export default function AboutPage() {
   return (
     <div className="container about">
@@ -31,7 +31,7 @@ export default function AboutPage() {
             <rect className="paint-dim" width="400" height="400" />
           </svg>
         </figure>
-        <h1>Why I made Taleo</h1>
+        <h1>Why I made Noomi</h1>
       </header>
 
       <article className="about-story">
@@ -62,7 +62,7 @@ export default function AboutPage() {
         </p>
 
         <p>
-          That&apos;s the idea behind Taleo.
+          That&apos;s the idea behind Noomi.
         </p>
 
         <p>
@@ -70,7 +70,7 @@ export default function AboutPage() {
         </p>
 
         <p>
-          That&apos;s what I&apos;m hoping to build with Taleo. A little more imagination, a little more connection, and a few more special moments at bedtime. All from a dad who&apos;s figuring it out along the way.
+          That&apos;s what I&apos;m hoping to build with Noomi. A little more imagination, a little more connection, and a few more special moments at bedtime. All from a dad who&apos;s figuring it out along the way.
         </p>
 
       </article>

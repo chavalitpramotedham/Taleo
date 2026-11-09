@@ -102,7 +102,7 @@ export async function refund(userId: string, bucket: Bucket, at: number) {
 }
 
 const LIMIT_MESSAGES: Record<Bucket, (wait: string) => string> = {
-  story: (w) => `You can begin a new story in about ${w}. While Taleo is in early access, each family can start one new story every 30 minutes.`,
+  story: (w) => `You can begin a new story in about ${w}. While Noomi is in early access, each family can start one new story every 30 minutes.`,
   segment: (w) => `That's a lot of story for one sitting! Please try again in about ${w}.`,
   illustrate: (w) => `The painter needs a little rest. The pictures will carry on in about ${w}.`,
   character: (w) => `You've dreamt up lots of characters! Try again in about ${w}.`,

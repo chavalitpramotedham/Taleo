@@ -1,11 +1,11 @@
 /** Search and sharing details used across the site: the canonical address,
  *  the words people search with, and structured data (JSON-LD) describing
- *  Taleo and its stories to search engines. */
+ *  Noomi and its stories to search engines. */
 
 export const SITE_URL = "https://taleo-stories.app";
-export const SITE_NAME = "Taleo";
+export const SITE_NAME = "Noomi";
 
-export const SITE_TITLE = "Taleo: personalised bedtime picture books for your child";
+export const SITE_TITLE = "Noomi: personalised bedtime picture books for your child";
 export const SITE_DESCRIPTION =
   "Make watercolour bedtime stories with your little one: choose a hero, decide together what happens next, and read along aloud. Stories that grow with your child, from 18 months to 6+.";
 
@@ -37,7 +37,7 @@ export const OG_IMAGE = {
   url: "/og-image.jpg",
   width: 1200,
   height: 630,
-  alt: "Taleo: a watercolour picture-book page of a laughing bear and a rabbit leaping over a puddle, beside the words 'Stories dreamt up at bedtime, painted just for you'",
+  alt: "Noomi: a watercolour picture-book page of a laughing bear and a rabbit leaping over a puddle, beside the words 'Stories dreamt up at bedtime, painted just for you'",
 };
 
 export const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
@@ -46,7 +46,7 @@ export const absoluteUrl = (path: string) => new URL(path, SITE_URL).toString();
  *  story title can never close the script tag. */
 export const jsonLd = (data: unknown) => ({ __html: JSON.stringify(data).replace(/</g, "\\u003c") });
 
-/** Who makes Taleo, and the site itself (with its search-friendly name). */
+/** Who makes Noomi, and the site itself (with its search-friendly name). */
 export const ORGANIZATION = {
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
@@ -60,7 +60,7 @@ export const WEBSITE = {
   "@type": "WebSite",
   "@id": `${SITE_URL}/#website`,
   name: SITE_NAME,
-  alternateName: "Taleo Stories",
+  alternateName: "Noomi Stories",
   url: SITE_URL,
   description: SITE_DESCRIPTION,
   inLanguage: "en",

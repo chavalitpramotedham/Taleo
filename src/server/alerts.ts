@@ -14,7 +14,7 @@
  */
 
 const TO = process.env.DEV_ALERT_EMAIL || "taleostories.dev@gmail.com";
-const FROM = process.env.CONTACT_FROM || "Taleo <onboarding@resend.dev>";
+const FROM = process.env.CONTACT_FROM || "Noomi <onboarding@resend.dev>";
 const KEY = process.env.RESEND_API_KEY;
 const LIVE = process.env.VERCEL_ENV === "production";
 
@@ -67,7 +67,7 @@ ${stack ? `<pre style="background:#f6f1e6;padding:10px;white-space:pre-wrap">${e
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to: [TO], subject: `[Taleo alert] ${where}: ${message.slice(0, 90)}`, html }),
+      body: JSON.stringify({ from: FROM, to: [TO], subject: `[Noomi alert] ${where}: ${message.slice(0, 90)}`, html }),
     });
   } catch (e) {
     console.error("[alert] couldn't send an alert", e);

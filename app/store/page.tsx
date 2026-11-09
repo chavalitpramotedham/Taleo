@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: "/store" },
-  openGraph: { type: "website", siteName: "Taleo", url: "/store", title: TITLE, description: DESCRIPTION, images: [OG_IMAGE] },
+  openGraph: { type: "website", siteName: "Noomi", url: "/store", title: TITLE, description: DESCRIPTION, images: [OG_IMAGE] },
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [OG_IMAGE] },
 };
 
@@ -21,7 +21,7 @@ const STRUCTURED = {
       "@type": "CollectionPage",
       "@id": `${SITE_URL}/store`,
       url: `${SITE_URL}/store`,
-      name: "The Taleo library",
+      name: "The Noomi library",
       description: DESCRIPTION,
       inLanguage: "en",
       isPartOf: { "@id": `${SITE_URL}/#website` },
@@ -29,7 +29,7 @@ const STRUCTURED = {
       audience: { "@type": "PeopleAudience", audienceType: "Parents of young children" },
     },
     breadcrumbs([
-      { name: "Taleo", path: "/" },
+      { name: "Noomi", path: "/" },
       { name: "Library", path: "/store" },
     ]),
   ],

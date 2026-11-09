@@ -58,7 +58,7 @@ export function BookCover({
     <div className={`book-cover ${opening ? "opening" : ""} ${ready ? "ready" : ""}`} style={coverStyle(story.id)} aria-live="polite">
       <div className="book-cover-board">
         <div className="book-cover-frame">
-          <p className="book-cover-kicker">A Taleo picture book</p>
+          <p className="book-cover-kicker">A Noomi picture book</p>
           <Ornament className="book-cover-orn" />
           <Title className={`book-cover-title ${story.title ? "shown" : ""}`}>{story.title || " "}</Title>
           <div className="book-cover-oval">

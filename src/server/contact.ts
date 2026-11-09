@@ -10,15 +10,15 @@ import { reportError } from "./alerts";
  * Environment:
  *   RESEND_API_KEY  - enables email. Without it, messages are only saved.
  *   CONTACT_EMAIL   - where messages go (default taleostories.dev@gmail.com).
- *   CONTACT_FROM    - sender. Default "Taleo <onboarding@resend.dev>", which
+ *   CONTACT_FROM    - sender. Default "Noomi <onboarding@resend.dev>", which
  *                     Resend only lets you send to the email address that owns
  *                     the Resend account - so sign up to Resend with the
  *                     CONTACT_EMAIL address, or verify your own domain there
- *                     and set this to e.g. "Taleo <hello@yourdomain.com>".
+ *                     and set this to e.g. "Noomi <hello@yourdomain.com>".
  */
 
 export const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "taleostories.dev@gmail.com";
-const CONTACT_FROM = process.env.CONTACT_FROM || "Taleo <onboarding@resend.dev>";
+const CONTACT_FROM = process.env.CONTACT_FROM || "Noomi <onboarding@resend.dev>";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 export interface ContactMessage {
@@ -83,7 +83,7 @@ ${files ? `<h3 style="margin:20px 0 6px">Attachments</h3><ul>${files}</ul>` : ""
         from: CONTACT_FROM,
         to: [CONTACT_EMAIL],
         reply_to: msg.from.email,
-        subject: `[Taleo] ${msg.title}`,
+        subject: `[Noomi] ${msg.title}`,
         html,
         attachments: attachments.length ? attachments : undefined,
       }),

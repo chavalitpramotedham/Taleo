@@ -29,7 +29,7 @@ export function SharedStoryWelcome({ story }: { story: SharedStorySummary }) {
           href={`/store/${story.id}`}
           label="Start reading"
           onRead={() => setOpen(false)}
-          onShare={() => shareStory(story.title || "A Taleo story", shareUrl(story.id, window.location.origin), () => {})}
+          onShare={() => shareStory(story.title || "A Noomi story", shareUrl(story.id, window.location.origin), () => {})}
         />
         <button type="button" className="btn btn-ghost btn-block" onClick={close}>
           Look around first
