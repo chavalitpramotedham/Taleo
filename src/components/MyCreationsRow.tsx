@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
-import { STORY_DELETED_EVENT, fetchGalleryShelf } from "@/lib/gallery-client";
+import { STORY_DELETED_EVENT } from "@/lib/gallery-client";
+import { SAVED_EVENT } from "@/lib/saved-client";
 import { useRouter } from "next/navigation";
 import { MapleMark } from "./Icons";
 import { SideScroll } from "./SideScroll";
@@ -15,8 +16,8 @@ import { ShelfSkeleton } from "./ShelfSkeleton";
  *  bookshelf. */
 const SHOWN = 6;
 
-/** Your own stories, newest first, in one sideways row. Past the first few
- *  it ends in an arrow card that opens your whole bookshelf. */
+/** Your bookshelf in one sideways row (originals, then saved). Past the
+ *  first few it ends in an arrow card that opens your whole bookshelf. */
 export function MyCreationsRow({ username }: { username: string | null }) {
   const [mine, setMine] = useState<GalleryEntry[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -36,19 +37,33 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     return () => window.removeEventListener(STORY_DELETED_EVENT, drop);
   }, [router]);
 
+  // Your bookshelf in one row: your originals (newest first), then the
+  // stories you've saved from the library (most recently saved first) -
+  // straight from the two small bookshelf lists, not the whole library.
   useEffect(() => {
     if (!username) return setMine([]);
     let live = true;
-    fetchGalleryShelf()
-      .then(({ stories }) => {
+    const get = (url: string) => fetch(url).then((r) => (r.ok ? r.json() : { stories: [] })).then((d: { stories?: GalleryEntry[] }) => d.stories ?? []);
+    Promise.all([get("/api/gallery/mine"), get("/api/user/saved").catch(() => [])])
+      .then(([originals, saved]) => {
         if (!live) return;
-        const u = username.toLowerCase();
-        setMine(stories.filter((e) => e.authorUsername?.toLowerCase() === u).sort((a, b) => b.createdAt - a.createdAt));
+        const own = [...originals].sort((a, b) => b.createdAt - a.createdAt);
+        const seen = new Set(own.map((e) => e.id));
+        setMine([...own, ...saved.filter((e) => !seen.has(e.id))]);
       })
       .catch(() => live && setMine([]));
     return () => {
       live = false;
     };
+  }, [username]);
+  // Unsaving a story (from its preview) takes it off the row.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
+      if (d && !d.saved) setMine((list) => (list ? list.filter((s) => s.id !== d.id || s.authorUsername?.toLowerCase() === username?.toLowerCase()) : list));
+    };
+    window.addEventListener(SAVED_EVENT, on);
+    return () => window.removeEventListener(SAVED_EVENT, on);
   }, [username]);
 
   if (mine === null) return <ShelfSkeleton count={3} row />;
@@ -64,7 +79,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     );
 
   const open = openId ? mine.find((e) => e.id === openId) : null;
-  const shelf = username ? `/author/${encodeURIComponent(username)}` : "/my-stories";
+  const shelf = "/my-stories";
   return (
     <>
       <SideScroll className="creations-row" label="More of my stories">
@@ -72,7 +87,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
           <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
         ))}
         {mine.length > SHOWN && (
-          <Link href={shelf} className="creations-more" aria-label={`See all ${mine.length} of my stories`}>
+          <Link href={shelf} className="creations-more" aria-label={`See all ${mine.length} on my bookshelf`}>
             <span className="creations-more-arrow" aria-hidden>
               →
             </span>
@@ -80,6 +95,11 @@ export function MyCreationsRow({ username }: { username: string | null }) {
           </Link>
         )}
       </SideScroll>
+      <div className="home-shelf-more">
+        <Link className="btn btn-soft" href={shelf}>
+          Open my bookshelf
+        </Link>
+      </div>
       {open && (
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(mine.slice(0, SHOWN), open.id, setOpenId)}>
           <LibraryActions

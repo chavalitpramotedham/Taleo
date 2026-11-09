@@ -64,8 +64,8 @@ export default async function HomePage() {
 
       <section className="home-creations">
         <header className="home-shelf-head home-creations-head">
-          <h2>My creations</h2>
-          <p className="sub">The stories you&apos;ve made together.</p>
+          <h2>My bookshelf</h2>
+          <p className="sub">The stories you&apos;ve made together, and the ones you&apos;ve saved.</p>
         </header>
         <MyCreationsRow username={username} />
       </section>
