@@ -66,6 +66,10 @@ export default function AboutPage() {
         </p>
 
         <p>
+          With AI, storytelling can potentially become more dynamic and engaging than ever before - which means we get to see our kids learn, feel and experience stories in ways we never got to.
+        </p>
+
+        <p>
           I know a lot of parents are wary of AI around their children. Honestly, so am I, and I think it&apos;s a healthy instinct. But as I&apos;ve worked on this project, I&apos;ve come to appreciate how magical it can be for a child to see something they&apos;ve imagined brought to life on a page, illustrated and read back to them, especially by the people they love most in the world. Used with care, I think generative AI can help kids dream bigger, find their own words, and pick up a few of life&apos;s lessons along the way.
         </p>
 
