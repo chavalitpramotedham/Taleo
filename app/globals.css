@@ -8117,3 +8117,9 @@ html[data-night] .story-card .story-card-title {
   overflow-y: hidden;
   overscroll-behavior-x: contain;
 }
+/* The category menu hangs from the right-hand pill: its contents line up
+   on the right too. */
+.category-menu .music-dropdown-label,
+.category-menu .music-dropdown-item {
+  text-align: right;
+}

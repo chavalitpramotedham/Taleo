@@ -41,7 +41,8 @@ export function CategoryFilter({
       const a = anchor.current?.getBoundingClientRect();
       if (!a) return;
       const w = menu.current?.offsetWidth ?? 200;
-      const left = Math.max(12, Math.min(a.left, window.innerWidth - w - 12));
+      // Right edge lined up with the pill's (it sits at the row's right end).
+      const left = Math.max(12, Math.min(a.right - w, window.innerWidth - w - 12));
       setPos({ top: a.bottom + 8, left });
     };
     place();
