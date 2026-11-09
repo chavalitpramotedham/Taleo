@@ -44,11 +44,12 @@ export default function MyStoriesPage() {
   }, [status]);
 
   // Unsaving a story (from its preview) takes it off the Saved shelf.
-  const [saved, setSaved] = useState<GalleryEntry[]>([]);
+  const [savedList, setSaved] = useState<GalleryEntry[] | null>(null);
+  const saved = useMemo(() => savedList ?? [], [savedList]);
   useEffect(() => {
     const on = (e: Event) => {
       const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
-      if (d && !d.saved) setSaved((list) => list.filter((s) => s.id !== d.id));
+      if (d && !d.saved) setSaved((list) => (list ? list.filter((s) => s.id !== d.id) : list));
     };
     window.addEventListener(SAVED_EVENT, on);
     return () => window.removeEventListener(SAVED_EVENT, on);
@@ -94,7 +95,8 @@ export default function MyStoriesPage() {
     window.setTimeout(() => setToast(null), 2400);
   };
 
-  if (status !== "authenticated" || stories === null)
+  // (both shelves arrive together, so the page never shifts as one lands)
+  if (status !== "authenticated" || stories === null || savedList === null)
     return (
       <div className="container">
         <header className="wizard-head">

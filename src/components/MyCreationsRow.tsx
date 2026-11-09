@@ -51,7 +51,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     };
   }, [username]);
 
-  if (mine === null) return <ShelfSkeleton count={3} />;
+  if (mine === null) return <ShelfSkeleton count={3} row />;
   if (mine.length === 0)
     return (
       <div className="empty creations-empty">

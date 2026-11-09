@@ -2,9 +2,18 @@
  *  a 4:3 picture, a keyword pill and room for a three-line title - so the
  *  shelf never jumps or stretches when the stories arrive. A soft sheen
  *  passes over them (a moving layer, no repainting). */
-export function ShelfSkeleton({ count = 6, label = "Fetching stories…" }: { count?: number; label?: string }) {
-  return (
-    <div className="shelf shelf-skeleton" role="status" aria-label={label}>
+export function ShelfSkeleton({
+  count = 6,
+  label = "Fetching stories…",
+  row = false,
+}: {
+  count?: number;
+  label?: string;
+  /** shaped like a sideways row of cards (the homepage's My creations) */
+  row?: boolean;
+}) {
+  const cards = (
+    <div className={row ? "creations-row shelf-skeleton" : "shelf shelf-skeleton"} role="status" aria-label={label}>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="book-card skeleton-card" aria-hidden>
           <span className="cover" />
@@ -19,4 +28,6 @@ export function ShelfSkeleton({ count = 6, label = "Fetching stories…" }: { co
       ))}
     </div>
   );
+  // (inside the same wrapper as the real row, so nothing shifts when it arrives)
+  return row ? <div className="side-scroll">{cards}</div> : cards;
 }
