@@ -247,8 +247,8 @@ export default function CreatePage() {
               </span>
             </div>
             <SideScroll className="hero-slots" label="More of your characters">
-              {Array.from({ length: MAX_CHARACTERS }, (_, i) => {
-                const c = saved[i];
+              {/* your characters, then one "New" slot while there's room */}
+              {[...saved, ...(saved.length < MAX_CHARACTERS ? [null] : [])].map((c, i) => {
                 if (!c) {
                   return (
                     <button key={`empty-${i}`} type="button" className="hero-slot hero-slot-empty" onClick={() => setCreatingCharacter(true)} aria-label="Create a new character">

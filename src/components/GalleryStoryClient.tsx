@@ -35,10 +35,10 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
   if (!story)
     return (
       <div className="container empty">
-        <h2>We couldn&apos;t find that story</h2>
-        <p className="meta">It may have been removed from the store.</p>
+        <h1 className="empty-title">We couldn&apos;t find that story</h1>
+        <p className="meta">It may have been removed from the library.</p>
         <Link className="btn btn-primary" href="/store">
-          Back to the store
+          Back to the library
         </Link>
       </div>
     );

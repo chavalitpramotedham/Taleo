@@ -27,7 +27,7 @@ export default function SharedPage() {
   if (!story)
     return (
       <div className="container empty">
-        <h2>This story link seems torn</h2>
+        <h1 className="empty-title">This story link seems torn</h1>
         <p className="meta">Ask for the link again, or begin a brand-new story.</p>
         <Link className="btn btn-primary" href="/create">
           <MapleMark />

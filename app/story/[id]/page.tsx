@@ -57,7 +57,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
   if (story === null)
     return (
       <div className="container empty">
-        <h2>We couldn&apos;t find that story</h2>
+        <h1 className="empty-title">We couldn&apos;t find that story</h1>
         <p className="meta">Stories are kept on this device. It may have been tidied away.</p>
         <Link className="btn btn-primary" href="/create">
           <MapleMark />

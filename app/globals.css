@@ -7465,3 +7465,65 @@ html[data-night] .step-art img {
 .home-steps-head + .steps-wrap .steps {
   margin-top: clamp(14px, 2.5vw, 24px);
 }
+
+/* ---------- bigger touch targets on phones and tablets ---------- */
+/* Small controls keep their look but get an invisible, larger touch area
+   (about 44px tall), so a fingertip lands them easily. */
+@media (pointer: coarse) {
+  /* (.steps-more is already absolutely placed - leave it so) */
+  .nav-link,
+  .nav-begin-pill,
+  .night-toggle,
+  .chip,
+  .text-size button,
+  .story-preview-author {
+    position: relative;
+  }
+  .nav-link::after,
+  .nav-begin-pill::after,
+  .chip::after,
+  .story-preview-author::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+  .night-toggle::after,
+  .steps-more::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+  }
+  /* (the phone filter row scrolls sideways, which would clip the taller
+     touch areas - give them room) */
+  .filter-row {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-top: -7px;
+    margin-bottom: -7px;
+  }
+}
+/* not-found states: the page's main heading, sized like the others */
+.empty .empty-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin: 0;
+}
+/* Wide screens: the page buttons float over the bottom of the book, so the
+   picture's "Tap …!" hint sits at its top-left instead. */
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .tap-hint {
+    top: 12px;
+    bottom: auto;
+  }
+}
+/* The closed cover keeps clear of the floating page buttons (on small
+   phones it would otherwise run under them, hiding "Open the book"). */
+@media not ((min-width: 760px) and (min-aspect-ratio: 5/4)) {
+  .book-stage:not(.open) {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
