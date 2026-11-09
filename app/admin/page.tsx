@@ -6,7 +6,7 @@ import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
 import { anthropicCosts, anthropicCostsEnabled, type AnthropicCosts } from "@/server/anthropic-costs";
 
-export const metadata: Metadata = { title: "Dashboard · Taleo", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin dashboard · Taleo", robots: { index: false, follow: false } };
 
 const DAYS = 30;
 
@@ -39,8 +39,8 @@ export default async function AdminPage() {
   const withUsername = users.filter((u) => u.username).length;
 
   const published30 = gallery.filter((e) => e.createdAt >= since(30)).length;
-  const ratings = gallery.reduce((t, e) => t + e.ratingCount, 0);
-  const ratingSum = gallery.reduce((t, e) => t + e.ratingSum, 0);
+  const ratings = gallery.reduce((t, e) => t + (e.ratingCount || 0), 0);
+  const ratingSum = gallery.reduce((t, e) => t + (e.ratingSum || 0), 0);
   const authors = new Map<string, number>();
   for (const e of gallery) authors.set(e.authorUsername || "taleo", (authors.get(e.authorUsername || "taleo") ?? 0) + 1);
   const topAuthors = [...authors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -95,7 +95,7 @@ export default async function AdminPage() {
     <div className="container admin">
       <header className="wizard-head">
         <p className="eyebrow">Only you can see this</p>
-        <h1>Dashboard</h1>
+        <h1>Admin dashboard</h1>
         <p className="sub">The last {DAYS} days, unless it says otherwise. Updated each time you open it.</p>
       </header>
 
@@ -127,7 +127,7 @@ export default async function AdminPage() {
           <Tile label="Cost per story" value={started ? usd(spend / started) : "-"} note={paintings && started ? `${(paintings / started).toFixed(1)} paintings per story` : "per story started"} data={metrics ? costPerStory : undefined} invert />
           <Tile label="Paintings" value={metrics ? n(paintings) : "-"} note={metrics ? `${n(sum(days, "paintings_failed"))} failed` : "needs tracking"} data={metrics ? series.paintings : undefined} />
           <Tile label="Words written" value={metrics ? n(sum(days, "words")) : "-"} note={metrics ? `${n(sum(days, "pages"))} pages` : "needs tracking"} data={metrics ? series.words : undefined} />
-          <Tile label="Tokens" value={metrics ? tokens(totalTokens) : "-"} note={metrics && totalIn ? `${Math.round((cacheRead / totalIn) * 100)}% from cache` : "needs tracking"} data={metrics ? series.tokens : undefined} invert />
+          <Tile label="Tokens" value={metrics ? tokens(totalTokens) : "-"} note={!metrics ? "needs tracking" : totalIn ? `${Math.round((cacheRead / totalIn) * 100)}% from cache` : "none yet"} data={metrics ? series.tokens : undefined} invert />
         </div>
       </section>
 
