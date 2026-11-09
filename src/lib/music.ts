@@ -95,7 +95,7 @@ export function holdMusic(reason: string, on: boolean, opts: { pause?: boolean }
 // over roughly a second while the voice speaks, and drifts back up a
 // little more slowly afterwards.
 const ducks = new Set<string>();
-const DUCKED = VOLUME * 0.22; // well under the voice while it reads - never silent
+const DUCKED = VOLUME * 0.5; // half the music under the voice (11.5% of full) - never silent
 const DOWN_S = 0.32; // time constant easing down (~1s to settle)
 const UP_S = 0.5; // ... and back up (~1.5s)
 let gain: GainNode | null = null;
