@@ -4,6 +4,7 @@ import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
 import { sanitizeSvgFlat } from "@/lib/svg-sanitize";
 import { loadBrandFonts } from "@/server/og-fonts";
+import { clothFor } from "@/lib/cover";
 
 export const size = { width: 1200, height: 630 };
 // Built once per story and cached (rebuilt at most daily) - not on every
@@ -42,16 +43,25 @@ function svgToReact(svg: string): ReactNode[] {
   return root;
 }
 
-const STAR = "M12 2.8l2.7 5.9 6.4.6-4.8 4.3 1.4 6.3L12 16.7 6.3 19.9l1.4-6.3L2.9 9.3l6.4-.6z";
-
-function Star({ filled }: { filled: boolean }) {
+/** The cover's little gilt flourish (the same as the in-app cover's). */
+function Ornament({ color }: { color: string }) {
   return (
-    <svg width={34} height={34} viewBox="0 0 24 24" style={{ margin: "0 2px" }}>
-      <path d={STAR} fill={filled ? "#C49A3E" : "none"} stroke="#C49A3E" strokeWidth={1.3} />
+    <svg width={170} height={20} viewBox="0 0 120 14" fill="none" stroke={color} strokeWidth={1} strokeLinecap="round">
+      <path d="M2 7h40M78 7h40" />
+      <path d="M60 2c-4 0-6 2.5-6 5s2 5 6 5 6-2.5 6-5-2-5-6-5z" />
+      <path d="M48 7c2-3 4-3 6 0M66 7c2 3 4 3 6 0" />
+      <circle cx="60" cy="7" r="1.2" fill={color} />
     </svg>
   );
 }
 
+const GILT = "#e4c27c";
+
+/** A shared story's link preview is its book cover, just as it looks in
+ *  the app: cloth-bound in the story's own colour, with a double gilt
+ *  frame, the stamped title, the first page's painting in an oval and who
+ *  it stars - set on a warm table, centred, so chat apps that crop the
+ *  preview to a square still show the whole book. */
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const story = await getGalleryStory(id, { cacheSeconds: 86400 });
@@ -59,12 +69,15 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const title = story?.title || "A Taleo story";
   const cover = story ? (allPages(story).find((p) => p.svg)?.svg ?? null) : null;
   const flatCover = cover ? sanitizeSvgFlat(cover) : "";
-  const count = story?.ratingCount ?? 0;
-  const avg = count ? Math.round((story!.ratingSum! / count) * 10) / 10 : 0;
+  const names = story ? [story.hero, ...(story.companions ?? [])].map((h) => h.name) : [];
+  const starring = names.length > 1 ? `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}` : names[0];
+  const [clothA, clothB] = clothFor(id);
   const fonts = await loadBrandFonts();
   const FONT_TITLE = "IM Fell English";
   const FONT_CAPS = "IM Fell English SC";
   const FONT_BODY = "EB Garamond";
+  const W = 438; // the book: 3:4, nearly the card's full height
+  const H = 584;
 
   return new ImageResponse(
     (
@@ -74,63 +87,102 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           height: "100%",
           display: "flex",
           alignItems: "center",
-          gap: 48,
-          padding: 56,
-          background: "#F3ECDC",
+          justifyContent: "center",
+          background: "radial-gradient(ellipse 70% 80% at 50% 45%, #f7f0e1 0%, #eadfc8 70%, #ddcfb3 100%)",
           fontFamily: FONT_BODY,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            width: 480,
-            height: 480,
-            flexShrink: 0,
-            background: "#FBF7EE",
-            border: "2px solid #ECE2CC",
-            borderRadius: 4,
-            padding: 16,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {flatCover ? (
-            <svg width={448} height={336} viewBox="0 0 400 300">
-              {svgToReact(flatCover)}
-            </svg>
-          ) : (
-            <div style={{ fontSize: 28, color: "#9A8A74", fontFamily: FONT_TITLE }}>Taleo</div>
-          )}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          <div style={{ display: "flex", fontSize: 24, letterSpacing: 2, color: "#9C4F32", marginBottom: 14, fontFamily: FONT_CAPS }}>
-            A Taleo Story
-          </div>
+        {/* the page block peeking out on the right, then the cover */}
+        <div style={{ display: "flex", position: "relative", width: W + 10, height: H + 10 }}>
           <div
             style={{
               display: "flex",
-              fontSize: title.length > 28 ? 54 : 66,
-              color: "#3B3127",
-              lineHeight: 1.1,
-              marginBottom: 28,
-              maxHeight: 220,
-              overflow: "hidden",
-              fontFamily: FONT_TITLE,
+              position: "absolute",
+              left: 12,
+              top: 10,
+              width: W - 4,
+              height: H,
+              borderRadius: "4px 12px 12px 4px",
+              background: "#eadfc8",
+              border: "1px solid rgba(80,60,40,0.25)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: W,
+              height: H,
+              padding: 20,
+              borderRadius: "4px 12px 12px 4px",
+              background: `linear-gradient(90deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 4.5%, rgba(255,220,180,0.08) 6%, rgba(0,0,0,0) 9%), radial-gradient(ellipse 90% 70% at 60% 35%, ${clothA} 0%, ${clothB} 70%)`,
+              boxShadow: "0 30px 50px -20px rgba(40,18,10,0.6)",
             }}
           >
-            {title}
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <Star key={n} filled={n <= Math.round(avg)} />
-            ))}
-          </div>
-          <div style={{ display: "flex", fontSize: 28, color: "#6B5A48", marginTop: 10, fontStyle: "italic" }}>
-            {count ? `${avg.toFixed(1)} · ${count} rating${count === 1 ? "" : "s"}` : "A new story, painted just for you"}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", marginTop: "auto", fontSize: 36, color: "#3B3127", fontFamily: FONT_TITLE }}>
-            <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: "#9C4F32", marginRight: 12 }} />
-            Taleo
+            {/* the double gilt frame */}
+            <div style={{ display: "flex", flex: 1, border: `2px solid ${GILT}`, padding: 7 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flex: 1,
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: `1px solid rgba(228,194,124,0.7)`,
+                  padding: "26px 18px 18px",
+                  color: GILT,
+                }}
+              >
+                <div style={{ display: "flex", fontFamily: FONT_CAPS, fontSize: 19, letterSpacing: 2.5, opacity: 0.9 }}>A Taleo picture book</div>
+                <div style={{ display: "flex", marginTop: 6 }}>
+                  <Ornament color={GILT} />
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    fontFamily: FONT_TITLE,
+                    fontSize: title.length > 34 ? 32 : title.length > 22 ? 38 : 46,
+                    lineHeight: 1.12,
+                    marginTop: 12,
+                    maxHeight: 110,
+                    overflow: "hidden",
+                    textShadow: "0 1px 1px rgba(0,0,0,0.55)",
+                  }}
+                >
+                  {title}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    marginTop: 18,
+                    width: 290,
+                    height: 218,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#ece2cb",
+                    border: `3px solid ${GILT}`,
+                    boxShadow: `0 0 0 5px ${clothB}`,
+                  }}
+                >
+                  {flatCover ? (
+                    <svg width={336} height={252} viewBox="0 0 400 300">
+                      {svgToReact(flatCover)}
+                    </svg>
+                  ) : (
+                    <div style={{ display: "flex", fontSize: 30, color: "#9A8A74", fontFamily: FONT_TITLE }}>Taleo</div>
+                  )}
+                </div>
+                {starring && (
+                  <div style={{ display: "flex", marginTop: 16, fontSize: 24, fontStyle: "italic" }}>Starring {starring}</div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
