@@ -18,7 +18,7 @@ const ICONS = {
  *  helps their child. */
 const SPECS: { label: string; title: string; text: string; icon: React.ReactNode }[] = [
   {
-    label: "Age-appropriate",
+    label: "For all ages",
     title: "Matched to your child's age",
     text: "Sentence length and vocabulary adjust to their age, from toddlers to early readers.",
     icon: ICONS.grow,
