@@ -38,7 +38,7 @@ const SPECS: { label: string; title: string; text: string; icon: React.ReactNode
   {
     label: "Read-aloud",
     title: "Natural voice and calm music",
-    text: "Every page is read aloud clearly, which helps children learn how words sound.",
+    text: "Practise reading aloud with a clear, natural voice, and soothing music to end the day.",
     icon: ICONS.voice,
   },
 ];
