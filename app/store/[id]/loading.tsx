@@ -9,7 +9,7 @@ export default function Loading() {
       <div className="book-cover">
         <div className="book-cover-board">
           <div className="book-cover-frame">
-            <p className="book-cover-kicker">A Noomi picture book</p>
+            <p className="book-cover-kicker">A Taleo picture book</p>
             <span className="book-cover-title shown skeleton-cover-title" />
             <div className="book-cover-oval skeleton-cover-oval">
               <LeafLoader size={44} />

@@ -1,4 +1,4 @@
-/** The technology behind Noomi, told for parents: four glassy spec cards (a row where
+/** The technology behind Taleo, told for parents: four glassy spec cards (a row where
  *  they fit, two by two where they don't) - a modern counterpoint to the storybook pages around it. Every
  *  point is something the app really does. */
 const ICONS = {

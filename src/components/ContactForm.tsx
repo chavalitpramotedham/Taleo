@@ -21,7 +21,7 @@ interface Picked {
 }
 
 /** The "Say hello" form on the About page: a request or an issue report,
- *  with optional photos or videos, sent to the Noomi inbox. Signed-out
+ *  with optional photos or videos, sent to the Taleo inbox. Signed-out
  *  visitors are invited to sign in (they stay on the page). */
 export function ContactForm() {
   const { data: session, status } = useSession();

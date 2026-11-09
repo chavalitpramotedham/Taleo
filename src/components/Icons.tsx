@@ -107,7 +107,7 @@ export const ShareIcon = () => (
 );
 
 /** A storybook take on the usual "person" icon: a head and shoulders, with
- *  a small accent dot echoing the brand mark (the dot before "Noomi"). */
+ *  a small accent dot echoing the brand mark (the dot before "Taleo"). */
 export const AccountIcon = () => (
   <svg {...base}>
     <circle cx="12" cy="9" r="3.4" />

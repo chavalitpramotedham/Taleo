@@ -576,7 +576,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     // Someone else's story is already in the library: just share its link.
     if (!readOnly) await ensurePublished().catch(() => {});
     const url = shareLink();
-    const data = { title: story.title, text: `A Noomi story: “${story.title}”`, url };
+    const data = { title: story.title, text: `A Taleo story: “${story.title}”`, url };
     try {
       if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
         await navigator.share(data);

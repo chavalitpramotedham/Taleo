@@ -11,7 +11,7 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "").toLowerCase();
 const ADMIN_PROFILE: UserProfile = {
   id: ADMIN_USER_ID,
   email: ADMIN_EMAIL || "admin@taleo.local",
-  name: "Noomi",
+  name: "Taleo",
   image: null,
   username: "taleo",
   avatarKey: "star",

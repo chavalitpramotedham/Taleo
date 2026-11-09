@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const profile = await getUserByUsername(name, { cacheSeconds: revalidate }).catch(() => null);
   const shown = profile?.username || name;
   const title = `@${shown}'s bookshelf`;
-  const description = `Bedtime picture-book stories by @${shown}, painted and shared on Noomi. Free to read, with a watercolour picture on every page.`;
+  const description = `Bedtime picture-book stories by @${shown}, painted and shared on Taleo. Free to read, with a watercolour picture on every page.`;
   return {
     title,
     description,
     alternates: { canonical: `/author/${encodeURIComponent(shown)}` },
-    openGraph: { type: "profile", siteName: "Noomi", url: `/author/${encodeURIComponent(shown)}`, title, description, username: shown, images: [OG_IMAGE] },
+    openGraph: { type: "profile", siteName: "Taleo", url: `/author/${encodeURIComponent(shown)}`, title, description, username: shown, images: [OG_IMAGE] },
     // Unknown names and private bookshelves stay out of search results.
     robots: profile && profile.visibility !== "private" ? undefined : { index: false, follow: true },
   };
@@ -64,7 +64,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
         mainEntity: { "@type": "Person", name: `@${shown}`, alternateName: shown, url },
       },
       breadcrumbs([
-        { name: "Noomi", path: "/" },
+        { name: "Taleo", path: "/" },
         { name: "Library", path: "/store" },
         { name: `@${shown}`, path: `/author/${encodeURIComponent(shown)}` },
       ]),

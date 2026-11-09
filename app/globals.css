@@ -1,4 +1,4 @@
-/* Noomi: classic storybook styling. Cream paper, sepia ink, earthy accents. */
+/* Taleo: classic storybook styling. Cream paper, sepia ink, earthy accents. */
 :root {
   --paper: #f3ecdc;
   --page: #fbf7ee;
@@ -181,7 +181,7 @@ html.pull-reloading main {
   flex-shrink: 0;
   overflow: visible;
   /* The wordmark's glyphs sit in the upper half of their line box (no
-     descenders in "Noomi"), so centering the icon against the full line
+     descenders in "Taleo"), so centering the icon against the full line
      leaves it looking low; nudge it up to match the text optically. */
   transform: translateY(-2px);
 }

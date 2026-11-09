@@ -56,7 +56,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const { id } = await params;
   const story = await getGalleryStory(id, { cacheSeconds: 86400 });
 
-  const title = story?.title || "A Noomi story";
+  const title = story?.title || "A Taleo story";
   const cover = story ? (allPages(story).find((p) => p.svg)?.svg ?? null) : null;
   const flatCover = cover ? sanitizeSvgFlat(cover) : "";
   const count = story?.ratingCount ?? 0;
@@ -99,12 +99,12 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               {svgToReact(flatCover)}
             </svg>
           ) : (
-            <div style={{ fontSize: 28, color: "#9A8A74", fontFamily: FONT_TITLE }}>Noomi</div>
+            <div style={{ fontSize: 28, color: "#9A8A74", fontFamily: FONT_TITLE }}>Taleo</div>
           )}
         </div>
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <div style={{ display: "flex", fontSize: 24, letterSpacing: 2, color: "#9C4F32", marginBottom: 14, fontFamily: FONT_CAPS }}>
-            A Noomi Story
+            A Taleo Story
           </div>
           <div
             style={{
@@ -130,7 +130,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: "auto", fontSize: 36, color: "#3B3127", fontFamily: FONT_TITLE }}>
             <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: "#9C4F32", marginRight: 12 }} />
-            Noomi
+            Taleo
           </div>
         </div>
       </div>

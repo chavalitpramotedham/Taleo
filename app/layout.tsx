@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
   // always point at the real domain, never a temporary deployment address.
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_TITLE, template: "%s · Noomi" },
+  title: { default: SITE_TITLE, template: "%s · Taleo" },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: SITE_KEYWORDS,
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
   },
   appleWebApp: {
-    title: "Noomi",
+    title: "Taleo",
     statusBarStyle: "default",
   },
   formatDetection: { telephone: false },
@@ -100,9 +100,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PaintDefs />
           <AudioUnlock />
           <header className="topbar">
-            <Link href="/" className="brand" aria-label="Noomi home">
+            <Link href="/" className="brand" aria-label="Taleo home">
               <BrandMark />
-              Noomi
+              Taleo
             </Link>
             <div className="nav-row">
               <nav className="topnav">

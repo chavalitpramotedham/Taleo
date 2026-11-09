@@ -6,7 +6,7 @@
  * dashboard simply leaves this section out.
  *
  * Covers the whole organisation (or the workspace in
- * ANTHROPIC_WORKSPACE_ID, if Noomi has its own). Data appears within
+ * ANTHROPIC_WORKSPACE_ID, if Taleo has its own). Data appears within
  * about five minutes; results are cached for ten.
  */
 
@@ -40,7 +40,7 @@ export async function anthropicCosts(days = 30): Promise<AnthropicCosts | null> 
     if (WORKSPACE) q.append("group_by[]", "workspace_id");
     if (page) q.set("page", page);
     const res = await fetch(`https://api.anthropic.com/v1/organizations/cost_report?${q}`, {
-      headers: { "x-api-key": ADMIN_KEY, "anthropic-version": "2026-10-21", "User-Agent": "Noomi/1.0 (https://taleo-stories.app)" },
+      headers: { "x-api-key": ADMIN_KEY, "anthropic-version": "2026-10-21", "User-Agent": "Taleo/1.0 (https://taleo-stories.app)" },
       next: { revalidate: 600 },
     });
     if (!res.ok) throw new Error(`cost report ${res.status}`);

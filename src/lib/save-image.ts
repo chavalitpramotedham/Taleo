@@ -25,7 +25,7 @@ export async function saveCharacterImage(svgMarkup: string, name: string): Promi
     canvas.height = SIZE;
     canvas.getContext("2d")!.drawImage(img, 0, 0, SIZE, SIZE);
     const blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("no image"))), "image/png"));
-    const fileName = `${name.replace(/[^\w\- ]+/g, "").trim() || "character"} - Noomi.png`;
+    const fileName = `${name.replace(/[^\w\- ]+/g, "").trim() || "character"} - Taleo.png`;
     const file = new File([blob], fileName, { type: "image/png" });
     if (navigator.canShare?.({ files: [file] })) {
       try {

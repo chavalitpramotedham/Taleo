@@ -1,4 +1,4 @@
-// Fetches Noomi's own brand fonts (Google Fonts) as raw bytes for next/og's
+// Fetches Taleo's own brand fonts (Google Fonts) as raw bytes for next/og's
 // ImageResponse (Satori), which can't use @font-face/CSS and needs font data
 // supplied directly. Cached per server process since the bytes never change.
 
@@ -41,7 +41,7 @@ export interface OgFont {
   style?: "normal" | "italic";
 }
 
-/** Noomi's title serif, small-caps serif and body serif, ready for ImageResponse's `fonts` option. */
+/** Taleo's title serif, small-caps serif and body serif, ready for ImageResponse's `fonts` option. */
 export async function loadBrandFonts(): Promise<OgFont[]> {
   const [title, caps, body, bodyItalic] = await Promise.all([
     loadFont("IM Fell English", 400),

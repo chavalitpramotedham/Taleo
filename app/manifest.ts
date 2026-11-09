@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Noomi: picture books you make together",
-    short_name: "Noomi",
+    name: "Taleo: picture books you make together",
+    short_name: "Taleo",
     description: "By parents, for parents: watercolour picture books you make with your little one.",
     id: "/",
     start_url: "/",

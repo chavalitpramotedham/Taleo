@@ -1,4 +1,4 @@
-# Noomi ✿
+# Taleo ✿
 
 Interactive watercolour picture-book stories that parents create **with** their little ones (ages 1½ – 6).
 
@@ -57,7 +57,7 @@ Without an `ANTHROPIC_API_KEY` the app runs in **demo mode**: a templated storyt
 | `TALEO_ART_EFFORT` | `low` | Painting effort |
 | `RESEND_API_KEY` | – | Emails "Contact us" messages (via [Resend](https://resend.com)). Without it, messages are still saved under `contact/` in storage |
 | `CONTACT_EMAIL` | `taleostories.dev@gmail.com` | Where "Contact us" messages go |
-| `CONTACT_FROM` | `Noomi <onboarding@resend.dev>` | Sender. The default only delivers to the address that owns the Resend account, so sign up to Resend with `CONTACT_EMAIL` (or verify a domain in Resend and use an address on it) |
+| `CONTACT_FROM` | `Taleo <onboarding@resend.dev>` | Sender. The default only delivers to the address that owns the Resend account, so sign up to Resend with `CONTACT_EMAIL` (or verify a domain in Resend and use an address on it) |
 | `ELEVENLABS_API_KEY` | – | Neural read-aloud voice via ElevenLabs (most natural; default voice "Lily", warm British). Used first if set |
 | `OPENAI_API_KEY` | – | Neural read-aloud voice via OpenAI `gpt-4o-mini-tts` (cheapest; calm British tone set by instruction) |
 | `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` | – / `uksouth` | Neural read-aloud voice via Azure AI Speech |
