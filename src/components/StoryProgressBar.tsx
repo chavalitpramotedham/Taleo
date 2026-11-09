@@ -22,6 +22,7 @@ export function StoryProgressBar({
   painting,
   shapes,
   hint,
+  target = EXPECTED_SHAPES,
 }: {
   /** when this wait began (ms) */
   started: number;
@@ -30,6 +31,8 @@ export function StoryProgressBar({
   /** strokes painted so far (null once the painting is finished) */
   shapes: number | null;
   hint?: string;
+  /** strokes at which the page opens (the bar is full) */
+  target?: number;
 }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -41,7 +44,7 @@ export function StoryProgressBar({
     ? 4 + 40 * (1 - Math.exp(-secs / 14))
     : shapes === null
       ? 100
-      : 48 + 50 * Math.min(1, shapes / EXPECTED_SHAPES);
+      : 48 + 52 * Math.min(1, shapes / target);
   const label = !painting
     ? "Writing what happens next…"
     : shapes === null

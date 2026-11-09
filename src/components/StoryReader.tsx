@@ -20,6 +20,9 @@ import { ReadAloudControl } from "./ReadAloudControl";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 import { StoryProgressBar, countShapes } from "./StoryProgressBar";
 
+/** Strokes a page's painting needs before the waiting page opens onto it. */
+const RELEASE_SHAPES = 70;
+
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
   | { kind: "choice"; seg: number }
@@ -148,10 +151,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // writing or painting it failed.
   const heldFirst = holdSeg !== null ? story.segments[holdSeg]?.pages[0] : undefined;
   const heldFailed = holdSeg !== null && Boolean(failed[pageKey(holdSeg, 0)]);
+  // Once its painting is well under way (the scene and its characters
+  // laid in), the page opens and the painting finishes in front of the
+  // reader - about half the wait, with nothing half-empty to land on.
+  const heldPainted = holdSeg !== null && countShapes(live[pageKey(holdSeg, 0)]) >= RELEASE_SHAPES;
   useEffect(() => {
     if (holdSeg === null) return;
     if (error || (!busy && !story.segments[holdSeg]) || heldFailed) return setHoldSeg(null);
-    if (heldFirst?.svg) {
+    if (heldFirst?.svg || heldPainted) {
       const t = window.setTimeout(() => setHoldSeg(null), 350);
       return () => window.clearTimeout(t);
     }
@@ -159,7 +166,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       const t = window.setTimeout(() => setHoldSeg(null), 30000);
       return () => window.clearTimeout(t);
     }
-  }, [holdSeg, heldFirst, heldFirst?.svg, heldFailed, error, busy, story.segments]);
+  }, [holdSeg, heldFirst, heldFirst?.svg, heldPainted, heldFailed, error, busy, story.segments]);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -180,15 +187,18 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     const t = window.setTimeout(() => setCover("open"), 1250);
     return () => window.clearTimeout(t);
   }, [cover]);
-  // Open by itself once the first page is painted (a moment to see the
-  // painting on the cover first), or if something went wrong.
+  // Open by itself once the first page is painted - or well under way, so
+  // it finishes in front of the reader rather than keeping them waiting
+  // (see RELEASE_SHAPES) - or if something went wrong.
+  const firstUnderWay = countShapes(live[pageKey(0, 0)]) >= RELEASE_SHAPES;
+  const firstReady = Boolean(firstPage?.svg) || firstUnderWay;
   useEffect(() => {
     if (cover !== "closed" || !isNew || hasOpened) return;
     if (error) return openBook();
-    if (!firstPage?.svg) return;
+    if (!firstReady) return;
     const t = window.setTimeout(openBook, 900);
     return () => window.clearTimeout(t);
-  }, [cover, firstPage?.svg, error, openBook, isNew, hasOpened]);
+  }, [cover, firstReady, error, openBook, isNew, hasOpened]);
 
   // ---------------------------------------------------------------- writing
   // Leaving the story cancels a segment still being written: it couldn't be
@@ -766,6 +776,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           started={progressStart}
           painting={Boolean(nextFirst)}
           shapes={nextFirst?.svg ? null : countShapes(live[pageKey(nextSeg, 0)])}
+          target={RELEASE_SHAPES}
           hint={LOADING_LINES[loadingLine]}
         />
       </div>
