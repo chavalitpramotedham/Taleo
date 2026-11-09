@@ -47,11 +47,12 @@ export const ttsEnabled = () => provider !== null;
 /** The OpenAI voices readers can choose between in the story reader (when
  *  there's an OpenAI key), each with a word on its feel. */
 export const OPENAI_VOICES: { id: string; name: string; note: string }[] = [
-  // a short list of the gentlest voices for bedtime (of OpenAI's 13)
+  // a short list of the gentlest voices for bedtime (of OpenAI's 13);
+  // the first is the default
+  { id: "fable", name: "Fable", note: "storyteller" },
   { id: "sage", name: "Sage", note: "calm, gentle" },
   { id: "shimmer", name: "Shimmer", note: "soft, soothing" },
   { id: "coral", name: "Coral", note: "warm, bright" },
-  { id: "fable", name: "Fable", note: "storyteller" },
   { id: "marin", name: "Marin", note: "natural, warm" },
   { id: "ballad", name: "Ballad", note: "lilting" },
   { id: "cedar", name: "Cedar", note: "deep, cosy" },

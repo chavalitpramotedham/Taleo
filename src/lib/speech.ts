@@ -77,8 +77,10 @@ export function setSpeechStory(id: string | null) {
 const clips = new Map<string, Promise<AudioBuffer | null>>();
 /** The chosen voice, if it's one the server offers. */
 const voiceParam = () => {
+  // the reader's pick, else the first on the list (the default, so what's
+  // ticked in the picker is what's heard)
   const v = chosenVoice();
-  return v && voiceList.some((x) => x.id === v) ? v : null;
+  return v && voiceList.some((x) => x.id === v) ? v : (voiceList[0]?.id ?? null);
 };
 const clipKey = (text: string, kind: SpeechKind) => `${voiceParam() ?? ""}\n${kind}\n${text}`;
 
