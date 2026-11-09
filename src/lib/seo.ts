@@ -51,6 +51,8 @@ export const ORGANIZATION = {
   "@type": "Organization",
   "@id": `${SITE_URL}/#organization`,
   name: SITE_NAME,
+  // (what people search for - the site's own domain name)
+  alternateName: ["Taleo Stories", "taleo-stories.app"],
   url: SITE_URL,
   logo: absoluteUrl("/icon-512.png"),
   slogan: "By parents, for parents",
@@ -60,7 +62,7 @@ export const WEBSITE = {
   "@type": "WebSite",
   "@id": `${SITE_URL}/#website`,
   name: SITE_NAME,
-  alternateName: "Taleo Stories",
+  alternateName: ["Taleo Stories", "taleo-stories.app"],
   url: SITE_URL,
   description: SITE_DESCRIPTION,
   inLanguage: "en",
