@@ -8798,3 +8798,13 @@ html[data-night] .story-manage-delete {
 .creations-row > :last-child {
   margin-right: auto;
 }
+/* With nothing to say (the next part is still being written), the page
+   counter steps away and fades back once there's a page to show. */
+.reader .reader-index {
+  transition: opacity 0.25s ease, scale 0.25s ease;
+}
+.reader .reader-index.is-empty {
+  opacity: 0;
+  scale: 0.9;
+  pointer-events: none;
+}

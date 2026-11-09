@@ -1022,7 +1022,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         <button className="nav-btn nav-btn-prev" onClick={() => go(-1)} disabled={!canBack} aria-label="Previous page">
           ‹
         </button>
-        <button className="reader-index" onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 1}>
+        <button className={`reader-index ${position ? "" : "is-empty"}`} onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 1}>
           {position}
         </button>
         <button
