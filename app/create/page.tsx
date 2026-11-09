@@ -11,7 +11,7 @@ import { DictateButton } from "@/components/DictateButton";
 import { SideScroll } from "@/components/SideScroll";
 import { GrowingInput } from "@/components/GrowingInput";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
-import { MAX_CHARACTERS } from "@/lib/characters";
+import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { PageLoading } from "@/components/PageLoading";
 import { LeafLoader, MapleMark } from "@/components/Icons";
 
@@ -95,10 +95,11 @@ export default function CreatePage() {
   const effectiveMinutes = minutes ?? recommendedMinutes ?? MIN_MINUTES;
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
+  const charLimit = useCharacterLimit();
   const [checking, setChecking] = useState(false);
   const start = async () => {
     if (!age || !hero || !theme || !session?.user.username || checking) return;
-    // New stories are limited (one every 30 minutes, except for the admin):
+    // New stories are limited (one per night on Free, unlimited for the admin):
     // check first, so hitting the limit never leaves an empty story behind.
     setChecking(true);
     setError(null);
@@ -235,8 +236,8 @@ export default function CreatePage() {
             <div className="hero-maker-head">
               <h3>Dream up a hero</h3>
               <span className="meta">
-                {saved.length}/{MAX_CHARACTERS}
-                {saved.length >= MAX_CHARACTERS && (
+                {Number.isFinite(charLimit) ? `${saved.length}/${charLimit}` : saved.length}
+                {saved.length >= charLimit && (
                   <>
                     {" · "}
                     <button type="button" className="link-btn" onClick={() => setCreatingCharacter(true)}>
@@ -260,7 +261,7 @@ export default function CreatePage() {
             ) : (
               <SideScroll className="hero-slots" label="More of your characters">
                 {/* your characters, then one "New" slot while there's room */}
-                {[...saved, ...(saved.length < MAX_CHARACTERS ? [null] : [])].map((c, i) => {
+                {[...saved, ...(saved.length < charLimit ? [null] : [])].map((c, i) => {
                   if (!c) {
                     return (
                       <button key={`empty-${i}`} type="button" className="hero-slot hero-slot-empty" onClick={() => setCreatingCharacter(true)} aria-label="Create a new character">

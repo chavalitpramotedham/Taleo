@@ -8,7 +8,7 @@ import type { SavedCharacter, CharacterGender } from "@/lib/types";
 import { saveCharacterImage } from "@/lib/save-image";
 import { GrowingInput } from "@/components/GrowingInput";
 import { DictateButton } from "@/components/DictateButton";
-import { MAX_CHARACTERS } from "@/lib/characters";
+import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField } from "@/components/CharacterCreatorModal";
 import { GenderPicker } from "@/components/GenderPicker";
@@ -34,6 +34,7 @@ export default function MyCharactersPage() {
       .catch(() => setCharacters([]));
   }, [status]);
 
+  const limit = useCharacterLimit();
   if (status !== "authenticated" || characters === null) return <PageLoading label="Gathering your characters…" />;
 
   return (
@@ -42,12 +43,15 @@ export default function MyCharactersPage() {
         <p className="eyebrow">Just yours</p>
         <h1>My characters</h1>
         <p className="sub">
-          {characters.length} of {MAX_CHARACTERS} slots used. Tap a character to edit or delete them.
+          {Number.isFinite(limit)
+            ? `${Math.min(characters.length, limit)} of ${limit} slots used.`
+            : `${characters.length} ${characters.length === 1 ? "character" : "characters"} - unlimited on your account.`}{" "}
+          Tap a character to edit or delete them.
         </p>
       </header>
 
       <div className="shelf">
-        {Array.from({ length: MAX_CHARACTERS }, (_, i) => {
+        {Array.from({ length: Number.isFinite(limit) ? Math.max(limit, characters.length) : characters.length + 1 }, (_, i) => {
           const c = characters[i];
           if (!c) {
             return (

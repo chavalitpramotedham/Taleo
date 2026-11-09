@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AVATAR_KEYS, presetByKey } from "@/lib/presets";
 import { Avatar } from "@/components/Avatar";
+import { AccountTier } from "./AccountTier";
 
 const sanitize = (raw: string) => raw.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 20);
 
@@ -135,6 +136,7 @@ export function AccountForm({
 
   return (
     <>
+      <AccountTier isAdmin={isAdmin} />
       <section className="panel">
         <h3>Profile picture</h3>
         <p className="meta">Pick a face from the cast, then save it.</p>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { errorResponse } from "@/server/errors";
-import { CharacterLimitError, listCharacters, saveCharacter, MAX_CHARACTERS } from "@/server/characters";
+import { CharacterLimitError, listCharacters, saveCharacter } from "@/server/characters";
+import { characterLimit } from "@/lib/tiers";
 
 export async function GET() {
   const session = await auth();
@@ -35,18 +36,19 @@ export async function POST(req: Request) {
   const replaceId = typeof body?.replaceId === "string" ? body.replaceId : undefined;
   if (!name) return NextResponse.json({ error: "That character needs a name first." }, { status: 400 });
 
+  const limit = characterLimit(session.user.isAdmin);
   if (!replaceId) {
     const list = await listCharacters(session.user.id);
-    if (list.length >= MAX_CHARACTERS) {
+    if (list.length >= limit) {
       return NextResponse.json(
-        { error: `You can save up to ${MAX_CHARACTERS} characters - replace one to add another.`, limitReached: true },
+        { error: `On the Free plan you can keep ${limit} custom characters - replace one to add another.`, limitReached: true },
         { status: 409 },
       );
     }
   }
 
   try {
-    const character = await saveCharacter(session.user.id, { name, look, svg, notes, relationships, gender, prompt }, replaceId);
+    const character = await saveCharacter(session.user.id, { name, look, svg, notes, relationships, gender, prompt }, replaceId, limit);
     return NextResponse.json({ character });
   } catch (err) {
     if (err instanceof CharacterLimitError) return NextResponse.json({ error: err.message, limitReached: true }, { status: 409 });

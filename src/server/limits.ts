@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readJson, writeJson } from "./store";
+import { ABUSE_CAPS, ABUSE_WINDOW_MINUTES, STORY_WINDOW_HOURS } from "@/lib/tiers";
 
 /**
  * Who may use the paid AI endpoints, and how often.
@@ -9,7 +10,7 @@ import { readJson, writeJson } from "./store";
  * Every endpoint that calls Claude or the voice provider requires a signed-in
  * account. The admin account (ADMIN_EMAIL) is unlimited; everyone else gets:
  *
- *   story       1 new story every 30 minutes (the headline limit)
+ *   story       1 new story per night (Free tier: one, then the next 18 hours later)
  *   segment     continuing stories already started - room for a couple of books
  *   illustrate  painting pages - room for a couple of books' worth of pictures
  *   character   designing custom characters (incl. regenerating previews)
@@ -27,13 +28,12 @@ import { readJson, writeJson } from "./store";
 
 export type Bucket = "story" | "segment" | "illustrate" | "character" | "tts";
 
-const WINDOW_MS = 30 * 60 * 1000;
+// (allowances live in lib/tiers, shared with the Account tier section)
+const WINDOW_MS = ABUSE_WINDOW_MINUTES * 60 * 1000;
+const windowFor = (bucket: Bucket) => (bucket === "story" ? STORY_WINDOW_HOURS * 3600 * 1000 : WINDOW_MS);
 const LIMITS: Record<Bucket, number> = {
   story: 1,
-  segment: 16,
-  illustrate: 80,
-  character: 12,
-  tts: 400,
+  ...ABUSE_CAPS,
 };
 
 type Usage = Partial<Record<Bucket, number[]>>;
@@ -57,6 +57,10 @@ export const isUnlimited = (session: Session | null) => Boolean(session?.user?.i
 
 function minutesText(seconds: number) {
   const m = Math.max(1, Math.ceil(seconds / 60));
+  if (m >= 90) {
+    const h = Math.round(m / 60);
+    return `${h} hour${h === 1 ? "" : "s"}`;
+  }
   return `${m} minute${m === 1 ? "" : "s"}`;
 }
 
@@ -64,23 +68,25 @@ function minutesText(seconds: number) {
 export async function peekLimit(userId: string, bucket: Bucket): Promise<{ ok: boolean; retryAfterSec: number }> {
   const now = Date.now();
   const usage = await load(userId, bucket);
-  const recent = (usage[bucket] ?? []).filter((t) => now - t < WINDOW_MS);
+  const win = windowFor(bucket);
+  const recent = (usage[bucket] ?? []).filter((t) => now - t < win);
   if (recent.length < LIMITS[bucket]) return { ok: true, retryAfterSec: 0 };
-  return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + WINDOW_MS - now) / 1000) };
+  return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + win - now) / 1000) };
 }
 
 /** Uses one from a bucket if there's room. */
 async function take(userId: string, bucket: Bucket): Promise<{ ok: boolean; retryAfterSec: number; at: number }> {
   const now = Date.now();
   const usage = await load(userId, bucket);
-  const recent = (usage[bucket] ?? []).filter((t) => now - t < WINDOW_MS);
+  const win = windowFor(bucket);
+  const recent = (usage[bucket] ?? []).filter((t) => now - t < win);
   if (recent.length >= LIMITS[bucket]) {
-    return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + WINDOW_MS - now) / 1000), at: now };
+    return { ok: false, retryAfterSec: Math.ceil((Math.min(...recent) + win - now) / 1000), at: now };
   }
   usage[bucket] = [...recent, now];
   // Drop stale entries in other buckets while we're here.
   for (const b of Object.keys(usage) as Bucket[]) {
-    if (b !== bucket) usage[b] = (usage[b] ?? []).filter((t) => now - t < WINDOW_MS);
+    if (b !== bucket) usage[b] = (usage[b] ?? []).filter((t) => now - t < windowFor(b));
   }
   await save(userId, bucket, usage);
   return { ok: true, retryAfterSec: 0, at: now };
@@ -102,7 +108,7 @@ export async function refund(userId: string, bucket: Bucket, at: number) {
 }
 
 const LIMIT_MESSAGES: Record<Bucket, (wait: string) => string> = {
-  story: (w) => `You can begin a new story in about ${w}. While Taleo is in early access, each family can start one new story every 30 minutes.`,
+  story: (w) => `Tonight's story has been made! On the Free plan each family can begin one new story a night - the next can start in about ${w}. Every story in the library is free to read in the meantime.`,
   segment: (w) => `That's a lot of story for one sitting! Please try again in about ${w}.`,
   illustrate: (w) => `The painter needs a little rest. The pictures will carry on in about ${w}.`,
   character: (w) => `You've dreamt up lots of characters! Try again in about ${w}.`,

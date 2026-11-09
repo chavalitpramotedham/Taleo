@@ -195,7 +195,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
         {replacing && (
           <>
             <p className="meta">
-              You&apos;ve saved {MAX_CHARACTERS} characters already. Pick one to replace with &ldquo;{name}&rdquo;.
+              On the Free plan you can keep {MAX_CHARACTERS} characters. Pick one to replace with &ldquo;{name}&rdquo;.
             </p>
             <div className="grid chars">
               {existing.map((c) => (

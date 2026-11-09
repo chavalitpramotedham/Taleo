@@ -35,6 +35,7 @@ export async function saveCharacter(
   ownerId: string,
   input: { name: string; look: string; svg: string | null; notes?: string | null; relationships?: string | null; gender?: string | null; prompt?: string | null },
   replaceId?: string,
+  limit: number = MAX_CHARACTERS,
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const name = input.name.trim().slice(0, 40) || "Friend";
@@ -55,8 +56,8 @@ export async function saveCharacter(
     return updated;
   }
 
-  if (list.length >= MAX_CHARACTERS) {
-    throw new CharacterLimitError(`You can save up to ${MAX_CHARACTERS} characters - replace one to add another.`);
+  if (list.length >= limit) {
+    throw new CharacterLimitError(`On the Free plan you can keep ${limit} custom characters - replace one to add another.`);
   }
   const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], createdAt: now, updatedAt: now };
   await writeJson(path(ownerId), [...list, created]);

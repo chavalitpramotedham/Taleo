@@ -246,6 +246,28 @@ export const OrnamentRule = ({ className }: { className?: string }) => (
  *  flat (the same five soft lobes and stem as the logo's leaves, upright
  *  and unrotated), used as a leading icon on the key calls to action -
  *  "Begin a story", "Next", "Send" - so they share one bit of the brand. */
+/** A little fairytale crown: three rounded points topped with pearls, a
+ *  gilt band set with a ruby - the Admin tier's mark. */
+export const CrownMark = () => (
+  <svg className="crown-mark" viewBox="0 0 32 26" aria-hidden focusable="false">
+    <path
+      d="M3.2 21 L1.6 7.6 C1.5 6.8 2.4 6.4 2.9 7 L8.6 13.2 L14.9 3.6 C15.4 2.9 16.6 2.9 17.1 3.6 L23.4 13.2 L29.1 7 C29.6 6.4 30.5 6.8 30.4 7.6 L28.8 21 Z"
+      fill="#E2AE4A"
+      stroke="#7A5420"
+      strokeWidth="0.9"
+      strokeLinejoin="round"
+    />
+    <path d="M3.4 19.2 H28.6" stroke="#9A6A26" strokeWidth="0.8" />
+    <rect x="3" y="20.4" width="26" height="3.6" rx="1.4" fill="#D69A3A" stroke="#7A5420" strokeWidth="0.9" />
+    <circle cx="16" cy="13.4" r="2.1" fill="#B2443A" stroke="#7A5420" strokeWidth="0.7" />
+    <circle cx="9.6" cy="16.2" r="1.2" fill="#6F8FAF" stroke="#7A5420" strokeWidth="0.5" />
+    <circle cx="22.4" cy="16.2" r="1.2" fill="#6F8FAF" stroke="#7A5420" strokeWidth="0.5" />
+    <circle cx="1.9" cy="6.4" r="1.5" fill="#F4EFE4" stroke="#7A5420" strokeWidth="0.6" />
+    <circle cx="16" cy="2.4" r="1.7" fill="#F4EFE4" stroke="#7A5420" strokeWidth="0.6" />
+    <circle cx="30.1" cy="6.4" r="1.5" fill="#F4EFE4" stroke="#7A5420" strokeWidth="0.6" />
+  </svg>
+);
+
 export const MapleMark = () => (
   <svg className="maple-mark" viewBox="-6.6 -8.4 13.2 15.6" aria-hidden focusable="false">
     <path
