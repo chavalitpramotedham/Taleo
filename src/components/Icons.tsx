@@ -106,6 +106,14 @@ export const ShareIcon = () => (
   </svg>
 );
 
+/** A small pencil: "edit". */
+export const PencilIcon = () => (
+  <svg {...base} width={14} height={14}>
+    <path d="M15.5 4.5l4 4L9 19H5v-4z" />
+    <path d="M13.5 6.5l4 4" />
+  </svg>
+);
+
 /** A ribbon bookmark: "save to my bookshelf" (filled once saved). */
 export const BookmarkIcon = ({ on = false }: { on?: boolean }) => (
   <svg {...base}>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AVATAR_KEYS, presetByKey } from "@/lib/presets";
 import { Avatar } from "@/components/Avatar";
+import { PencilIcon } from "@/components/Icons";
 import { AccountTier } from "./AccountTier";
 
 const sanitize = (raw: string) => raw.toLowerCase().replace(/[^a-z0-9_]+/g, "").slice(0, 20);
@@ -47,13 +48,22 @@ export function AccountForm({
   const [nameError, setNameError] = useState<string | null>(null);
   const [nameSaved, setNameSaved] = useState(false);
   const [avatar, setAvatar] = useState(avatarKey);
-  const [draftAvatar, setDraftAvatar] = useState(avatarKey);
+  const [, setDraftAvatar] = useState(avatarKey);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarSaved, setAvatarSaved] = useState(false);
   const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const saveAvatar = async () => {
+  const [picking, setPicking] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  // Choosing a face saves it at once and closes the dialog.
+  const chooseAvatar = async (key: string) => {
+    if (key === avatar) return setPicking(false);
+    setDraftAvatar(key);
+    setPicking(false);
+    await saveAvatar(key);
+  };
+  const saveAvatar = async (draftAvatar: string) => {
     if (draftAvatar === avatar || busy) return;
     setBusy("avatar");
     setAvatarError(null);
@@ -136,60 +146,84 @@ export function AccountForm({
 
   return (
     <>
-      <AccountTier isAdmin={isAdmin} />
-      <section className="panel">
-        <h3>Profile picture</h3>
-        <p className="meta">Pick a face from the cast, then save it.</p>
-        <div className="avatar-picker">
-          {AVATAR_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={`avatar-option ${draftAvatar === key ? "selected" : ""}`}
-              onClick={() => {
-                setDraftAvatar(key);
-                setAvatarSaved(false);
+      {/* You: your picture (tap to choose another) and your username (tap
+          to edit) - one row, above your plan. */}
+      <section className="panel profile-row">
+        <button type="button" className="profile-avatar" onClick={() => setPicking(true)} aria-label="Change profile picture" disabled={Boolean(busy)}>
+          <Avatar avatarKey={avatar} />
+          <span className="profile-avatar-edit" aria-hidden>
+            <PencilIcon />
+          </span>
+        </button>
+        <div className="profile-name">
+          <label className="profile-label" htmlFor="profile-username">
+            Username
+          </label>
+          <div className={`profile-name-box ${editingName ? "editing" : ""}`}>
+            <span className="profile-at" aria-hidden>
+              @
+            </span>
+            <input
+              id="profile-username"
+              className="profile-name-input"
+              value={name}
+              maxLength={20}
+              onFocus={() => setEditingName(true)}
+              onChange={(e) => {
+                setName(sanitize(e.target.value));
+                setNameSaved(false);
               }}
-              disabled={Boolean(busy)}
-              aria-label={presetByKey(key)?.name || key}
-              aria-pressed={draftAvatar === key}
-            >
-              <Avatar avatarKey={key} />
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void saveName().then(() => (e.target as HTMLInputElement).blur());
+                if (e.key === "Escape") {
+                  setName(username);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              onBlur={() => window.setTimeout(() => setEditingName(false), 150)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {editingName && name !== username && (
+              <button type="button" className="btn btn-primary profile-name-save" onMouseDown={(e) => e.preventDefault()} onClick={() => void saveName()} disabled={name.length < 3 || busy === "name"}>
+                {busy === "name" ? "Saving…" : "Save"}
+              </button>
+            )}
+          </div>
+          {editingName ? <p className="meta">3-20 letters, numbers or underscores.</p> : nameSaved ? <p className="meta">Saved.</p> : null}
+          {nameError && <p className="error">{nameError}</p>}
+          {avatarSaved && !editingName && <p className="meta">Picture saved.</p>}
+          {avatarError && <p className="error">{avatarError}</p>}
+        </div>
+      </section>
+      {picking && (
+        <div className="modal-backdrop" onClick={() => setPicking(false)}>
+          <div className="modal-panel avatar-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Choose a profile picture">
+            <button type="button" className="icon-btn story-preview-close" onClick={() => setPicking(false)} aria-label="Close">
+              ✕
             </button>
-          ))}
+            <h3>Choose a face</h3>
+            <p className="meta">Pick one from the cast.</p>
+            <div className="avatar-picker">
+              {AVATAR_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`avatar-option ${avatar === key ? "selected" : ""}`}
+                  onClick={() => void chooseAvatar(key)}
+                  disabled={Boolean(busy)}
+                  aria-label={presetByKey(key)?.name || key}
+                  aria-pressed={avatar === key}
+                >
+                  <Avatar avatarKey={key} />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="field-row avatar-save-row">
-          <button type="button" className="btn btn-primary btn-block" onClick={saveAvatar} disabled={draftAvatar === avatar || busy === "avatar"}>
-            {busy === "avatar" ? "Saving…" : "Save picture"}
-          </button>
-        </div>
-        {avatarSaved && <p className="meta">Saved.</p>}
-        {avatarError && <p className="error">{avatarError}</p>}
-      </section>
+      )}
 
-      <section className="panel">
-        <h3>Username</h3>
-        <div className="field-row">
-          <input
-            className="input"
-            value={name}
-            maxLength={20}
-            onChange={(e) => {
-              setName(sanitize(e.target.value));
-              setNameSaved(false);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && saveName()}
-            autoComplete="off"
-            aria-label="Username"
-          />
-          <button type="button" className="btn btn-primary" onClick={saveName} disabled={name.length < 3 || name === username || busy === "name"}>
-            {busy === "name" ? "Saving…" : "Save"}
-          </button>
-        </div>
-        <p className="meta">3-20 letters, numbers or underscores.</p>
-        {nameSaved && <p className="meta">Saved.</p>}
-        {nameError && <p className="error">{nameError}</p>}
-      </section>
+      <AccountTier isAdmin={isAdmin} />
 
       <section className="panel">
         <h3>Who can see your stories</h3>

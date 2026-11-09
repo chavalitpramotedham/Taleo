@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CrownMark, MapleMark } from "@/components/Icons";
 import { TIERS, type TierInfo } from "@/lib/tiers";
@@ -34,7 +35,7 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   tagline: t.blurb,
   price: t.id === "admin" ? "Unlimited" : "Free",
   priceNote: t.id === "admin" ? "the keys to the castle" : "for every family",
-  button: current ? "Your current plan" : "Included for everyone",
+  button: current ? "Current plan" : "",
   current,
   intro: t.id === "admin" ? "Everything, without limits:" : "Every family gets:",
   features: t.rows.map((r) => `${r.label}: ${r.value}`),
@@ -48,21 +49,58 @@ const COMING: Card = {
   tagline: "Growing soon, for families who read every night.",
   price: "Soon",
   priceNote: "we'll let you know",
-  button: "Coming soon",
+  button: "",
   current: false,
   intro: "Everything in Free, and more of:",
   features: ["New stories each night", "Custom characters to keep", "Longer stories and new features first"],
 };
 
-/** Account tier: the plans as cards in a sideways row - dots below show how
- *  many there are, the one in view drawn as a long bar. A family on Free
- *  sees Free, then what's coming; the admin sees their own plan first,
- *  then (below a line) the others, to look at but not switch to. */
+/** Account tier on Manage account: a short summary of your plan - its
+ *  icon, name and key points - and Manage, which opens the plans page. */
 export function AccountTier({ isAdmin }: { isAdmin: boolean }) {
-  const cards: Card[] = isAdmin ? [fromTier(TIERS.free, false), COMING] : [fromTier(TIERS.free, true), COMING];
+  const tier = isAdmin ? TIERS.admin : TIERS.free;
   return (
     <section className="panel account-tier">
-      <h3>Account tier</h3>
+      <div className="tier-summary-head">
+        <h3>Account tier</h3>
+        <Link className="btn btn-soft tier-manage" href="/account/plans">
+          Manage
+        </Link>
+      </div>
+      <div className="tier-summary">
+        <span className="tier-badge" aria-hidden>
+          {isAdmin ? <CrownMark /> : <MapleMark />}
+        </span>
+        <div>
+          <p className="tier-summary-name">{tier.name}</p>
+          <ul className="tier-summary-points">
+            {tier.rows.slice(0, 3).map((r) => (
+              <li key={r.label}>
+                {r.label}: <b>{r.value}</b>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The plans page: the plans as cards in a sideways row - dots below show
+ *  how many there are, the one in view drawn as a long bar. A family on
+ *  Free sees Free, then what's coming; the admin sees their own plan
+ *  first, then (below a line) the others, to look at but not switch to.
+ *  Each card's safety limits sit in a fold at its foot. */
+export function AccountPlans({ isAdmin }: { isAdmin: boolean }) {
+  // The other plans can be switched to from here: for the admin every other
+  // plan is a step down (shown, never switchable); for a family on Free the
+  // paid plans are upgrades - offered once they actually exist.
+  const others = (c: Card, label: string): Card => ({ ...c, button: label });
+  const cards: Card[] = isAdmin
+    ? [others(fromTier(TIERS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
+    : [fromTier(TIERS.free, true), others(COMING, "Upgrade - coming soon")];
+  return (
+    <div className="account-plans">
       {isAdmin && (
         <>
           <PlanCard card={fromTier(TIERS.admin, true)} />
@@ -72,7 +110,7 @@ export function AccountTier({ isAdmin }: { isAdmin: boolean }) {
         </>
       )}
       <PlanRow cards={cards} />
-    </section>
+    </div>
   );
 }
 
@@ -142,7 +180,9 @@ function PlanCard({ card }: { card: Card }) {
         <b>{card.price}</b>
         <span>{card.priceNote}</span>
       </p>
-      <button type="button" className="btn btn-soft btn-block plan-btn" disabled>
+      {/* (no plan can be switched to yet: the current plan says so, the rest
+          are shown as they will work, disabled) */}
+      <button type="button" className={`btn btn-block plan-btn ${card.current ? "btn-soft" : "btn-primary"}`} disabled aria-disabled="true">
         {card.button}
       </button>
       <div className="plan-features">
