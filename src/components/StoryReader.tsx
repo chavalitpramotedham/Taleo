@@ -625,17 +625,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // the middle of a scroll, which made the page judder on phones), in the
   // same frame as the scroll.
   useEffect(() => {
+    // One simple measure: how far the sticky picture has slid down inside
+    // its own book. Zero at rest; once it's stuck, cut the book off at the
+    // picture's top edge so the real background shows in the gap above it.
+    // (Relative to the book, so it stays right while the whole page is
+    // being pulled down to refresh.)
     const check = () => {
       const book = bookRef.current;
-      if (!book) return;
-      const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h")) || 64;
-      // Once stuck, cut the book off at the picture's top edge, so the
-      // page's real background shows in the gap above it (and the words
-      // scrolling up beneath never show there).
-      const cut = bar + 12 - book.getBoundingClientRect().top;
-      const stuck = cut > 0.5 && getComputedStyle(book.querySelector(".book-art") ?? book).position === "sticky";
-      book.classList.toggle("art-stuck", stuck);
-      book.style.clipPath = stuck ? `inset(${cut}px -60px -80px -60px)` : "";
+      const art = book?.querySelector<HTMLElement>(".book-art");
+      if (!book || !art) return;
+      // (the picture is the book's first child: at rest it sits right at the
+      // book's inner top edge)
+      const slid = art.getBoundingClientRect().top - book.getBoundingClientRect().top - book.clientTop;
+      const cut = slid > 0.5 ? Math.round(slid + book.clientTop) : 0;
+      if (book.dataset.cut === String(cut)) return;
+      book.dataset.cut = String(cut);
+      book.classList.toggle("art-stuck", cut > 0);
+      book.style.clipPath = cut ? `inset(${cut}px -60px -80px -60px)` : "";
     };
     check();
     window.addEventListener("scroll", check, { passive: true });
