@@ -8725,3 +8725,29 @@ html[data-night] .story-manage-delete {
 .account-dropdown-item {
   text-align: right;
 }
+/* Phones: the Begin pill is just the leaf in its tinted pill (no word) -
+   the menu row is too packed for it. */
+@media (max-width: 640px) {
+  .nav-begin-pill span {
+    display: none;
+  }
+  .nav-begin-pill {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+}
+/* Wider screens have the room: "Begin a story" in full. (Phones: just the
+   leaf; in between: "Begin".) */
+.nav-begin-more {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .nav-begin-pill .nav-begin-more {
+    display: inline;
+    position: static;
+  }
+  .nav-begin-pill {
+    padding-right: 12px;
+  }
+}

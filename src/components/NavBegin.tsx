@@ -17,7 +17,7 @@ export function NavBegin() {
       title="Begin a story"
     >
       <MapleMark />
-      {!quiet && <span>Begin</span>}
+      {!quiet && <span>Begin<span className="nav-begin-more"> a story</span></span>}
     </Link>
   );
 }
