@@ -9295,13 +9295,10 @@ html:has(.reader) .night-glow-shimmer {
   padding-left: 12px;
   padding-right: 12px;
 }
-@media (max-width: 400px) {
-  .story-preview-buttons:has(.story-preview-save) .read-rest {
-    display: none;
-  }
-}
-.read-rest {
-  white-space: pre;
+/* the read button's label sits in its middle */
+.story-preview-buttons .btn-primary {
+  justify-content: center;
+  text-align: center;
 }
 
 /* ---------- Manage account: Account tier (plan cards) ---------- */
@@ -9657,4 +9654,148 @@ html[data-night] .tier-badge {
 /* a plan you can't switch to yet: shown as it will work, but faded */
 .plan-btn.btn-primary:disabled {
   opacity: 0.5;
+}
+
+/* ---------- a story's ratings, over its preview ---------- */
+.cover-rating-btn {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  padding: 4px 6px 4px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cover-rating-more {
+  margin-left: 4px;
+  font-size: 1.2em;
+  line-height: 1;
+}
+.ratings-detail {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow-y: auto;
+  background: var(--page);
+  border-radius: inherit;
+  padding: 18px 20px 22px;
+  animation: fadeIn 0.18s ease both;
+}
+.ratings-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ratings-detail-head h3 {
+  margin: 0;
+}
+.ratings-detail-avg {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 14px;
+}
+.ratings-detail-avg b {
+  font-family: var(--font-title);
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1;
+}
+.ratings-detail-stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--rule-strong);
+}
+.ratings-detail-stars .on {
+  color: #c49a3e;
+}
+.ratings-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ratings-bars li {
+  display: grid;
+  grid-template-columns: 14px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  font-variant-numeric: tabular-nums;
+}
+.ratings-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--rule);
+  overflow: hidden;
+}
+.ratings-bar > span {
+  display: block;
+  height: 100%;
+  background: #c49a3e;
+  transform-origin: left center;
+  border-radius: inherit;
+}
+.ratings-bar-count {
+  text-align: right;
+  color: var(--ink-faint);
+}
+.ratings-mine {
+  margin: 14px 0 0;
+  color: var(--ink-soft);
+}
+.ratings-who {
+  margin: 18px 0 6px;
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+.ratings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ratings-list li {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.ratings-list-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ratings-list-head span {
+  color: #c49a3e;
+  letter-spacing: 1px;
+}
+.ratings-list-comment {
+  display: block;
+  margin-top: 2px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.ratings-wait {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+/* toasts from anywhere: above dialogs, fading away when done */
+.toast-global {
+  z-index: 70;
+}
+.toast.leaving {
+  animation: toastAway 0.4s ease forwards;
+}
+@keyframes toastAway {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* the plan icons sit dead centre in their round badge (the leaf's
+   in-button nudges don't apply here) */
+.tier-badge > svg {
+  margin: 0;
+  display: block;
 }

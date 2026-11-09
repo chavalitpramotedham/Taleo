@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { deleteGalleryStory } from "@/lib/gallery-client";
 import { setStorySaved, useSaved } from "@/lib/saved-client";
+import { useToast } from "./Toast";
 import { Painting } from "@/components/art/Painting";
 import { ageById } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
@@ -116,6 +117,9 @@ export function StoryPreview({
     else onPrev?.();
   };
   const stepping = Boolean(onPrev || onNext);
+  const [ratingsOpen, setRatingsOpen] = useState(false);
+  // (a different story's ratings start closed)
+  useEffect(() => setRatingsOpen(false), [story.id]);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -169,16 +173,17 @@ export function StoryPreview({
               : ""}
           </span>
           <span className="cover-meta">
-            <span className="cover-rating">
-              {story.ratingAvg != null ? (
-                <>
-                  <StarGlyph /> {story.ratingAvg.toFixed(1)} (
-                  {story.ratingCount})
-                </>
-              ) : (
-                "Not yet rated"
-              )}
-            </span>
+            {/* The one place a preview shows ratings: tap for the details. */}
+            {story.ratingAvg != null ? (
+              <button type="button" className="cover-rating cover-rating-btn" onClick={() => setRatingsOpen(true)} aria-label={`Rated ${story.ratingAvg.toFixed(1)} from ${story.ratingCount} - see the ratings`}>
+                <StarGlyph /> {story.ratingAvg.toFixed(1)} ({story.ratingCount})
+                <span className="cover-rating-more" aria-hidden>
+                  ›
+                </span>
+              </button>
+            ) : (
+              <span className="cover-rating">Not yet rated</span>
+            )}
           </span>
         </div>
         <div className="story-preview-body">
@@ -208,8 +213,101 @@ export function StoryPreview({
           </p>
           {children}
         </div>
+        {ratingsOpen && <RatingsDetail story={story} onClose={() => setRatingsOpen(false)} />}
       </div>
       </div>
+    </div>
+  );
+}
+
+type RatingsData = { ratings: { userId: string; username: string; rating: number; comment: string | null; createdAt: number }[] | null; counts: number[]; mine: { rating: number; comment: string | null } | null };
+
+/** A story's ratings, over its preview: the average, how many gave each
+ *  number of stars, your own rating, and - for the story's author (and the
+ *  admin) - who rated it and what they said. */
+function RatingsDetail({ story, onClose }: { story: StorySummary; onClose: () => void }) {
+  const [data, setData] = useState<RatingsData | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    fetch(`/api/gallery/${encodeURIComponent(story.id)}/ratings`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: RatingsData) => live && setData(d))
+      .catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, [story.id]);
+  const total = data ? data.counts.reduce((a, b) => a + b, 0) : story.ratingCount;
+  return (
+    <div className="ratings-detail" role="dialog" aria-label="Ratings">
+      <div className="ratings-detail-head">
+        <h3>Ratings</h3>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Back to the story">
+          ✕
+        </button>
+      </div>
+      <p className="ratings-detail-avg">
+        <b>{story.ratingAvg?.toFixed(1)}</b>
+        <span className="ratings-detail-stars" aria-hidden>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <StarGlyph key={n} />
+          )).map((s, i) => (
+            <span key={i} className={i < Math.round(story.ratingAvg ?? 0) ? "on" : ""}>
+              {s}
+            </span>
+          ))}
+        </span>
+        <span className="meta">
+          {story.ratingCount} {story.ratingCount === 1 ? "rating" : "ratings"}
+        </span>
+      </p>
+      {data ? (
+        <>
+          <ul className="ratings-bars">
+            {[5, 4, 3, 2, 1].map((n) => {
+              const c = data.counts[n - 1] ?? 0;
+              return (
+                <li key={n}>
+                  <span>{n}</span>
+                  <span className="ratings-bar">
+                    <span style={{ transform: `scaleX(${total ? c / total : 0})` }} />
+                  </span>
+                  <span className="ratings-bar-count">{c}</span>
+                </li>
+              );
+            })}
+          </ul>
+          {data.mine && (
+            <p className="ratings-mine">
+              You gave it <b>{data.mine.rating}</b> {data.mine.rating === 1 ? "star" : "stars"}
+              {data.mine.comment ? <> - &ldquo;{data.mine.comment}&rdquo;</> : null}
+            </p>
+          )}
+          {data.ratings && data.ratings.length > 0 && (
+            <>
+              <h4 className="ratings-who">Who rated it</h4>
+              <ul className="ratings-list">
+                {[...data.ratings].sort((a, b) => b.createdAt - a.createdAt).map((r) => (
+                  <li key={r.userId}>
+                    <span className="ratings-list-head">
+                      <b>@{r.username}</b>
+                      <span>{"★".repeat(r.rating)}</span>
+                    </span>
+                    {r.comment && <span className="ratings-list-comment">&ldquo;{r.comment}&rdquo;</span>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      ) : failed ? (
+        <p className="meta">The ratings couldn&apos;t load just now.</p>
+      ) : (
+        <div className="ratings-wait">
+          <LeafLoader size={28} />
+        </div>
+      )}
     </div>
   );
 }
@@ -266,13 +364,20 @@ export function SaveStoryButton({ id, author }: { id: string; author?: string })
   const { data: session, status } = useSession();
   const me = session?.user?.username?.toLowerCase();
   const allowed = status === "authenticated" && (!author || author.toLowerCase() !== me);
-  const saved = useSaved(id, allowed);
-  if (!allowed) return null;
+  const userId = allowed ? session?.user?.id : null;
+  const saved = useSaved(id, userId);
+  const toast = useToast();
+  if (!allowed || !userId) return null;
+  const toggle = async () => {
+    const next = !saved;
+    const ok = await setStorySaved(userId, id, next);
+    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that just now. Please try again.");
+  };
   return (
     <button
       type="button"
       className={`icon-btn story-preview-share story-preview-save ${saved ? "on" : ""}`}
-      onClick={() => void setStorySaved(id, !saved)}
+      onClick={() => void toggle()}
       disabled={saved === null}
       aria-pressed={Boolean(saved)}
       aria-label={saved ? "Saved to your bookshelf - tap to remove" : "Save to my bookshelf"}
@@ -296,14 +401,7 @@ function ReadLabel({ label }: { label: string }) {
   ) : (
     <>
       <MapleMark />
-      {/* ("Read the story": just "Read" where three buttons share a narrow row) */}
-      {label.startsWith("Read ") ? (
-        <>
-          Read<span className="read-rest">{label.slice(4)}</span>
-        </>
-      ) : (
-        label
-      )}
+      {label}
     </>
   );
 }

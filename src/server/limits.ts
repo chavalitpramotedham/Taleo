@@ -10,7 +10,7 @@ import { ABUSE_CAPS, ABUSE_WINDOW_MINUTES, STORY_WINDOW_HOURS } from "@/lib/tier
  * Every endpoint that calls Claude or the voice provider requires a signed-in
  * account. The admin account (ADMIN_EMAIL) is unlimited; everyone else gets:
  *
- *   story       1 new story per night (Free tier: one, then the next 18 hours later)
+ *   story       1 new story per day (Free tier: one, then the next 24 hours later)
  *   segment     continuing stories already started - room for a couple of books
  *   illustrate  painting pages - room for a couple of books' worth of pictures
  *   character   designing custom characters (incl. regenerating previews)
@@ -108,7 +108,7 @@ export async function refund(userId: string, bucket: Bucket, at: number) {
 }
 
 const LIMIT_MESSAGES: Record<Bucket, (wait: string) => string> = {
-  story: (w) => `Tonight's story has been made! On the Free plan each family can begin one new story a night - the next can start in about ${w}. Every story in the library is free to read in the meantime.`,
+  story: (w) => `Today's story has been made! On the Free plan each family can begin one new story a day - the next can start in about ${w}. Every story in the library is free to read in the meantime.`,
   segment: (w) => `That's a lot of story for one sitting! Please try again in about ${w}.`,
   illustrate: (w) => `The painter needs a little rest. The pictures will carry on in about ${w}.`,
   character: (w) => `You've dreamt up lots of characters! Try again in about ${w}.`,

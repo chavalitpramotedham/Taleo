@@ -12,9 +12,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!story) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
   const ratings = await listRatings(id);
+  // How many gave each number of stars (1-5) - for everyone, no names.
+  const counts = [1, 2, 3, 4, 5].map((n) => ratings.filter((r) => r.rating === n).length);
   const isOwner = session?.user?.id && (session.user.id === story.authorId || session.user.isAdmin);
-  if (isOwner) return NextResponse.json({ ratings, mine: myRating(ratings, session!.user.id) });
+  if (isOwner) return NextResponse.json({ ratings, counts, mine: myRating(ratings, session!.user.id) });
 
   const mine = session?.user?.id ? myRating(ratings, session.user.id) : null;
-  return NextResponse.json({ ratings: null, mine });
+  return NextResponse.json({ ratings: null, counts, mine });
 }

@@ -8,10 +8,9 @@
 
 export type TierId = "free" | "admin";
 
-/** How long a "night" is for the new-story allowance: one new story, then
- *  the next can begin 18 hours later - so one each evening, whatever time
- *  bedtime is. */
-export const STORY_WINDOW_HOURS = 18;
+/** The new-story allowance: one new story, then the next can begin 24
+ *  hours later - one a day. */
+export const STORY_WINDOW_HOURS = 24;
 
 /** Custom characters a Free account can keep. */
 export const FREE_CHARACTERS = 3;
@@ -56,7 +55,7 @@ export const TIERS: Record<TierId, TierInfo> = {
     name: "Free",
     blurb: "Everything you need for a story at bedtime.",
     rows: [
-      { label: "New stories", value: "1 per night" },
+      { label: "New stories", value: "1 per day" },
       { label: "Custom characters", value: `${FREE_CHARACTERS} saved` },
       { label: "Reading the library", value: "Unlimited" },
       { label: "Saving others' stories", value: "Unlimited" },

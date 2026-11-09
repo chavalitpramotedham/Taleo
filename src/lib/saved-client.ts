@@ -3,15 +3,23 @@ import { useEffect, useState } from "react";
 
 /**
  * Which library stories you've saved to your bookshelf. Fetched once per
- * visit and shared by every Save button on the page; a tap updates the
- * button at once and is sent in the background.
+ * visit (per account) and shared by every Save button on the page, so a
+ * preview opened later - or stepped to - shows the right state at once; a
+ * tap updates every button immediately and is sent in the background.
  */
 export const SAVED_EVENT = "taleo:saved";
 
 let ids: Set<string> | null = null;
+let owner: string | null = null;
 let loading: Promise<Set<string>> | null = null;
 
-function load(): Promise<Set<string>> {
+function load(userId: string): Promise<Set<string>> {
+  // (a different account on this device starts afresh)
+  if (owner !== userId) {
+    owner = userId;
+    ids = null;
+    loading = null;
+  }
   if (ids) return Promise.resolve(ids);
   loading ??= fetch("/api/user/saved")
     .then((r) => (r.ok ? r.json() : { ids: [] }))
@@ -20,11 +28,14 @@ function load(): Promise<Set<string>> {
   return loading;
 }
 
-export async function setStorySaved(id: string, saved: boolean): Promise<boolean> {
-  const set = await load();
+const announce = (id: string, saved: boolean) => window.dispatchEvent(new CustomEvent(SAVED_EVENT, { detail: { id, saved } }));
+
+/** Saves (or unsaves) a story. Resolves true once the server has it. */
+export async function setStorySaved(userId: string, id: string, saved: boolean): Promise<boolean> {
+  const set = await load(userId);
   if (saved) set.add(id);
   else set.delete(id);
-  window.dispatchEvent(new CustomEvent(SAVED_EVENT, { detail: { id, saved } }));
+  announce(id, saved);
   try {
     const res = await fetch("/api/user/saved", {
       method: "POST",
@@ -37,28 +48,26 @@ export async function setStorySaved(id: string, saved: boolean): Promise<boolean
     // undo, so the button never shows a save that didn't happen
     if (saved) set.delete(id);
     else set.add(id);
-    window.dispatchEvent(new CustomEvent(SAVED_EVENT, { detail: { id, saved: !saved } }));
+    announce(id, !saved);
     return false;
   }
 }
 
-/** Whether this story is saved (null while finding out), kept in step with
- *  every other Save button on the page. */
-export function useSaved(id: string, enabled: boolean): boolean | null {
-  const [saved, setSaved] = useState<boolean | null>(ids ? ids.has(id) : null);
+/** Whether this story is saved (null while finding out), always for the
+ *  story asked about - right from the first render once the list is in. */
+export function useSaved(id: string, userId: string | null | undefined): boolean | null {
+  const [, bump] = useState(0);
   useEffect(() => {
-    if (!enabled) return;
+    if (!userId) return;
     let live = true;
-    void load().then((s) => live && setSaved(s.has(id)));
-    const on = (e: Event) => {
-      const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
-      if (d?.id === id) setSaved(d.saved);
-    };
+    if (!ids || owner !== userId) void load(userId).then(() => live && bump((n) => n + 1));
+    const on = () => bump((n) => n + 1);
     window.addEventListener(SAVED_EVENT, on);
     return () => {
       live = false;
       window.removeEventListener(SAVED_EVENT, on);
     };
-  }, [id, enabled]);
-  return saved;
+  }, [userId]);
+  if (!userId || !ids || owner !== userId) return null;
+  return ids.has(id);
 }

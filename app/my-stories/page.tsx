@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import type { GalleryEntry } from "@/lib/types";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { MapleMark, StarGlyph } from "@/components/Icons";
+import { MapleMark } from "@/components/Icons";
 import { StoryCard } from "@/components/StoryCard";
 import { PreviewButtons, StoryPreview, stepper, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
@@ -128,7 +128,7 @@ export default function MyStoriesPage() {
         )}
       </header>
 
-      {saved.length > 0 && <h2 className="shelf-section-title">My stories</h2>}
+      {saved.length > 0 && <h2 className="shelf-section-title">My originals</h2>}
       {sorted.length === 0 ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
@@ -166,20 +166,13 @@ export default function MyStoriesPage() {
           <div className="story-preview-actions">
             <PreviewButtons
               href={`/store/${open.id}`}
-              label="Read the story"
+              label="Read"
               onShare={() =>
                 shareStory(open.title || "An untitled story", shareUrl(open.id, window.location.origin), () =>
                   flash("Link copied. Paste it anywhere to share."),
                 )
               }
             />
-            {open.ratingCount > 0 && (
-              <p className="meta story-preview-ratings">
-                <StarGlyph /> {avg(open).toFixed(1)} from {open.ratingCount} {open.ratingCount === 1 ? "rating" : "ratings"}
-                <span aria-hidden> · </span>
-                <Link href={`/my-stories/${open.id}/ratings`}>See ratings</Link>
-              </p>
-            )}
           </div>
         </StoryPreview>
       )}

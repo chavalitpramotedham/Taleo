@@ -99,7 +99,7 @@ export default function CreatePage() {
   const [checking, setChecking] = useState(false);
   const start = async () => {
     if (!age || !hero || !theme || !session?.user.username || checking) return;
-    // New stories are limited (one per night on Free, unlimited for the admin):
+    // New stories are limited (one per day on Free, unlimited for the admin):
     // check first, so hitting the limit never leaves an empty story behind.
     setChecking(true);
     setError(null);

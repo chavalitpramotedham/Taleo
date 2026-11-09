@@ -12,6 +12,7 @@ import { AccountNav } from "@/components/AccountNav";
 import { Providers } from "@/components/Providers";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
+import { ToastHost } from "@/components/Toast";
 
 export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <PaintDefs />
+          <ToastHost />
           <AudioUnlock />
           <header className="topbar">
             <Link href="/" className="brand" aria-label="Taleo home">

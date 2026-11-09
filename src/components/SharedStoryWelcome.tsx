@@ -27,7 +27,7 @@ export function SharedStoryWelcome({ story }: { story: SharedStorySummary }) {
       <div className="story-preview-actions">
         <PreviewButtons
           href={`/store/${story.id}`}
-          label="Start reading"
+          label="Read"
           onRead={() => setOpen(false)}
           onShare={() => shareStory(story.title || "A Taleo story", shareUrl(story.id, window.location.origin), () => {})}
         />

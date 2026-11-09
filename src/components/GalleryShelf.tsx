@@ -8,7 +8,6 @@ import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
 import { StoryCard } from "./StoryCard";
 import { PreviewButtons, SaveStoryButton, StoryPreview, stepper, summaryFromEntry } from "./StoryPreview";
-import { MyRatingNote } from "./InlineRating";
 import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { ShelfSkeleton } from "./ShelfSkeleton";
@@ -181,11 +180,10 @@ export function LibraryActions({
     <div className="story-preview-actions">
       <PreviewButtons
         href={`/store/${entry.id}`}
-        label="Read the story"
+        label="Read"
         onShare={() => shareStory(title, shareUrl(entry.id, window.location.origin), onCopied)}
         extra={<SaveStoryButton id={entry.id} author={entry.authorUsername} />}
       />
-      <MyRatingNote storyId={entry.id} initial={{ ratingSum: entry.ratingSum, ratingCount: entry.ratingCount }} />
     </div>
   );
 }

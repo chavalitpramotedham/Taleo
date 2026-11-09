@@ -46,13 +46,13 @@ const COMING: Card = {
   key: "coming",
   icon: <SeedlingMark />,
   name: "More plans",
-  tagline: "Growing soon, for families who read every night.",
+  tagline: "Growing soon, for families who read together every day.",
   price: "Soon",
   priceNote: "we'll let you know",
   button: "",
   current: false,
   intro: "Everything in Free, and more of:",
-  features: ["New stories each night", "Custom characters to keep", "Longer stories and new features first"],
+  features: ["More new stories each day", "More custom characters to keep", "Longer stories and new features first"],
 };
 
 /** Account tier on Manage account: a short summary of your plan - its
