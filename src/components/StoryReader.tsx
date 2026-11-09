@@ -666,7 +666,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   let picture: React.ReactNode;
   if (artHeld) {
     picture = (
-      <div className="picture-wait turning-wait" aria-hidden>
+      <div className="picture-wait canvas-wait" aria-hidden>
+        <span className="blank-canvas painted-edge" />
         <LeafLoader size={40} />
       </div>
     );
@@ -693,14 +694,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
             live={Boolean(partial && !done)}
             target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
           />
-        ) : readOnly && picturesPending ? (
-          <div className="picture-wait">
-            <LeafLoader size={44} />
-          </div>
-        ) : null}
-        {!svg && (
-          <div className="picture-wait" aria-live="polite">
-            <LeafLoader size={36} />
+        ) : (
+          // a blank sheet in the painting's own soft watercolour shape,
+          // with the leaves falling on it until the picture is ready
+          <div className="picture-wait canvas-wait" aria-live="polite">
+            <span className="blank-canvas painted-edge" aria-hidden />
+            <LeafLoader size={40} />
             <span>The illustrator is painting this page…</span>
           </div>
         )}
