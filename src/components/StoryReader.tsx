@@ -18,6 +18,7 @@ import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
 import { ReadAloudControl } from "./ReadAloudControl";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
+import { StoryProgressBar, countShapes } from "./StoryProgressBar";
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -110,6 +111,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // until the next page's words AND picture are ready, then moves on - so
   // the child never lands on a half-made page with the voice starting.
   const [holdSeg, setHoldSeg] = useState<number | null>(null);
+  // When the current wait began (for the progress bar's easing).
+  const [progressStart, setProgressStart] = useState(() => Date.now());
 
   const views: View[] = useMemo(() => {
     const v: View[] = [];
@@ -133,7 +136,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // The picture shown alongside choices / endings is the most recent page's.
   const lastPage = [...views.slice(0, index + 1)].reverse().find((v): v is Extract<View, { kind: "page" }> => v.kind === "page");
   const shown = view?.kind === "page" ? view : lastPage;
-  const focus = shown ? pageKey(shown.seg, shown.n) : null;
+  // (while waiting on the next part, its first page is the one to watch,
+  // so its painting's progress shows on the waiting page)
+  const focus = holdSeg !== null ? pageKey(holdSeg, 0) : shown ? pageKey(shown.seg, shown.n) : null;
 
   const { live, failed, retry, painting } = usePaintings(story, update, focus, !readOnly);
 
@@ -202,6 +207,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const generate = useCallback(
     async (s: Story) => {
       setBusy(true);
+      setProgressStart(Date.now());
       setError(null);
       const body =
         s.segments.length === 0
@@ -583,7 +589,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (view.kind === "end") text = "The end.";
     // waiting on the next part after a choice: the choice, echoed back
     if (view.kind === "loading") {
-      const last = story.segments[story.segments.length - 1];
+      const last = story.segments[(holdSeg ?? story.segments.length) - 1];
       if (last?.chosen) text = `Great choice! ${last.chosen.custom ? "Your idea" : "You said"}: ${last.chosen.text}.`;
     }
     // Only when the words to read change (the page re-renders for other
@@ -686,14 +692,22 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     picture = (
       <>
         {svg ? (
-          <InteractivePainting
-            ref={paintingRef}
-            svg={svg}
-            title={shown.page.picture || shown.page.text}
-            className={partial && !done ? "painting live" : "painting"}
-            live={Boolean(partial && !done)}
-            target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
-          />
+          <>
+            {/* The blank sheet stays under the picture as it arrives - painted
+                onto while it streams in, then fading away once it's done -
+                and the picture itself fades in over it, so it never pops. */}
+            <span key={`sheet-${key}`} className={`blank-canvas painted-edge under-canvas ${partial && !done ? "" : "gone"}`} aria-hidden />
+            <div key={`art-${key}`} className="art-fade">
+              <InteractivePainting
+                ref={paintingRef}
+                svg={svg}
+                title={shown.page.picture || shown.page.text}
+                className={partial && !done ? "painting live" : "painting"}
+                live={Boolean(partial && !done)}
+                target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
+              />
+            </div>
+          </>
         ) : (
           // a blank sheet in the painting's own soft watercolour shape,
           // with the leaves falling on it until the picture is ready
@@ -719,6 +733,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   }
 
   // ---------------------------------------------------------------- words
+  // Progress of the part being made: written first, then its first page painted.
+  const nextSeg = holdSeg ?? story.segments.length;
+  const nextFirst = story.segments[nextSeg]?.pages[0];
   let words: React.ReactNode = null;
   if (pendingNext) {
     words = (
@@ -729,7 +746,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   } else if (!view || view.kind === "loading") {
     // Waiting on the next part after a choice: echo it back, so there's
     // something to read (and read aloud) while it's written.
-    const lastSeg = story.segments[story.segments.length - 1];
+    // (the choice just made - it stays while the next part arrives)
+    const lastSeg = story.segments[nextSeg - 1];
     const echo = lastSeg?.chosen && lastSeg.choice ? { prompt: lastSeg.choice.prompt, said: lastSeg.chosen.text, custom: lastSeg.chosen.custom } : null;
     words = (
       <div className="loading" aria-live="polite">
@@ -744,8 +762,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         ) : (
           <p className="once">{story.segments.length === 0 ? "Once upon a time…" : "And then…"}</p>
         )}
-        <LeafLoader size={48} />
-        <p className="meta">{LOADING_LINES[loadingLine]}</p>
+        <StoryProgressBar
+          started={progressStart}
+          painting={Boolean(nextFirst)}
+          shapes={nextFirst?.svg ? null : countShapes(live[pageKey(nextSeg, 0)])}
+          hint={LOADING_LINES[loadingLine]}
+        />
       </div>
     );
   } else if (view.kind === "error") {

@@ -1251,8 +1251,20 @@ main {
 }
 /* A new page's painting fades in once the turning page has gone (it waits
    under the falling leaves while the page turns). */
-.book > .book-art > .painting:not(.live) {
-  animation: paintingIn 0.35s ease both;
+.art-fade {
+  position: absolute;
+  inset: 0;
+  animation: paintingIn 0.6s ease both;
+}
+/* the blank sheet under a picture that's arriving: fades away once the
+   picture is complete (it stays while a picture is still being painted) */
+.under-canvas.gone {
+  animation: sheetAway 0.7s ease 0.2s forwards;
+}
+@keyframes sheetAway {
+  to {
+    opacity: 0;
+  }
 }
 @keyframes paintingIn {
   from {
@@ -1414,8 +1426,12 @@ html[data-night] .canvas-wait {
 /* The leaf is a still copy of the page left behind: its words and
    picture don't fade in again. */
 .flip-leaf .page-anim,
-.flip-leaf .painting {
+.flip-leaf .painting,
+.flip-leaf .art-fade {
   animation: none !important;
+}
+.flip-leaf .under-canvas {
+  display: none;
 }
 /* the leaf's own shading, drawn over its content */
 .flip-leaf::after {
@@ -9410,4 +9426,10 @@ html:has(.reader) .night-glow-shimmer {
 }
 html[data-night] .tier-badge {
   background: #1d1720;
+}
+/* the waiting page's progress bar (after a choice) */
+.story-progress {
+  width: min(100%, 360px);
+  margin: 14px auto 0;
+  text-align: left;
 }
