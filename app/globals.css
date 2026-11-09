@@ -8634,3 +8634,23 @@ html[data-night] .home-stat {
     animation: none;
   }
 }
+/* The page you're on, in the menu: darker and heavier lettering (a hair
+   of stroke rather than a bold face, so nothing shifts sideways). */
+.nav-link.current {
+  color: var(--ink);
+  text-shadow:
+    0.35px 0 0 currentColor,
+    -0.15px 0 0 currentColor;
+}
+html[data-night] .nav-link.current {
+  color: #f3e7cf;
+}
+/* The account menu: the page you're on, picked out like the main menu */
+.account-dropdown-item.current {
+  color: var(--russet);
+  text-shadow: 0.3px 0 0 currentColor;
+}
+/* the avatar's ring lights up too while the menu is open */
+.account-trigger.on {
+  box-shadow: 0 0 0 1px var(--russet);
+}

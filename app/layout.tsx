@@ -4,7 +4,7 @@ import { EB_Garamond, IM_Fell_English, IM_Fell_English_SC } from "next/font/goog
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { BrandMark } from "@/components/Icons";
 import { NavBegin } from "@/components/NavBegin";
-import { NavHome } from "@/components/NavHome";
+import { NavLinks } from "@/components/NavHome";
 import { NightToggle } from "@/components/NightMode";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
@@ -108,13 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="nav-row">
               <nav className="topnav">
                 <NavBegin />
-                <NavHome />
-                <Link href="/store" className="nav-link">
-                  Library
-                </Link>
-                <Link href="/about" className="nav-link">
-                  About us
-                </Link>
+                <NavLinks />
               </nav>
               <div className="nav-tools">
                 <NightToggle />

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AccountIcon } from "./Icons";
 import { Avatar } from "./Avatar";
@@ -8,6 +9,11 @@ import { Avatar } from "./Avatar";
 export function AccountNav() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
+  const path = usePathname() || "/";
+  // The account's own pages: the button stays lit there, like a current tab.
+  const ACCOUNT_PAGES = ["/my-stories", "/my-characters", "/account", "/admin"];
+  const onAccountPage = ACCOUNT_PAGES.some((p) => path.startsWith(p));
+  const item = (href: string) => `account-dropdown-item ${path.startsWith(href) ? "current" : ""}`;
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,23 +45,23 @@ export function AccountNav() {
 
   return (
     <div className="account-menu" ref={ref}>
-      <button type="button" className="icon-btn account-trigger" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
+      <button type="button" className={`icon-btn account-trigger ${open || onAccountPage ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
         {session.user.avatarKey ? <Avatar avatarKey={session.user.avatarKey} /> : <AccountIcon />}
       </button>
       {open && (
         <div className="account-dropdown" role="menu">
           <p className="account-dropdown-name">@{session.user.username}</p>
-          <Link href="/my-stories" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+          <Link href="/my-stories" className={item("/my-stories")} aria-current={path.startsWith("/my-stories") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
             My bookshelf
           </Link>
-          <Link href="/my-characters" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+          <Link href="/my-characters" className={item("/my-characters")} aria-current={path.startsWith("/my-characters") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
             My characters
           </Link>
-          <Link href="/account" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+          <Link href="/account" className={item("/account")} aria-current={path.startsWith("/account") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
             Manage account
           </Link>
           {session.user.isAdmin && (
-            <Link href="/admin" className="account-dropdown-item" role="menuitem" onClick={() => setOpen(false)}>
+            <Link href="/admin" className={item("/admin")} aria-current={path.startsWith("/admin") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
               Admin dashboard
             </Link>
           )}
