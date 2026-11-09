@@ -213,9 +213,34 @@ export function HeroPainting() {
 
 const BrushArt = () => (
   <svg viewBox="0 0 40 120" width="22" height="66">
-    <path d="M20 118C17 108 16 86 17 62H23C24 86 23 108 20 118Z" fill="#9b6a3c" stroke="#4F3A2A" strokeWidth="1.4" />
-    <path d="M16 46H24V64H16Z" fill="#c9c2b4" stroke="#4F3A2A" strokeWidth="1.4" />
-    <path d="M16 46C14 30 17 12 20 2C23 12 26 30 24 46Z" fill="#7a5a3a" stroke="#4F3A2A" strokeWidth="1.4" />
+    {/* Lit from the upper left: each part is shaded round (a lighter band
+        on the lit side, darker toward the far edge), with a glint on the
+        metal ferrule - drawn once, so the shading costs nothing to move. */}
+    <defs>
+      <linearGradient id="hb-wood" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stopColor="#6e4626" />
+        <stop offset="0.3" stopColor="#c48a52" />
+        <stop offset="0.55" stopColor="#9b6a3c" />
+        <stop offset="1" stopColor="#5a3820" />
+      </linearGradient>
+      <linearGradient id="hb-metal" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stopColor="#8d8679" />
+        <stop offset="0.28" stopColor="#f4efe4" />
+        <stop offset="0.5" stopColor="#c9c2b4" />
+        <stop offset="1" stopColor="#77705f" />
+      </linearGradient>
+      <linearGradient id="hb-hair" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stopColor="#5a3f26" />
+        <stop offset="0.35" stopColor="#9a744c" />
+        <stop offset="1" stopColor="#4a321e" />
+      </linearGradient>
+    </defs>
+    <path d="M20 118C17 108 16 86 17 62H23C24 86 23 108 20 118Z" fill="url(#hb-wood)" stroke="#4F3A2A" strokeWidth="1.4" />
+    <path d="M18.6 66C18.2 84 18.6 100 19.6 110" fill="none" stroke="#f3d3a8" strokeOpacity="0.55" strokeWidth="0.9" strokeLinecap="round" />
+    <path d="M16 46H24V64H16Z" fill="url(#hb-metal)" stroke="#4F3A2A" strokeWidth="1.4" />
+    <path d="M16.6 51H23.4M16.6 58H23.4" stroke="#6f6857" strokeOpacity="0.5" strokeWidth="0.8" />
+    <path d="M16 46C14 30 17 12 20 2C23 12 26 30 24 46Z" fill="url(#hb-hair)" stroke="#4F3A2A" strokeWidth="1.4" />
     <path className="hero-brush-tip" d="M17 22C18 13 19 7 20 2C21 7 22 13 23 22Z" />
+    <path d="M18.4 20C18.8 13 19.3 8 19.9 4" fill="none" stroke="#e8a07c" strokeOpacity="0.6" strokeWidth="0.8" strokeLinecap="round" />
   </svg>
 );

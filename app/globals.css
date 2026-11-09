@@ -3800,6 +3800,8 @@ html[data-night] .modal-backdrop {
    stroke - it reads as dabs of paint and stays light on phones. */
 .hero-paint-canvas {
   position: relative;
+  /* (the brush is sized to the picture: cqw) */
+  container-type: inline-size;
   /* Not clipped: the brush's handle may reach out past the picture's edge
      (as a real brush would). The page itself never widens - html/body
      clip sideways overflow. */
@@ -3883,13 +3885,15 @@ html[data-night] .modal-backdrop {
 }
 .hero-art .hero-brush svg {
   /* (beats .hero-art svg, which sizes the painting to the frame) */
-  width: 22px;
-  height: 66px;
+  /* sized with the picture, so it reaches the same way on every screen */
+  --bw: clamp(22px, 7.4cqw, 40px);
+  width: var(--bw);
+  height: calc(var(--bw) * 3);
   max-width: none;
   position: absolute;
-  left: -11px;
+  left: calc(var(--bw) / -2);
   top: -1px;
-  transform-origin: 11px 1px;
+  transform-origin: 50% 1px;
   transform: rotate(150deg);
   filter: drop-shadow(2px 3px 2px rgba(60, 40, 20, 0.3));
   animation: brushSway 4.5s ease-in-out infinite;
@@ -3908,34 +3912,34 @@ html[data-night] .modal-backdrop {
    so it never flies across the picture. */
 @keyframes brushDrift {
   0% {
-    transform: translate(30%, 16%);
+    transform: translate(28%, 13%);
     opacity: 0;
   }
   4% {
-    opacity: 0.85;
+    opacity: 1;
   }
   12% {
-    opacity: 0.85;
+    opacity: 1;
   }
   15% {
-    transform: translate(37%, 18%);
+    transform: translate(35%, 15%);
     opacity: 0;
   }
   15.01% {
-    transform: translate(70%, 62%);
+    transform: translate(84%, 57%);
     opacity: 0;
   }
   17.01% {
     opacity: 0;
   }
   21% {
-    opacity: 0.85;
+    opacity: 1;
   }
   27% {
-    opacity: 0.85;
+    opacity: 1;
   }
   30% {
-    transform: translate(75%, 64%);
+    transform: translate(87%, 59%);
     opacity: 0;
   }
   30.01% {
@@ -3946,10 +3950,10 @@ html[data-night] .modal-backdrop {
     opacity: 0;
   }
   36% {
-    opacity: 0.85;
+    opacity: 1;
   }
   44% {
-    opacity: 0.85;
+    opacity: 1;
   }
   47% {
     transform: translate(21%, 49%);
@@ -3963,10 +3967,10 @@ html[data-night] .modal-backdrop {
     opacity: 0;
   }
   53% {
-    opacity: 0.85;
+    opacity: 1;
   }
   63% {
-    opacity: 0.85;
+    opacity: 1;
   }
   66% {
     transform: translate(62%, 46%);
@@ -3980,34 +3984,34 @@ html[data-night] .modal-backdrop {
     opacity: 0;
   }
   72% {
-    opacity: 0.85;
+    opacity: 1;
   }
   79% {
-    opacity: 0.85;
+    opacity: 1;
   }
   82% {
     transform: translate(49%, 84%);
     opacity: 0;
   }
   82.01% {
-    transform: translate(76%, 30%);
+    transform: translate(84%, 14%);
     opacity: 0;
   }
   84.01% {
     opacity: 0;
   }
   88% {
-    opacity: 0.85;
+    opacity: 1;
   }
   94% {
-    opacity: 0.85;
+    opacity: 1;
   }
   97% {
-    transform: translate(80%, 32%);
+    transform: translate(88%, 16%);
     opacity: 0;
   }
   100% {
-    transform: translate(80%, 32%);
+    transform: translate(88%, 16%);
     opacity: 0;
   }
 }
@@ -4036,25 +4040,25 @@ html[data-night] .modal-backdrop {
     transform: rotate(142deg);
   }
   15.02% {
-    transform: rotate(-158deg);
+    transform: rotate(-142deg);
   }
   17.01% {
-    transform: rotate(-158deg);
+    transform: rotate(-142deg);
   }
   19.01% {
-    transform: rotate(-147deg);
+    transform: rotate(-131deg);
   }
   21% {
-    transform: rotate(-150deg);
+    transform: rotate(-134deg);
   }
   27% {
-    transform: rotate(-150deg);
+    transform: rotate(-134deg);
   }
   28.5% {
-    transform: rotate(-153deg);
+    transform: rotate(-137deg);
   }
   30% {
-    transform: rotate(-144deg);
+    transform: rotate(-128deg);
   }
   30.02% {
     transform: rotate(162deg);
@@ -7606,6 +7610,9 @@ html[data-night] .step-art img {
 }
 .home-shelf-head .sub {
   margin-bottom: 6px;
+  /* centred under its heading, even when it wraps onto two lines */
+  text-align: center;
+  text-wrap: balance;
 }
 @media (max-width: 520px) {
   .filter-row .chip,
