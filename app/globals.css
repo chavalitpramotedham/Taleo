@@ -4970,6 +4970,60 @@ html.theme-melting .topbar::before {
 .nav-lantern.leaving .nav-lantern-drop {
   animation: hangRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
 }
+/* One firefly loops lazily around the lantern's glass: two gentle
+   back-and-forth sways (side to side, up and down) at slightly different
+   speeds trace a slow, ever-changing loop. Transform and opacity only. */
+.lantern-firefly {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--lamp-w, 28px) * 64 / 28 * 0.6);
+  width: 0;
+  height: 0;
+  will-change: transform;
+  animation: lanternFlyX 3.4s ease-in-out infinite alternate;
+}
+.lantern-firefly-y {
+  position: absolute;
+  will-change: transform;
+  animation: lanternFlyY 2.3s ease-in-out -1.1s infinite alternate;
+}
+/* (close to the lamp it glows most of the time, dimming only now and then) */
+.lantern-firefly .firefly-light {
+  animation: lanternFlyGlow 2.8s ease-in-out infinite;
+}
+@keyframes lanternFlyGlow {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  45% {
+    opacity: 0.35;
+  }
+  70% {
+    opacity: 1;
+  }
+}
+@keyframes lanternFlyX {
+  from {
+    transform: translateX(calc(var(--lamp-w, 28px) * -0.95));
+  }
+  to {
+    transform: translateX(calc(var(--lamp-w, 28px) * 0.95));
+  }
+}
+@keyframes lanternFlyY {
+  from {
+    transform: translateY(calc(var(--lamp-w, 28px) * -0.55));
+  }
+  to {
+    transform: translateY(calc(var(--lamp-w, 28px) * 0.5));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lantern-firefly {
+    display: none;
+  }
+}
 /* the cord, up under the bar */
 .nav-lantern-drop::before {
   content: "";

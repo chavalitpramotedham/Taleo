@@ -225,11 +225,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       const w = Math.round(Math.min(60, Math.max(40, window.innerWidth / 24)));
       let cord = w <= 24 ? 6 : 12;
       // Screen coordinates: the bar is fixed to the top, and so is this layer.
-      // Where the menu sits in from the screen's edge (wide screens), it
-      // hangs a little past the button instead - just outside the page's
-      // column, in the margin, close to the content but never over it.
-      const room = window.innerWidth - s.right;
-      const x = s.left + s.width / 2 + Math.max(0, Math.min(72, room - 52));
+      const x = s.left + s.width / 2;
       const top = b.bottom;
       el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
@@ -271,6 +267,12 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
           <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
             <div className="nav-lantern-drop">
               <LanternArt />
+              {/* one firefly keeping the lantern company */}
+              <span className="lantern-firefly" aria-hidden>
+                <span className="lantern-firefly-y">
+                  <span className="firefly-light" />
+                </span>
+              </span>
             </div>
           </div>
         </>
