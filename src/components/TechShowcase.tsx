@@ -48,7 +48,7 @@ export function TechShowcase() {
     <section className="tech" aria-labelledby="tech-title">
       <div className="tech-glow" aria-hidden />
       <header className="tech-head">
-        <p className="tech-eyebrow">Generative AI, for good</p>
+        <p className="tech-eyebrow">Generative AI, For Good</p>
         <h2 id="tech-title">Keeping the magic alive</h2>
       </header>
       <div className="tech-grid">
