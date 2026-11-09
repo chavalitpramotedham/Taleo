@@ -76,7 +76,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null, gender }, replaceId }),
+        body: JSON.stringify({ character: { name: finalName, look: drafted.look, svg: drafted.svg, notes: notes.trim() || null, gender, prompt: prefilled.current || description.trim() }, replaceId }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string; limitReached?: boolean };
       if (!res.ok || !data.character) {

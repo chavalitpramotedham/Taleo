@@ -401,7 +401,7 @@ export async function designCharacter(req: CharacterRequest): Promise<CharacterR
     ? `Redraw this existing character, named "${req.name ?? ""}"${genderNote({ gender: req.current.gender ?? null })}.` +
       `\nTheir current model sheet: ${req.current.look}` +
       (req.current.notes ? `\nWho they are (from their family): ${req.current.notes}` : "") +
-      `\nWhat to change: "${req.description}". Keep everything else about them the same (kind, colours, markings, accessories, personality) unless the change says otherwise, so they're clearly still the same character.` +
+      `\nTheir description is now: "${req.description}". Redraw them to match it. Anything it doesn't mention stays as in the current model sheet (kind, colours, markings, accessories, personality), so they're clearly still the same character.` +
       `\nReturn the same name, the updated model sheet ("look") and a new reference painting ("svg").`
     : `Design this character: "${req.description}".${
         req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."

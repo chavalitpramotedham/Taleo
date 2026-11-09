@@ -184,7 +184,8 @@ function CharacterEditModal({
       const res = await fetch(`/api/characters/${character.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ look: redrawn.look, svg: redrawn.svg }),
+        // the redraw request becomes their last-used prompt (notes untouched)
+        body: JSON.stringify({ look: redrawn.look, svg: redrawn.svg, prompt: change.trim() }),
       });
       const data = (await res.json()) as { character?: SavedCharacter; error?: string };
       if (!res.ok || !data.character) throw new Error(data.error || "Couldn't save the new look.");
@@ -263,7 +264,15 @@ function CharacterEditModal({
             <button type="button" className="btn btn-primary char-save-btn" onClick={() => void saveImage()} disabled={saving} aria-label="Save image" title="Save image">
               {saving ? <LeafLoader size={18} /> : <DownloadIcon />}
             </button>
-            <button type="button" className="btn btn-soft btn-sm char-redraw-btn" onClick={() => setStage("redraw")}>
+            <button
+              type="button"
+              className="btn btn-soft btn-sm char-redraw-btn"
+              onClick={() => {
+                // start from the prompt they were last painted from, to edit
+                setChange(character.prompt ?? "");
+                setStage("redraw");
+              }}
+            >
               Redraw look
             </button>
           </div>
@@ -376,13 +385,17 @@ function CharacterEditModal({
                     </span>
                   )}
                 </div>
-                <p className="meta">What should change? {character.name} keeps their name and who they are.</p>
+                <p className="meta">
+                  {character.prompt
+                    ? `This is what ${character.name} was last painted from - edit it, then redraw. They keep their name and who they are.`
+                    : `Describe how ${character.name} should look. They keep their name and who they are.`}
+                </p>
                 <div className="field-row">
                   <DictateButton onText={setChange} label="Describe by voice" />
                   <GrowingInput
                     value={change}
                     maxLength={200}
-                    placeholder="A red scarf and bigger, floppier ears…"
+                    placeholder="A little rabbit with a red scarf and floppy ears…"
                     onChange={setChange}
                     onEnter={() => void redraw()}
                     aria-label="What should change"

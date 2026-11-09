@@ -33,6 +33,10 @@ export interface SavedCharacter {
   svg: string | null;
   /** Optional freeform description / relationships (see CharacterDef.notes). */
   notes: string | null;
+  /** The last prompt their picture was painted from: the description they
+   *  were first created with, or the latest redraw request. Kept apart
+   *  from the notes. */
+  prompt?: string | null;
   gender: CharacterGender | null;
   /** Ids of the stories this character has starred in, oldest first. Not
    *  shown yet - kept so future stories can recall shared adventures. */
