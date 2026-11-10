@@ -129,14 +129,6 @@ export function ReadingChart() {
         </p>
         <p className="meta reading-chart-sub">
           {secondary}
-          {diaryDays.length > 0 && (
-            <>
-              {" "}
-              <button type="button" className="link-btn reading-diary-open" onClick={() => setOpenDay(diaryDays[diaryDays.length - 1])}>
-                Open diary
-              </button>
-            </>
-          )}
         </p>
       </div>
       <div className="reading-grid-wrap" ref={box}>
@@ -167,7 +159,7 @@ export function ReadingChart() {
                   const label = `${c.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}${read ? " - read together" : ""}${c.day === joinedKey ? " - you joined Taleo" : ""}`;
                   // (a day with a story in it opens as a diary page)
                   return read ? (
-                    <button key={c.day} type="button" className={className} title={`${label} · open diary`} aria-label={`${label}. Open diary`} onClick={() => setOpenDay(c.day)} />
+                    <button key={c.day} type="button" className={className} title={label} aria-label={`${label}. Open this day`} onClick={() => setOpenDay(c.day)} />
                   ) : (
                     <span key={c.day} className={className} title={c.future || c.pre ? undefined : label} />
                   );

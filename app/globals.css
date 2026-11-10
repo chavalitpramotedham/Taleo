@@ -10616,40 +10616,102 @@ button.reading-cell:focus-visible {
     transform: scale(1.25);
   }
 }
-.reading-diary-open {
-  white-space: nowrap;
+/* The day's page: no title of its own - the day is the title. The close
+   button sits in the corner; the arrows on either side of the date go to
+   the day before and the day after. */
+.diary-prompt {
+  position: relative;
+  padding-top: 52px;
 }
-.diary-prompt .diary-summary {
+.diary-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.diary-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.diary-date {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.diary-date p {
   margin: 0;
 }
+.diary-weekday {
+  font-family: var(--font-title);
+  font-size: clamp(1.6rem, 6vw, 1.9rem);
+  line-height: 1.15;
+}
+.diary-day {
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+}
+.diary-summary {
+  margin-top: 4px !important;
+  font-family: var(--font-caps);
+  letter-spacing: 0.05em;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+.diary-step {
+  flex: none;
+  font-size: 1.45rem;
+  line-height: 1;
+  padding-bottom: 3px;
+}
+.diary-step:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
 .diary-list {
-  list-style: none;
-  margin: 6px 0 0;
-  padding: 0;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
   text-align: left;
   overflow-y: auto;
   min-height: 0;
 }
+.diary-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.diary-list li + li {
+  border-top: 1px solid var(--rule);
+}
+.diary-group {
+  margin: 0 0 2px;
+  font-family: var(--font-caps);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+/* A story: its picture and its name, on an open line (no box around
+   each), with room for a long title to run to a second line. */
 .diary-row {
   appearance: none;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 10px 8px 8px;
+  gap: 14px;
+  padding: 10px 2px;
   font: inherit;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  background: color-mix(in srgb, var(--rule) 22%, transparent);
-  border: 1px solid var(--rule);
-  border-radius: 12px;
+  background: none;
+  border: 0;
+  border-radius: 8px;
 }
 .diary-row:active {
-  opacity: 0.82;
+  opacity: 0.7;
 }
 .diary-row:focus-visible {
   outline: 2px solid var(--russet);
@@ -10657,7 +10719,7 @@ button.reading-cell:focus-visible {
 }
 .diary-thumb {
   flex: none;
-  width: 64px;
+  width: 60px;
   aspect-ratio: 4 / 3;
   border-radius: 7px;
   overflow: hidden;
@@ -10676,58 +10738,21 @@ button.reading-cell:focus-visible {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .diary-row-title {
   font-family: var(--font-title);
-  font-size: 1.05rem;
-  line-height: 1.2;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .diary-row-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-style: italic;
   color: var(--ink-faint);
-}
-.diary-tag {
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  letter-spacing: 0.02em;
-  border: 1px solid var(--rule);
-  color: var(--ink-faint);
-}
-/* your own: the gold of a story you made, the russet of one you re-read */
-.diary-tag.made {
-  background: #f3dfa8;
-  border-color: #d9b866;
-  color: #5c4310;
-}
-.diary-tag.own {
-  border-color: color-mix(in srgb, var(--russet) 55%, transparent);
-  color: var(--russet);
-}
-.diary-row-go {
-  flex: none;
-  font-size: 1.3rem;
-  color: var(--ink-faint);
-}
-.diary-step {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-  font-size: 0.9rem;
-}
-.diary-step .link-btn:disabled {
-  opacity: 0.35;
-  text-decoration: none;
-  cursor: default;
 }
 
 /* ---------- a knock on the lantern ----------

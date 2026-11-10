@@ -21,13 +21,17 @@ async function cardsFor(ids: string[]): Promise<void> {
 
 const longDate = (day: string) =>
   new Date(`${day}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const at = (day: string) => new Date(`${day}T12:00:00`);
+const weekday = (day: string) => at(day).toLocaleDateString(undefined, { weekday: "long" });
+const dayMonth = (day: string) => at(day).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * One day of the reading diary, opened from its square on the chart: the
  * stories made that day first, then the ones read (your own before other
  * people's). Tapping a story opens its preview, as on the bookshelf; the
- * arrows step to the day before or after that has something in it.
+ * arrows on either side of the date step to the day before or after that
+ * has something in it.
  */
 export function ReadingDiary({
   day,
@@ -79,6 +83,11 @@ export function ReadingDiary({
   const gone = ready === "ready" ? ids.length - rows.length : 0;
   const madeHere = rows.filter((e) => made.includes(e.id)).length;
   const readHere = rows.length - madeHere;
+  // Said once, as a heading over each kind - and only when the day has both.
+  const groups = [
+    { label: "Made", rows: rows.filter((e) => made.includes(e.id)) },
+    { label: "Read", rows: rows.filter((e) => !made.includes(e.id)) },
+  ].filter((g) => g.rows.length);
   const open = openId ? rows.find((e) => e.id === openId) : null;
   const summary = [madeHere && count(madeHere, "story made", "stories made"), readHere && count(readHere, "story read", "stories read")].filter(Boolean).join(" · ");
 
@@ -102,40 +111,50 @@ export function ReadingDiary({
   return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-panel draft-prompt diary-prompt" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Your reading diary, ${longDate(day)}`}>
-        <div className="modal-head">
-          <h3>Reading diary</h3>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-            ✕
+        <button type="button" className="icon-btn diary-close" onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+        {/* The day, with the way to the day before and the day after on
+            either side of it (only days with a story in them). */}
+        <div className="diary-head">
+          <button type="button" className="icon-btn diary-step" onClick={() => earlier && onDay(earlier)} disabled={!earlier} aria-label="Earlier day">
+            ‹
+          </button>
+          <div className="diary-date" aria-live="polite">
+            <p className="diary-weekday">{weekday(day)}</p>
+            <p className="diary-day">{dayMonth(day)}</p>
+            <p className="diary-summary">
+              {ready === "loading" ? "Opening the diary…" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "You finished a story together."}
+            </p>
+          </div>
+          <button type="button" className="icon-btn diary-step" onClick={() => later && onDay(later)} disabled={!later} aria-label="Later day">
+            ›
           </button>
         </div>
-        <p className="draft-title">{longDate(day)}</p>
-        <p className="meta diary-summary">
-          {ready === "loading" ? "Opening the diary…" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "You finished a story together."}
-        </p>
         {rows.length > 0 && (
-          <ul className="diary-list">
-            {rows.map((e) => {
-              const own = mine.has(e.id);
-              const isMade = made.includes(e.id);
-              return (
-                <li key={e.id}>
-                  <button type="button" className="diary-row" onClick={() => setOpenId(e.id)} aria-haspopup="dialog">
-                    <span className="diary-thumb">{e.cover ? <Painting svg={e.cover} title="" /> : null}</span>
-                    <span className="diary-row-text">
-                      <span className="diary-row-title">{e.title || "An untitled story"}</span>
-                      <span className="diary-row-meta">
-                        <span className={`diary-tag${isMade ? " made" : own ? " own" : ""}`}>{isMade ? "Made this day" : own ? "Your story" : "Read"}</span>
-                        {isMade ? (read.includes(e.id) ? "and read to the end" : "") : own ? "read again" : `by ${e.authorUsername || "taleo"}`}
-                      </span>
-                    </span>
-                    <span className="diary-row-go" aria-hidden>
-                      ›
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="diary-list">
+            {groups.map((g) => (
+              <section key={g.label} aria-label={g.label}>
+                {groups.length > 1 && <h4 className="diary-group">{g.label}</h4>}
+                <ul>
+                  {g.rows.map((e) => {
+                    const note = made.includes(e.id) ? (read.includes(e.id) ? "Read to the end" : "") : mine.has(e.id) ? "Your story, read again" : `by @${e.authorUsername || "taleo"}`;
+                    return (
+                      <li key={e.id}>
+                        <button type="button" className="diary-row" onClick={() => setOpenId(e.id)} aria-haspopup="dialog">
+                          <span className="diary-thumb">{e.cover ? <Painting svg={e.cover} title="" /> : null}</span>
+                          <span className="diary-row-text">
+                            <span className="diary-row-title">{e.title || "An untitled story"}</span>
+                            {note && <span className="diary-row-meta">{note}</span>}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         )}
         {ready === "ready" && !ids.length && <p className="meta starts-left">This day is from before the diary began keeping titles.</p>}
         {gone > 0 && (
@@ -143,14 +162,6 @@ export function ReadingDiary({
             {gone === 1 ? "One story from this day is" : `${gone} stories from this day are`} no longer in the library.
           </p>
         )}
-        <div className="diary-step">
-          <button type="button" className="link-btn" onClick={() => earlier && onDay(earlier)} disabled={!earlier}>
-            ‹ Earlier day
-          </button>
-          <button type="button" className="link-btn" onClick={() => later && onDay(later)} disabled={!later}>
-            Later day ›
-          </button>
-        </div>
       </div>
     </div>,
     document.body,
