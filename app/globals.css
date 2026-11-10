@@ -2147,6 +2147,11 @@ html[data-night] .canvas-wait {
 .account-dropdown-item {
   display: flex;
   align-items: center;
+  /* (to the right, under the name and the button the menu hangs from:
+     the name first, its icon after it, so the icons make one column down
+     the menu's right edge) */
+  flex-direction: row-reverse;
+  justify-content: flex-start;
   gap: 10px;
   white-space: nowrap;
 }
@@ -10123,7 +10128,8 @@ html[data-night] .glass-toast {
 }
 .reading-streak {
   display: flex;
-  align-items: center;
+  /* (flame, number and label stand on one line of writing) */
+  align-items: baseline;
   gap: 6px;
   margin: 0;
   flex: none;
@@ -10149,7 +10155,12 @@ html[data-night] .glass-toast {
   color: #ee7a26;
   width: 27px;
   height: 27px;
-  margin: -4px -2px 0 -2px;
+  /* (its foot on the number's baseline: the drawing stops short of the
+     bottom of its box) */
+  align-self: baseline;
+  margin: 0 -2px -4.5px -2px;
+  position: relative;
+  top: 2.5px;
   filter: drop-shadow(0 1px 4px rgba(238, 122, 38, 0.5));
   /* It wavers from its base, like a candle: transform and opacity only,
      on its own layer, so nothing is repainted while it moves. */
@@ -11413,5 +11424,51 @@ html[data-night] .nav-begin-pill.is-making::before {
   }
   .nav-begin-pill.is-making::before {
     opacity: 0.6;
+  }
+}
+
+/* ---------- a phone on its side ---------- */
+/* The menu bar's background and line run to the screen's edges, behind the
+   notch at the side (the body's side padding keeps content clear of it, so
+   the bar reaches back out over that padding and pads itself instead). */
+.topbar {
+  margin-left: calc(-1 * env(safe-area-inset-left));
+  margin-right: calc(-1 * env(safe-area-inset-right));
+  padding-left: calc(max(var(--col-pad), calc((100% - var(--col)) / 2 + var(--col-pad))) + env(safe-area-inset-left));
+  padding-right: calc(max(var(--col-pad), calc((100% - var(--col)) / 2 + var(--col-pad))) + env(safe-area-inset-right));
+}
+/* There is very little height: the bar is slimmer, and "Begin a story"
+   is a small pill tucked into the bottom corner instead of a wide bar
+   across the middle of what's being read. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .topbar {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    /* (its open menus reach the bottom of so short a screen: over the
+       floating button, not under it) */
+    z-index: 41;
+  }
+  .floating-cta {
+    align-items: flex-end;
+    padding: 0 calc(16px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  }
+  .floating-cta-btn {
+    width: auto;
+    max-width: none;
+    min-height: 44px;
+    padding: 8px 20px;
+    font-size: 0.92rem;
+  }
+  .floating-cta .quota-note {
+    margin-top: 4px;
+  }
+  /* (the account menu: every item on screen, and scrolls if it can't be) */
+  .account-dropdown {
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+  }
+  .account-dropdown-item {
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 }
