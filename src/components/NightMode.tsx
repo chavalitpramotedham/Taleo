@@ -271,7 +271,10 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
           {/* above its own light, so the light never washes it out */}
           <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
             <div className="nav-lantern-drop">
-              <LanternArt />
+              {/* a tap gives it a little knock: it swings and settles */}
+              <div className="lantern-nudge" onClick={nudgeLantern}>
+                <LanternArt />
+              </div>
               {/* one firefly keeping the lantern company */}
               <span className="lantern-firefly" aria-hidden>
                 <span className="lantern-firefly-y">
@@ -293,4 +296,24 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       )}
     </div>
   );
+}
+
+/**
+ * A knock on the lantern: it swings away from the side it was tapped on
+ * and settles in under a second. One short transform animation on the
+ * lantern's own (already separate) layer, run by the compositor - nothing
+ * is re-rendered or repainted, and nothing runs when it isn't tapped.
+ */
+function nudgeLantern(e: React.MouseEvent<HTMLDivElement>) {
+  const el = e.currentTarget;
+  if (typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const box = el.getBoundingClientRect();
+  // tapped on its left: it swings right first (and the other way round)
+  const d = e.clientX < box.left + box.width / 2 ? -1 : 1;
+  const turn = (deg: number) => ({ transform: `rotate(${deg * d}deg)` });
+  el.getAnimations().forEach((a) => a.cancel());
+  el.animate([turn(0), { ...turn(-7), offset: 0.16 }, { ...turn(4.5), offset: 0.4 }, { ...turn(-2.4), offset: 0.62 }, { ...turn(1), offset: 0.82 }, turn(0)], {
+    duration: 1100,
+    easing: "ease-in-out",
+  });
 }

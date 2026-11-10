@@ -10727,3 +10727,19 @@ button.reading-cell:focus-visible {
   text-decoration: none;
   cursor: default;
 }
+
+/* ---------- a knock on the lantern ----------
+   Tapping the lantern makes it swing a little and settle (see
+   nudgeLantern): the swing hangs from the top of the lantern, where the
+   cord meets it. Only the lantern itself takes the tap - the box it hangs
+   in still lets everything else through. */
+.lantern-nudge {
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: 50% 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.nav-lantern.leaving .lantern-nudge {
+  pointer-events: none;
+}
