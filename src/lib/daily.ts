@@ -1,13 +1,12 @@
 import type { GalleryEntry } from "./types";
 
 /**
- * The library's story of the day: one published story, the same for
- * everybody on a given date, worked out from the date itself - nothing is
- * stored, and it costs no more than the library list already being read.
+ * The library's story of the day: the published story opened by the most
+ * readers today, the same for everybody on a given date.
  *
- * Stories with a cover that readers haven't rated poorly are in the draw,
- * and they take turns: every one of them has its day before any comes
- * round again.
+ * Ties (and the start of a day, when nothing has been opened yet) go to
+ * the better rated, then the more often rated, then the older story. So
+ * the pick can change during the day as stories are read.
  */
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -31,42 +30,14 @@ export function pickDay(asked: string | null | undefined, now = Date.now()): str
   return dayOf(today);
 }
 
-// (FNV-1a: small, quick, and spreads short strings well)
-function hash(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 const avg = (e: GalleryEntry) => (e.ratingCount ? e.ratingSum / e.ratingCount : 0);
 
-/** The pool in its order for one round: every story gets one day per
- *  round, in an order reshuffled each round. */
-const round = (pool: GalleryEntry[], r: number) =>
-  pool
-    .map((e) => ({ e, h: hash(`${r}:${e.id}`) }))
-    .sort((a, b) => a.h - b.h || (a.e.id < b.e.id ? -1 : 1))
-    .map((x) => x.e);
-
-export function storyOfTheDay(entries: GalleryEntry[], day: string): GalleryEntry | null {
-  const n = dayNumber(day);
-  // (stories published during the day join the draw tomorrow, so the pick
-  // doesn't change under a reader's feet)
-  const covered = entries.filter((e) => e.cover);
-  const settled = covered.filter((e) => e.createdAt < n * 86_400_000);
-  const from = settled.length ? settled : covered;
-  const good = from.filter((e) => !e.ratingCount || avg(e) >= 3.5);
-  const pool = good.length ? good : from;
-  const len = pool.length;
-  if (!len) return null;
-  if (len === 1) return pool[0];
-  const r = Math.floor(n / len);
-  const at = n - r * len;
-  const order = round(pool, r);
-  // A new round mustn't open with the story the last one closed on.
-  if (at < 2 && order[0].id === round(pool, r - 1)[len - 1].id) return order[1 - at];
-  return order[at];
+/** `views`: how often each story (by id) was opened on that day. Only
+ *  stories with a cover are in the running (the pick is shown by it). */
+export function storyOfTheDay(entries: GalleryEntry[], views: Record<string, number> = {}): GalleryEntry | null {
+  const seen = (e: GalleryEntry) => views[e.id] ?? 0;
+  const [first] = entries
+    .filter((e) => e.cover)
+    .sort((a, b) => seen(b) - seen(a) || avg(b) - avg(a) || b.ratingCount - a.ratingCount || a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1));
+  return first ?? null;
 }

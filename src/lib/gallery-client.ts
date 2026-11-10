@@ -37,6 +37,22 @@ export async function fetchGalleryStory(id: string): Promise<Story | null> {
   return data.story ?? null;
 }
 
+/** Tell the library this story was opened to be read, once per browser,
+ *  story and day: what the story of the day is chosen by. */
+export function noteStoryViewed(id: string) {
+  const day = localDay();
+  const key = "taleo:viewed";
+  try {
+    const kept = JSON.parse(localStorage.getItem(key) || "{}") as { day?: string; ids?: string[] };
+    const ids = kept.day === day && Array.isArray(kept.ids) ? kept.ids : [];
+    if (ids.includes(id)) return;
+    localStorage.setItem(key, JSON.stringify({ day, ids: [...ids, id] }));
+  } catch {
+    // (no storage, e.g. a private window: counted anyway)
+  }
+  void fetch(`/api/gallery/${id}/view?day=${day}`, { method: "POST", keepalive: true }).catch(() => {});
+}
+
 export async function publishToGallery(story: Story): Promise<boolean> {
   try {
     const res = await fetch("/api/gallery", {

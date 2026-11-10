@@ -8,6 +8,7 @@ import { allPages } from "@/lib/story-utils";
 import { privateUserIds } from "@/server/users";
 import type { Story } from "@/lib/types";
 import { pickDay, storyOfTheDay } from "@/lib/daily";
+import { viewsOn } from "@/server/views";
 
 const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? e.ratingSum / e.ratingCount : 0);
 
@@ -36,9 +37,10 @@ export async function GET(req: Request) {
   const categories = [...new Map(stories.filter((e) => e.keyword?.trim()).map((e) => [e.keyword!.trim().toLowerCase(), e.keyword!.trim()])).values()].sort((a, b) =>
     a.localeCompare(b),
   );
-  // The story of the day, drawn from the whole library for the reader's
-  // date (`?day=`): worked out from the list just read - nothing stored.
-  const daily = url.searchParams.has("day") ? storyOfTheDay(stories, pickDay(url.searchParams.get("day"))) : null;
+  // The story of the day (`?day=`, the reader's date): the story most
+  // opened that day, out of the whole library. One small Redis read per
+  // uncached request; no Blob operations.
+  const daily = url.searchParams.has("day") ? storyOfTheDay(stories, await viewsOn(pickDay(url.searchParams.get("day")))) : null;
   const category = url.searchParams.get("category")?.trim().toLowerCase();
   if (category) stories = stories.filter((e) => e.keyword?.trim().toLowerCase() === category);
   if (sort === "rating") stories = [...stories].sort((a, b) => avg(b) - avg(a) || b.createdAt - a.createdAt);

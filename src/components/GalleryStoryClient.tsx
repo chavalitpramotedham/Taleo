@@ -7,7 +7,7 @@ import type { Story } from "@/lib/types";
 import { useSaved, setStorySaved } from "@/lib/saved-client";
 import { useToast } from "./Toast";
 import { StoryReader } from "./StoryReader";
-import { fetchGalleryStory } from "@/lib/gallery-client";
+import { fetchGalleryStory, noteStoryViewed } from "@/lib/gallery-client";
 
 export function GalleryStoryClient({ story: initial, partial = false }: { story: Story | null; partial?: boolean }) {
   const router = useRouter();
@@ -36,6 +36,12 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial?.id, partial]);
+
+  // A reader opening the story counts towards the story of the day (not
+  // the author looking at their own).
+  useEffect(() => {
+    if (initial && status !== "loading" && !mine) noteStoryViewed(initial.id);
+  }, [initial?.id, status, mine]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!story)
     return (
