@@ -19,7 +19,7 @@ export interface RatingAggregate {
  * the same submission (rating + comment) is returned instead of a new one
  * being recorded, so the UI should treat `mine` as locked once present.
  */
-export function useRating(id: string, initial: RatingAggregate) {
+export function useRating(id: string, initial: RatingAggregate, unpublished = false) {
   const { data: session, status } = useSession();
   const [mine, setMine] = useState<RatingRecord | null>(null);
   const [agg, setAgg] = useState(initial);
@@ -28,7 +28,9 @@ export function useRating(id: string, initial: RatingAggregate) {
   useEffect(() => {
     if (status === "loading") return;
     // Signed out, there's no rating of yours to look up - skip the request.
-    if (status === "unauthenticated") {
+    // Nor for a story that isn't in the store yet (your own, just ended):
+    // nobody can have rated it, and asking only earns a "not found".
+    if (status === "unauthenticated" || unpublished) {
       setLoaded(true);
       return;
     }
@@ -45,7 +47,7 @@ export function useRating(id: string, initial: RatingAggregate) {
     return () => {
       live = false;
     };
-  }, [id, status]);
+  }, [id, status, unpublished]);
 
   const submit = async (rating: number, comment: string): Promise<string | null> => {
     if (!session?.user) return "Sign in to rate this story.";

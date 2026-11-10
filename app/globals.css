@@ -6875,6 +6875,17 @@ html[data-night] .admin-spark.bad {
     background: var(--page);
     pointer-events: none;
   }
+  /* ...except where the words need the whole screen (a choice with its
+     three options, the ending, "try again"): there the picture scrolls
+     away with the page like any other. */
+  .book.tall-words > .book-art {
+    position: relative;
+    top: auto;
+  }
+}
+/* A choice brought into view stops clear of the floating page buttons. */
+.options {
+  scroll-margin-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 /* Wide screens: the open book fills exactly the screen below the menu bar
    (and the page-turn buttons), so the whole picture shows on the left with

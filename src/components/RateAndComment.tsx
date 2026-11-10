@@ -17,6 +17,7 @@ export function RateAndComment({
   initial,
   prepare,
   inline = false,
+  unpublished = false,
 }: {
   storyId: string;
   initial: RatingAggregate;
@@ -24,9 +25,11 @@ export function RateAndComment({
   /** Part of the page (the end of a story) rather than a floating panel:
    *  always shown, never minimised. */
   inline?: boolean;
+  /** Not in the store yet, so there is no rating of yours to look up. */
+  unpublished?: boolean;
 }) {
   const { data: session } = useSession();
-  const { mine, agg, loaded, submit } = useRating(storyId, initial);
+  const { mine, agg, loaded, submit } = useRating(storyId, initial, unpublished);
   const [open, setOpen] = useState<boolean | null>(null);
   const [draft, setDraft] = useState(0);
   const [comment, setComment] = useState("");

@@ -549,6 +549,21 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (leafArt && book) leafArt.style.top = `${Math.max(0, art.getBoundingClientRect().top - book.getBoundingClientRect().top)}px`;
   }, [index, pendingNext, outgoing?.n]);
 
+  // A choice, the ending and "try again" hold more than fits under a stuck
+  // picture on a phone (the three options sat below the fold, read through
+  // a slit) - so there the picture scrolls with the page, and a choice
+  // still waiting for its answer slides into view once the page has turned.
+  const tallWords = cover === "open" && !pendingNext && (view?.kind === "choice" || view?.kind === "end" || view?.kind === "error");
+  const awaitingChoice = cover === "open" && !pendingNext && view?.kind === "choice" && !readOnly && !story.segments[view.seg]?.chosen;
+  useEffect(() => {
+    if (!awaitingChoice) return;
+    const t = setTimeout(() => {
+      const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.querySelector(".book > .book-text .options")?.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" });
+    }, 900);
+    return () => clearTimeout(t);
+  }, [awaitingChoice, index]);
+
   // The menu bar's height, for the layout: an open book fills exactly the
   // screen below it, and on tall screens the picture stops just under it.
   useEffect(() => {
@@ -902,6 +917,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           storyId={story.id}
           initial={{ ratingSum: story.ratingSum ?? 0, ratingCount: story.ratingCount ?? 0 }}
           prepare={readOnly ? undefined : ensurePublished}
+          unpublished={!readOnly && !story.published}
         />
         {/* One main action in the middle (share it, or keep a copy of
             someone else's), with read-again and copy-link as quiet icons
@@ -1014,7 +1030,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         onTouchEnd={onTouchEnd}
       >
         {cover !== "closed" && (
-      <div className="book">
+      <div className={`book ${tallWords ? "tall-words" : ""}`}>
         <div className="book-art">{picture}</div>
         <div className="book-text">
           {cover === "open" && textSizeButtons}
