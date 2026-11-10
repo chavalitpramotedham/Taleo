@@ -21,24 +21,44 @@ export function When({ at, full = false }: { at: number; full?: boolean }) {
 }
 
 /** Keeps the page current while it's being watched: asks the server for
- *  it again every ten seconds (only while the tab is in view). */
+ *  it again every ten seconds (only while the tab is in view), and at once
+ *  on coming back to the tab. On unless switched off; switching it off is
+ *  remembered on this device. */
+const OFF_KEY = "taleo.admin.live-off";
 export function AutoRefresh() {
   const router = useRouter();
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
   const [last, setLast] = useState<number | null>(null);
   useEffect(() => {
+    try {
+      if (localStorage.getItem(OFF_KEY) === "1") setOn(false);
+    } catch {}
+  }, []);
+  const turn = (next: boolean) => {
+    setOn(next);
+    try {
+      if (next) localStorage.removeItem(OFF_KEY);
+      else localStorage.setItem(OFF_KEY, "1");
+    } catch {}
+  };
+  useEffect(() => {
     if (!on) return;
-    const id = window.setInterval(() => {
+    const again = () => {
       if (document.visibilityState !== "visible") return;
       router.refresh();
       setLast(Date.now());
-    }, 10_000);
-    return () => window.clearInterval(id);
+    };
+    const id = window.setInterval(again, 10_000);
+    document.addEventListener("visibilitychange", again);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", again);
+    };
   }, [on, router]);
   return (
     <p className="meta admin-live">
       <label>
-        <input type="checkbox" checked={on} onChange={(e) => setOn(e.target.checked)} /> Keep this page up to date (every 10 seconds)
+        <input type="checkbox" checked={on} onChange={(e) => turn(e.target.checked)} /> Keep this page up to date (every 10 seconds)
       </label>
       {on && last && (
         <>
