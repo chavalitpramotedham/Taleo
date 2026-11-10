@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasApiKey, paintPage, StoryRefusal } from "@/server/claude";
+import { hasApiKey, paintPage, SlowPainter, StoryRefusal } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
@@ -74,9 +74,12 @@ export async function POST(req: Request) {
         send("\n<!--taleo:done-->");
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
       } catch (err) {
-        if (!stop.signal.aborted) count({ paintings_failed: 1 });
+        // (a painter too slow to begin isn't a failure to report: the page
+        // is asked for again at once and the quick painter takes it)
+        const slow = err instanceof SlowPainter;
+        if (!stop.signal.aborted) count(slow ? { paintings_slow: 1 } : { paintings_failed: 1 });
         console.error("illustration failed", err);
-        if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("painting", err);
+        if (!stop.signal.aborted && !slow && !(err instanceof StoryRefusal)) await reportError("painting", err);
         send("\n<!--taleo:error-->");
       } finally {
         try {

@@ -36,6 +36,21 @@ const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
  *  holds everyone up. Every other page keeps the main painter. */
 const QUICK_ART_MODEL = process.env.TALEO_QUICK_ART_MODEL || "claude-sonnet-5-5";
 const QUICK_ART_EFFORT = (process.env.TALEO_QUICK_ART_EFFORT as Effort) || "medium";
+/** The quick painter paints without thinking first. Left to itself Sonnet
+ *  5.5 thinks before every reply, and none of that thinking is sent on: the
+ *  reader sees nothing at all until it's over - on the very pages (the
+ *  first of each part, and every second go) where the wait is the point.
+ *  "between_tools" is that model's thinking-off setting (only it accepts
+ *  it). TALEO_QUICK_ART_THINKING=adaptive puts the thinking back. */
+const QUICK_ART_UNTHINKING = process.env.TALEO_QUICK_ART_THINKING !== "adaptive";
+/** How long the main painter may take to lay its first stroke. Opus 5.5
+ *  always thinks before it paints (it can't be turned off - effort is the
+ *  only dial), silently; past this the page is handed to the quick painter
+ *  instead of keeping the reader waiting on a blank page. The clock starts
+ *  when the request is sent, so time spent queueing behind a rate limit
+ *  (the SDK retries those quietly) counts too. TALEO_FIRST_STROKE_S
+ *  overrides (0: wait however long it takes). */
+const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 60) || 0) * 1000;
 /** Designing a character runs at medium effort: with the art director's
  *  brief to work from (see characterBrief) it needs less thinking of its
  *  own, and designs finish well inside the 300-second limit (at high effort
@@ -51,6 +66,8 @@ let client: Anthropic | null = null;
 const getClient = () => (client ??= new Anthropic());
 
 export class StoryRefusal extends Error {}
+/** The main painter was still thinking when its time to begin ran out. */
+export class SlowPainter extends Error {}
 
 async function ask<T extends z.ZodType>(
   schema: T,
@@ -409,27 +426,87 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     { type: "text", text: rest },
   ];
 
-  const stream = getClient().beta.messages.stream({
-    model: req.quick ? QUICK_ART_MODEL : ART_MODEL,
-    max_tokens: 32000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content }],
-    output_config: { effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT },
-  }, { signal });
-
-  const usage = streamUsageTracker("painting", req.quick ? QUICK_ART_MODEL : ART_MODEL);
+  const model = req.quick ? QUICK_ART_MODEL : ART_MODEL;
+  let unthinking = Boolean(req.quick) && QUICK_ART_UNTHINKING && model.startsWith("claude-sonnet-5-5");
+  // One line per painting in the server log: which painter, how long until
+  // the request was taken up, until the first stroke, and in all.
+  const began = Date.now();
+  const log: Record<string, unknown> = { model, quick: Boolean(req.quick), retry: Boolean(req.retry) };
+  let strokes = 0;
   try {
-    for await (const event of stream) {
-      usage.see(event);
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") yield event.delta.text;
+    for (;;) {
+      // (this go's own switch: thrown by the reader leaving, or by the
+      // first-stroke clock)
+      const go = new AbortController();
+      const leave = () => go.abort();
+      signal?.addEventListener("abort", leave, { once: true });
+      if (signal?.aborted) go.abort();
+      let late = false;
+      const clock =
+        !req.quick && FIRST_STROKE_MS
+          ? setTimeout(() => {
+              late = true;
+              go.abort();
+            }, FIRST_STROKE_MS)
+          : undefined;
+      const usage = streamUsageTracker("painting", model);
+      try {
+        const stream = getClient().beta.messages.stream(
+          {
+            model,
+            max_tokens: 32000,
+            betas: ["server-side-fallback-2026-07-01"],
+            fallbacks: "default",
+            system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
+            messages: [{ role: "user", content }],
+            ...(unthinking ? { thinking: { type: "between_tools" as const } } : {}),
+            output_config: { effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT },
+          },
+          { signal: go.signal },
+        );
+        for await (const event of stream) {
+          usage.see(event);
+          if (event.type === "message_start") log.acceptedMs ??= Date.now() - began;
+          else if (event.type === "message_delta") log.out = event.usage.output_tokens;
+          else if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            if (!strokes++) {
+              clearTimeout(clock);
+              log.firstStrokeMs = Date.now() - began;
+            }
+            yield event.delta.text;
+          }
+        }
+        const final = await stream.finalMessage();
+        log.stop = final.stop_reason;
+        if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
+        // (a painting cut off at the token limit is not a painting: without
+        // this it would be sent on as finished, half a picture)
+        if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
+        return;
+      } catch (err) {
+        if (late && !signal?.aborted) throw new SlowPainter(`No first stroke from ${model} after ${FIRST_STROKE_MS / 1000}s.`);
+        // (should the thinking-off setting ever be turned away, paint the
+        // page the ordinary way rather than not at all)
+        if (unthinking && !strokes && !signal?.aborted && err instanceof Anthropic.BadRequestError) {
+          console.warn("painting: thinking-off setting refused, painting with thinking", err.message);
+          unthinking = false;
+          log.thinkingOffRefused = true;
+          continue;
+        }
+        throw err;
+      } finally {
+        clearTimeout(clock);
+        signal?.removeEventListener("abort", leave);
+        usage.finish();
+      }
     }
+  } catch (err) {
+    log.error = signal?.aborted ? "reader left" : err instanceof Error ? `${err.name}: ${err.message}`.slice(0, 200) : "unknown";
+    throw err;
   } finally {
-    usage.finish();
+    log.totalMs = Date.now() - began;
+    console.info("painting", JSON.stringify(log));
   }
-  const final = await stream.finalMessage();
-  if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
 }
 
 // ---------------------------------------------------------------- characters
