@@ -14,12 +14,14 @@ export function AccountForm({
   username,
   avatarKey,
   isAdmin,
+  tier,
   visibility: initialVisibility,
   canGoPrivate,
 }: {
   username: string;
   avatarKey: string;
   isAdmin: boolean;
+  tier?: import("@/lib/tiers").TierId;
   visibility: ContentVisibility;
   /** Private bookshelves are built but not offered yet. */
   canGoPrivate: boolean;
@@ -223,7 +225,7 @@ export function AccountForm({
         </div>
       )}
 
-      <AccountTier isAdmin={isAdmin} />
+      <AccountTier isAdmin={isAdmin} tier={tier} />
 
       <section className="panel">
         <h3>Who can see your stories</h3>

@@ -74,6 +74,9 @@ export interface Page {
   characters: string[];
   /** The finished painting (layered SVG body for a 400x300 canvas). */
   svg?: string | null;
+  /** The server's signature on this page's words and picture brief, for
+   *  the account it was written for (see server/tickets). */
+  sig?: string;
 }
 
 export interface ChoicePoint {
@@ -120,6 +123,9 @@ export interface Story {
   published?: boolean;
   /** The store copy includes every finished painting. */
   publishedPainted?: boolean;
+  /** While the story is unfinished: the server's ticket for asking for
+   *  its next part (see server/tickets). */
+  ticket?: string;
   /** Community rating, mirrored from the store once published. */
   ratingSum?: number;
   ratingCount?: number;
@@ -141,6 +147,9 @@ export interface UserProfile {
   /** One of the preset character keys (see presets.ts); assigned a default on sign-up. */
   avatarKey: string;
   isAdmin: boolean;
+  /** The plan this account is on (see lib/tiers); missing means Free. Set
+   *  only by the server - never from anything the browser sends. */
+  tier?: string;
   createdAt: number;
   /** Who can find this person's stories in the library and on their
    *  bookshelf page. Missing means "public" (the default for everyone). */
@@ -177,6 +186,8 @@ export interface ContinueRequest {
 export type StoryRequest = StartRequest | ContinueRequest;
 
 export interface SegmentResponse {
+  /** The ticket for asking for the part after this one (none at the end). */
+  ticket?: string;
   title?: string;
   world?: string;
   moral?: string;
@@ -217,6 +228,9 @@ export interface IllustrateRequest {
   /** Paint with the quicker painter (set by the server from `pageInPart`
    *  and the account's plan). */
   quick?: boolean;
+  /** The page's signature, and the story it belongs to (see server/tickets). */
+  sig?: string;
+  storyId?: string;
   /** This page's place in its part (0 = the first page after the story
    *  begins or after a decision). */
   pageInPart?: number;

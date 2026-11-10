@@ -97,6 +97,8 @@ export function parseIllustrateRequest(body: unknown): IllustrateRequest | null 
     page,
     previous: b.previous ? str(b.previous, 1200) : null,
     quick: false,
+    sig: str(b.sig, 40) || undefined,
+    storyId: /^[a-z0-9]{1,40}$/i.test(str(b.storyId, 41)) ? str(b.storyId, 40) : undefined,
     pageInPart: typeof b.pageInPart === "number" && b.pageInPart >= 0 ? Math.floor(b.pageInPart) : undefined,
   };
 }

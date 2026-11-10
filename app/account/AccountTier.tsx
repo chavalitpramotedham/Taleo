@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CrownMark, MapleMark } from "@/components/Icons";
-import { TIERS, type TierInfo } from "@/lib/tiers";
+import { PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
 /** A small sprouting seedling - the plans still to come. */
 const SeedlingMark = () => (
@@ -24,7 +24,7 @@ type Card = {
   current: boolean;
   intro: string;
   features: string[];
-  caps?: TierInfo["caps"];
+  caps?: TierRow[];
 };
 
 const fromTier = (t: TierInfo, current: boolean): Card => ({
@@ -32,13 +32,13 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   icon: t.id === "admin" ? <CrownMark /> : <MapleMark />,
   name: t.name,
   tagline: t.blurb,
-  price: t.id === "admin" ? "Unlimited" : "Free",
+  price: t.limits.stories ? t.name : "Unlimited",
   // (only the admin sees the safety limits)
   button: current ? "Current plan" : "",
   current,
   intro: t.id === "admin" ? "Everything, without limits:" : "Every family gets:",
-  features: t.rows.map((r) => `${r.label}: ${r.value}`),
-  caps: t.caps,
+  features: tierRows(t).map((r) => `${r.label}: ${r.value}`),
+  caps: tierCaps(t),
 });
 
 const COMING: Card = {
@@ -55,8 +55,8 @@ const COMING: Card = {
 
 /** Account tier on Manage account: a short summary of your plan - its
  *  icon, name and key points - and Manage, which opens the plans page. */
-export function AccountTier({ isAdmin }: { isAdmin: boolean }) {
-  const tier = isAdmin ? TIERS.admin : TIERS.free;
+export function AccountTier({ isAdmin, tier: tierId }: { isAdmin: boolean; tier?: TierId }) {
+  const tier = tierFor({ isAdmin, tier: tierId });
   return (
     <section className="panel account-tier">
       <div className="tier-summary-head">
@@ -72,7 +72,7 @@ export function AccountTier({ isAdmin }: { isAdmin: boolean }) {
         <div>
           <p className="tier-summary-name">{tier.name}</p>
           <ul className="tier-summary-points">
-            {tier.rows.slice(0, 3).map((r) => (
+            {tierRows(tier).slice(0, 3).map((r) => (
               <li key={r.label}>
                 {r.label}: <b>{r.value}</b>
               </li>
@@ -89,20 +89,21 @@ export function AccountTier({ isAdmin }: { isAdmin: boolean }) {
  *  Free sees Free, then what's coming; the admin sees their own plan
  *  first, then (below a line) the others, to look at but not switch to.
  *  Each card's safety limits sit in a fold at its foot. */
-export function AccountPlans({ isAdmin }: { isAdmin: boolean }) {
+export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier?: TierId }) {
+  const mine = tierFor({ isAdmin, tier: tierId });
   // The other plans can be switched to from here: for the admin every other
   // plan is a step down (shown, never switchable); for a family on Free the
   // paid plans are upgrades - offered once they actually exist.
   const others = (c: Card, label: string): Card => ({ ...c, button: label });
   const noCaps = (c: Card): Card => ({ ...c, caps: undefined });
   const cards: Card[] = isAdmin
-    ? [others(fromTier(TIERS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
-    : [noCaps(fromTier(TIERS.free, true)), others(COMING, "Upgrade - coming soon")];
+    ? [others(fromTier(PLANS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
+    : [noCaps(fromTier(mine, true)), others(COMING, "Upgrade - coming soon")];
   return (
     <div className="account-plans">
       {isAdmin && (
         <>
-          <PlanCard card={fromTier(TIERS.admin, true)} />
+          <PlanCard card={fromTier(PLANS.admin, true)} />
           <p className="tier-other-plans">
             <span>Other plans</span>
           </p>

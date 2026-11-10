@@ -226,6 +226,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
           : {
               kind: "continue",
+              // (the server's ticket for the part after these - see server/tickets)
+              ticket: s.ticket,
               story: {
                 age: s.age,
                 minutes: s.minutes,
@@ -295,6 +297,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                 { ...data.segment, pages: keepSvgs(data.segment.pages, cur.segments[base]) },
               ],
               status: data.ending ? "complete" : "in-progress",
+              ticket: data.ticket,
               demo: cur.demo || data.demo,
             }));
           }

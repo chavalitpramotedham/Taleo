@@ -1,30 +1,36 @@
 /**
- * Account tiers and their allowances - one place for both the limits the
- * server enforces and what the Account tier section shows.
- *
- * Everyone is on Free for now (more tiers are coming); the admin account is
- * unlimited and can open the admin dashboard.
+ * Account plans and their allowances - the one place that says what each
+ * plan may do. The server enforces these numbers and the Account pages show
+ * them; nothing else in the app carries a limit of its own. Adding a paid
+ * plan means adding a row to PLANS (and setting `tier` on the accounts that
+ * bought it) - no other code changes.
  */
 
 export type TierId = "free" | "admin";
 
-/** The new-story allowance: one new story, then the next can begin 24
- *  hours later - one a day. */
-export const STORY_WINDOW_HOURS = 24;
+/** "So many, per so many hours." */
+export interface Allowance {
+  count: number;
+  hours: number;
+}
 
-/** Custom characters a Free account can keep. */
-export const FREE_CHARACTERS = 3;
-
-/** Safety caps on the paid AI work inside a story, per 30 minutes. They're
- *  far above normal use - their job is to stop anyone scripting the
- *  service and running up the bill, not to limit families. */
-export const ABUSE_WINDOW_MINUTES = 30;
-export const ABUSE_CAPS = {
-  segment: 16,
-  illustrate: 80,
-  character: 12,
-  tts: 400,
-} as const;
+export interface TierLimits {
+  /** New stories that may be begun (null: no limit). */
+  stories: Allowance | null;
+  /** Custom characters that can be kept. */
+  characters: number | null;
+  /** Character designs and redraws (each one is paid AI work). */
+  designs: Allowance | null;
+  /** How many pages at the start of each part the quicker painter takes. */
+  quickPages: number;
+  /** Safety caps on the paid AI work inside a story. They're far above
+   *  normal use - their job is to stop anyone scripting the service and
+   *  running up the bill, not to limit families. */
+  burst: { minutes: number; segment: number; illustrate: number; tts: number } | null;
+  /** Whether what's sent to be painted or published must be the server's
+   *  own writing (see server/tickets). */
+  verified: boolean;
+}
 
 export interface TierRow {
   label: string;
@@ -36,48 +42,75 @@ export interface TierInfo {
   id: TierId;
   name: string;
   blurb: string;
-  /** The headline allowances. */
-  rows: TierRow[];
-  /** The behind-the-scenes safety limits. */
-  caps: TierRow[];
+  limits: TierLimits;
+  /** Extra headline rows beyond those worked out from the limits. */
+  extras?: TierRow[];
 }
 
-const caps = (unlimited: boolean): TierRow[] => [
-  { label: "Story pages written", value: unlimited ? "Unlimited" : `Up to ${ABUSE_CAPS.segment} parts per ${ABUSE_WINDOW_MINUTES} min` },
-  { label: "Pages painted", value: unlimited ? "Unlimited" : `Up to ${ABUSE_CAPS.illustrate} per ${ABUSE_WINDOW_MINUTES} min` },
-  { label: "Character designs and redraws", value: unlimited ? "Unlimited" : `Up to ${ABUSE_CAPS.character} per ${ABUSE_WINDOW_MINUTES} min` },
-  { label: "New read-aloud clips", value: unlimited ? "Unlimited" : `Up to ${ABUSE_CAPS.tts} per ${ABUSE_WINDOW_MINUTES} min`, note: "Clips already made are always free" },
-];
-
-export const TIERS: Record<TierId, TierInfo> = {
+export const PLANS: Record<TierId, TierInfo> = {
   free: {
     id: "free",
     name: "Free",
     blurb: "Everything you need for a story at bedtime.",
-    rows: [
-      { label: "New stories", value: "1 per day" },
-      { label: "Custom characters", value: `${FREE_CHARACTERS} saved` },
-      { label: "Reading the Public Library", value: "Unlimited" },
-      { label: "Saving others' stories", value: "Unlimited" },
-    ],
-    caps: caps(false),
+    limits: {
+      stories: { count: 1, hours: 24 },
+      characters: 3,
+      designs: { count: 12, hours: 24 },
+      quickPages: 2,
+      burst: { minutes: 30, segment: 16, illustrate: 80, tts: 400 },
+      verified: true,
+    },
   },
   admin: {
     id: "admin",
     name: "Admin",
     blurb: "Unlimited everything, and the keys to the admin dashboard.",
-    rows: [
-      { label: "New stories", value: "Unlimited" },
-      { label: "Custom characters", value: "Unlimited" },
-      { label: "Reading the Public Library", value: "Unlimited" },
-      { label: "Saving others' stories", value: "Unlimited" },
-      { label: "Admin dashboard", value: "Full access" },
-    ],
-    caps: caps(true),
+    limits: { stories: null, characters: null, designs: null, quickPages: 1, burst: null, verified: false },
+    extras: [{ label: "Admin dashboard", value: "Full access" }],
   },
 };
 
-export const tierFor = (isAdmin: boolean | undefined): TierInfo => (isAdmin ? TIERS.admin : TIERS.free);
+const isTier = (v: unknown): v is TierId => typeof v === "string" && Object.prototype.hasOwnProperty.call(PLANS, v);
+
+/** The plan an account is on: the one recorded on its profile, else Admin
+ *  for the admin account and Free for everyone else. */
+export function tierIdFor(who: { tier?: string | null; isAdmin?: boolean } | null | undefined): TierId {
+  if (who?.isAdmin) return "admin";
+  // (nobody is made an admin by a plan name alone)
+  if (isTier(who?.tier) && who.tier !== "admin") return who.tier;
+  return "free";
+}
+export const tierFor = (who: Parameters<typeof tierIdFor>[0]): TierInfo => PLANS[tierIdFor(who)];
+export const limitsFor = (who: Parameters<typeof tierIdFor>[0]): TierLimits => tierFor(who).limits;
 
 /** How many custom characters this account can keep. */
-export const characterLimit = (isAdmin: boolean | undefined) => (isAdmin ? Infinity : FREE_CHARACTERS);
+export const characterLimit = (who: Parameters<typeof tierIdFor>[0]) => limitsFor(who).characters ?? Infinity;
+
+// ---- how a plan reads on the Account pages ----
+
+const per = (hours: number) => (hours === 24 ? "day" : hours === 1 ? "hour" : hours % 24 === 0 ? `${hours / 24} days` : `${hours} hours`);
+/** "one new story a day", "3 new stories every 2 days" */
+export const allowancePhrase = (a: Allowance, one: string, many: string) =>
+  `${a.count === 1 ? "one" : a.count} ${a.count === 1 ? one : many} ${a.hours === 24 ? "a day" : `every ${per(a.hours)}`}`;
+export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per(a.hours)}` : "Unlimited");
+
+/** The headline allowances. */
+export const tierRows = (t: TierInfo): TierRow[] => [
+  { label: "New stories", value: allowanceText(t.limits.stories) },
+  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved` },
+  { label: "Reading the Public Library", value: "Unlimited" },
+  { label: "Saving others' stories", value: "Unlimited" },
+  ...(t.extras ?? []),
+];
+
+/** The behind-the-scenes safety limits. */
+export const tierCaps = (t: TierInfo): TierRow[] => {
+  const b = t.limits.burst;
+  const cap = (n: number | undefined, what = "") => (b && n !== undefined ? `Up to ${n}${what} per ${b.minutes} min` : "Unlimited");
+  return [
+    { label: "Story pages written", value: cap(b?.segment, " parts") },
+    { label: "Pages painted", value: cap(b?.illustrate) },
+    { label: "Character designs and redraws", value: t.limits.designs ? `Up to ${allowanceText(t.limits.designs)}` : "Unlimited" },
+    { label: "New read-aloud clips", value: cap(b?.tts), note: "Clips already made are always free" },
+  ];
+};

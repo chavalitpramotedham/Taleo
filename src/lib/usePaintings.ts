@@ -58,6 +58,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             // quicker painter (the server decides how many, by plan); the
             // rest follow in parallel.
             pageInPart: idx,
+            // (proof that this page is the storyteller's own writing)
+            sig: page.sig,
+            storyId: s.id,
           }),
         });
         if (!res.ok || !res.body) throw new Error("paint failed");

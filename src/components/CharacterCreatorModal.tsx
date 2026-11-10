@@ -6,7 +6,7 @@ import { CharacterPortrait } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { GrowingInput } from "@/components/GrowingInput";
 import { LeafLoader, MapleMark } from "@/components/Icons";
-import { MAX_CHARACTERS, NOTES_MAX } from "@/lib/characters";
+import { NOTES_MAX } from "@/lib/characters";
 import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 
@@ -195,7 +195,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
         {replacing && (
           <>
             <p className="meta">
-              On the Free plan you can keep {MAX_CHARACTERS} characters. Pick one to replace with &ldquo;{name}&rdquo;.
+              Your plan keeps {existing.length} characters. Pick one to replace with &ldquo;{name}&rdquo;.
             </p>
             <div className="grid chars">
               {existing.map((c) => (

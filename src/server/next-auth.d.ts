@@ -7,6 +7,8 @@ declare module "next-auth" {
       username: string | null;
       avatarKey: string | null;
       isAdmin: boolean;
+      /** The plan this account is on (see lib/tiers). */
+      tier: import("@/lib/tiers").TierId;
     } & DefaultSession["user"];
   }
 }

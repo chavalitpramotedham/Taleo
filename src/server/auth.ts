@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { getUser, upsertFromGoogle } from "./users";
 import { reportError } from "./alerts";
+import { tierIdFor } from "@/lib/tiers";
 
 // Safety net: AUTH_URL must be a full address. Saved without its scheme
 // (e.g. "taleo-stories.app") Auth.js crashes on every sign-in request, so
@@ -45,6 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (profile) {
           token.username = profile.username ?? null;
           token.isAdmin = profile.isAdmin ?? false;
+          token.tier = tierIdFor(profile);
           token.avatarKey = profile.avatarKey ?? null;
           token.profileAt = Date.now();
         }
@@ -56,6 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.uid as string;
         session.user.username = (token.username as string | null) ?? null;
         session.user.isAdmin = Boolean(token.isAdmin);
+        session.user.tier = tierIdFor({ isAdmin: Boolean(token.isAdmin), tier: token.tier as string | undefined });
         session.user.avatarKey = (token.avatarKey as string | null) ?? null;
       }
       return session;

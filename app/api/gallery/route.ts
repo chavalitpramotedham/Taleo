@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { listGallery, publishStory } from "@/server/gallery";
+import { getGalleryStory, listGallery, NotYourStoryError, publishStory } from "@/server/gallery";
+import { limitsFor } from "@/lib/tiers";
+import { inLegacyGrace, pageIsSigned } from "@/server/tickets";
+import { allPages } from "@/lib/story-utils";
 import { privateUserIds } from "@/server/users";
 import type { Story } from "@/lib/types";
 
@@ -65,10 +68,26 @@ export async function POST(req: Request) {
   if (story.status !== "complete") {
     return NextResponse.json({ error: "Only finished stories can be published." }, { status: 400 });
   }
+  // The library only takes books the storyteller wrote for this account:
+  // every page must carry its signature (or already be in the published
+  // copy of this same book, for books from before pages were signed).
+  const userId = session.user.id;
+  if (limitsFor(session.user).verified && !inLegacyGrace()) {
+    const pages = story.segments.flatMap((s) => (Array.isArray(s?.pages) ? s.pages : []));
+    const unsigned = pages.filter((p) => !pageIsSigned(userId, { text: String(p?.text ?? ""), picture: String(p?.picture ?? "") }, p?.sig));
+    if (unsigned.length) {
+      const before = await getGalleryStory(story.id).catch(() => null);
+      const known = new Set(before?.authorId === userId ? allPages(before).map((p) => p.text) : []);
+      if (unsigned.some((p) => !known.has(p?.text))) {
+        return NextResponse.json({ error: "Only stories made here can be published." }, { status: 403 });
+      }
+    }
+  }
   try {
-    const entry = await publishStory(story, { id: session.user.id, username: session.user.username });
+    const entry = await publishStory(story, { id: userId, username: session.user.username, isAdmin: session.user.isAdmin });
     return NextResponse.json({ entry });
-  } catch {
+  } catch (err) {
+    if (err instanceof NotYourStoryError) return NextResponse.json({ error: "That story belongs to someone else." }, { status: 403 });
     return NextResponse.json({ error: "Couldn't publish that story." }, { status: 500 });
   }
 }

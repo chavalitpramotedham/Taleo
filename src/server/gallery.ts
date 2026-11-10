@@ -67,9 +67,12 @@ export async function listMyStories(authorId: string): Promise<GalleryEntry[]> {
 }
 
 /** Publish (or re-publish) a finished story to the public store. */
-export async function publishStory(story: Story, author: { id: string; username: string }): Promise<GalleryEntry> {
+export async function publishStory(story: Story, author: { id: string; username: string; isAdmin?: boolean }): Promise<GalleryEntry> {
   const index = await listGallery();
   const existing = index.find((e) => e.id === story.id);
+  // A book already in the library can only be re-published by its author
+  // (or the admin) - never overwritten by another account using its id.
+  if (existing && existing.authorId !== author.id && !author.isAdmin) throw new NotYourStoryError();
   const ratings = await listRatings(story.id);
   const ratingSum = ratings.reduce((n, r) => n + r.rating, 0);
   const ratingCount = ratings.length;

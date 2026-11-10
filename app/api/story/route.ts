@@ -5,7 +5,10 @@ import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
-import { guard, isUnlimited, LIMIT_MESSAGES, minutesText, peekLimit } from "@/server/limits";
+import { guard, limitMessage, peekLimit } from "@/server/limits";
+import { limitsFor } from "@/lib/tiers";
+import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
+import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
 
 export const runtime = "nodejs";
@@ -17,23 +20,45 @@ export const maxDuration = 120;
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
-  if (isUnlimited(session)) return NextResponse.json({ canStart: true, retryAfterSec: 0 });
-  const { ok, retryAfterSec } = await peekLimit(session.user.id, "story");
+  const { ok, retryAfterSec } = await peekLimit(session.user, "story");
   return NextResponse.json({
     canStart: ok,
     retryAfterSec,
-    error: ok ? undefined : LIMIT_MESSAGES.story(minutesText(retryAfterSec)),
+    error: ok ? undefined : limitMessage(session.user, "story", retryAfterSec),
   });
 }
 
 export async function POST(req: Request) {
-  const parsed = parseStoryRequest(await req.json().catch(() => null));
+  const raw = (await req.json().catch(() => null)) as { ticket?: unknown } | null;
+  const parsed = parseStoryRequest(raw);
   if (!parsed) return NextResponse.json({ error: "That story request looks incomplete." }, { status: 400 });
 
-  // A new story uses the 1-per-30-minutes allowance; continuing one already
-  // started uses the (generous) segment cap.
-  const g = await guard(parsed.kind === "start" ? "story" : "segment");
+  // A new story uses the plan's story allowance; continuing one already
+  // started uses the (generous) segment cap - provided it really is a story
+  // this account began: the request must carry the ticket the server gave
+  // out with the part before. Anything else that calls itself a
+  // continuation is counted as what it is, a new story.
+  const g = await guard((session) => {
+    if (parsed.kind === "start") return "story";
+    if (!limitsFor(session.user).verified || storyTicketIsValid(session.user.id, parsed.story, raw?.ticket)) return "segment";
+    // (for a short while, stories begun before tickets existed carry on)
+    return inLegacyGrace() ? "segment" : "story";
+  });
   if (!g.ok) return g.response;
+  const userId = g.session.user.id;
+  // Everything sent out is signed for this account: each page (to be
+  // painted and published later), and the story so far (to ask for the
+  // next part).
+  const signed = (pages: Page[]) => pages.map((p) => ({ ...p, sig: signPage(userId, p) }));
+  const soFar = parsed.kind === "start" ? { age: parsed.age, minutes: parsed.minutes, theme: parsed.theme, segments: [] } : parsed.story;
+  const stamp = (event: SegmentEvent): SegmentEvent => {
+    if (event.type === "pages") return { ...event, pages: signed(event.pages) };
+    if (event.type !== "done") return event;
+    const r = event.response;
+    const segment = { ...r.segment, pages: signed(r.segment.pages) };
+    const ticket = r.ending ? undefined : storyTicket(userId, { ...soFar, segments: [...soFar.segments, segment] });
+    return { ...event, response: { ...r, segment, ticket } };
+  };
 
   // Streams newline-delimited JSON events: {type:"pages"} each time another
   // page is ready (so the reader can start on page 1 while the rest is
@@ -45,13 +70,13 @@ export async function POST(req: Request) {
   const stop = new AbortController();
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
-  const body = withMetricsUser(g.session.user.id, () => new ReadableStream<Uint8Array>({
+  const body = withMetricsUser(userId, () => new ReadableStream<Uint8Array>({
     cancel() {
       stop.abort();
     },
     async start(controller) {
       const send = (event: SegmentEvent | { type: "error"; error: string }) => {
-        if (!stop.signal.aborted) controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+        if (!stop.signal.aborted) controller.enqueue(encoder.encode(JSON.stringify(event.type === "error" ? event : stamp(event)) + "\n"));
       };
       try {
         if (!hasApiKey()) {

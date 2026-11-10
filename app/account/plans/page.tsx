@@ -15,7 +15,7 @@ export default async function PlansPage() {
         </p>
         <h1>Plans</h1>
       </header>
-      <AccountPlans isAdmin={session.user.isAdmin} />
+      <AccountPlans isAdmin={session.user.isAdmin} tier={session.user.tier} />
     </div>
   );
 }

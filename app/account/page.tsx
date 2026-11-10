@@ -19,6 +19,7 @@ export default async function AccountPage() {
         username={session.user.username}
         avatarKey={session.user.avatarKey || "star"}
         isAdmin={session.user.isAdmin}
+        tier={session.user.tier}
         visibility={profile?.visibility ?? "public"}
         canGoPrivate={privateProfilesAvailable()}
       />

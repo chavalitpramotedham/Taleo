@@ -4,6 +4,10 @@ import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
 import { guard } from "@/server/limits";
+import { limitsFor } from "@/lib/tiers";
+import { inLegacyGrace, pageIsSigned } from "@/server/tickets";
+import { getGalleryStory } from "@/server/gallery";
+import { allPages } from "@/lib/story-utils";
 import { count, withMetricsUser } from "@/server/metrics";
 
 export const runtime = "nodejs";
@@ -17,13 +21,25 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const parsed = parseIllustrateRequest(await req.json().catch(() => null));
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
-  const g = await guard("illustrate");
+  const g = await guard(async (session) => {
+    // Only the storyteller's own pages are painted: the page must carry the
+    // signature it was given when it was written for this account...
+    if (!limitsFor(session.user).verified || pageIsSigned(session.user.id, parsed.page, parsed.sig)) return "illustrate";
+    // ...or be a page of a book this account already has in the library
+    // (books from before pages were signed, being repainted)...
+    if (parsed.storyId) {
+      const book = await getGalleryStory(parsed.storyId).catch(() => null);
+      if (book?.authorId === session.user.id && allPages(book).some((p) => p.text === parsed.page.text)) return "illustrate";
+    }
+    // ...or, for a short while, a story begun before signing existed.
+    if (inLegacyGrace()) return "illustrate";
+    return NextResponse.json({ error: "That page can't be painted." }, { status: 403 });
+  });
   if (!g.ok) return g.response;
   // The quick painter takes the pages a reader waits on at the start of each
-  // part (the story's beginning, and after every decision): the first two
-  // on the Free plan, just the first for the admin; the rest get the main
-  // painter.
-  const quickPages = g.session.user.isAdmin ? 1 : 2;
+  // part (the story's beginning, and after every decision) - how many is
+  // set by the plan; the rest get the main painter.
+  const quickPages = limitsFor(g.session.user).quickPages;
   parsed.quick = parsed.pageInPart !== undefined && parsed.pageInPart < quickPages;
 
   // If the reader leaves (closes the tab, moves to another page), stop the

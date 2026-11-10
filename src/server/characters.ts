@@ -1,13 +1,12 @@
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import type { CharacterDef, SavedCharacter } from "@/lib/types";
-import { MAX_CHARACTERS, NOTES_MAX, asGender } from "@/lib/characters";
+import { NOTES_MAX, asGender } from "@/lib/characters";
 import { readJson, writeJson } from "./store";
 
 /** Each signed-in user's saved custom-character roster, used to populate
  *  the "Your characters" shelf in story creation without redrawing one
  *  each time. Private, never shown to anyone else. */
 
-export { MAX_CHARACTERS };
 
 const path = (ownerId: string) => `characters/${ownerId}.json`;
 const newCharacterId = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
@@ -36,12 +35,13 @@ const cleanPrompt = (p: string | null | undefined) => (typeof p === "string" ? p
 export async function saveCharacter(
   ownerId: string,
   input: { name: string; look: string; svg: string | null; notes?: string | null; relationships?: string | null; gender?: string | null; prompt?: string | null },
-  replaceId?: string,
-  limit: number = MAX_CHARACTERS,
+  replaceId: string | undefined,
+  /** how many this account's plan lets it keep (see lib/tiers) */
+  limit: number,
 ): Promise<SavedCharacter> {
   const list = await listCharacters(ownerId);
   const name = input.name.trim().slice(0, 40) || "Friend";
-  const look = input.look.trim().slice(0, 500);
+  const look = input.look.trim().slice(0, 600);
   const notes = cleanNotes(input.notes);
   const relationships = cleanNotes(input.relationships);
   const gender = asGender(input.gender);
@@ -59,7 +59,7 @@ export async function saveCharacter(
   }
 
   if (list.length >= limit) {
-    throw new CharacterLimitError(`On the Free plan you can keep ${limit} custom characters - replace one to add another.`);
+    throw new CharacterLimitError(`You can keep ${limit} custom characters on your plan - replace one to add another.`);
   }
   const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], createdAt: now, updatedAt: now };
   await writeJson(path(ownerId), [...list, created]);
