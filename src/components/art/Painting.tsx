@@ -1,5 +1,5 @@
 "use client";
-import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { sanitizeSvg, TARGET_CLASS } from "@/lib/svg-sanitize";
 import { playSound, sayWord } from "@/lib/sfx";
 import { AMPLITUDE, type MotionId, type SoundId } from "@/lib/actions";
@@ -10,19 +10,34 @@ import type { CharacterDef } from "@/lib/types";
  * A story illustration: layered SVG for a 400x300 canvas, faded into the page
  * with a soft watercolour vignette and paper grain. Works on partial markup, so
  * it can show a painting while it is still streaming in.
+ *
+ * A painting first shown while it is arriving (`live`) is added to rather
+ * than redrawn: each new shape is put on top of the ones already there and
+ * fades in, so the picture grows gently instead of flickering as the whole
+ * of it is swapped on every chunk.
  */
 export const Painting = memo(function Painting({
   svg,
   title,
   className,
   vignette = true,
+  live = false,
 }: {
   svg: string;
   title?: string;
   className?: string;
   vignette?: boolean;
+  /** Still being painted: new shapes fade in over the ones already there. */
+  live?: boolean;
 }) {
   const clean = useMemo(() => sanitizeSvg(svg), [svg]);
+  // (decided once: a picture that arrived in strokes keeps the shapes it
+  // has when it is finished, rather than being drawn afresh)
+  const [grown] = useState(live);
+  const strokes = useRef<SVGGElement>(null);
+  useLayoutEffect(() => {
+    if (grown && strokes.current) paintOnto(strokes.current, clean, live);
+  }, [grown, clean, live]);
   return (
     <svg
       viewBox="0 0 400 300"
@@ -38,12 +53,57 @@ export const Painting = memo(function Painting({
           paper under the paint and a soft dimming over it, inside the same
           edge, so the picture never shows a rectangle. */}
       {vignette && <rect className="paint-paper" width="400" height="300" />}
-      <g dangerouslySetInnerHTML={{ __html: clean }} />
+      {grown ? <g ref={strokes} /> : <g dangerouslySetInnerHTML={{ __html: clean }} />}
       {vignette && <rect className="paint-dim" width="400" height="300" pointerEvents="none" />}
       <rect width="400" height="300" filter="url(#tl-paper)" style={{ mixBlendMode: "multiply" }} pointerEvents="none" />
     </svg>
   );
 });
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/** Brings a picture on the page up to date with its markup. While it is
+ *  being painted the markup only ever grows at its end, so the shapes
+ *  already drawn are left alone and the new ones are added (fading in);
+ *  anything else - a different picture, or the finished one differing from
+ *  what was streamed - is simply drawn afresh. */
+function paintOnto(host: SVGGElement, clean: string, fade: boolean) {
+  const next = document.createElementNS(SVG_NS, "g");
+  next.innerHTML = clean;
+  if (!host.firstChild) {
+    // (a picture first seen part-painted comes in whole, with its page)
+    host.replaceChildren(...Array.from(next.childNodes));
+    return;
+  }
+  const calm = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // (finished: one look over the whole picture, in case it isn't what
+  // was streamed)
+  if (!fade && next.innerHTML === host.innerHTML) return;
+  if (!grow(host, next, fade && !calm)) host.replaceChildren(...Array.from(next.childNodes));
+}
+
+/** Adds what `next` has beyond `old`, looking only down the last branch
+ *  (the one still open while painting): a few nodes per chunk, however
+ *  large the picture. False if `next` isn't `old` grown. */
+function grow(old: Element, next: Element, fade: boolean): boolean {
+  const have = old.children;
+  const want = Array.from(next.children);
+  if (want.length < have.length) return false;
+  const last = have.length - 1;
+  if (last >= 0) {
+    const a = have[last];
+    const b = want[last];
+    if (a.tagName !== b.tagName) return false;
+    if (a.children.length || b.children.length) {
+      if (!grow(a, b, fade)) return false;
+    } else if (a.textContent !== b.textContent) a.textContent = b.textContent;
+  }
+  for (const el of want.slice(have.length)) {
+    old.appendChild(el);
+    if (fade) el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: "ease-out" });
+  }
+  return true;
+}
 
 /** A character's reference portrait (picker, loading screens, library). */
 export const CharacterPortrait = memo(function CharacterPortrait({
@@ -190,7 +250,7 @@ export const InteractivePainting = forwardRef<
       onClick={onClick}
       style={{ ["--amp" as string]: AMPLITUDE[(target?.level ?? 3) - 1] ?? 1 }}
     >
-      <Painting svg={svg} title={title} className={className} />
+      <Painting svg={svg} title={title} className={className} live={live} />
       {sparks && (
         <span key={sparks.key} className="sparks" style={{ left: sparks.x, top: sparks.y }} aria-hidden>
           {sparks.dots.map((d, i) => (

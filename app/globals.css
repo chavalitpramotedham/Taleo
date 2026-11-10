@@ -823,7 +823,9 @@ main {
   background: var(--page);
   border: 1px solid var(--rule);
   border-radius: 999px;
-  padding: 5px 16px 6px;
+  /* (more above than below: this face's capitals sit high in their line,
+     and measured out this is what puts the word in the pill's middle) */
+  padding: 8.6px 16px 4.4px;
   cursor: pointer;
   font-family: var(--font-caps);
   letter-spacing: 0.03em;
@@ -2225,26 +2227,6 @@ html[data-night] .canvas-wait {
     text-decoration-color: var(--russet);
   }
 }
-.toast {
-  position: fixed;
-  /* Centred with left/right + auto margins rather than translateX(-50%),
-     which the pageIn animation's own transform would overwrite. */
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: fit-content;
-  /* Above the floating nav row, never on top of its buttons. */
-  bottom: calc(96px + env(safe-area-inset-bottom));
-  background: var(--ink);
-  color: var(--page);
-  padding: 10px 20px;
-  font-style: italic;
-  z-index: 50;
-  animation: pageIn 0.3s ease both;
-  max-width: calc(100% - 32px);
-  text-align: center;
-  box-shadow: var(--shadow);
-}
 
 /* ---------- bookshelf ---------- */
 .shelf {
@@ -3103,11 +3085,6 @@ html[data-night] .canvas-wait {
     font-size: 1.8rem;
   }
 
-  /* With nothing floating at the bottom, the rating panel and toasts can
-     sit lower. */
-  .toast {
-    bottom: 28px;
-  }
   /* Its own card in the page flow, right under the book and its nav, so
      it never covers the end page's own buttons. */
   .rating-panel,
@@ -6523,7 +6500,7 @@ html.brand-live .leaf-whirl {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 16px 6px;
+  padding: 8.6px 16px 4.4px;
   white-space: nowrap;
 }
 .category-chip.on .category-chip-label {
@@ -7979,8 +7956,8 @@ html[data-night] .step-art img {
   .filter-row .chip,
   .filter-row .category-chip-label {
     font-size: 0.88rem;
-    padding-top: 6px;
-    padding-bottom: 7px;
+    padding-top: 8.8px;
+    padding-bottom: 6.2px;
   }
   .filter-row:has(.category-chip) {
     gap: 8px;
@@ -8002,6 +7979,13 @@ html[data-night] .step-art img {
   border: 1px solid var(--rule);
   border-radius: 999px;
   background: color-mix(in srgb, var(--ink-faint) 20%, var(--page));
+  /* (pressed a little into the page: a soft shadow under its upper lip) */
+  box-shadow:
+    inset 0 2px 4px -1px rgba(60, 40, 20, 0.22),
+    inset 0 0 0 1px rgba(60, 40, 20, 0.03);
+}
+html[data-night] .seg {
+  box-shadow: inset 0 2px 5px -1px rgba(0, 0, 0, 0.6);
 }
 .seg .chip.seg-opt {
   position: relative;
@@ -8010,11 +7994,24 @@ html[data-night] .step-art img {
   margin: 0;
   border: 0;
   background: none;
-  padding-top: 2px;
-  padding-bottom: 3px;
+  /* (measured, not guessed: this face's capitals sit high in their line,
+     so even padding leaves the word 2.6px above the pill's middle. The
+     extra goes on top, and the pill stays the same height.) */
+  padding-top: 5.6px;
+  padding-bottom: 1.4px;
+  justify-content: center;
+  text-align: center;
   white-space: nowrap;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+}
+/* (a choice of two shares one width, the wider's, so the sliding pill only
+   ever moves: it never has to stretch or shrink on the way. A longer row
+   keeps each word's own width, or it wouldn't fit a phone.) */
+.seg.seg-even {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
 }
 /* (until the sliding pill has been placed, the chosen option wears the
    colour itself) */
@@ -8037,8 +8034,8 @@ html[data-night] .step-art img {
 }
 @media (max-width: 520px) {
   .filter-row .seg .chip.seg-opt {
-    padding-top: 3px;
-    padding-bottom: 4px;
+    padding-top: 5.8px;
+    padding-bottom: 3.2px;
   }
   .filter-row > .seg:first-child {
     margin-left: auto;
@@ -9107,8 +9104,14 @@ html[data-night] .home-stat {
    words) - a compact pill beside Favourites / Newest. */
 .category-chip-label.category-chip-icon {
   gap: 5px;
-  padding-left: 12px;
-  padding-right: 10px;
+  /* (no word to centre: the drawing sits in the true middle) */
+  padding: 6.5px 10px 6.5px 12px;
+}
+@media (max-width: 520px) {
+  .filter-row .category-chip-label.category-chip-icon {
+    padding-top: 7.5px;
+    padding-bottom: 7.5px;
+  }
 }
 .category-icon {
   display: block;
@@ -9298,6 +9301,21 @@ html[data-night] .story-manage-delete {
     max-width: 9em;
     opacity: 1;
     margin-left: 6px;
+  }
+}
+
+/* (beside the menu's words the pill sits a touch high: their small caps
+   centre above the middle of their line, and the pill's middle joins them) */
+@media (min-width: 768px) {
+  .nav-begin-pill {
+    position: relative;
+    top: -1.5px;
+  }
+  /* (the menu row scrolls sideways when it must, which clips it top and
+     bottom: a little room there, taken back in the margin, for the lift) */
+  .topnav {
+    padding-block: 3px;
+    margin-block: -3px;
   }
 }
 
@@ -9529,6 +9547,16 @@ html[data-night] .icon-btn.on {
 .tech-more.tech-more-bottom {
   margin: 18px auto 0;
   animation: none;
+}
+/* (a little less room under "Learn more" / "Show less" than the panel's
+   own padding leaves) */
+.tech .tech-more {
+  margin-bottom: -12px;
+}
+@media (max-width: 640px) {
+  .tech .tech-more {
+    margin-bottom: -6px;
+  }
 }
 
 /* A field with its button (Go, Save, Continue...): side by side, the field
@@ -10090,19 +10118,6 @@ html[data-night] .tier-badge {
   display: grid;
   place-items: center;
   padding: 24px;
-}
-/* toasts from anywhere: above dialogs, fading away when done */
-.toast-global {
-  z-index: 70;
-}
-.toast.leaving {
-  animation: toastAway 0.4s ease forwards;
-}
-@keyframes toastAway {
-  to {
-    opacity: 0;
-    transform: translateY(6px);
-  }
 }
 /* the plan icons sit dead centre in their round badge (the leaf's
    in-button nudges don't apply here) */
@@ -10842,7 +10857,11 @@ html[data-night] .ongoing-discard {
   justify-content: center;
   gap: 2%;
   width: 100%;
-  padding: 0 6% 8%;
+  /* (they stand in the lower part of the cover, about a third of the way
+     up: the label and the cross have the top to themselves, and there's
+     nothing under a character's feet to leave room for) */
+  align-self: flex-end;
+  padding: 0 6% 11%;
 }
 .book-card .idea-cover-cast svg {
   width: 31%;
@@ -10852,6 +10871,28 @@ html[data-night] .ongoing-discard {
 }
 .idea-card .ongoing-cta {
   white-space: nowrap;
+}
+/* On a phone the idea's card is only as tall as it needs to be: a strip
+   for the cast under the label rather than a whole cover's worth of blank
+   paper, and a title that takes the lines it has (two at most) instead of
+   keeping room for three. */
+@media (max-width: 640px) {
+  .idea-card .cover.idea-cover {
+    aspect-ratio: auto;
+    height: 92px;
+    align-items: flex-end;
+  }
+  .idea-card .idea-cover-cast {
+    padding-bottom: 5px;
+  }
+  .idea-card .story-card-title {
+    min-height: 0;
+    -webkit-line-clamp: 2;
+  }
+  .idea-card .body {
+    padding-top: 10px;
+    gap: 10px;
+  }
 }
 
 /* ---------- the story of the day ---------- */
@@ -11629,6 +11670,14 @@ html[data-night] .nav-begin-pill.is-making::before {
   padding-left: calc(max(var(--col-pad), calc((100% - var(--col)) / 2 + var(--col-pad))) + env(safe-area-inset-left));
   padding-right: calc(max(var(--col-pad), calc((100% - var(--col)) / 2 + var(--col-pad))) + env(safe-area-inset-right));
 }
+/* (the two-tier bar of a narrow screen pads its own lines: the rule between
+   the title and the menu runs edge to edge) */
+@media (max-width: 640px) {
+  .topbar {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
 /* There is very little height: the bar is slimmer, and "Begin a story"
    is a small pill tucked into the bottom corner instead of a wide bar
    across the middle of what's being read. */
@@ -11677,4 +11726,71 @@ html[data-night] .nav-begin-pill.is-making::before {
 .filter-row.admin-show .chip:last-child {
   margin-left: 0;
   margin-right: 0;
+}
+
+/* ---------- the pencilled note on the first step of making a story ----------
+   "first, turn off the lights for bedtime", scribbled in the margin under
+   the menu bar with a wobbly arrow up to the night-mode switch. Daylight
+   only; the page's heading moves down a little to leave it room. */
+.bedtime-hint {
+  position: absolute;
+  z-index: 5;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  /* (the arrowhead, 53/64 of the way across the drawing, sits under the switch) */
+  transform: translateX(11px);
+  color: #6f6a64;
+  pointer-events: none;
+  animation: bedtimeHintIn 0.5s 0.35s ease-out both;
+}
+.bedtime-hint-words {
+  display: block;
+  white-space: nowrap;
+  margin-bottom: 4px;
+  font-size: 1.32rem;
+  line-height: 1.15;
+  text-align: right;
+  transform: rotate(-4deg);
+  transform-origin: right bottom;
+}
+.bedtime-hint-arrow {
+  flex: none;
+  width: 64px;
+  height: 60px;
+  margin-top: 5px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes bedtimeHintIn {
+  from {
+    opacity: 0;
+  }
+}
+.wizard.with-bedtime-hint .wizard-head {
+  margin-top: 46px;
+}
+@media (max-width: 640px) {
+  .bedtime-hint-words {
+    font-size: 1.12rem;
+  }
+  .bedtime-hint-arrow {
+    width: 52px;
+    height: 49px;
+  }
+  .bedtime-hint {
+    transform: translateX(9px);
+  }
+  .wizard.with-bedtime-hint .wizard-head {
+    margin-top: 64px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bedtime-hint {
+    animation: none;
+  }
 }

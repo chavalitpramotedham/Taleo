@@ -25,6 +25,7 @@ import { logReadingToday } from "@/lib/reading-client";
 import { markJustFinished } from "@/lib/ideas";
 import { useSession } from "next-auth/react";
 import { LimitDialog, type LimitNotice } from "./LimitDialog";
+import { useToast } from "./Toast";
 
 /** Strokes a page's painting needs before the waiting page opens onto it. */
 const RELEASE_SHAPES = 70;
@@ -91,7 +92,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [limitOpen, setLimitOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [customIdea, setCustomIdea] = useState("");
-  const [toast, setToast] = useState<string | null>(null);
+  const flash = useToast();
   const [readAloud, setReadAloud] = useState(false);
   const [voiceTick, setVoiceTick] = useState(0);
   // While reading aloud, keep the phone's audio from parking between pages.
@@ -197,11 +198,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     // `missing` carries: listing it would restart the clock on every word)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [holdSeg, heldHasWords, heldHasPicture, heldPainted, heldFailed, error, busy, heldMissing]);
-
-  const flash = (msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 2600);
-  };
 
   // ---------------------------------------------------------------- the cover
   const firstPage = story.segments[0]?.pages[0];
@@ -723,7 +719,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const copyToClipboard = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
-      flash("Link copied. Paste it anywhere to share.");
+      flash("Link copied");
     } catch {
       window.prompt("Copy this link to share:", url);
     }
@@ -1213,7 +1209,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           </div>
         </div>
       )}
-      {toast && <div className="toast">{toast}</div>}
       {limit && limitOpen && <LimitDialog notice={limit} onClose={() => setLimitOpen(false)} />}
     </div>
   );

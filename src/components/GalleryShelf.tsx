@@ -2,6 +2,7 @@
 import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useToast } from "./Toast";
 import type { GalleryEntry } from "@/lib/types";
 import { STORY_DELETED_EVENT, fetchGalleryShelf } from "@/lib/gallery-client";
 import { shareUrl, shareStory } from "@/lib/share";
@@ -59,7 +60,7 @@ export function GalleryShelf({
   // chosen category; full shelves filter what they have).
   const [category, setCategory] = useState<string | null>(null);
   const [error, setError] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const flash = useToast();
   // A story deleted from its preview leaves the shelf at once.
   useEffect(() => {
     const drop = (e: Event) => {
@@ -121,11 +122,6 @@ export function GalleryShelf({
   const [openId, setOpenId] = useState<string | null>(null);
   const open = openId ? sorted.find((e) => e.id === openId) ?? null : null;
 
-  const flash = (msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 2400);
-  };
-
   const categories = useMemo(() => (limit ? homeCategories : stories ? categoriesOf(stories) : []), [stories, limit, homeCategories]);
   const pills =
     stories && (stories.length > 1 || category) ? (
@@ -167,10 +163,9 @@ export function GalleryShelf({
       )}
       {open && (
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(sorted, open.id, setOpenId)}>
-          <LibraryActions entry={open} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
+          <LibraryActions entry={open} onCopied={() => flash("Link copied")} />
         </StoryPreview>
       )}
-      {toast && <div className="toast">{toast}</div>}
     </>
   );
 }

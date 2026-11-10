@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useToast } from "./Toast";
 import type { SavedCharacter } from "@/lib/types";
 import { quotaLine, useStoryAllowance } from "@/lib/allowance";
 import { useOngoingStory } from "@/lib/ongoing";
@@ -209,7 +210,7 @@ function Offer({ userId, onDone }: { userId: string; onDone: () => void }) {
   const { story } = useOngoingStory({ finishing: true });
   const [own, setOwn] = useState<SavedCharacter[] | null>(null);
   const [idea, setIdea] = useState<{ idea: NextIdea; saved: boolean } | null>(null);
-  const [toast, setToast] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     let live = true;
@@ -224,13 +225,12 @@ function Offer({ userId, onDone }: { userId: string; onDone: () => void }) {
     setIdea(kept ? { idea: kept, saved: true } : { idea: freshIdea(userId, own), saved: false });
   }, [own, idea, userId]);
   useEffect(() => {
-    if (story && !toast) onDone();
-  }, [story, toast, onDone]);
+    if (story) onDone();
+  }, [story, onDone]);
   const another = useCallback(() => {
     if (own) setIdea((cur) => ({ idea: freshIdea(userId, own, { not: cur?.idea.key }), saved: false }));
   }, [own, userId]);
 
-  if (toast) return <div className="toast">Saved. It&apos;s waiting on your home page.</div>;
   if (story !== null || !idea) return null;
   return (
     <IdeaDialog
@@ -239,11 +239,8 @@ function Offer({ userId, onDone }: { userId: string; onDone: () => void }) {
       onClose={onDone}
       onAnother={another}
       onSaved={() => {
-        setToast(true);
-        window.setTimeout(() => {
-          setToast(false);
-          onDone();
-        }, 2600);
+        toast("Saved for later, on your home page");
+        onDone();
       }}
     />
   );
@@ -262,7 +259,9 @@ export function IdeaCard({ idea }: { idea: NextIdea }) {
   if (!concept) return null;
   return (
     <div className="book-card story-card ongoing-card idea-card">
-      <button type="button" className="ongoing-open" onClick={() => setOpen(true)} aria-label={`${concept.title} - a story idea saved for later`}>
+      <button type="button" className="ongoing-open" onClick={() => setOpen(true)} aria-label={`${concept.title}, with ${nameList(idea.cast.map((c) => c.name))} - a story idea saved for later`}>
+        {/* (the cast is its picture: naming them again underneath made the
+            card far taller than the books beside it) */}
         <span className="cover idea-cover">
           <span className="idea-cover-cast">
             {idea.cast.map((c) => (
@@ -273,7 +272,6 @@ export function IdeaCard({ idea }: { idea: NextIdea }) {
         </span>
         <span className="body">
           <span className="story-card-title">{concept.title}</span>
-          <span className="ongoing-meta">Starring {nameList(idea.cast.map((c) => c.name))}</span>
           <span className="btn btn-primary btn-sm ongoing-cta">
             <MapleMark /> Open idea
           </span>

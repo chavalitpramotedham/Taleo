@@ -2,6 +2,7 @@
 import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useToast } from "./Toast";
 import type { GalleryEntry } from "@/lib/types";
 import { STORY_DELETED_EVENT } from "@/lib/gallery-client";
 import { SAVED_EVENT } from "@/lib/saved-client";
@@ -25,7 +26,7 @@ const SHOWN = 6;
 export function MyCreationsRow({ username }: { username: string | null }) {
   const [mine, setMine] = useState<GalleryEntry[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const toast = useToast();
   // The story under way (if any) leads the row.
   const ongoing = useOngoingStory();
   // ...followed by the story idea put away for later (if any).
@@ -112,14 +113,10 @@ export function MyCreationsRow({ username }: { username: string | null }) {
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(mine.slice(0, SHOWN), open.id, setOpenId)}>
           <LibraryActions
             entry={open}
-            onCopied={() => {
-              setToast("Link copied. Paste it anywhere to share.");
-              window.setTimeout(() => setToast(null), 2400);
-            }}
+            onCopied={() => toast("Link copied")}
           />
         </StoryPreview>
       )}
-      {toast && <div className="toast">{toast}</div>}
     </>
   );
 }

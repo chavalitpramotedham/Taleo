@@ -10,6 +10,8 @@ import { CharacterPortrait, Painting } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { SideScroll } from "@/components/SideScroll";
 import { Segmented } from "@/components/Segmented";
+import { BedtimeHint } from "@/components/BedtimeHint";
+import { useNightMode } from "@/components/NightMode";
 import { GrowingInput } from "@/components/GrowingInput";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
@@ -41,6 +43,7 @@ export default function CreatePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(0);
+  const { night } = useNightMode();
   const [age, setAge] = useState<AgeId | null>(null);
   const [minutes, setMinutes] = useState<number | null>(null);
 
@@ -235,7 +238,9 @@ export default function CreatePage() {
   if (status !== "authenticated" || !session?.user.username) return <PageLoading />;
 
   return (
-    <div className="container wizard">
+    <div className={`container wizard${step === 0 && !night ? " with-bedtime-hint" : ""}`}>
+      {/* (by daylight, a pencilled nudge towards the night-mode switch) */}
+      {step === 0 && <BedtimeHint />}
       <header className="wizard-head">
         <p className="eyebrow">Chapter {["the First", "the Second", "the Third"][step]}</p>
         <h1>{STEP_TITLES[step]}</h1>

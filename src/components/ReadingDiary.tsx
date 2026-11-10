@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useToast } from "./Toast";
 import { createPortal } from "react-dom";
 import type { GalleryEntry } from "@/lib/types";
 import { Painting } from "./art/Painting";
@@ -62,7 +63,7 @@ export function ReadingDiary({
 }) {
   const [ready, setReady] = useState<"loading" | "ready" | "failed">("loading");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const toast = useToast();
 
   // Made first; then read - your own stories before other people's.
   const again = read.filter((id) => !made.includes(id));
@@ -90,11 +91,11 @@ export function ReadingDiary({
   const readHere = rows.length - madeHere;
   // Said once, as a heading over each kind - and only when the day has both.
   const groups = [
-    { label: "Made", rows: rows.filter((e) => made.includes(e.id)) },
+    { label: "Created", rows: rows.filter((e) => made.includes(e.id)) },
     { label: "Read", rows: rows.filter((e) => !made.includes(e.id)) },
   ].filter((g) => g.rows.length);
   const open = openId ? rows.find((e) => e.id === openId) : null;
-  const summary = [madeHere && count(madeHere, "story made", "stories made"), readHere && count(readHere, "story read", "stories read")].filter(Boolean).join(" · ");
+  const summary = [madeHere && count(madeHere, "story created", "stories created"), readHere && count(readHere, "story read", "stories read")].filter(Boolean).join(" · ");
 
   if (open)
     return createPortal(
@@ -102,13 +103,9 @@ export function ReadingDiary({
         <StoryPreview story={summaryFromEntry(open)} eyebrow={longDate(day)} onClose={() => setOpenId(null)} {...stepper(rows, open.id, setOpenId)}>
           <LibraryActions
             entry={open}
-            onCopied={() => {
-              setToast("Link copied. Paste it anywhere to share.");
-              window.setTimeout(() => setToast(null), 2400);
-            }}
+            onCopied={() => toast("Link copied")}
           />
         </StoryPreview>
-        {toast && <div className="toast">{toast}</div>}
       </>,
       document.body,
     );

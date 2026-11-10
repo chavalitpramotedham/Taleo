@@ -52,7 +52,7 @@ export function Segmented<T extends string>({
   return (
     <Shell
       ref={shell as React.Ref<HTMLDivElement>}
-      className={`seg${at ? " measured" : ""}${className ? ` ${className}` : ""}`}
+      className={`seg${options.length === 2 ? " seg-even" : ""}${at ? " measured" : ""}${className ? ` ${className}` : ""}`}
       role={nav ? undefined : "tablist"}
       aria-label={label}
     >

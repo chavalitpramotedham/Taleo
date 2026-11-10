@@ -8,6 +8,7 @@ import { SAVED_EVENT } from "@/lib/saved-client";
 import { LibraryActions } from "@/components/GalleryShelf";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/components/Toast";
 import type { GalleryEntry } from "@/lib/types";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
@@ -27,7 +28,7 @@ export default function MyStoriesPage() {
   const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<Sort>("recent");
   const [category, setCategory] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const flash = useToast();
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/sign-in?next=/my-stories");
@@ -84,18 +85,12 @@ export default function MyStoriesPage() {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
       setStories((list) => (list ? list.filter((s) => s.id !== id) : list));
       setOpenId(null);
-      setToast("Story deleted.");
-      window.setTimeout(() => setToast(null), 2400);
+      flash("Story deleted", "removed");
     };
     window.addEventListener(STORY_DELETED_EVENT, drop);
     return () => window.removeEventListener(STORY_DELETED_EVENT, drop);
-  }, []);
+  }, [flash]);
   const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
-
-  const flash = (msg: string) => {
-    setToast(msg);
-    window.setTimeout(() => setToast(null), 2400);
-  };
 
   // (both shelves arrive together, so the page never shifts as one lands)
   if (status !== "authenticated" || stories === null || savedList === null)
@@ -166,7 +161,7 @@ export default function MyStoriesPage() {
       )}
       {openSaved && (
         <StoryPreview story={summaryFromEntry(openSaved)} eyebrow="Saved to your bookshelf" onClose={() => setOpenSavedId(null)} {...stepper(savedSorted, openSaved.id, setOpenSavedId)}>
-          <LibraryActions entry={openSaved} onCopied={() => flash("Link copied. Paste it anywhere to share.")} />
+          <LibraryActions entry={openSaved} onCopied={() => flash("Link copied")} />
         </StoryPreview>
       )}
       {open && (
@@ -177,14 +172,13 @@ export default function MyStoriesPage() {
               label="Read"
               onShare={() =>
                 shareStory(open.title || "An untitled story", shareUrl(open.id, window.location.origin), () =>
-                  flash("Link copied. Paste it anywhere to share."),
+                  flash("Link copied"),
                 )
               }
             />
           </div>
         </StoryPreview>
       )}
-      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

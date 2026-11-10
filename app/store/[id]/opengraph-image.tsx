@@ -67,6 +67,23 @@ function Ornament({ color }: { color: string }) {
   );
 }
 
+/** Taleo's mark, the maple leaf (the same drawing as the app's own). */
+function MapleLeaf() {
+  return (
+    <svg width={34} height={40} viewBox="-6.6 -8.4 13.2 15.6" style={{ marginRight: 8 }}>
+      <path
+        d="M0,-7.2 C1.6,-6.8 2,-5.3 1.5,-4 C2.6,-4.6 4.2,-4.6 5.4,-3.4 C4.6,-2.2 3.4,-1.5 2.4,-1.2 C3.6,0.3 4.2,1.8 3.8,3.2 C2.4,2.6 1.1,2.1 0,1.6 C-1.1,2.1 -2.4,2.6 -3.8,3.2 C-4.2,1.8 -3.6,0.3 -2.4,-1.2 C-3.4,-1.5 -4.6,-2.2 -5.4,-3.4 C-4.2,-4.6 -2.6,-4.6 -1.5,-4 C-2,-5.3 -1.6,-6.8 0,-7.2 Z"
+        fill="#E2AE4A"
+        stroke="#7A5420"
+        strokeWidth={0.45}
+        strokeLinejoin="round"
+      />
+      <path d="M0,-5.4 L0,1.5 M0,-0.6 L-3.2,-3 M0,-0.6 L3.2,-3 M0,0.6 L-2.4,2 M0,0.6 L2.4,2" stroke="#9A6A26" strokeWidth={0.38} strokeLinecap="round" fill="none" opacity={0.8} />
+      <path d="M0,1.5 C0,2.9 0,4.3 0.3,6.2" stroke="#7A5420" strokeWidth={0.6} strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
 const GILT = "#e4c27c";
 
 /** A shared story's link preview: its book cover - cloth-bound in the
@@ -189,7 +206,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 34 }}>
             <div style={{ display: "flex", fontSize: 26, fontStyle: "italic", color: "#6B5A48" }}>{`by @${author}`}</div>
             <div style={{ display: "flex", alignItems: "center", fontSize: 34, fontFamily: FONT_TITLE, color: "#3B3127" }}>
-              <div style={{ display: "flex", width: 11, height: 11, borderRadius: 6, background: "#9C4F32", marginRight: 10 }} />
+              <MapleLeaf />
               Taleo
             </div>
           </div>
