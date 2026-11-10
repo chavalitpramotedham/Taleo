@@ -4,7 +4,12 @@ import type { Story } from "./types";
 import { castFor, pageKey } from "./story-utils";
 import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
 
-const CONCURRENCY = 3;
+// Every page is asked for the moment its words exist: no picture waits for
+// another to finish. A part has five pages at most, so ten covers a whole
+// new part even while the last one's paintings (or a page having its second
+// go) are still out; the cap is only there so a long book reopened with
+// many pages unpainted doesn't send them all in one burst.
+const CONCURRENCY = 10;
 const DONE = "<!--taleo:done-->";
 /** A painting that sends nothing for this long has stalled: it's given up
  *  on and begun again, rather than left until the server's own time limit
