@@ -7063,6 +7063,26 @@ html:has(.admin-wide) body {
   border-radius: 8px;
   background: #fbf6ea;
 }
+/* The log's list while a newly chosen filter's list is on its way: it
+   fades back, with the falling leaves over it. */
+.admin-filtered {
+  position: relative;
+}
+.admin-filtered > .admin-section {
+  transition: opacity 0.2s ease;
+}
+.admin-filtered.waiting > .admin-section {
+  opacity: 0.35;
+}
+.admin-filtered-leaves {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: fadeIn 0.2s ease 0.1s both;
+}
 /* A painting in the log opens full size over the page. */
 .admin-zoom {
   display: block;
@@ -11910,9 +11930,12 @@ html[data-night] .nav-begin-pill.is-making::before {
 @media (max-width: 620px) {
   .filter-row.admin-show .seg {
     max-width: 100%;
+    /* (sideways only: never up and down inside the pill) */
     overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
     scrollbar-width: none;
-    overscroll-behavior-x: contain;
+    overscroll-behavior: contain;
   }
   .filter-row.admin-show .seg::-webkit-scrollbar {
     display: none;

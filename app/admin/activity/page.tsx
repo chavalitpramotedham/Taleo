@@ -7,7 +7,7 @@ import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
 import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
-import { AutoRefresh, ToggleChip, When } from "./Live";
+import { AutoRefresh, FilteredList, ToggleChip, When } from "./Live";
 import { Segmented } from "@/components/Segmented";
 import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
@@ -238,6 +238,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             <AutoRefresh />
           </section>
 
+          <FilteredList>
           {subjectId && !kind ? (
             GEN_KINDS.map((k) => {
               const rows = list.filter((r) => r.kind === k);
@@ -264,6 +265,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               <Records records={list} now={now} users={subjectId ? null : byId} kinds={!kind} />
             </section>
           )}
+          </FilteredList>
         </>
       )}
     </div>

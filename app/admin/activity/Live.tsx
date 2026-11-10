@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LeafLoader } from "@/components/Icons";
+
+/** Said by a filter as it's tapped: the list below is about to change. */
+export const FILTERING = "taleo:filtering";
 
 /** A moment, written in the clock of whoever is looking (the server only
  *  knows UTC, which is what's shown until the page wakes). */
@@ -89,11 +93,40 @@ export function ToggleChip({ on, href, children }: { on: boolean; href: string; 
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
         setShown(!shown);
+        window.dispatchEvent(new Event(FILTERING));
       }}
       className={`chip${shown ? " on" : ""}`}
       aria-pressed={shown}
     >
       {children}
     </Link>
+  );
+}
+
+/** The list under the filters: while a newly chosen filter's list is on
+ *  its way it fades back with the falling leaves over it, until the new
+ *  one arrives (the address changes). */
+export function FilteredList({ children }: { children: React.ReactNode }) {
+  const params = useSearchParams().toString();
+  const [waiting, setWaiting] = useState(false);
+  const [seen, setSeen] = useState(params);
+  if (seen !== params) {
+    setSeen(params);
+    setWaiting(false);
+  }
+  useEffect(() => {
+    const on = () => setWaiting(true);
+    window.addEventListener(FILTERING, on);
+    return () => window.removeEventListener(FILTERING, on);
+  }, []);
+  return (
+    <div className={`admin-filtered${waiting ? " waiting" : ""}`} aria-busy={waiting}>
+      {waiting && (
+        <div className="admin-filtered-leaves" role="status" aria-label="Loading">
+          <LeafLoader size={48} />
+        </div>
+      )}
+      {children}
+    </div>
   );
 }

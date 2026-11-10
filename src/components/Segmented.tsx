@@ -103,7 +103,10 @@ export function Segmented<T extends string>({
             // (the pill slides at once; the page follows when it arrives)
             onClick={(e) => {
               if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-              if (o.key !== shown) setPicked(o.key);
+              if (o.key === shown) return;
+              setPicked(o.key);
+              // (for a list waiting on this choice: see FilteredList)
+              if (keepScroll) window.dispatchEvent(new Event("taleo:filtering"));
             }}
             className={`chip seg-opt${o.key === shown ? " on" : ""}`}
             aria-current={o.key === shown ? "page" : undefined}
