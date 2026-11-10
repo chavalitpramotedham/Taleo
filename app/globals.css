@@ -7055,6 +7055,34 @@ html:has(.admin-wide) body {
   border-radius: 8px;
   background: #fbf6ea;
 }
+/* A painting in the log opens full size over the page. */
+.admin-zoom {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: 8px;
+}
+.admin-zoom:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: 2px;
+}
+.admin-zoom-panel {
+  max-width: min(1100px, 100%);
+}
+.admin-zoom-picture {
+  display: block;
+  width: 100%;
+  max-height: calc(100dvh - 180px);
+  object-fit: contain;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fbf6ea;
+}
+.admin-zoom-more {
+  margin: 0;
+}
 .admin-picture {
   display: block;
   width: 100%;

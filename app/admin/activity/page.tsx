@@ -10,6 +10,7 @@ import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, When } from "./Live";
 import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
+import { ZoomPicture } from "./Zoom";
 import { fuzzyPeople } from "@/lib/fuzzy";
 
 export const metadata: Metadata = { title: "Activity", robots: { index: false, follow: false } };
@@ -342,10 +343,15 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
               {pictures && (
                 <td className="admin-left admin-thumb-cell">
                   {r.kind === "painting" && r.hasResult && (
-                    <Link href={href({ id: r.id })} aria-label="Open this painting's record">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img className="admin-thumb" src={`${HERE}/picture/${r.id}`} alt="" loading="lazy" decoding="async" width={120} height={90} />
-                    </Link>
+                    <ZoomPicture
+                      src={`${HERE}/picture/${r.id}`}
+                      className="admin-thumb"
+                      width={120}
+                      height={90}
+                      lazy
+                      record={href({ id: r.id })}
+                      label={r.what ? `Painting: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : "Painting"}
+                    />
                   )}
                 </td>
               )}
@@ -528,8 +534,7 @@ async function Detail({ id, now }: { id: string; now: number }) {
         {result ? (
           <>
             {picture && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className="admin-picture" alt="The painting as it was sent" src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(picture)}`} />
+              <ZoomPicture className="admin-picture" label="The painting as it was sent" src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(picture)}`} />
             )}
             <pre className="admin-pre">{pretty(result)}</pre>
           </>
