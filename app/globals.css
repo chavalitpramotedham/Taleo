@@ -11776,7 +11776,7 @@ html[data-night] .nav-begin-pill.is-making::before {
 }
 @media (max-width: 640px) {
   .bedtime-hint-words {
-    font-size: 1.12rem;
+    font-size: 0.95rem;
   }
   .bedtime-hint-arrow {
     width: 52px;
