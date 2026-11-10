@@ -16,7 +16,7 @@ import type {
   SegmentResponse,
   StoryRequest,
 } from "@/lib/types";
-import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, writerPrompt } from "./prompts";
+import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, sceneryPrompt, writerPrompt } from "./prompts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
 type Effort = "low" | "medium" | "high";
@@ -51,6 +51,13 @@ const QUICK_ART_UNTHINKING = process.env.TALEO_QUICK_ART_THINKING !== "adaptive"
  *  (the SDK retries those quietly) counts too. TALEO_FIRST_STROKE_S
  *  overrides (0: wait however long it takes). */
 const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 60) || 0) * 1000;
+/** Painting in layers (see paintsInLayers; off unless TALEO_LAYERED_PAINT is
+ *  set): the scenery - sky, land, room, the things that stand about - is
+ *  the plainer half of a picture, so it goes to the smaller model at low
+ *  effort, without thinking first, while the page's ordinary painter does
+ *  only the characters. TALEO_SCENERY_MODEL / TALEO_SCENERY_EFFORT override. */
+const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-sonnet-5-5";
+const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "low";
 /** Designing a character runs at medium effort: with the art director's
  *  brief to work from (see characterBrief) it needs less thinking of its
  *  own, and designs finish well inside the 300-second limit (at high effort
@@ -401,6 +408,190 @@ const referenceArt = (c: Pick<CharacterDef, "preset" | "svg">) =>
     .replace(/(\d+)\.(\d{2,})/g, (n, whole: string) => (whole === "0" ? n : String(Math.round(Number(n) * 10) / 10)))
     .replace(/>\s+</g, "><");
 
+/** One painter's part in a picture: which model, how hard it works, and
+ *  what it's given. */
+interface Brush {
+  model: string;
+  effort: Effort;
+  /** As the activity log names it. */
+  label: string;
+  /** Paint without thinking first (Sonnet 5.5's thinking-off setting). */
+  unthinking: boolean;
+  /** How long it may take to lay its first stroke (0: however long). */
+  clockMs: number;
+  system: string;
+  content: Anthropic.Beta.BetaTextBlockParam[];
+}
+
+/** Streams one painter's strokes. What happened is noted on `log`. */
+async function* brushStrokes(
+  brush: Brush,
+  signal: AbortSignal | undefined,
+  log: Record<string, unknown>,
+  /** Why the signal was thrown, when it wasn't the reader leaving. */
+  stoppedBy?: () => string | undefined,
+): AsyncGenerator<string> {
+  const { model } = brush;
+  let unthinking = brush.unthinking;
+  const began = Date.now();
+  let strokes = 0;
+  for (;;) {
+    // (this go's own switch: thrown by the reader leaving, or by the
+    // first-stroke clock)
+    const go = new AbortController();
+    const leave = () => go.abort();
+    signal?.addEventListener("abort", leave, { once: true });
+    if (signal?.aborted) go.abort();
+    let late = false;
+    const clock = brush.clockMs
+      ? setTimeout(() => {
+          late = true;
+          go.abort();
+        }, brush.clockMs)
+      : undefined;
+    const usage = streamUsageTracker("painting", model, {
+      label: brush.label,
+      effort: brush.effort,
+      thinking: unthinking ? "off (between tools only)" : "the model's own",
+    });
+    try {
+      const stream = getClient().beta.messages.stream(
+        {
+          model,
+          max_tokens: 32000,
+          betas: ["server-side-fallback-2026-07-01"],
+          fallbacks: "default",
+          system: [{ type: "text", text: brush.system, cache_control: { type: "ephemeral" } }],
+          messages: [{ role: "user", content: brush.content }],
+          ...(unthinking ? { thinking: { type: "between_tools" as const } } : {}),
+          output_config: { effort: brush.effort },
+        },
+        { signal: go.signal },
+      );
+      for await (const event of stream) {
+        usage.see(event);
+        if (event.type === "message_start") log.acceptedMs ??= Date.now() - began;
+        else if (event.type === "message_delta") log.out = event.usage.output_tokens;
+        else if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          if (!strokes++) {
+            clearTimeout(clock);
+            log.firstStrokeMs = Date.now() - began;
+          }
+          yield event.delta.text;
+        }
+      }
+      const final = await stream.finalMessage();
+      log.stop = final.stop_reason;
+      if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
+      // (a painting cut off at the token limit is not a painting: without
+      // this it would be sent on as finished, half a picture)
+      if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
+      return;
+    } catch (err) {
+      usage.fail(err, signal?.aborted ? (stoppedBy?.() ?? "The reader left (or their page gave up waiting).") : late ? `No first stroke after ${brush.clockMs / 1000}s: given up on.` : undefined);
+      if (late && !signal?.aborted) throw new SlowPainter(`No first stroke from ${model} after ${brush.clockMs / 1000}s.`);
+      // (should the thinking-off setting ever be turned away, paint the
+      // page the ordinary way rather than not at all)
+      if (unthinking && !strokes && !signal?.aborted && err instanceof Anthropic.BadRequestError) {
+        console.warn("painting: thinking-off setting refused, painting with thinking", err.message);
+        unthinking = false;
+        log.thinkingOffRefused = true;
+        continue;
+      }
+      throw err;
+    } finally {
+      clearTimeout(clock);
+      signal?.removeEventListener("abort", leave);
+      usage.finish();
+    }
+  }
+}
+
+/** Two painters at once, one picture: everything the first paints is sent
+ *  on as it comes; what the second paints is held until the first has
+ *  finished and then follows it, so the second's work always lies on top.
+ *  The picture takes as long as the slower of the two, not both together.
+ *  If either fails the other is stopped and the failure is the picture's. */
+type Layer = (stop: AbortSignal, why: () => string | undefined) => AsyncGenerator<string>;
+async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): AsyncGenerator<string> {
+  const stop = new AbortController();
+  const leave = () => stop.abort();
+  signal?.addEventListener("abort", leave, { once: true });
+  if (signal?.aborted) stop.abort();
+  let failed = false;
+  let failure: unknown;
+  // (a painter stopped because the other failed, not because anyone left)
+  const why = () => (failed && !signal?.aborted ? "Stopped: the picture's other layer failed." : undefined);
+  const down: string[] = [];
+  const held: string[] = [];
+  const ended = { under: false, over: false };
+  let wake = () => {};
+  const work = async (layer: Layer, into: string[], which: "under" | "over") => {
+    try {
+      for await (const strokes of layer(stop.signal, why)) {
+        into.push(strokes);
+        wake();
+      }
+      ended[which] = true;
+    } catch (err) {
+      if (!failed) {
+        failed = true;
+        failure = err;
+        stop.abort();
+      }
+    } finally {
+      wake();
+    }
+  };
+  const both = Promise.all([work(under, down, "under"), work(over, held, "over")]);
+  try {
+    for (;;) {
+      // (made before looking, so nothing that happens while strokes are
+      // being sent on is missed)
+      const more = new Promise<void>((r) => (wake = r));
+      if (failed) throw failure;
+      while (down.length) yield down.shift()!;
+      if (ended.under) {
+        while (held.length) yield held.shift()!;
+        if (ended.over && !down.length && !held.length) return;
+      }
+      if (failed) throw failure;
+      await more;
+    }
+  } finally {
+    // (the reader's page stopped listening, or one layer failed: neither
+    // painter goes on alone)
+    stop.abort();
+    signal?.removeEventListener("abort", leave);
+    await both;
+  }
+}
+
+/** Is this page painted in layers - the scenery by a cheaper, quicker
+ *  painter while the main one paints only the characters over it?
+ *
+ *  Off unless TALEO_LAYERED_PAINT is set: "1" for the main painter's pages,
+ *  "all" for the quick painter's too. A second go is always one painter
+ *  (whatever went wrong, the simplest way is the one to fall back on), and
+ *  so is a page with nobody and nothing on its stage. */
+export function paintsInLayers(req: IllustrateRequest): boolean {
+  const mode = process.env.TALEO_LAYERED_PAINT;
+  if (mode !== "1" && mode !== "all") return false;
+  if (req.retry || (req.quick && mode !== "all")) return false;
+  return req.cast.length > 0 || Boolean(req.page.action);
+}
+
+/** Where the characters stand, worked out the same way for both painters:
+ *  neither sees the other's work, so this is what makes the layers fit. */
+function stageFor(req: IllustrateRequest): string {
+  const half = Math.min(150, 45 + 35 * Math.max(1, req.page.characters.length));
+  return `THE STAGE (this picture is painted by two hands at once - one lays the scenery, the other paints the characters over it - and neither sees the other's work, so both keep to this exactly)
+- The ground or floor the characters stand on crosses the picture at about y 240. Out of doors the horizon sits at about y 150; indoors the floor meets the wall there.
+- The characters and the tap target have the middle of the picture: x ${200 - half} to ${200 + half}, from about y 75 down to their feet at y 235-250. The brief's camera decides how large they are inside it (a close-up fills it; a wide shot leaves them small on the ground line).
+- The scenery's landmarks (trees, houses, furniture, doors, hills) stand to the left and right of that space and behind it above y 150, on the sides the brief gives them.
+- The light comes from the upper left; shadows fall to the lower right.`;
+}
+
 /** Streams the SVG markup of one painted page. */
 export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): AsyncGenerator<string> {
   const sheet = (c: CharacterDef) => {
@@ -415,105 +606,85 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
   // three central characters.)
   const central = CENTRAL_IDS.map((id) => req.cast.find((c) => c.id === id)).filter((c): c is CharacterDef => Boolean(c));
   const others = req.cast.filter((c) => !central.includes(c));
+  const layered = paintsInLayers(req);
+  const target = req.page.action
+    ? `TAP TARGET: "${req.page.action.target}"${req.cast.some((c) => c.id === req.page.action!.target) ? " (the character with that id)" : ""}, acting out the word "${req.page.action.word}".`
+    : "";
+  const world = `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}`;
+  const previous = req.previous ? `PREVIOUS PAGE'S PICTURE (for continuity of place and light): ${req.previous}` : "";
 
   const rest = [
     others.map(sheet).join("\n\n"),
     req.cast.length ? "" : "No characters in this picture.",
-    req.previous ? `PREVIOUS PAGE'S PICTURE (for continuity of place and light): ${req.previous}` : "",
+    previous,
     `THIS PAGE'S TEXT: ${req.page.text}`,
     `PAINT THIS MOMENT: ${req.page.picture}`,
-    req.page.action
-      ? `TAP TARGET: "${req.page.action.target}"${req.cast.some((c) => c.id === req.page.action!.target) ? " (the character with that id)" : ""}, acting out the word "${req.page.action.word}". Wrap it in <g class="target">.`
-      : "",
+    target ? `${target} Wrap it in <g class="target">.` : "",
+    layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
     `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
   ]
     .filter(Boolean)
     .join("\n\n");
 
   const content: Anthropic.Beta.BetaTextBlockParam[] = [
-    { type: "text", text: `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}` },
+    { type: "text", text: world },
     ...central.map((c): Anthropic.Beta.BetaTextBlockParam => ({ type: "text", text: sheet(c), cache_control: { type: "ephemeral" } })),
     { type: "text", text: rest },
   ];
 
   const model = req.quick ? QUICK_ART_MODEL : ART_MODEL;
-  let unthinking = Boolean(req.quick) && QUICK_ART_UNTHINKING && model.startsWith("claude-sonnet-5-5");
+  const main: Brush = {
+    model,
+    effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT,
+    label: layered ? "character painter" : req.quick ? "quick painter" : "main painter",
+    unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING && model.startsWith("claude-sonnet-5-5"),
+    clockMs: req.quick ? 0 : FIRST_STROKE_MS,
+    system: illustratorPrompt(),
+    content,
+  };
   // One line per painting in the server log: which painter, how long until
   // the request was taken up, until the first stroke, and in all.
   const began = Date.now();
   const log: Record<string, unknown> = { model, quick: Boolean(req.quick), retry: Boolean(req.retry) };
-  let strokes = 0;
   try {
-    for (;;) {
-      // (this go's own switch: thrown by the reader leaving, or by the
-      // first-stroke clock)
-      const go = new AbortController();
-      const leave = () => go.abort();
-      signal?.addEventListener("abort", leave, { once: true });
-      if (signal?.aborted) go.abort();
-      let late = false;
-      const clock =
-        !req.quick && FIRST_STROKE_MS
-          ? setTimeout(() => {
-              late = true;
-              go.abort();
-            }, FIRST_STROKE_MS)
-          : undefined;
-      const usage = streamUsageTracker("painting", model, {
-        label: req.quick ? "quick painter" : "main painter",
-        effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT,
-        thinking: unthinking ? "off (between tools only)" : "the model's own",
-      });
-      try {
-        const stream = getClient().beta.messages.stream(
-          {
-            model,
-            max_tokens: 32000,
-            betas: ["server-side-fallback-2026-07-01"],
-            fallbacks: "default",
-            system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
-            messages: [{ role: "user", content }],
-            ...(unthinking ? { thinking: { type: "between_tools" as const } } : {}),
-            output_config: { effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT },
-          },
-          { signal: go.signal },
-        );
-        for await (const event of stream) {
-          usage.see(event);
-          if (event.type === "message_start") log.acceptedMs ??= Date.now() - began;
-          else if (event.type === "message_delta") log.out = event.usage.output_tokens;
-          else if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            if (!strokes++) {
-              clearTimeout(clock);
-              log.firstStrokeMs = Date.now() - began;
-            }
-            yield event.delta.text;
-          }
-        }
-        const final = await stream.finalMessage();
-        log.stop = final.stop_reason;
-        if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
-        // (a painting cut off at the token limit is not a painting: without
-        // this it would be sent on as finished, half a picture)
-        if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
-        return;
-      } catch (err) {
-        usage.fail(err, signal?.aborted ? "The reader left (or their page gave up waiting)." : late ? `No first stroke after ${FIRST_STROKE_MS / 1000}s: given up on.` : undefined);
-        if (late && !signal?.aborted) throw new SlowPainter(`No first stroke from ${model} after ${FIRST_STROKE_MS / 1000}s.`);
-        // (should the thinking-off setting ever be turned away, paint the
-        // page the ordinary way rather than not at all)
-        if (unthinking && !strokes && !signal?.aborted && err instanceof Anthropic.BadRequestError) {
-          console.warn("painting: thinking-off setting refused, painting with thinking", err.message);
-          unthinking = false;
-          log.thinkingOffRefused = true;
-          continue;
-        }
-        throw err;
-      } finally {
-        clearTimeout(clock);
-        signal?.removeEventListener("abort", leave);
-        usage.finish();
-      }
+    if (!layered) {
+      yield* brushStrokes(main, signal, log);
+      return;
+    }
+    // In layers: the scenery painter never sees the character sheets (it
+    // paints none of them), so its request is small and it starts at once.
+    const scenery: Brush = {
+      model: SCENERY_MODEL,
+      effort: SCENERY_EFFORT,
+      label: "scenery painter",
+      unthinking: QUICK_ART_UNTHINKING && SCENERY_MODEL.startsWith("claude-sonnet-5-5"),
+      clockMs: FIRST_STROKE_MS,
+      system: sceneryPrompt(),
+      content: [
+        {
+          type: "text",
+          text: [
+            world,
+            previous,
+            `THIS PAGE'S TEXT: ${req.page.text}`,
+            `THE MOMENT BEING PAINTED: ${req.page.picture}`,
+            stageFor(req),
+            `Painted by the other hand, so NOT by you: ${[...req.cast.map((c) => c.name), req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? `the ${req.page.action.target}` : ""].filter(Boolean).join(", ") || "the tap target"}, and whatever they hold, wear or set moving. Paint the place they are in. Output the SVG markup now.`,
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
+        },
+      ],
+    };
+    const logs = { scenery: { model: scenery.model } as Record<string, unknown>, characters: {} as Record<string, unknown> };
+    Object.assign(log, { layered: true, ...logs });
+    for await (const strokes of inLayers(
+      (stop, why) => brushStrokes(scenery, stop, logs.scenery, why),
+      (stop, why) => brushStrokes(main, stop, logs.characters, why),
+      signal,
+    )) {
+      log.firstStrokeMs ??= Date.now() - began;
+      yield strokes;
     }
   } catch (err) {
     log.error = signal?.aborted ? "reader left" : err instanceof Error ? `${err.name}: ${err.message}`.slice(0, 200) : "unknown";

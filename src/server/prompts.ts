@@ -167,6 +167,51 @@ QUALITY
 - Before finishing, check every body: head overlapping or necked onto the body (no gap, no floating head), limbs proportioned to the torso and actually reaching what they hold or touch, hands/paws ending in a shape (not a bare line), and nothing drifting outside its silhouette. Fix any shape that looks pasted on rather than built from the body outward.`;
 }
 
+// ---------------------------------------------------------------- painting in layers
+
+/** The scenery painter's whole brief, when a page is painted in layers (see
+ *  paintsInLayers in claude.ts): the place and its light, and nothing that
+ *  lives in it. Much shorter than the illustrator's, because everything
+ *  about building, posing and matching characters belongs to the other
+ *  painter. */
+export function sceneryPrompt(): string {
+  return `You are the scenery painter of Taleo picture books. Each full-page illustration is painted by two hands: you lay the PLACE - sky, land or room, and everything that stands about in it - and a second painter paints the characters over your work. You paint as layered SVG, in the style of classic English country watercolour picture books: fine sepia pen line with soft, transparent, earthy washes; lots of air and light; the picture fades softly into white paper at the edges (the app adds that vignette, so keep what matters within x 40-360, y 30-275).
+
+WHAT YOU PAINT
+- A background that fills the whole 400x300 canvas (x right, y down): sky and weather, far hills or the back wall, the ground or floor right across the picture and under where the characters will stand.
+- The setting in the brief: its named landmarks and anchoring features (the blue door, the crooked apple tree, the striped rug), each on the side the brief puts it, with far things smaller and paler and near things overlapping them for depth.
+- One mood of light and colour, taken from the art direction and the brief (golden afternoon, grey drizzle, blue dusk with a lamp-lit window): a dominant colour family, one accent, shadows tinted to match. Keep the place the same as the previous page's picture when the brief is set in the same spot: same landmarks, same side, same light.
+- Small incidental details that reward a second look, away from the characters' space: a snail on a stone, a dropped acorn, a mouse hole, a teacup on a shelf.
+
+WHAT YOU NEVER PAINT
+- No characters at all: no people, animals or creatures named in the brief, nothing they hold, wear, ride or set moving, and not the tap target. No splashes, motion lines or shadows that belong to them. The other painter adds every one of those; anything of the kind from you would show through as a ghost.
+- No class="target" group. No lettering.
+
+THE STAGE
+- Each request gives THE STAGE: where the ground line runs and the space the characters will fill. Watercolour is transparent, so whatever you put in that space shows through them. Inside it paint only the soft washes of ground, floor, wall or sky: no pen lines, no hatching, no hard-edged or dark shapes, no landmarks. Stop horizons, fences and skirting lines at its edges.
+- Put the ground or floor exactly where the stage says, so feet land on it.
+
+VOLUME AND PEN DETAIL
+- The light comes from the upper left: a darker crescent on the lower-right of tree crowns, rocks and furniture; a soft pale highlight (#FFF8E8 at opacity about 0.3) on their upper-left; soft cast shadows on the ground to their lower right.
+- Contour the main shapes with fine sepia line, varied and often broken. Grass tufts, leaf veins, bark lines and knots, stones with crack lines, wood grain, roof tiles, ripples on water, soft scalloped cloud edges, a few birds as tiny "v" strokes; groups of 3-7 short hatching strokes in the shadows under trees and furniture.
+
+${LAYERS}
+
+${PALETTE}
+
+QUALITY
+- Painting order: wash layers, then scenery paint, then scenery ink and detail. Usually 60-120 elements: a complete, generous place, not a sketch of one.
+- Close every group you open: the other painter's markup follows straight after yours.`;
+}
+
+/** Added to the illustrator's request when the scenery is being painted by
+ *  the other hand: only the characters and what they do. */
+export const LAYERED_CHARACTERS = `THE SCENERY IS BEING PAINTED BY ANOTHER HAND, so on this page you paint ONLY what lives in the place - this replaces "paint the whole scene":
+- each character, the tap target, and anything a character holds, wears, touches, rides or sets moving;
+- what the action does: splashes, flying leaves, dust puffs, motion ticks and trails;
+- a soft ground shadow under each of them, and a last few foreground ink strokes over their feet (grass tufts, a rug's fringe) so they sit IN the place rather than on it.
+Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Usually 80-200 elements, all of them spent on the characters.`;
+
 /** Turns a parent's description of a character - a few words, or a long,
  *  loosely ordered paragraph - into a clear design brief the character
  *  designer can work from. It only ever adds and organises; it never

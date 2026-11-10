@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { hasApiKey, paintPage, SlowPainter, StoryRefusal } from "@/server/claude";
+import { hasApiKey, paintPage, paintsInLayers, SlowPainter, StoryRefusal } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   // (for the activity log: what was asked, of which painter)
   const logged = (user: { id: string } | undefined, tier?: string) => ({
     kind: "painting" as const,
-    sub: `page ${(parsed.pageInPart ?? 0) + 1} of its part${parsed.quick ? ", quick painter" : ", main painter"}${parsed.retry ? ", second go" : ""}`,
+    sub: `page ${(parsed.pageInPart ?? 0) + 1} of its part${parsed.quick ? ", quick painter" : ", main painter"}${parsed.retry ? ", second go" : ""}${paintsInLayers(parsed) ? ", in layers" : ""}`,
     what: parsed.page.text,
     userId: user?.id ?? null,
     tier,
