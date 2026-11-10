@@ -11025,3 +11025,16 @@ button.reading-cell:focus-visible {
   letter-spacing: 0.08em;
   color: var(--ink-soft);
 }
+
+/* The foot of the home page: who makes Taleo, and the way to the story. */
+.home-maker {
+  margin: clamp(30px, 5vw, 48px) auto 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 1.05rem;
+}
+.home-maker a {
+  color: var(--russet);
+  white-space: nowrap;
+}

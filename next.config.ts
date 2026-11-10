@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The library's old address: a real permanent redirect (308), answered
+  // before any page is rendered, so search engines move the address over.
+  async redirects() {
+    return [{ source: "/library", destination: "/store", permanent: true }];
+  },
   async headers() {
     return [
       {

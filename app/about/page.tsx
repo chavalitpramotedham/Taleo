@@ -4,7 +4,8 @@ import { OG_IMAGE } from "@/lib/seo";
 import { OrnamentRule } from "@/components/Icons";
 
 export const metadata: Metadata = {
-  title: "About",
+  // (written out in full: "About" alone says nothing in search results)
+  title: { absolute: "About Taleo: by parents, for parents" },
   description: "Why a young dad built Taleo: both parents want to be there for their kids, and bedtime stories are one of the best ways to do it.",
   alternates: { canonical: "/about" },
   openGraph: {

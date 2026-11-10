@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-/** Old route name, kept so existing links/bookmarks still land somewhere. */
+/** "Library" in the site's menu is the Public Library: anyone typing or
+ *  following /library lands there (a permanent redirect, so search engines
+ *  pass it on too). */
 export default function LibraryRedirect() {
-  redirect("/my-stories");
+  permanentRedirect("/store");
 }

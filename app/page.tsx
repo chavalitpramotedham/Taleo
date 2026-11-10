@@ -164,6 +164,10 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       </section>
 
+      <p className="home-maker">
+        Taleo is made by a young dad, for parents like you. <Link href="/about">Why I made Taleo</Link>
+      </p>
+
       <FloatingBeginBar />
       {shared && <SharedStoryWelcome story={shared} />}
     </div>
