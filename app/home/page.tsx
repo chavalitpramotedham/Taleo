@@ -35,7 +35,7 @@ export default async function HomePage() {
   ];
   const stats = [
     // (each number said as what it gave the child, not what was produced)
-    { value: mine.length, label: mine.length === 1 ? "story made just for them" : "stories made just for them" },
+    { value: mine.length, label: mine.length === 1 ? "story created just for them" : "stories created just for them" },
     // every page teaches one new word (the tappable word on each page)
     { value: pages, label: pages === 1 ? "new word discovered together" : "new words discovered together" },
     { value: minutes, label: minutes === 1 ? "minute of story time together" : "minutes of story time together" },
