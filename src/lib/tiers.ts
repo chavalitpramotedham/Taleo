@@ -15,8 +15,13 @@ export interface Allowance {
 }
 
 export interface TierLimits {
-  /** New stories that may be begun (null: no limit). */
+  /** New stories (null: no limit). A story counts once its first choice
+   *  is made - one begun and dropped before that doesn't. */
   stories: Allowance | null;
+  /** How many stories may be begun and dropped before their first choice
+   *  (a change of mind about the theme, say), on top of the stories
+   *  themselves and over the same stretch of time. */
+  changesOfMind: number;
   /** Custom characters that can be kept. */
   characters: number | null;
   /** Character designs and redraws (each one is paid AI work). */
@@ -54,6 +59,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     blurb: "Everything you need for a story at bedtime.",
     limits: {
       stories: { count: 1, hours: 24 },
+      changesOfMind: 3,
       characters: 3,
       designs: { count: 12, hours: 24 },
       quickPages: 2,
@@ -65,7 +71,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "admin",
     name: "Admin",
     blurb: "Unlimited everything, and the keys to the admin dashboard.",
-    limits: { stories: null, characters: null, designs: null, quickPages: 1, burst: null, verified: false },
+    limits: { stories: null, changesOfMind: 0, characters: null, designs: null, quickPages: 1, burst: null, verified: false },
     extras: [{ label: "Admin dashboard", value: "Full access" }],
   },
 };
@@ -96,7 +102,7 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
-  { label: "New stories", value: allowanceText(t.limits.stories) },
+  { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
   { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved` },
   { label: "Reading the Public Library", value: "Unlimited" },
   { label: "Saving others' stories", value: "Unlimited" },
@@ -107,7 +113,9 @@ export const tierRows = (t: TierInfo): TierRow[] => [
 export const tierCaps = (t: TierInfo): TierRow[] => {
   const b = t.limits.burst;
   const cap = (n: number | undefined, what = "") => (b && n !== undefined ? `Up to ${n}${what} per ${b.minutes} min` : "Unlimited");
+  const s = t.limits.stories;
   return [
+    { label: "Stories begun, then dropped before the first choice", value: s ? `Up to ${allowanceText({ count: t.limits.changesOfMind, hours: s.hours })}` : "Unlimited" },
     { label: "Story pages written", value: cap(b?.segment, " parts") },
     { label: "Pages painted", value: cap(b?.illustrate) },
     { label: "Character designs and redraws", value: t.limits.designs ? `Up to ${allowanceText(t.limits.designs)}` : "Unlimited" },

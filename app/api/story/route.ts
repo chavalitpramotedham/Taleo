@@ -5,8 +5,8 @@ import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
-import { guard, limitMessage, peekLimit } from "@/server/limits";
-import { limitsFor } from "@/lib/tiers";
+import { guard, limitMessage, peekStart } from "@/server/limits";
+import { limitsFor, tierFor } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
@@ -20,11 +20,15 @@ export const maxDuration = 120;
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
-  const { ok, retryAfterSec } = await peekLimit(session.user, "story");
+  const { ok, retryAfterSec, limited, left } = await peekStart(session.user);
   return NextResponse.json({
     canStart: ok,
     retryAfterSec,
-    error: ok ? undefined : limitMessage(session.user, "story", retryAfterSec),
+    limited: ok ? undefined : limited,
+    startsLeft: left,
+    windowHours: tierFor(session.user).limits.stories?.hours,
+    plan: tierFor(session.user).name,
+    error: ok ? undefined : limitMessage(session.user, limited, retryAfterSec),
   });
 }
 
@@ -33,16 +37,25 @@ export async function POST(req: Request) {
   const parsed = parseStoryRequest(raw);
   if (!parsed) return NextResponse.json({ error: "That story request looks incomplete." }, { status: 400 });
 
-  // A new story uses the plan's story allowance; continuing one already
-  // started uses the (generous) segment cap - provided it really is a story
-  // this account began: the request must carry the ticket the server gave
-  // out with the part before. Anything else that calls itself a
-  // continuation is counted as what it is, a new story.
+  // A story counts toward the plan at its first choice, not when it's
+  // begun (see server/limits):
+  //   beginning one     needs a story still left on the plan, and uses one
+  //                     of the plan's beginnings
+  //   the first choice  uses the story itself - once: asking again for the
+  //                     same choice (a retry, another device) is free
+  //   later choices     use the (generous) segment cap
+  // ...provided it really is a story this account began: the request must
+  // carry the ticket the server gave out with the part before. Anything
+  // else that calls itself a continuation is counted as what it is, a new
+  // story.
   const g = await guard((session) => {
-    if (parsed.kind === "start") return "story";
-    if (!limitsFor(session.user).verified || storyTicketIsValid(session.user.id, parsed.story, raw?.ticket)) return "segment";
+    if (parsed.kind === "start") return { bucket: "start", needs: "story" };
+    const user = session.user;
+    if (!limitsFor(user).verified) return "segment";
     // (for a short while, stories begun before tickets existed carry on)
-    return inLegacyGrace() ? "segment" : "story";
+    const genuine = storyTicketIsValid(user.id, parsed.story, raw?.ticket) || inLegacyGrace();
+    if (!genuine) return "story";
+    return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story) } : "segment";
   });
   if (!g.ok) return g.response;
   const userId = g.session.user.id;
