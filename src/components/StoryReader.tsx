@@ -604,10 +604,15 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     const dx = e.changedTouches[0].clientX - start.x;
     const dy = e.changedTouches[0].clientY - start.y;
     const fast = Date.now() - start.t < 300;
-    // A light flick (24px quick, 38px slow) turns the page; it just needs
-    // to be more sideways than up-and-down.
-    if (Math.abs(dx) < (fast ? 24 : 38) || Math.abs(dx) < Math.abs(dy) * 1.25) return;
-    go(dx < 0 ? 1 : -1);
+    // A light flick (24px quick, 38px slow) turns the page forward; it
+    // just needs to be more sideways than up-and-down. Going back takes a
+    // deliberate drag - about three times as far, and clearly level - so
+    // a thumb drifting across the page (or a child's hand) doesn't lose
+    // the reader's place.
+    const back = dx > 0;
+    const need = back ? (fast ? 72 : 110) : fast ? 24 : 38;
+    if (Math.abs(dx) < need || Math.abs(dx) < Math.abs(dy) * (back ? 2 : 1.25)) return;
+    go(back ? -1 : 1);
   };
 
 
