@@ -24,6 +24,31 @@ function playThroughSilentSwitch() {
   } catch {}
 }
 let keepAlive: HTMLAudioElement | null = null;
+/** One real second of silence (8 kHz, 8-bit mono). It has to have sound
+ *  data in it: a clip with none, set to loop, ends the instant it starts
+ *  and restarts forever, which can freeze the page. */
+function silentWav() {
+  const rate = 8000;
+  const bytes = new Uint8Array(44 + rate);
+  const view = new DataView(bytes.buffer);
+  const tag = (at: number, text: string) => [...text].forEach((ch, i) => view.setUint8(at + i, ch.charCodeAt(0)));
+  tag(0, "RIFF");
+  view.setUint32(4, 36 + rate, true);
+  tag(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, rate, true);
+  view.setUint32(28, rate, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true);
+  tag(36, "data");
+  view.setUint32(40, rate, true);
+  bytes.fill(128, 44); // 8-bit silence sits at the midpoint
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return "data:audio/wav;base64," + btoa(binary);
+}
 function startSilentMedia() {
   if (keepAlive || typeof document === "undefined") return;
   // (only needed where the audio session can't be set directly)
@@ -40,9 +65,7 @@ function startSilentMedia() {
     keepAlive.preload = "auto";
     keepAlive.muted = false;
     keepAlive.volume = 0.01;
-    // a quarter-second of silence
-    keepAlive.src =
-      "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    keepAlive.src = silentWav();
     void keepAlive.play().catch(() => {
       keepAlive = null;
     });
