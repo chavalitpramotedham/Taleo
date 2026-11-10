@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { noteCall } from "./genlog";
 
 /**
  * Product metrics for the admin dashboard: what was made (stories, pages,
@@ -18,9 +19,9 @@ const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL |
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
 export const metricsEnabled = () => Boolean(URL_ && TOKEN);
 
-type Cmd = (string | number)[];
+export type Cmd = (string | number)[];
 
-async function pipeline(cmds: Cmd[]): Promise<unknown[]> {
+export async function pipeline(cmds: Cmd[]): Promise<unknown[]> {
   if (!metricsEnabled() || cmds.length === 0) return [];
   const res = await fetch(`${URL_.replace(/\/$/, "")}/pipeline`, {
     method: "POST",
@@ -123,26 +124,90 @@ export function recordAi(feature: AiFeature, model: string, u: TokenUsage) {
   fire(cmds);
 }
 
+/** What's known about a model request before it's sent (for the activity
+ *  log: which painter, how hard it was asked to think). */
+export interface CallAbout {
+  label?: string;
+  effort?: string;
+  thinking?: string;
+}
+
+interface SeenEvent {
+  type: string;
+  message?: { id?: string; model?: string; usage?: TokenUsage };
+  usage?: TokenUsage;
+  delta?: { type?: string; stop_reason?: string | null };
+}
+
 /** Tracks a streamed reply's token use as events arrive, so it's recorded
  *  even if the stream is stopped part-way (the reader left): what was
- *  generated up to then is still billed. */
-export function streamUsageTracker(feature: AiFeature, fallbackModel: string) {
+ *  generated up to then is still billed. It also times the request (taken
+ *  up, first words, done) and notes how it ended, for the activity log. */
+export function streamUsageTracker(feature: AiFeature, fallbackModel: string, about: CallAbout = {}) {
   let model = fallbackModel;
   const u: TokenUsage = {};
   let done = false;
+  const began = Date.now();
+  let acceptedMs: number | undefined;
+  let firstMs: number | undefined;
+  let stop: string | undefined;
+  let messageId: string | undefined;
+  let error: string | undefined;
+  let http: number | undefined;
+  let requestId: string | undefined;
   return {
-    see(event: { type: string; message?: { model?: string; usage?: TokenUsage }; usage?: TokenUsage }) {
+    see(event: SeenEvent) {
       if (event.type === "message_start" && event.message) {
+        acceptedMs ??= Date.now() - began;
         if (event.message.model) model = event.message.model;
+        if (event.message.id) messageId = event.message.id;
         Object.assign(u, event.message.usage ?? {});
-      } else if (event.type === "message_delta" && event.usage) {
-        for (const [k, v] of Object.entries(event.usage)) if (typeof v === "number") (u as Record<string, number>)[k] = v;
+      } else if (event.type === "message_delta") {
+        if (event.delta?.stop_reason) stop = event.delta.stop_reason;
+        for (const [k, v] of Object.entries(event.usage ?? {})) if (typeof v === "number") (u as Record<string, number>)[k] = v;
+      } else if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
+        firstMs ??= Date.now() - began;
       }
+    },
+    /** A reply that came whole, not streamed. */
+    whole(message: { id?: string; model?: string; stop_reason?: string | null; usage?: TokenUsage }) {
+      this.see({ type: "message_start", message });
+      this.see({ type: "message_delta", delta: { stop_reason: message.stop_reason }, usage: message.usage });
+      firstMs ??= Date.now() - began;
+      this.finish();
+    },
+    /** How the request went wrong (or why it was given up on). */
+    fail(err: unknown, why?: string) {
+      const e = err as { name?: string; message?: string; status?: number; requestID?: string | null } | null;
+      error = (why || `${e?.name ?? "Error"}: ${e?.message ?? String(err)}`).slice(0, 400);
+      if (typeof e?.status === "number") http = e.status;
+      if (typeof e?.requestID === "string") requestId = e.requestID;
     },
     finish() {
       if (done) return;
       done = true;
       if (u.input_tokens || u.output_tokens) recordAi(feature, model, u);
+      noteCall({
+        label: about.label ?? feature,
+        asked: fallbackModel,
+        model,
+        effort: about.effort,
+        thinking: about.thinking,
+        at: began,
+        acceptedMs,
+        firstMs,
+        totalMs: Date.now() - began,
+        stop,
+        error,
+        http,
+        requestId,
+        messageId,
+        in: u.input_tokens ?? 0,
+        out: u.output_tokens ?? 0,
+        cacheRead: u.cache_read_input_tokens ?? 0,
+        cacheWrite: u.cache_creation_input_tokens ?? 0,
+        usdMicro: estimateMicroUsd(model, u),
+      });
     },
   };
 }

@@ -6844,6 +6844,121 @@ html[data-night] .admin-change.bad,
 html[data-night] .admin-spark.bad {
   color: #e08a6c;
 }
+/* The activity log (/admin/activity): long tables that scroll sideways on
+   a narrow screen rather than squeeze, and what was asked / made in full. */
+.admin-crumbs {
+  margin: 0 0 4px;
+}
+.admin-crumbs a,
+.admin-filters a,
+.admin-more a,
+.admin-table a {
+  color: var(--russet);
+}
+.admin-tile-label a {
+  color: inherit;
+}
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  margin: 14px 0 0;
+}
+.admin-filters .admin-filter-on {
+  color: var(--ink);
+  font-weight: 700;
+}
+.admin-live {
+  margin: 8px 0 0;
+}
+.admin-live input {
+  accent-color: var(--russet);
+  margin-right: 4px;
+}
+.admin-more {
+  margin: 10px 0 0;
+}
+.admin-count {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+}
+.admin-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-log {
+  min-width: 720px;
+}
+.admin-log th,
+.admin-log td {
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+.admin-log tbody th:first-child,
+.admin-log thead th:first-child {
+  padding-left: 4px;
+}
+.admin-table .admin-left {
+  text-align: left;
+}
+.admin-log .admin-what {
+  white-space: normal;
+  min-width: 220px;
+  max-width: 420px;
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+}
+.admin-what b {
+  font-weight: 400;
+  color: var(--ink);
+}
+.admin-log .admin-model {
+  white-space: normal;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.admin-error {
+  color: #b5533a;
+}
+.admin-dim {
+  color: var(--ink-faint, var(--ink-soft));
+  font-size: 0.85rem;
+}
+.admin-facts td {
+  overflow-wrap: anywhere;
+}
+.admin-facts th {
+  width: 42%;
+}
+.admin-pre {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 4%, var(--page));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 460px;
+  overflow: auto;
+}
+.admin-picture {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: #fbf6ea;
+  margin: 0 0 12px;
+}
+html[data-night] .admin-error {
+  color: #e08a6c;
+}
 
 /* ---------- the picture always in full view ---------- */
 /* Tall screens (phones, portrait tablets): the picture takes the full

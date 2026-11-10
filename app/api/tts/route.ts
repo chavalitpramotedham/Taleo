@@ -4,6 +4,8 @@ import { auth } from "@/server/auth";
 import { guard } from "@/server/limits";
 import { count } from "@/server/metrics";
 import { getGalleryStory } from "@/server/gallery";
+import { beginGen } from "@/server/genlog";
+import { tierFor } from "@/lib/tiers";
 
 export const runtime = "nodejs";
 
@@ -55,6 +57,30 @@ export async function GET(req: Request) {
   // the reader's chosen voice (OpenAI's built-in ones), or the default
   const picked = chosenVoice(url.searchParams.get("v"));
 
+  // A new clip, made and logged (clips served from the cache aren't: they
+  // cost nothing and there'd be one line for every page turned).
+  const make = async (user: { id: string } | null, tier?: string) => {
+    const gen = beginGen({
+      kind: "voice",
+      sub: `${kind === "word" ? "a word" : "a page"} read aloud${user ? "" : " (signed-out reader of a published story)"}`,
+      what: text,
+      userId: user?.id ?? null,
+      tier,
+      storyId: url.searchParams.get("s") || undefined,
+      req,
+      request: { text, kind, voice: picked },
+    });
+    try {
+      const clip = await speechClip(text, kind, picked);
+      gen.sent(clip.length);
+      await gen.end("ok", { summary: `${text.length} characters spoken, ${Math.round(clip.length / 1024)} KB of sound` });
+      return clip;
+    } catch (e) {
+      await gen.end("error", { error: e });
+      throw e;
+    }
+  };
+
   try {
     const existing = await cachedClip(text, kind, picked);
     if (existing) {
@@ -67,7 +93,7 @@ export async function GET(req: Request) {
       const g = await guard("tts");
       if (!g.ok) return g.response;
       try {
-        const clip = await speechClip(text, kind, picked);
+        const clip = await make(g.session.user, tierFor(g.session.user).name);
         count({ tts_clips: 1, tts_chars: text.length });
         return audio(clip);
       } catch (e) {
@@ -82,7 +108,7 @@ export async function GET(req: Request) {
     if (!allowed?.has(norm(text))) {
       return NextResponse.json({ error: "Sign in to hear this read aloud." }, { status: 401 });
     }
-    const clip = await speechClip(text, kind, picked);
+    const clip = await make(null);
     count({ tts_clips: 1, tts_chars: text.length });
     return audio(clip);
   } catch (e) {

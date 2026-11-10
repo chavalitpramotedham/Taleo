@@ -1,10 +1,12 @@
 import { after, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { designCharacter, hasApiKey } from "@/server/claude";
+import { designCharacter, hasApiKey, StoryRefusal } from "@/server/claude";
 import { mockCharacter } from "@/server/mock";
 import { errorResponse } from "@/server/errors";
 import { guard } from "@/server/limits";
 import { count, withMetricsUser } from "@/server/metrics";
+import { beginGen, logDenied } from "@/server/genlog";
+import { tierFor } from "@/lib/tiers";
 import { cancelJob, findJob, jobStatus, listen, startJob, validJobId, type JobEvent } from "@/server/character-jobs";
 
 export const runtime = "nodejs";
@@ -83,12 +85,38 @@ export async function POST(req: Request) {
   }
 
   const g = await guard("character");
-  if (!g.ok) return g.response;
+  // (for the activity log: what was asked)
+  const logged = (user: { id: string } | undefined, tier?: string) => ({
+    kind: "character" as const,
+    sub: current ? "a saved character painted again" : "a new character",
+    what: `${name ? `${name}: ` : ""}${description}`,
+    userId: user?.id ?? null,
+    tier,
+    req,
+    request: { description, name, current, jobId },
+    mock: !hasApiKey(),
+  });
+  if (!g.ok) {
+    await logDenied(logged((await auth())?.user), g.response);
+    return g.response;
+  }
   const userId = g.session.user.id;
+  const gen = beginGen(logged(g.session.user, tierFor(g.session.user).name));
+
   const job = startJob(
     jobId,
     userId,
-    async (onProgress, signal) => {
+    (report, signal) => gen.run(async () => {
+      // (the first headway the waiting screen shows is "first seen")
+      const onProgress: typeof report = (p) => {
+        gen.sent(0);
+        report(p);
+      };
+      const finished = async (made: Awaited<ReturnType<typeof designCharacter>>) => {
+        await gen.end("ok", { summary: `${made.character.name}: ${made.character.look ?? ""}`, result: JSON.stringify(made, null, 1) });
+        return made;
+      };
+      try {
       if (!hasApiKey()) {
         // Test mode: walk through the same stages, a little faster.
         const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -102,13 +130,19 @@ export async function POST(req: Request) {
           onProgress({ stage: "painting", shapes: n });
           await wait(120 * slow);
         }
-        return mockCharacter({ description, name });
+        return await finished(mockCharacter({ description, name }));
       }
       const made = await withMetricsUser(userId, () => designCharacter({ description, name, current }, onProgress, signal));
       withMetricsUser(userId, () => count({ characters: 1 }));
-      return made;
-    },
+      return await finished(made);
+      } catch (err) {
+        // (a painting the parent stopped isn't a failure)
+        if (signal.aborted) await gen.end("left", { error: "Stopped by the parent before it finished." });
+        throw err;
+      }
+    }),
     async (err) => {
+      await gen.end(err instanceof StoryRefusal ? "refused" : "error", { error: err });
       await g.release();
       const res = await errorResponse(err);
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -118,6 +152,7 @@ export async function POST(req: Request) {
   // Keep the server working until the painting is finished and handed
   // over (or put away for later), even if the page has gone.
   after(() => job.finished);
+  after(() => gen.done);
   return streamOf((send) => listen(job, send), req.signal);
 }
 

@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { hasApiKey, paintPage, SlowPainter, StoryRefusal } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
 import { guard } from "@/server/limits";
-import { limitsFor } from "@/lib/tiers";
+import { limitsFor, tierFor } from "@/lib/tiers";
 import { inLegacyGrace, pageIsSigned } from "@/server/tickets";
 import { getGalleryStory } from "@/server/gallery";
 import { allPages } from "@/lib/story-utils";
 import { count, withMetricsUser } from "@/server/metrics";
+import { auth } from "@/server/auth";
+import { beginGen, logDenied } from "@/server/genlog";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -35,7 +37,22 @@ export async function POST(req: Request) {
     if (inLegacyGrace()) return "illustrate";
     return NextResponse.json({ error: "That page can't be painted." }, { status: 403 });
   });
-  if (!g.ok) return g.response;
+  // (for the activity log: what was asked, of which painter)
+  const logged = (user: { id: string } | undefined, tier?: string) => ({
+    kind: "painting" as const,
+    sub: `page ${(parsed.pageInPart ?? 0) + 1} of its part${parsed.quick ? ", quick painter" : ", main painter"}${parsed.retry ? ", second go" : ""}`,
+    what: parsed.page.text,
+    userId: user?.id ?? null,
+    tier,
+    storyId: parsed.storyId,
+    req,
+    request: parsed,
+    mock: !hasApiKey(),
+  });
+  if (!g.ok) {
+    await logDenied(logged((await auth())?.user), g.response);
+    return g.response;
+  }
   // The quick painter takes the pages a reader waits on at the start of each
   // part (the story's beginning, and after every decision) - how many is
   // set by the plan; the rest get the main painter.
@@ -51,43 +68,63 @@ export async function POST(req: Request) {
   const stop = new AbortController();
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
-  const body = withMetricsUser(g.session.user.id, () => new ReadableStream<Uint8Array>({
+  const gen = beginGen(logged(g.session.user, tierFor(g.session.user).name));
+  let svg = "";
+  const body = withMetricsUser(g.session.user.id, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
       stop.abort();
     },
     async start(controller) {
       const send = (s: string) => {
-        if (!stop.signal.aborted) controller.enqueue(encoder.encode(s));
+        if (stop.signal.aborted) return;
+        controller.enqueue(encoder.encode(s));
+        gen.sent(s.length);
       };
+      const paint = (s: string) => {
+        svg += s;
+        send(s);
+      };
+      const shapes = () => `${(svg.match(/<(path|circle|ellipse|rect|polygon|polyline|line)\b/g) || []).length} shapes`;
       try {
         if (!hasApiKey()) {
           // Demo mode: compose the picture and "paint" it in a few strokes.
-          const svg = composePainting(parsed.page, parsed.cast);
-          const chunks = svg.split(/(?=<g )/);
+          const chunks = composePainting(parsed.page, parsed.cast).split(/(?=<g )/);
           for (const c of chunks) {
-            send(c);
+            paint(c);
             await new Promise((r) => setTimeout(r, 220));
           }
         } else {
-          for await (const delta of paintPage(parsed, stop.signal)) send(delta);
+          for await (const delta of paintPage(parsed, stop.signal)) paint(delta);
         }
+        const left = stop.signal.aborted;
         send("\n<!--taleo:done-->");
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
+        // (a reader who left got no picture, whatever was painted)
+        await gen.end(left ? "left" : "ok", { summary: left ? `${shapes()} painted before the reader left` : shapes(), result: svg });
       } catch (err) {
         // (a painter too slow to begin isn't a failure to report: the page
         // is asked for again at once and the quick painter takes it)
         const slow = err instanceof SlowPainter;
         if (!stop.signal.aborted) count(slow ? { paintings_slow: 1 } : { paintings_failed: 1 });
         console.error("illustration failed", err);
-        if (!stop.signal.aborted && !slow && !(err instanceof StoryRefusal)) await reportError("painting", err);
+        const left = stop.signal.aborted;
+        if (!left && !slow && !(err instanceof StoryRefusal)) await reportError("painting", err);
         send("\n<!--taleo:error-->");
+        await gen.end(left ? "left" : slow ? "slow" : err instanceof StoryRefusal ? "refused" : "error", {
+          error: left ? "The reader left (or their page gave up waiting) before it finished." : err,
+          summary: `${shapes()} painted`,
+          result: svg || undefined,
+        });
       } finally {
+        await gen.end("error", { error: "Ended without an answer." });
         try {
           controller.close();
         } catch {}
       }
     },
-  }));
+  })));
+  // (the log's last line is written even if the reader has gone)
+  after(() => gen.done);
 
   return new Response(body, {
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },

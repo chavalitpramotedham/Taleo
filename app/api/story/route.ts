@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { hasApiKey, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { errorResponse } from "@/server/errors";
@@ -10,6 +10,7 @@ import { limitsFor, tierFor } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
+import { beginGen, logDenied } from "@/server/genlog";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -57,8 +58,25 @@ export async function POST(req: Request) {
     if (!genuine) return "story";
     return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story) } : "segment";
   });
-  if (!g.ok) return g.response;
+  // (for the activity log: what was asked)
+  const chosen = parsed.kind === "start" ? null : parsed.story.segments[parsed.story.segments.length - 1]?.chosen;
+  const logged = (user: { id: string } | undefined, tier?: string) => ({
+    kind: "story" as const,
+    sub: parsed.kind === "start" ? "a new story" : `part ${parsed.story.segments.length + 1}`,
+    what: parsed.kind === "start" ? `${parsed.theme} (age ${parsed.age}, ${parsed.minutes} minutes)` : `after choosing: ${chosen?.text ?? "(nothing)"}${chosen?.custom ? " (their own idea)" : ""}`,
+    userId: user?.id ?? null,
+    tier,
+    storyId: parsed.kind === "start" ? undefined : (parsed.story as { id?: string }).id,
+    req,
+    request: parsed,
+    mock: !hasApiKey(),
+  });
+  if (!g.ok) {
+    await logDenied(logged((await auth())?.user), g.response);
+    return g.response;
+  }
   const userId = g.session.user.id;
+  const gen = beginGen(logged(g.session.user, tierFor(g.session.user).name));
   // Everything sent out is signed for this account: each page (to be
   // painted and published later), and the story so far (to ask for the
   // next part).
@@ -83,14 +101,25 @@ export async function POST(req: Request) {
   const stop = new AbortController();
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
-  const body = withMetricsUser(userId, () => new ReadableStream<Uint8Array>({
+  const body = withMetricsUser(userId, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
       stop.abort();
     },
     async start(controller) {
+      const made: { v: { summary: string; result: string } | null } = { v: null };
       const send = (event: SegmentEvent | { type: "error"; error: string }) => {
-        if (!stop.signal.aborted) controller.enqueue(encoder.encode(JSON.stringify(event.type === "error" ? event : stamp(event)) + "\n"));
+        if (stop.signal.aborted) return;
+        const line = JSON.stringify(event.type === "error" ? event : stamp(event)) + "\n";
+        controller.enqueue(encoder.encode(line));
+        // (the title alone isn't the story: "first seen" is the first page)
+        if (event.type !== "title") gen.sent(line.length);
+        if (event.type === "done") {
+          const r = event.response;
+          const words = r.segment.pages.reduce((n, p) => n + p.text.split(/\s+/).filter(Boolean).length, 0);
+          made.v = { summary: `${r.segment.pages.length} pages, ${words} words${r.ending ? ", the ending" : r.segment.choice ? ", then a choice" : ""}`, result: JSON.stringify(r, null, 1) };
+        }
       };
+
       try {
         if (!hasApiKey()) {
           // Demo mode: the templated storyteller, "written" page by page.
@@ -119,18 +148,25 @@ export async function POST(req: Request) {
             }
           }
         }
+        if (stop.signal.aborted) await gen.end("left", { error: "The reader left before it was written." });
+        else if (made.v) await gen.end("ok", made.v);
       } catch (err) {
         if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("story writing", err, { kind: parsed.kind });
         await g.release(); // a story that failed to write doesn't count
         const data = (await errorResponse(err).json().catch(() => ({}))) as { error?: string };
+        const left = stop.signal.aborted;
         send({ type: "error", error: data.error || "The story got stuck. Let's try again!" });
+        await gen.end(left ? "left" : err instanceof StoryRefusal ? "refused" : "error", { error: left ? "The reader left before it was written." : err });
       } finally {
+        await gen.end("error", { error: "Ended without an answer." });
         try {
           controller.close();
         } catch {}
       }
     },
-  }));
+  })));
+  // (the log's last line is written even if the reader has gone)
+  after(() => gen.done);
   return new Response(body, {
     headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
   });

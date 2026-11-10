@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { recordAi, streamUsageTracker, type AiFeature } from "./metrics";
+import { streamUsageTracker, type AiFeature } from "./metrics";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 import { ageById, lengthProfile } from "@/lib/ages";
@@ -77,16 +77,23 @@ async function ask<T extends z.ZodType>(
   effort: Effort = STORY_EFFORT,
   feature: AiFeature = "story",
 ): Promise<z.infer<T>> {
-  const response = await getClient().beta.messages.parse({
-    model: STORY_MODEL,
-    max_tokens: maxTokens,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: user }],
-    output_config: { effort, format: betaZodOutputFormat(schema) },
-  });
-  recordAi(feature, response.model, response.usage);
+  const usage = streamUsageTracker(feature, STORY_MODEL, { effort });
+  const response = await getClient()
+    .beta.messages.parse({
+      model: STORY_MODEL,
+      max_tokens: maxTokens,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: user }],
+      output_config: { effort, format: betaZodOutputFormat(schema) },
+    })
+    .catch((err) => {
+      usage.fail(err);
+      usage.finish();
+      throw err;
+    });
+  usage.whole(response);
   if (response.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (response.stop_reason === "max_tokens" || !response.parsed_output) {
     throw new Error("The story came out jumbled. Please try again.");
@@ -261,7 +268,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   let text = "";
   let sent = 0;
   let titleSent = false;
-  const usage = streamUsageTracker("story", STORY_MODEL);
+  const usage = streamUsageTracker("story", STORY_MODEL, { label: "storyteller", effort: STORY_EFFORT });
   try {
   for await (const event of stream) {
     usage.see(event);
@@ -307,6 +314,9 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
     }
   }
 
+  } catch (err) {
+    usage.fail(err, signal?.aborted ? "The reader left." : undefined);
+    throw err;
   } finally {
     usage.finish();
   }
@@ -449,7 +459,11 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
               go.abort();
             }, FIRST_STROKE_MS)
           : undefined;
-      const usage = streamUsageTracker("painting", model);
+      const usage = streamUsageTracker("painting", model, {
+        label: req.quick ? "quick painter" : "main painter",
+        effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT,
+        thinking: unthinking ? "off (between tools only)" : "the model's own",
+      });
       try {
         const stream = getClient().beta.messages.stream(
           {
@@ -484,6 +498,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
         if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
         return;
       } catch (err) {
+        usage.fail(err, signal?.aborted ? "The reader left (or their page gave up waiting)." : late ? `No first stroke after ${FIRST_STROKE_MS / 1000}s: given up on.` : undefined);
         if (late && !signal?.aborted) throw new SlowPainter(`No first stroke from ${model} after ${FIRST_STROKE_MS / 1000}s.`);
         // (should the thinking-off setting ever be turned away, paint the
         // page the ordinary way rather than not at all)
@@ -531,7 +546,7 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
     messages: [{ role: "user", content: user }],
     output_config: { effort: CHARACTER_EFFORT, format: betaZodOutputFormat(CharacterDesignSchema) },
   }, { signal });
-  const usage = streamUsageTracker("character", CHARACTER_MODEL);
+  const usage = streamUsageTracker("character", CHARACTER_MODEL, { label: "character designer", effort: CHARACTER_EFFORT });
   let text = "";
   let stage: CharacterProgress["stage"] | null = null;
   let shapes = 0;
@@ -559,6 +574,9 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
         onProgress?.({ stage: "painting", shapes });
       }
     }
+  } catch (err) {
+    usage.fail(err, signal?.aborted ? "Stopped by the parent." : undefined);
+    throw err;
   } finally {
     usage.finish();
   }
@@ -584,6 +602,7 @@ async function characterBrief(req: CharacterRequest): Promise<string | null> {
   ]
     .filter(Boolean)
     .join("\n");
+  const usage = streamUsageTracker("character", BRIEF_MODEL, { label: "art director's brief", effort: "low" });
   try {
     const res = await getClient().beta.messages.create({
       model: BRIEF_MODEL,
@@ -592,11 +611,13 @@ async function characterBrief(req: CharacterRequest): Promise<string | null> {
       messages: [{ role: "user", content: about }],
       output_config: { effort: "low" },
     });
-    recordAi("character", BRIEF_MODEL, res.usage);
+    usage.whole(res);
     const text = res.content.find((b) => b.type === "text");
     const brief = text && text.type === "text" ? text.text.trim() : "";
     return brief.length > 40 ? brief.slice(0, 2500) : null;
   } catch (err) {
+    usage.fail(err);
+    usage.finish();
     console.error("[character] brief failed - designing from the parent's words", err);
     return null;
   }

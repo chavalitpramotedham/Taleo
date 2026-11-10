@@ -99,6 +99,10 @@ export default async function AdminPage() {
         <p className="sub">The last {DAYS} days, unless it says otherwise. Updated each time you open it.</p>
       </header>
 
+      <p className="meta admin-crumbs">
+        <a href="/admin/activity">Activity, request by request</a>: what each reader asked for, how long they waited, and what went wrong.
+      </p>
+
       {!metricsEnabled() && (
         <p className="admin-note">
           <b>Activity and token tracking is off.</b> Add Upstash Redis to the project (Vercel → Storage → Marketplace → Upstash for Redis, connected to <i>taleo</i>) and redeploy. Stories, paintings, words, tokens and cost per feature are recorded from then on.
@@ -249,6 +253,9 @@ export default async function AdminPage() {
         <section className="admin-section">
           <h2>Elsewhere</h2>
           <ul className="admin-links">
+            <li>
+              <a href="/admin/activity">Activity</a>: every story, painting, character and voice clip as it was asked for - which model answered, how long the reader waited, and what went wrong. Search by email or handle.
+            </li>
             <li>
               <a href="https://vercel.com/dashboard" target="_blank" rel="noreferrer">Vercel</a>: visitors and page views (Analytics), speed (Speed Insights), hosting and storage usage and bills.
             </li>

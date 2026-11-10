@@ -40,6 +40,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   // could no longer be saved, and cancelling stops the paid work at once.
   const retried = useRef(new Set<string>());
   const life = useRef<AbortController | null>(null);
+  /** When each unpainted page was first seen waiting, so the server's log
+   *  can say how long a picture queued here before it was even asked for. */
+  const seenAt = useRef(new Map<string, number>());
   useEffect(() => {
     life.current = new AbortController();
     return () => life.current?.abort();
@@ -74,7 +77,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         const res = await fetch("/api/illustrate", {
           signal: attempt.signal,
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", "x-taleo-waited": String(Math.max(0, Date.now() - (seenAt.current.get(key) ?? Date.now()))) },
           body: JSON.stringify({
             world: s.world,
             cast: castFor(s, page),
@@ -153,8 +156,12 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
     story.segments.forEach((sg, si) =>
       sg.pages.forEach((p, pi) => {
         const key = pageKey(si, pi);
-        if (p.svg) painted.current.delete(key);
-        else if (!failed[key] && !gaveUp.current.has(key) && !painted.current.has(key) && !inflight.current.has(key)) pending.push({ seg: si, idx: pi, key });
+        if (p.svg) {
+          painted.current.delete(key);
+          seenAt.current.delete(key);
+        } else if (!seenAt.current.has(key)) seenAt.current.set(key, Date.now());
+        if (p.svg) return;
+        if (!failed[key] && !gaveUp.current.has(key) && !painted.current.has(key) && !inflight.current.has(key)) pending.push({ seg: si, idx: pi, key });
       }),
     );
     if (!pending.length) return;
