@@ -237,11 +237,6 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       el.style.setProperty("--bar-y", `${top}px`);
       el.style.setProperty("--lamp-cord", `${cord}px`);
       el.style.setProperty("--lamp-y", `${top + cord + ((64 * w) / 28) * 0.65}px`);
-      // A second lantern hangs from the middle of the maple leaf in the
-      // Begin button, at the other end of the bar (none where there's no leaf).
-      const leaf = document.querySelector(".topbar .nav-begin-pill .maple-mark")?.getBoundingClientRect();
-      el.toggleAttribute("data-leaf", Boolean(leaf?.width));
-      if (leaf?.width) el.style.setProperty("--leaf-x", `${leaf.left + leaf.width / 2}px`);
     };
     // Re-measure whenever the menu could have moved - not just on window
     // resize but when the bar or its tools change size (the avatar or
@@ -250,7 +245,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     place();
     const ro = new ResizeObserver(place);
     // (and the page itself, so opening a story moves it)
-    ["html", "body", ".topbar", ".nav-row", ".nav-tools", ".topbar .nav-begin-pill"].forEach((q) => {
+    ["html", "body", ".topbar", ".nav-row", ".nav-tools"].forEach((q) => {
       const el = document.querySelector(q);
       if (el) ro.observe(el);
     });
@@ -272,8 +267,6 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
             <div className="night-glow-halo" />
             <div className="night-glow-core" />
             <div className="night-glow-shimmer" />
-            {/* the second lantern's own, smaller light */}
-            <div className="night-glow-leaf" />
           </div>
           {/* above its own light, so the light never washes it out */}
           <div className={`nav-lantern ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
@@ -288,14 +281,6 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
                   <span className="firefly-light" />
                 </span>
               </span>
-            </div>
-          </div>
-          {/* and a second one, under the maple leaf of the Begin button */}
-          <div className={`nav-lantern by-leaf ${leaving ? "leaving" : ""} ${settled ? "settled" : ""}`}>
-            <div className="nav-lantern-drop">
-              <div className="lantern-nudge" onClick={nudgeLantern}>
-                <LanternArt />
-              </div>
             </div>
           </div>
         </>

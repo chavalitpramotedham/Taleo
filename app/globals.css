@@ -5046,19 +5046,6 @@ html.theme-melting .topbar::before {
 .nav-lantern.leaving .nav-lantern-drop {
   animation: hangRise 0.42s cubic-bezier(0.55, 0, 0.8, 0.4) both;
 }
-/* The second lantern, under the maple leaf of the Begin button: the same
-   lantern on the same cord, hung from the leaf's middle and coming down a
-   moment after the first. Not there on a bar with no leaf. */
-.nav-lantern.by-leaf {
-  --lamp-x: var(--leaf-x, 15%);
-  display: none;
-}
-.night-ambience[data-leaf] .nav-lantern.by-leaf {
-  display: block;
-}
-.nav-lantern.by-leaf:not(.settled):not(.leaving) .nav-lantern-drop {
-  animation-delay: 0.4s;
-}
 /* One firefly loops lazily around the lantern's glass: two gentle
    back-and-forth sways (side to side, up and down) at slightly different
    speeds trace a slow, ever-changing loop. Transform and opacity only. */
@@ -5222,22 +5209,6 @@ html[data-night] .topbar {
     rgba(255, 200, 120, 0) 170px
   );
   animation: lanternShimmer 1.7s steps(1, end) infinite;
-}
-/* (the second lantern's light: a candle's core only - the room has one halo) */
-.night-glow > .night-glow-leaf {
-  display: none;
-  transform-origin: var(--leaf-x) var(--lamp-y);
-  background: radial-gradient(
-    circle at var(--leaf-x) var(--lamp-y),
-    rgba(255, 224, 150, 0.2) 0,
-    rgba(255, 204, 124, 0.12) 40px,
-    rgba(255, 188, 104, 0.05) 110px,
-    rgba(255, 180, 96, 0) 230px
-  );
-  animation: lanternBreathe 4.3s ease-in-out -1.3s infinite;
-}
-.night-ambience[data-leaf] .night-glow > .night-glow-leaf {
-  display: block;
 }
 @keyframes haloBreathe {
   0%,
