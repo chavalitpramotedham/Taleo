@@ -28,6 +28,11 @@ function startSilentMedia() {
   if (keepAlive || typeof document === "undefined") return;
   // (only needed where the audio session can't be set directly)
   if ((navigator as Navigator & { audioSession?: unknown }).audioSession) return;
+  // ...and only on iPhone/iPad: the silent switch is theirs. Elsewhere a
+  // looping media element is pointless, and Android can show it as
+  // something playing (media controls in the notification shade).
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!ios) return;
   try {
     keepAlive = document.createElement("audio");
     keepAlive.setAttribute("x-webkit-airplay", "deny");
