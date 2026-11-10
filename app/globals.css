@@ -10132,3 +10132,30 @@ html[data-night] .reading-cell.pre {
 html[data-night] .reading-cell.future {
   background: transparent;
 }
+
+/* A brand-new parent: how the first story comes together, in place of
+   three zeros (same tiles, a numbered step in each). */
+.home-steps .home-stat-value {
+  font-size: 1.15rem;
+  width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(176, 90, 52, 0.12);
+  color: var(--russet);
+  margin-bottom: 4px;
+}
+html[data-night] .home-steps .home-stat-value {
+  background: rgba(240, 170, 120, 0.16);
+  color: #f0b088;
+}
+.home-dash-head .sub {
+  margin-top: 10px;
+  max-width: 34rem;
+}
+.reading-streak-fresh {
+  font-family: var(--font-title);
+  letter-spacing: 0;
+  font-size: 1.3rem;
+}

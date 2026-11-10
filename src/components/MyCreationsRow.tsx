@@ -70,7 +70,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   if (mine.length === 0)
     return (
       <div className="empty creations-empty">
-        <p className="meta">Your finished stories will line up here.</p>
+        <p className="meta">Every story you make together lands on this shelf, ready to read again tomorrow night.</p>
         <Link className="btn btn-primary" href="/create">
           <MapleMark />
           Begin your first story

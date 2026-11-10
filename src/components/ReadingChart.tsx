@@ -80,10 +80,14 @@ export function ReadingChart() {
 
   // With a streak, it leads (and the total follows); without one, the
   // total leads, with a nudge to begin one tonight.
+  // Not a single story finished since joining: a beginning, not a zero.
+  const fresh = Boolean(days) && !total && sinceJoining;
   const primary = streak ? { num: streak, label: "day streak" } : { num: total, label: total === 1 ? "day read" : "days read" };
   const secondary = !days
     ? "\u00a0"
-    : streak
+    : fresh
+      ? "Finish a story together and today's square turns green - that's day one of your streak."
+      : streak
       ? `${daysRead} ${span}${readToday ? "" : " · finish a story tonight to keep it going"}`
       : `${total ? `${span[0].toUpperCase()}${span.slice(1)}. ` : ""}Finish a story together today to start a streak.`;
 
@@ -92,8 +96,14 @@ export function ReadingChart() {
       <div className="reading-chart-head">
         <p className={`reading-streak${streak ? " on" : ""}`}>
           {streak ? <FlameMark /> : null}
-          <span className="reading-streak-num">{days ? primary.num.toLocaleString() : "–"}</span>
-          <span className="reading-streak-label">{primary.label}</span>
+          {fresh ? (
+            <span className="reading-streak-label reading-streak-fresh">Your reading garden starts here</span>
+          ) : (
+            <>
+              <span className="reading-streak-num">{days ? primary.num.toLocaleString() : "–"}</span>
+              <span className="reading-streak-label">{primary.label}</span>
+            </>
+          )}
         </p>
         <p className="meta reading-chart-sub">{secondary}</p>
       </div>

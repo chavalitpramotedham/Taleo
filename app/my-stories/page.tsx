@@ -134,8 +134,8 @@ export default function MyStoriesPage() {
       {sorted.length === 0 ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
-          <h2>You haven&apos;t written one yet</h2>
-          <p className="meta">Finished stories you create live here.</p>
+          <h2>Your shelf is waiting for its first story</h2>
+          <p className="meta">Make one together tonight, and it&apos;ll live here to read again any time.</p>
           <Link className="btn btn-primary" href="/create">
             <MapleMark />
             Begin your first story

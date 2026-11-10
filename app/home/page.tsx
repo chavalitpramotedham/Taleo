@@ -25,6 +25,13 @@ export default async function HomePage() {
   const mine = all.filter((e) => e.authorId === session.user.id);
   const pages = mine.reduce((n, e) => n + (e.pages ?? 0), 0);
   const minutes = mine.reduce((n, e) => n + (e.minutes || ageById(e.age).recommendedMinutes), 0);
+  const isNew = mine.length === 0;
+  // Brand new: how a first story comes together, instead of three zeros.
+  const firstSteps = [
+    { value: 1, label: "Choose who it's for" },
+    { value: 2, label: "Pick a hero and an adventure" },
+    { value: 3, label: "Read it together tonight" },
+  ];
   const stats = [
     { value: mine.length, label: mine.length === 1 ? "story created" : "stories created" },
     // every page teaches one new word (the tappable word on each page)
@@ -40,15 +47,25 @@ export default async function HomePage() {
           {mine.length ? "Welcome back" : "Welcome"}
           {username ? `, @${username}` : ""}
         </p>
-        <h1>
-          Stories dreamt up at bedtime,
-          <br />
-          painted just for you
-        </h1>
+        {isNew ? (
+          <>
+            <h1>
+              Your first story is
+              <br />a few taps away
+            </h1>
+            <p className="sub">Tell us who it&apos;s for and what they love. Taleo writes it and paints every page.</p>
+          </>
+        ) : (
+          <h1>
+            Stories dreamt up at bedtime,
+            <br />
+            painted just for you
+          </h1>
+        )}
       </header>
 
-      <section className="home-stats" aria-label="Your stories so far">
-        {stats.map((s) => (
+      <section className={`home-stats${isNew ? " home-steps" : ""}`} aria-label={isNew ? "How your first story comes together" : "Your stories so far"}>
+        {(isNew ? firstSteps : stats).map((s) => (
           <div key={s.label} className="home-stat">
             <span className="home-stat-value">{s.value.toLocaleString()}</span>
             <span className="home-stat-label">{s.label}</span>
@@ -64,7 +81,7 @@ export default async function HomePage() {
       <div className="home-dash-begin desktop-only">
         <Link className="btn btn-primary hero-cta" href="/create">
           <MapleMark />
-          Begin a story
+          {isNew ? "Begin your first story" : "Begin a story"}
         </Link>
       </div>
 

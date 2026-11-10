@@ -43,10 +43,12 @@ export default function MyCharactersPage() {
         <p className="eyebrow">Just yours</p>
         <h1>My characters</h1>
         <p className="sub">
-          {Number.isFinite(limit)
+          {characters.length === 0
+            ? `Add your child, a sibling or a favourite toy, and they can star in any story you make.${Number.isFinite(limit) ? ` You have room for ${limit}.` : ""}`
+            : Number.isFinite(limit)
             ? `${Math.min(characters.length, limit)} of ${limit} slots used.`
             : `${characters.length} ${characters.length === 1 ? "character" : "characters"} - unlimited on your account.`}{" "}
-          Tap a character to edit or delete them.
+          {characters.length ? "Tap a character to edit or delete them." : ""}
         </p>
       </header>
 
