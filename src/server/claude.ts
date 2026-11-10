@@ -54,13 +54,14 @@ const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 6
 /** Painting in layers (see paintsInLayers; every picture unless
  *  TALEO_LAYERED_PAINT says otherwise): the scenery - sky, land, room, the
  *  things that stand about - is the plainer half of a picture, so it goes
- *  to the smallest model (Haiku 5.5, at its ordinary medium effort),
- *  without thinking first, while the page's ordinary painter does only the
+ *  to the quick model (Sonnet 5.5, at low effort), without thinking
+ *  first. (Haiku 5.5 at medium was tried and its places came out
+ *  plainer and less finished; Haiku still works if set here.) while the page's ordinary painter does only the
  *  characters: the quick painter at its usual effort on quick pages, the
  *  main painter on the rest.
  *  TALEO_SCENERY_MODEL / TALEO_SCENERY_EFFORT override the scenery. */
-const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-haiku-5-5";
-const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "medium";
+const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-sonnet-5-5";
+const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "low";
 /** How a model is told to paint without thinking first, if it can be:
  *  Sonnet 5.5 has its own setting for it, Haiku 5.5 takes the plain
  *  "disabled" (at these efforts), and Opus 5.5 can't be told at all. */

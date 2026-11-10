@@ -132,7 +132,7 @@ HOW TO BUILD CHARACTERS SO THEY CAN MOVE
   - the face style: eye shape, size and spacing, brows, nose and mouth as the reference draws them.
   Only the pose and expression change. Clothes and accessories stay the same unless the brief says the character has put on or taken off something.
 - Likeness is colours, features and proportions - NOT the portrait's finish. The reference is a framed portrait painted large; on the page the character is smaller and one of several things to look at. Leave out the portrait's fine texture (rows of fur ticks, hatching, extra glazes, tiny trims) and paint the character in clean, simple shapes.
-- PAINT CHARACTERS ECONOMICALLY. A character reads through its silhouette, pose, face and colours, not through the number of marks on it. As a guide: 25-40 elements for a main character, 10-18 for a small, distant or background one, and only a handful for anything held or worn. Spend them in this order: the body shapes that carry the pose; the face; the signature features and markings; then a little ink. When in doubt, leave the mark out.
+- PAINT CHARACTERS ECONOMICALLY. A character reads through its silhouette, pose, face and colours, not through the number of marks on it. As a guide: 40-60 elements for a main character, 15-25 for a small, distant or background one, and only a handful for anything held or worn. Spend them in this order: the body shapes that carry the pose; the face; the signature features and markings; then a little ink. When in doubt, leave the mark out.
 - Scale: reference paintings are on a 200x200 canvas; on the page, redraw the character at the size the scene needs (usually 70-150 tall for a main character in a mid shot), keeping its proportions. Keep characters the right size against each other on every page, as their model sheets say (a baby is much smaller than a grown-up, a mouse than a bear).
 - Food and object characters move with thin ink-line arms and legs (stroke-width about 2.2), little round hands and small dark boots or feet.
 
@@ -148,7 +148,7 @@ VOLUME (nothing should look flat or cut-out)
 
 RICH PEN DETAIL (the ink layer carries the classic look)
 - Contour every main shape with fine sepia line, varied and often broken rather than mechanical.
-- Fur and feathers: SUGGEST the coat, never cover it - three or four short ticks in one or two places where it matters most (a cheek tuft, the chest, the tail tip), a couple of scallops for feathers. Stripes, spots and other markings from the model sheet are always painted in full.
+- Fur and feathers: SUGGEST the coat, never cover it - a few short ticks in two or three places where it matters most (a cheek tuft, the chest, the tail tip, along the back), a couple of scallops for feathers. Stripes, spots and other markings from the model sheet are always painted in full.
 - Hatching belongs to the scenery only: groups of 3-7 short parallel strokes beneath trees and furniture and inside burrows. Never hatch or cross-hatch on a character - their shadows are washes.
 - Scenery: grass tufts, leaf veins, bark lines and knots, stones with crack lines, flower centres, wood grain on fences and furniture, roof tiles, ripples on water, soft scalloped cloud edges, a few birds as tiny "v" strokes.
 - Watercolour is transparent: anything painted underneath a character shows through it. Never run background lines (horizons, hill contours, fences, hatching) behind where a character stands; stop them at the character's edge.
@@ -212,7 +212,7 @@ export const LAYERED_CHARACTERS = `THE SCENERY IS BEING PAINTED BY ANOTHER HAND,
 - each character, the tap target, and anything a character holds, wears, touches, rides or sets moving;
 - what the action does: splashes, flying leaves, dust puffs, motion ticks and trails;
 - a soft ground shadow under each of them, and a last few foreground ink strokes over their feet (grass tufts, a rug's fringe) so they sit IN the place rather than on it.
-Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Keep to the economy the character rules ask for: usually 35-110 elements in all, depending on how many characters are on the page - a single character rarely needs more than 45.`;
+Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Keep to the economy the character rules ask for: usually 50-150 elements in all, depending on how many characters are on the page - a single character rarely needs more than 65.`;
 
 /** Turns a parent's description of a character - a few words, or a long,
  *  loosely ordered paragraph - into a clear design brief the character
