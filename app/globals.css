@@ -215,7 +215,7 @@ html.pull-reloading main {
    leaf's holder, like the shadow it replaces - nothing new is drawn per
    frame. The loaders keep their own look. */
 html[data-night] .brand-mark .leaf-pos {
-  filter: brightness(1.18) saturate(1.08) drop-shadow(0 0 3.2em rgba(255, 196, 120, 0.42));
+  filter: brightness(1.13) saturate(1.06) drop-shadow(0 0 3.2em rgba(255, 196, 120, 0.29));
 }
 .leaf-whirl {
   position: absolute;
