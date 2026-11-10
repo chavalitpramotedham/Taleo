@@ -51,7 +51,7 @@ const QUICK_ART_UNTHINKING = process.env.TALEO_QUICK_ART_THINKING !== "adaptive"
  *  (the SDK retries those quietly) counts too. TALEO_FIRST_STROKE_S
  *  overrides (0: wait however long it takes). */
 const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 60) || 0) * 1000;
-/** Painting in layers (see paintsInLayers; off unless TALEO_LAYERED_PAINT is
+/** Painting in layers (see paintsInLayers; on unless TALEO_LAYERED_PAINT is
  *  set): the scenery - sky, land, room, the things that stand about - is
  *  the plainer half of a picture, so it goes to the smaller model at low
  *  effort, without thinking first, while the page's ordinary painter does
@@ -570,12 +570,13 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
 /** Is this page painted in layers - the scenery by a cheaper, quicker
  *  painter while the main one paints only the characters over it?
  *
- *  Off unless TALEO_LAYERED_PAINT is set: "1" for the main painter's pages,
+ *  Set by TALEO_LAYERED_PAINT: "1" (the default) for the main painter's pages, "0" for off,
  *  "all" for the quick painter's too. A second go is always one painter
  *  (whatever went wrong, the simplest way is the one to fall back on), and
  *  so is a page with nobody and nothing on its stage. */
 export function paintsInLayers(req: IllustrateRequest): boolean {
-  const mode = process.env.TALEO_LAYERED_PAINT;
+  // (on for the main painter's pages unless switched off with "0")
+  const mode = process.env.TALEO_LAYERED_PAINT || "1";
   if (mode !== "1" && mode !== "all") return false;
   if (req.retry || (req.quick && mode !== "all")) return false;
   return req.cast.length > 0 || Boolean(req.page.action);
