@@ -13,6 +13,8 @@ import { Providers } from "@/components/Providers";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 import { ToastHost } from "@/components/Toast";
+import { ServiceWorker } from "@/components/AddShortcut";
+import { INSTALL_CATCH } from "@/lib/install";
 
 export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
@@ -93,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Apply night mode before the first paint (no flash of the light theme). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}`,
+            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}${INSTALL_CATCH}`,
           }}
         />
       </head>
@@ -102,6 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PaintDefs />
           <ToastHost />
           <AudioUnlock />
+          <ServiceWorker />
           <header className="topbar">
             <Link href="/" className="brand" aria-label="Taleo home">
               <BrandMark />

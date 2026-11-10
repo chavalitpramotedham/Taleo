@@ -1,14 +1,17 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AccountIcon } from "./Icons";
 import { Avatar } from "./Avatar";
+import { AddShortcutDialog, canAddShortcut } from "./AddShortcut";
 
 export function AccountNav() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
+  const [shortcut, setShortcut] = useState(false);
   const path = usePathname() || "/";
   const item = (href: string) => `account-dropdown-item ${path.startsWith(href) ? "current" : ""}`;
   const ref = useRef<HTMLDivElement>(null);
@@ -62,6 +65,20 @@ export function AccountNav() {
               Admin dashboard
             </Link>
           )}
+          {/* (the menu only opens on a tap, so this is read in the browser) */}
+          {canAddShortcut() && (
+            <button
+              type="button"
+              className="account-dropdown-item"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                setShortcut(true);
+              }}
+            >
+              Add shortcut
+            </button>
+          )}
           <button
             type="button"
             className="account-dropdown-item"
@@ -75,6 +92,7 @@ export function AccountNav() {
           </button>
         </div>
       )}
+      {shortcut && createPortal(<AddShortcutDialog onClose={() => setShortcut(false)} />, document.body)}
     </div>
   );
 }

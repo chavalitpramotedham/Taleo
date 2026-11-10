@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#F3ECDC" />
+    <meta name="robots" content="noindex" />
+    <title>You're offline · Taleo</title>
+    <script>
+      try {
+        if (localStorage.getItem("taleo.night") === "1") {
+          document.documentElement.dataset.night = "1";
+          document.querySelector('meta[name="theme-color"]').content = "#131017";
+        }
+      } catch (e) {}
+    </script>
+    <style>
+      :root { --paper: #f3ecdc; --page: #fbf7ee; --edge: #ece2cc; --ink: #3b3127; --soft: #6b5a48; --russet: #9c4f32; }
+      html[data-night] { --paper: #110e14; --page: #1e1a20; --edge: #2c252b; --ink: #eee1c8; --soft: #c4b49b; --russet: #d28553; }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: grid; place-items: center; padding: 24px;
+        background: var(--paper); color: var(--ink);
+        font-family: "EB Garamond", Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.5;
+        text-align: center;
+      }
+      main {
+        width: 100%; max-width: 420px; padding: 32px 26px;
+        background: var(--page); border: 1px solid var(--edge); border-radius: 18px;
+      }
+      img { width: 72px; height: 72px; border-radius: 18px; display: block; margin: 0 auto 14px; }
+      h1 { margin: 0 0 8px; font-size: 1.6rem; font-weight: 400; }
+      p { margin: 0 0 22px; color: var(--soft); }
+      button {
+        font: inherit; color: #fbf7ee; background: var(--russet); border: 0; border-radius: 999px;
+        padding: 12px 26px; width: 100%; cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icon-192.png" alt="" />
+      <h1>You're offline</h1>
+      <p>Taleo needs the internet to open your stories. This page will come back by itself once you're connected again.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+    <script>
+      addEventListener("online", function () { location.reload(); });
+    </script>
+  </body>
+</html>

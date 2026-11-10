@@ -10743,3 +10743,62 @@ button.reading-cell:focus-visible {
 .nav-lantern.leaving .lantern-nudge {
   pointer-events: none;
 }
+
+/* ---------- "Add shortcut": Taleo on the home screen ---------- */
+.shortcut-icon {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 6px auto 0;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+/* The taps to make, one under another: read left to right even though
+   the dialog around them is centred. */
+.shortcut-steps {
+  list-style: none;
+  margin: 6px 0 2px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.shortcut-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  line-height: 1.4;
+}
+.shortcut-n {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sage-soft);
+  color: var(--ink);
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+}
+.shortcut-steps b {
+  font-weight: 600;
+}
+/* the browser's own Share mark, shown in line so it can be recognised */
+.shortcut-glyph {
+  display: inline-flex;
+  vertical-align: -5px;
+  margin: 0 5px;
+  color: var(--russet);
+}
+.shortcut-glyph svg {
+  width: 20px;
+  height: 20px;
+}
+.shortcut-cant {
+  margin: 4px 0 0;
+}
