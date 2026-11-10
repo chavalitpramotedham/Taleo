@@ -6962,6 +6962,64 @@ html[data-night] .admin-spark.bad {
 .admin-error {
   color: #b5533a;
 }
+/* The search for an account: a cross at the end of the line clears what's
+   typed. */
+.admin-find {
+  position: relative;
+  display: flex;
+  flex: 999 1 220px;
+  min-width: 0;
+}
+.admin-find .input {
+  flex: 1 1 auto;
+  padding-right: 40px;
+}
+.admin-find-clear {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .admin-find-clear:hover {
+    color: var(--ink);
+  }
+}
+.admin-find-clear:active {
+  opacity: 0.6;
+}
+/* Which case a request was (a second go, the quick painter, in layers...):
+   small quiet labels, the ones worth a second look in russet. */
+.admin-cases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.admin-log .admin-case-cell {
+  white-space: normal;
+  min-width: 170px;
+  max-width: 260px;
+}
+.admin-case {
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 1px 8px 2px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.admin-case.marked {
+  border-color: var(--russet);
+  color: var(--russet);
+}
 .admin-dim {
   color: var(--ink-faint, var(--ink-soft));
   font-size: 0.85rem;

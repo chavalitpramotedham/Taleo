@@ -90,6 +90,7 @@ export async function POST(req: Request) {
     kind: "character" as const,
     sub: current ? "a saved character painted again" : "a new character",
     what: `${name ? `${name}: ` : ""}${description}`,
+    cases: [current ? "painted again" : "a new character", name ? "named by the parent" : "no name given"],
     userId: user?.id ?? null,
     tier,
     req,

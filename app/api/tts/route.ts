@@ -64,6 +64,7 @@ export async function GET(req: Request) {
       kind: "voice",
       sub: `${kind === "word" ? "a word" : "a page"} read aloud${user ? "" : " (signed-out reader of a published story)"}`,
       what: text,
+      cases: [kind === "word" ? "a word" : "a page", picked ? `voice: ${picked}` : "the default voice", user ? "signed in" : "signed-out reader"],
       userId: user?.id ?? null,
       tier,
       storyId: url.searchParams.get("s") || undefined,

@@ -65,6 +65,12 @@ export interface GenRecord {
   sub: string;
   /** A few words of what was asked for. */
   what: string;
+  /** Which of the ways this kind of request can go it was: for a painting
+   *  "first go" or "second go", "quick painter" or "main painter", "in
+   *  layers" or "one painter"... Short labels, shown as they are. (Records
+   *  from before these were kept have none: the page reads what it can
+   *  from `sub`.) */
+  cases?: string[];
   userId: string | null;
   tier?: string;
   storyId?: string;
@@ -220,11 +226,16 @@ export interface Gen {
   sent(size: number): void;
   /** How it ended. Awaited before the reply closes, so the record is
    *  written while the server is still alive. Only the first call counts. */
-  end(status: GenStatus, extra?: { error?: unknown; result?: string; summary?: string; http?: number }): Promise<void>;
+  end(status: GenStatus, extra?: { error?: unknown; result?: string; summary?: string; http?: number; cases?: string[] }): Promise<void>;
   /** Settles once the ending is written: hand it to `after()` so the
    *  server stays up for it even when the reader has already gone. */
   done: Promise<void>;
 }
+
+const tidyCases = (cases: (string | false | null | undefined)[] | undefined) => {
+  const out = [...new Set((cases ?? []).filter((c): c is string => Boolean(c)).map((c) => snippet(c, 60)))].slice(0, 12);
+  return out.length ? out : undefined;
+};
 
 const errorText = (e: unknown) => (e instanceof Error ? `${e.name}: ${e.message}` : typeof e === "string" ? e : "unknown").slice(0, 500);
 
@@ -233,6 +244,7 @@ export function beginGen(init: {
   kind: GenKind;
   sub: string;
   what: string;
+  cases?: string[];
   userId: string | null;
   tier?: string;
   storyId?: string;
@@ -248,6 +260,7 @@ export function beginGen(init: {
     kind: init.kind,
     sub: init.sub,
     what: snippet(init.what, 140),
+    cases: tidyCases(init.cases),
     userId: init.userId,
     tier: init.tier,
     storyId: init.storyId,
@@ -282,6 +295,8 @@ export function beginGen(init: {
       if (extra.error !== undefined) rec.error = errorText(extra.error);
       if (extra.http) rec.http = extra.http;
       if (extra.summary) rec.summary = snippet(extra.summary, 300);
+      // (what's only known once it's made: "the ending", say)
+      if (extra.cases?.length) rec.cases = tidyCases([...(rec.cases ?? []), ...extra.cases]);
       const result = extra.result ? (extra.result.length > MAX_RESULT ? `${extra.result.slice(0, MAX_RESULT)}\n… (cut: ${extra.result.length} characters in all)` : extra.result) : undefined;
       rec.hasResult = Boolean(result) || undefined;
       await began;

@@ -49,13 +49,20 @@ export async function POST(req: Request) {
   // carry the ticket the server gave out with the part before. Anything
   // else that calls itself a continuation is counted as what it is, a new
   // story.
+  // (for the activity log: what it was counted as)
+  let countedAs: string | null = null;
   const g = await guard((session) => {
     if (parsed.kind === "start") return { bucket: "start", needs: "story" };
     const user = session.user;
     if (!limitsFor(user).verified) return "segment";
     // (for a short while, stories begun before tickets existed carry on)
-    const genuine = storyTicketIsValid(user.id, parsed.story, raw?.ticket) || inLegacyGrace();
-    if (!genuine) return "story";
+    const ticketed = storyTicketIsValid(user.id, parsed.story, raw?.ticket);
+    const genuine = ticketed || inLegacyGrace();
+    if (!genuine) {
+      countedAs = "no ticket: counted as a new story";
+      return "story";
+    }
+    if (!ticketed) countedAs = "no ticket (grace period)";
     return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story) } : "segment";
   });
   // (for the activity log: what was asked)
@@ -64,6 +71,10 @@ export async function POST(req: Request) {
     kind: "story" as const,
     sub: parsed.kind === "start" ? "a new story" : `part ${parsed.story.segments.length + 1}`,
     what: parsed.kind === "start" ? `${parsed.theme} (age ${parsed.age}, ${parsed.minutes} minutes)` : `after choosing: ${chosen?.text ?? "(nothing)"}${chosen?.custom ? " (their own idea)" : ""}`,
+    cases:
+      parsed.kind === "start"
+        ? ["the beginning"]
+        : ["a continuation", parsed.story.segments.length === 1 ? "the first choice" : "a later choice", chosen?.custom ? "their own idea" : "a choice offered", countedAs].filter((c): c is string => Boolean(c)),
     userId: user?.id ?? null,
     tier,
     storyId: parsed.kind === "start" ? undefined : (parsed.story as { id?: string }).id,
@@ -106,7 +117,7 @@ export async function POST(req: Request) {
       stop.abort();
     },
     async start(controller) {
-      const made: { v: { summary: string; result: string } | null } = { v: null };
+      const made: { v: { summary: string; result: string; cases: string[] } | null } = { v: null };
       const send = (event: SegmentEvent | { type: "error"; error: string }) => {
         if (stop.signal.aborted) return;
         const line = JSON.stringify(event.type === "error" ? event : stamp(event)) + "\n";
@@ -116,7 +127,7 @@ export async function POST(req: Request) {
         if (event.type === "done") {
           const r = event.response;
           const words = r.segment.pages.reduce((n, p) => n + p.text.split(/\s+/).filter(Boolean).length, 0);
-          made.v = { summary: `${r.segment.pages.length} pages, ${words} words${r.ending ? ", the ending" : r.segment.choice ? ", then a choice" : ""}`, result: JSON.stringify(r, null, 1) };
+          made.v = { summary: `${r.segment.pages.length} pages, ${words} words${r.ending ? ", the ending" : r.segment.choice ? ", then a choice" : ""}`, result: JSON.stringify(r, null, 1), cases: [r.ending ? "the ending" : r.segment.choice ? "ends on a choice" : "ends without a choice"] };
         }
       };
 

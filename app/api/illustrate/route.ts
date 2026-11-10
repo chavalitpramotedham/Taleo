@@ -23,6 +23,8 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const parsed = parseIllustrateRequest(await req.json().catch(() => null));
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
+  // (for the activity log: which of the ways below let the page through)
+  let allowedAs: string | null = null;
   const g = await guard(async (session) => {
     // Only the storyteller's own pages are painted: the page must carry the
     // signature it was given when it was written for this account...
@@ -31,17 +33,33 @@ export async function POST(req: Request) {
     // (books from before pages were signed, being repainted)...
     if (parsed.storyId) {
       const book = await getGalleryStory(parsed.storyId).catch(() => null);
-      if (book?.authorId === session.user.id && allPages(book).some((p) => p.text === parsed.page.text)) return "illustrate";
+      if (book?.authorId === session.user.id && allPages(book).some((p) => p.text === parsed.page.text)) {
+        allowedAs = "a page of a library book";
+        return "illustrate";
+      }
     }
     // ...or, for a short while, a story begun before signing existed.
-    if (inLegacyGrace()) return "illustrate";
+    if (inLegacyGrace()) {
+      allowedAs = "unsigned page (grace period)";
+      return "illustrate";
+    }
     return NextResponse.json({ error: "That page can't be painted." }, { status: 403 });
   });
-  // (for the activity log: what was asked, of which painter)
-  const logged = (user: { id: string } | undefined, tier?: string) => ({
+  // (for the activity log: what was asked, of which painter, and which of
+  // the ways a page can be painted this one was. `painter` is false for a
+  // request turned away before a painter was chosen.)
+  const logged = (user: { id: string } | undefined, tier?: string, painter = true) => ({
     kind: "painting" as const,
-    sub: `page ${(parsed.pageInPart ?? 0) + 1} of its part${parsed.quick ? ", quick painter" : ", main painter"}${parsed.retry ? ", second go" : ""}${paintsInLayers(parsed) ? ", in layers" : ""}`,
+    sub: parsed.pageInPart === undefined ? "a page" : `page ${parsed.pageInPart + 1} of its part`,
     what: parsed.page.text,
+    cases: [
+      parsed.retry ? "second go" : "first go",
+      painter && (parsed.quick ? "quick painter" : "main painter"),
+      painter && (paintsInLayers(parsed) ? "in layers" : "one painter"),
+      parsed.cast.length ? `${parsed.cast.length} ${parsed.cast.length === 1 ? "character" : "characters"}` : "nobody on the page",
+      parsed.page.action ? "with an action" : "no action",
+      allowedAs,
+    ].filter((c): c is string => Boolean(c)),
     userId: user?.id ?? null,
     tier,
     storyId: parsed.storyId,
@@ -50,7 +68,7 @@ export async function POST(req: Request) {
     mock: !hasApiKey(),
   });
   if (!g.ok) {
-    await logDenied(logged((await auth())?.user), g.response);
+    await logDenied(logged((await auth())?.user, undefined, false), g.response);
     return g.response;
   }
   // The quick painter takes the pages a reader waits on at the start of each

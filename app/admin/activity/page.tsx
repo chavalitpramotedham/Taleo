@@ -8,6 +8,8 @@ import { metricsEnabled } from "@/server/metrics";
 import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, When } from "./Live";
+import { FindUser } from "./FindUser";
+import { fuzzyPeople } from "@/lib/fuzzy";
 
 export const metadata: Metadata = { title: "Activity", robots: { index: false, follow: false } };
 
@@ -60,6 +62,37 @@ const models = (r: GenRecord) => {
   }
   return [...seen.entries()].map(([k, v]) => (v > 1 ? `${k} ×${v}` : k)).join(", ");
 };
+/** Which of the ways its kind of request can go this one was. Records from
+ *  before these were kept say some of it in `sub` ("page 2 of its part,
+ *  quick painter, second go, in layers"): that's read back out. */
+const casesOf = (r: GenRecord): string[] => {
+  const out = [...(r.cases ?? [])];
+  if (!r.cases && r.kind === "painting") {
+    out.push(/second go/.test(r.sub) ? "second go" : "first go");
+    if (/quick painter|main painter/.test(r.sub)) out.push(/quick painter/.test(r.sub) ? "quick painter" : "main painter");
+    if (/in layers/.test(r.sub)) out.push("in layers");
+  }
+  if (r.mock) out.push("stand-in");
+  if (r.calls.some((c) => c.asked && c.model && c.asked !== c.model)) out.push("answered by another model");
+  return out;
+};
+/** (the old records' `sub` without what's now shown as cases) */
+const subOf = (r: GenRecord) => (r.cases || r.kind !== "painting" ? r.sub : r.sub.split(",")[0]);
+function Cases({ record }: { record: GenRecord }) {
+  const list = casesOf(record);
+  if (!list.length) return <>-</>;
+  return (
+    <span className="admin-cases">
+      {list.map((c) => (
+        <span key={c} className={`admin-case${STANDS_OUT.test(c) ? " marked" : ""}`}>
+          {c}
+        </span>
+      ))}
+    </span>
+  );
+}
+/** The cases worth a second look in a long list. */
+const STANDS_OUT = /^(second go|stand-in|answered by another model|no ticket|unsigned page)/;
 const who = (u: UserProfile | null | undefined, id: string | null) => (u ? (u.username ? `@${u.username}` : u.email) : id ? `(${id.slice(0, 10)}…)` : "signed out");
 const href = (params: Record<string, string | undefined | false>) => {
   const q = new URLSearchParams();
@@ -91,14 +124,16 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const users = await listUsers({ cacheSeconds: 60 }).catch(() => [] as UserProfile[]);
   const byId = new Map(users.map((u) => [u.id, u]));
 
-  // A search: by email or handle (a part of either will do).
+  // A search: by email or handle (loosely: a part of either will do, and
+  // so will its letters in order, or with a slip - see lib/fuzzy).
   let matches: UserProfile[] | null = null;
   let subjectId = userId;
   if (!subjectId && q) {
     const needle = q.replace(/^@/, "").toLowerCase();
     const admin = await getUser("admin");
     const everyone = admin && !byId.has(admin.id) ? [admin, ...users] : users;
-    matches = everyone.filter((u) => u.email.toLowerCase().includes(needle) || (u.username ?? "").toLowerCase().includes(needle) || u.id === q);
+    const byIdOnly = everyone.filter((u) => u.id === q);
+    matches = byIdOnly.length ? byIdOnly : fuzzyPeople(q, everyone);
     const exact = matches.filter((u) => u.email.toLowerCase() === needle || (u.username ?? "").toLowerCase() === needle);
     if (exact.length === 1) matches = exact;
     if (matches.length === 1) subjectId = matches[0].id;
@@ -143,12 +178,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
       <section className="admin-section">
         <h2>Find a user</h2>
-        <form className="field-row" action={HERE} method="get" role="search">
-          <input className="input" type="search" name="q" defaultValue={q ?? ""} placeholder="Email or handle" aria-label="Email or handle" autoComplete="off" />
-          <button type="submit" className="btn btn-primary btn-sm">
-            Search
-          </button>
-        </form>
+        <FindUser key={q ?? ""} action={HERE} searched={q ?? ""} people={users.map((u) => ({ id: u.id, username: u.username ?? null, email: u.email }))} />
         {matches && matches.length !== 1 && (
           <>
             <h3>{matches.length ? `${matches.length} accounts match “${q}”` : `Nobody matches “${q}”`}</h3>
@@ -283,6 +313,7 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
           <tr>
             <th>When</th>
             <th className="admin-left">What</th>
+            <th className="admin-left" title="Which of the ways this kind of request can go it was: a first or second go, which painter, in layers or by one painter...">Case</th>
             {users && <th className="admin-left">Who</th>}
             <th className="admin-left">Model</th>
             <th>Outcome</th>
@@ -302,10 +333,13 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
               <td className="admin-left admin-what">
                 <b>
                   {kinds ? `${KIND_ONE[r.kind]}: ` : ""}
-                  {r.sub}
+                  {subOf(r)}
                 </b>
                 {r.what && <span> {r.what}</span>}
                 {r.error && <span className="admin-error"> {r.error}</span>}
+              </td>
+              <td className="admin-left admin-case-cell">
+                <Cases record={r} />
               </td>
               {users && <td className="admin-left">{r.userId ? <Link href={href({ user: r.userId })}>{who(users.get(r.userId), r.userId)}</Link> : "signed out"}</td>}
               <td className="admin-left admin-model">{models(r)}</td>
@@ -351,6 +385,7 @@ async function Detail({ id, now }: { id: string; now: number }) {
         "A signed-out reader"
       ),
     ],
+    ["Case", <Cases key="c" record={r} />],
     ["Plan", r.tier ?? "-"],
     ["Outcome", <Status key="s" record={r} now={now} />],
     ...(r.error ? ([["What went wrong", r.error]] as [string, ReactNode][]) : []),
