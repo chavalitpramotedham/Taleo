@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { errorResponse } from "@/server/errors";
-import { CharacterLimitError, listCharacters, saveCharacter } from "@/server/characters";
+import { CharacterLimitError, listCharacters, reorderCharacters, saveCharacter } from "@/server/characters";
 import { characterLimit } from "@/lib/tiers";
 
 export async function GET() {
@@ -52,6 +52,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ character });
   } catch (err) {
     if (err instanceof CharacterLimitError) return NextResponse.json({ error: err.message, limitReached: true }, { status: 409 });
+    return errorResponse(err);
+  }
+}
+
+/** A new order for the roster: { order: [characterId, ...] }, first to last. */
+export async function PUT(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  const body = (await req.json().catch(() => null)) as { order?: unknown } | null;
+  const order = Array.isArray(body?.order) ? body.order.filter((x): x is string => typeof x === "string").slice(0, 200) : null;
+  if (!order) return NextResponse.json({ error: "Missing order." }, { status: 400 });
+  try {
+    const characters = await reorderCharacters(session.user.id, order);
+    return NextResponse.json({ characters });
+  } catch (err) {
     return errorResponse(err);
   }
 }

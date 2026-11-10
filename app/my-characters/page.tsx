@@ -1,7 +1,7 @@
 "use client";
 import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { SavedCharacter, CharacterGender } from "@/lib/types";
@@ -35,6 +35,37 @@ export default function MyCharactersPage() {
   }, [status]);
 
   const limit = useCharacterLimit();
+
+  // Rearranging: a draft order while arranging, saved in one go on Done.
+  const [arranging, setArranging] = useState<SavedCharacter[] | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const startArranging = () => {
+    setOrderError(null);
+    setArranging(characters ?? []);
+  };
+  const finishArranging = async () => {
+    if (!arranging || !characters || savingOrder) return;
+    if (arranging.every((c, i) => c.id === characters[i]?.id)) return setArranging(null); // nothing moved
+    setSavingOrder(true);
+    setOrderError(null);
+    try {
+      const res = await fetch("/api/characters", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ order: arranging.map((c) => c.id) }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { characters?: SavedCharacter[]; error?: string };
+      if (!res.ok || !data.characters) throw new Error(data.error || "Couldn't save the new order. Please try again.");
+      setCharacters(data.characters);
+      setArranging(null);
+    } catch (e) {
+      setOrderError(e instanceof TypeError ? "No connection - check your internet and try again." : e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
   if (status !== "authenticated" || characters === null) return <PageLoading label="Gathering your characters…" />;
 
   return (
@@ -48,10 +79,50 @@ export default function MyCharactersPage() {
             : Number.isFinite(limit)
             ? `${Math.min(characters.length, limit)} of ${limit} slots used.`
             : `${characters.length} ${characters.length === 1 ? "character" : "characters"} - unlimited on your account.`}{" "}
-          {characters.length ? "Tap a character to edit or delete them." : ""}
+          {characters.length ? (arranging ? "" : "Tap a character to edit or delete them.") : ""}
         </p>
+        {characters.length > 1 && !arranging && (
+          <button type="button" className="btn btn-soft btn-sm char-arrange-btn" onClick={startArranging}>
+            <ArrangeIcon />
+            Rearrange
+          </button>
+        )}
       </header>
 
+      {arranging ? (
+        <>
+          <div className="char-arrange-bar" role="region" aria-label="Rearranging characters">
+            <p className="meta">Drag them into the order you like, or use the arrows. Stories you make will show them in this order too.</p>
+            <div className="char-arrange-actions">
+              <button type="button" className="btn btn-soft btn-sm" onClick={() => setArranging(null)} disabled={savingOrder}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => void finishArranging()} disabled={savingOrder}>
+                {savingOrder ? (
+                  <>
+                    <LeafLoader size={16} /> Saving…
+                  </>
+                ) : (
+                  "Done"
+                )}
+              </button>
+            </div>
+            {orderError && <p className="error">{orderError}</p>}
+          </div>
+          <ArrangeShelf list={arranging} onChange={setArranging} disabled={savingOrder} />
+          {/* (again under the cards: on a phone the top ones have scrolled away by now) */}
+          {arranging.length > 2 && (
+            <div className="char-arrange-actions char-arrange-actions-foot">
+              <button type="button" className="btn btn-soft" onClick={() => setArranging(null)} disabled={savingOrder}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => void finishArranging()} disabled={savingOrder}>
+                {savingOrder ? "Saving…" : "Done"}
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
       <div className="shelf">
         {Array.from({ length: Number.isFinite(limit) ? Math.max(limit, characters.length) : characters.length + 1 }, (_, i) => {
           const c = characters[i];
@@ -83,6 +154,7 @@ export default function MyCharactersPage() {
           );
         })}
       </div>
+      )}
 
       {creating && (
         <CharacterCreatorModal
@@ -114,6 +186,133 @@ export default function MyCharactersPage() {
         />
       )}
     </div>
+  );
+}
+
+/** The roster while rearranging: drag a card (finger or mouse) over
+ *  another to swap places as you go, or use its arrows to move it one
+ *  place at a time. Nothing is saved until Done. */
+function ArrangeShelf({ list, onChange, disabled }: { list: SavedCharacter[]; onChange: (l: SavedCharacter[]) => void; disabled: boolean }) {
+  const els = useRef(new Map<string, HTMLElement>());
+  // the card being dragged: where the pointer and the card started (page
+  // coordinates, so scrolling mid-drag doesn't throw it off) and where the
+  // pointer is now
+  const drag = useRef<{ id: string; pointer: number; sx: number; sy: number; ox: number; oy: number; px: number; py: number } | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const listRef = useRef(list);
+  listRef.current = list;
+
+  // Keep the dragged card under the finger, even as the others reflow
+  // around it (its place in the grid changes; where it's drawn doesn't).
+  const place = () => {
+    const d = drag.current;
+    const el = d && els.current.get(d.id);
+    if (!d || !el) return;
+    el.style.transform = `translate(${d.ox + d.px - d.sx - el.offsetLeft}px, ${d.oy + d.py - d.sy - el.offsetTop}px) scale(1.05) rotate(-1.5deg)`;
+  };
+  useLayoutEffect(place);
+
+  const move = (id: string, to: number) => {
+    const cur = listRef.current;
+    const from = cur.findIndex((c) => c.id === id);
+    if (from < 0 || to < 0 || to >= cur.length || from === to) return;
+    const next = [...cur];
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    onChange(next);
+  };
+
+  const onDown = (e: React.PointerEvent<HTMLElement>, id: string) => {
+    if (disabled || e.button > 0 || (e.target as Element).closest("button")) return;
+    const el = els.current.get(id);
+    if (!el) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { id, pointer: e.pointerId, sx: e.pageX, sy: e.pageY, ox: el.offsetLeft, oy: el.offsetTop, px: e.pageX, py: e.pageY };
+    setDragId(id);
+  };
+  const onMove = (e: React.PointerEvent<HTMLElement>) => {
+    const d = drag.current;
+    if (!d || e.pointerId !== d.pointer) return;
+    // a little nudge of the page when dragging near the top or bottom
+    const edge = 70;
+    if (e.clientY < edge) window.scrollBy(0, -12);
+    else if (e.clientY > window.innerHeight - edge) window.scrollBy(0, 12);
+    d.px = e.pageX;
+    d.py = e.pageY;
+    place();
+    for (const [id, el] of els.current) {
+      if (id === d.id) continue;
+      const r = el.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        move(d.id, listRef.current.findIndex((c) => c.id === id));
+        break;
+      }
+    }
+  };
+  const onUp = (e: React.PointerEvent<HTMLElement>) => {
+    const d = drag.current;
+    if (!d || e.pointerId !== d.pointer) return;
+    const el = els.current.get(d.id);
+    drag.current = null;
+    if (el) el.style.transform = "";
+    setDragId(null);
+  };
+
+  return (
+    <ol className="shelf char-arrange-shelf" aria-label="Your characters, in order">
+      {list.map((c, i) => (
+        <li
+          key={c.id}
+          ref={(el) => {
+            if (el) els.current.set(c.id, el);
+            else els.current.delete(c.id);
+          }}
+          className={`book-card char-card char-card-arranging${dragId === c.id ? " dragging" : ""}`}
+          onPointerDown={(e) => onDown(e, c.id)}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+          aria-label={`${c.name}, ${i + 1} of ${list.length}`}
+        >
+          <span className="cover">
+            <span className="char-arrange-num" aria-hidden>
+              {i + 1}
+            </span>
+            <span className="char-arrange-grip" aria-hidden>
+              <GripIcon />
+            </span>
+            <CharacterPortrait character={{ preset: null, svg: c.svg, name: c.name }} className="cover-portrait" />
+          </span>
+          <span className="body">
+            <span className="char-card-title">{c.name}</span>
+            <span className="char-arrange-moves">
+              <button type="button" className="icon-btn" onClick={() => move(c.id, i - 1)} disabled={disabled || i === 0} aria-label={`Move ${c.name} earlier`}>
+                ‹
+              </button>
+              <button type="button" className="icon-btn" onClick={() => move(c.id, i + 1)} disabled={disabled || i === list.length - 1} aria-label={`Move ${c.name} later`}>
+                ›
+              </button>
+            </span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function GripIcon() {
+  return (
+    <svg viewBox="0 0 12 18" width="10" height="15" aria-hidden>
+      {[3, 9].flatMap((x) => [3, 9, 15].map((y) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.6" fill="currentColor" />))}
+    </svg>
+  );
+}
+
+function ArrangeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 4v16M7 4 4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3" />
+    </svg>
   );
 }
 

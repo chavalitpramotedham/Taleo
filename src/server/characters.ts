@@ -18,7 +18,9 @@ const MAX_STORY_LINKS = 50;
 export class CharacterLimitError extends Error {}
 
 export async function listCharacters(ownerId: string): Promise<SavedCharacter[]> {
-  const list = (await readJson<SavedCharacter[]>(path(ownerId))) ?? [];
+  // (fresh: an edit or a new order must show straight away, and every
+  // write starts from this list - the CDN's copy lags by up to a minute)
+  const list = (await readJson<SavedCharacter[]>(path(ownerId), { fresh: true })) ?? [];
   // Back-fill fields added after the first characters were saved.
   return list.map((c) => ({ ...c, notes: c.notes ?? null, relationships: c.relationships ?? null, gender: asGender(c.gender), storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
 }
@@ -114,6 +116,25 @@ export async function unlinkStory(ownerId: string, storyId: string): Promise<voi
     path(ownerId),
     list.map((c) => (c.storyIds.includes(storyId) ? { ...c, storyIds: c.storyIds.filter((s) => s !== storyId) } : c)),
   );
+}
+
+/** Puts the roster in the order given (character ids, first to last) - the
+ *  order they're shown in on My characters and when making a story. Ids it
+ *  doesn't know are ignored; any character left out keeps its place at
+ *  the end, so a stale page can't lose anyone. */
+export async function reorderCharacters(ownerId: string, ids: string[]): Promise<SavedCharacter[]> {
+  const list = await listCharacters(ownerId);
+  const byId = new Map(list.map((c) => [c.id, c]));
+  const seen = new Set<string>();
+  const ordered: SavedCharacter[] = [];
+  for (const id of ids) {
+    const c = byId.get(id);
+    if (c && !seen.has(id)) (seen.add(id), ordered.push(c));
+  }
+  const next = [...ordered, ...list.filter((c) => !seen.has(c.id))];
+  if (next.every((c, i) => c.id === list[i].id)) return list; // nothing moved
+  await writeJson(path(ownerId), next);
+  return next;
 }
 
 export async function deleteCharacter(ownerId: string, id: string): Promise<void> {

@@ -10159,3 +10159,109 @@ html[data-night] .home-steps .home-stat-value {
   letter-spacing: 0;
   font-size: 1.3rem;
 }
+
+/* ---------- my characters: rearranging ---------- */
+.char-arrange-btn {
+  margin-top: 14px;
+  gap: 6px;
+}
+.char-arrange-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 0 auto 18px;
+  padding: 12px 16px;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 14px;
+  max-width: 46rem;
+}
+.char-arrange-bar .meta {
+  margin: 0;
+  flex: 1 1 18rem;
+}
+.char-arrange-actions {
+  display: flex;
+  gap: 8px;
+}
+.char-arrange-bar .error {
+  flex-basis: 100%;
+  margin: 0;
+}
+.char-arrange-shelf {
+  list-style: none;
+  padding: 0;
+  position: relative;
+}
+.char-card-arranging {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  position: relative;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  border-color: var(--rule-strong);
+}
+.char-card-arranging .cover {
+  position: relative;
+}
+.char-card-arranging.dragging {
+  cursor: grabbing;
+  z-index: 5;
+  transition: none;
+  border-color: var(--russet);
+  box-shadow: 0 18px 36px rgba(60, 35, 20, 0.22);
+}
+/* the others make a little room, so it's clear where it will land */
+.char-arrange-shelf:has(.dragging) .char-card-arranging:not(.dragging) {
+  opacity: 0.85;
+}
+.char-arrange-num,
+.char-arrange-grip {
+  position: absolute;
+  top: 8px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 12px;
+  background: rgba(255, 252, 245, 0.92);
+  box-shadow: 0 1px 3px rgba(60, 35, 20, 0.18);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--russet);
+}
+.char-arrange-num {
+  left: 8px;
+}
+.char-arrange-grip {
+  right: 8px;
+  color: var(--ink-soft);
+}
+.char-arrange-moves {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+.char-arrange-moves .icon-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.char-arrange-moves .icon-btn:disabled {
+  opacity: 0.3;
+}
+html[data-night] .char-arrange-num,
+html[data-night] .char-arrange-grip {
+  background: rgba(30, 26, 22, 0.9);
+}
+.char-arrange-actions-foot {
+  justify-content: center;
+  margin: 22px 0 8px;
+}
