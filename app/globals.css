@@ -7021,6 +7021,40 @@ html[data-night] .admin-spark.bad {
   max-height: 460px;
   overflow: auto;
 }
+/* The activity log's lists spread across the whole window, not the page's
+   column: a line of what was asked, the cases, the models and the timings
+   all fit side by side. (the page clips the few pixels a window's scroll
+   bar adds to 100vw) */
+.admin-section.admin-wide {
+  width: calc(100vw - 32px);
+  max-width: none;
+  margin-left: calc(50% - 50vw + 16px);
+  margin-right: 0;
+}
+/* (one record's own page is all detail: the whole window, throughout) */
+.container.admin-full {
+  max-width: none;
+}
+html:has(.admin-wide) body {
+  overflow-x: clip;
+}
+.admin-wide .admin-log .admin-what {
+  max-width: 760px;
+}
+/* a painting, small, at the front of its row */
+.admin-log .admin-thumb-cell {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.admin-thumb {
+  display: block;
+  width: 120px;
+  height: 90px;
+  object-fit: contain;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fbf6ea;
+}
 .admin-picture {
   display: block;
   width: 100%;

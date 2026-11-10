@@ -236,7 +236,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             GEN_KINDS.map((k) => {
               const rows = list.filter((r) => r.kind === k);
               return (
-                <section className="admin-section" key={k}>
+                <section className="admin-section admin-wide" key={k}>
                   <h2>
                     {KIND_NAME[k]} <span className="admin-count">{n(rows.length)}</span>
                   </h2>
@@ -250,7 +250,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               );
             })
           ) : (
-            <section className="admin-section">
+            <section className="admin-section admin-wide">
               <h2>
                 {kind ? KIND_NAME[kind] : "Everything"}
                 {issues ? " that went wrong" : ""} <span className="admin-count">{n(list.length)}</span>
@@ -312,12 +312,15 @@ function Status({ record, now }: { record: GenRecord; now: number }) {
 function Records({ records, now, users, kinds = false }: { records: GenRecord[]; now: number; users: Map<string, UserProfile> | null; kinds?: boolean }) {
   if (!records.length) return <p className="meta">Nothing yet.</p>;
   const twice = paintedTwice(records);
+  // (paintings are shown as themselves, small, at the front of their row)
+  const pictures = records.some((r) => r.kind === "painting");
   return (
     <div className="admin-scroll">
       <table className="admin-table admin-log">
         <thead>
           <tr>
             <th>When</th>
+            {pictures && <th className="admin-left">Picture</th>}
             <th className="admin-left">What</th>
             <th className="admin-left" title="Which of the ways this kind of request can go it was: a first or second go, which painter, in layers or by one painter...">Case</th>
             {users && <th className="admin-left">Who</th>}
@@ -336,6 +339,16 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
                   <When at={r.at} />
                 </Link>
               </th>
+              {pictures && (
+                <td className="admin-left admin-thumb-cell">
+                  {r.kind === "painting" && r.hasResult && (
+                    <Link href={href({ id: r.id })} aria-label="Open this painting's record">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img className="admin-thumb" src={`${HERE}/picture/${r.id}`} alt="" loading="lazy" decoding="async" width={120} height={90} />
+                    </Link>
+                  )}
+                </td>
+              )}
               <td className="admin-left admin-what">
                 <b>
                   {kinds ? `${KIND_ONE[r.kind]}: ` : ""}
@@ -417,7 +430,7 @@ async function Detail({ id, now }: { id: string; now: number }) {
     ["Record", r.id],
   ];
   return (
-    <div className="container admin">
+    <div className="container admin admin-full">
       <header className="wizard-head">
         <p className="eyebrow">Only you can see this</p>
         <h1>
