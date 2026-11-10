@@ -1,4 +1,5 @@
 "use client";
+import { useEscape } from "@/lib/useEscape";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -150,6 +151,9 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
     };
   }, [status]);
   const leave = () => router.push("/home");
+  // (Escape on "start a new one?": back home, as a tap
+  // outside does)
+  useEscape(() => replacing !== "busy" && leave(), !limit && Boolean(ongoing.story && replacing !== "done"));
   const start = async () => {
     if (!age || !hero || !theme || checking) return;
     // New stories are limited (one per day on Free, unlimited for the admin):

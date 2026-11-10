@@ -1,4 +1,5 @@
 "use client";
+import { useEscape } from "@/lib/useEscape";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -47,6 +48,7 @@ function Prompt({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (story === null) onDone();
   }, [story, onDone]);
+  useEscape(onDone, Boolean(story));
   if (!story) return null;
 
   return (

@@ -1,4 +1,5 @@
 "use client";
+import { useEscape } from "@/lib/useEscape";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import type { Story } from "@/lib/types";
@@ -46,6 +47,7 @@ export function OngoingCard({
 }) {
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
+  useEscape(() => !busy && setAsking(false), asking);
   const cover = coverOf(story);
   const title = titleOf(story);
   return (

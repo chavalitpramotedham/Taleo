@@ -1,4 +1,5 @@
 "use client";
+import { useEscape } from "@/lib/useEscape";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -19,6 +20,7 @@ export interface LimitNotice {
  */
 export function LimitDialog({ notice, onClose, children }: { notice: LimitNotice; onClose: () => void; children?: ReactNode }) {
   const title = notice.limited === "start" ? "Let's finish one first" : "That's today's story!";
+  useEscape(onClose);
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-panel draft-prompt limit-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Story limit reached">

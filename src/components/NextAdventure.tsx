@@ -1,4 +1,5 @@
 "use client";
+import { useEscape } from "@/lib/useEscape";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
@@ -88,6 +89,7 @@ export function IdeaDialog({
   const userId = session?.user?.id;
   const allowance = useStoryAllowance();
   const concept = ideaByKey(idea.key);
+  useEscape(onClose);
   if (!concept || !userId) return null;
   const spent = quotaLine(allowance);
   const open = (go: boolean) => {
