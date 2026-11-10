@@ -18,6 +18,7 @@ import { PreviewButtons, StoryPreview, stepper, summaryFromEntry } from "@/compo
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { CategoryFilter, categoriesOf, matchesCategory } from "@/components/CategoryFilter";
 import { ShelfSkeleton } from "@/components/ShelfSkeleton";
+import { forgetStory, recall, remember } from "@/lib/remember";
 
 type Sort = "recent" | "rating";
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
@@ -25,7 +26,8 @@ const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 
 export default function MyStoriesPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [stories, setStories] = useState<GalleryEntry[] | null>(null);
+  // (what was here last time shows at once; the server is still asked)
+  const [stories, setStories] = useState<GalleryEntry[] | null>(() => recall<GalleryEntry[]>("mine") ?? null);
   const [sort, setSort] = useState<Sort>("recent");
   const [category, setCategory] = useState<string | null>(null);
   const flash = useToast();
@@ -38,21 +40,24 @@ export default function MyStoriesPage() {
     if (status !== "authenticated") return;
     fetch("/api/gallery/mine")
       .then((r) => r.json())
-      .then((d: { stories?: GalleryEntry[] }) => setStories(d.stories ?? []));
+      .then((d: { stories?: GalleryEntry[] }) => setStories(remember("mine", d.stories ?? [])));
     // Stories saved from the library (their own section, only if any).
     fetch("/api/user/saved")
       .then((r) => (r.ok ? r.json() : { stories: [] }))
-      .then((d: { stories?: GalleryEntry[] }) => setSaved(d.stories ?? []))
-      .catch(() => setSaved([]));
+      .then((d: { stories?: GalleryEntry[] }) => setSaved(remember("saved", d.stories ?? [])))
+      .catch(() => setSaved((cur) => cur ?? []));
   }, [status]);
 
   // Unsaving a story (from its preview) takes it off the Saved shelf.
-  const [savedList, setSaved] = useState<GalleryEntry[] | null>(null);
+  const [savedList, setSaved] = useState<GalleryEntry[] | null>(() => recall<GalleryEntry[]>("saved") ?? null);
   const saved = useMemo(() => savedList ?? [], [savedList]);
   useEffect(() => {
     const on = (e: Event) => {
       const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
-      if (d && !d.saved) setSaved((list) => (list ? list.filter((s) => s.id !== d.id) : list));
+      if (d && !d.saved) {
+        forgetStory(d.id, "saved");
+        setSaved((list) => (list ? list.filter((s) => s.id !== d.id) : list));
+      }
     };
     window.addEventListener(SAVED_EVENT, on);
     return () => window.removeEventListener(SAVED_EVENT, on);
@@ -83,6 +88,7 @@ export default function MyStoriesPage() {
   useEffect(() => {
     const drop = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) forgetStory(id);
       setStories((list) => (list ? list.filter((s) => s.id !== id) : list));
       setOpenId(null);
       flash("Story deleted", "removed");

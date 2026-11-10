@@ -60,7 +60,14 @@ function neuralEnabled(): Promise<boolean> {
 // Ask once, as soon as the app loads, so no tap ever waits on it: with the
 // device voice, speech must start inside the tap itself (iOS drops speech
 // that starts after a network round-trip).
-if (typeof window !== "undefined") void neuralEnabled();
+// (On a page with a story to read, that is; anywhere else it waits until
+// the page has finished arriving, so it never competes with it.)
+if (typeof window !== "undefined") {
+  const ask = () => void neuralEnabled();
+  if (/^\/(story|store\/|shared|s\/)/.test(location.pathname)) ask();
+  else if (document.readyState === "complete") setTimeout(ask, 1500);
+  else window.addEventListener("load", () => setTimeout(ask, 1500), { once: true });
+}
 
 /** True when speech will use the device's own voice, which on iOS must be
  *  started synchronously inside the user's tap. */

@@ -16,6 +16,14 @@ import { ShelfSkeleton } from "./ShelfSkeleton";
 import { OngoingCard } from "./OngoingStory";
 import { useOngoingStory } from "@/lib/ongoing";
 import { IdeaCard, useSavedIdea } from "./NextAdventure";
+import { forgetStory, recall, remember } from "@/lib/remember";
+
+/** Originals (newest first), then the saved ones that aren't among them. */
+function oneRow(originals: GalleryEntry[], saved: GalleryEntry[]) {
+  const own = [...originals].sort((a, b) => b.createdAt - a.createdAt);
+  const seen = new Set(own.map((e) => e.id));
+  return [...own, ...saved.filter((e) => !seen.has(e.id))];
+}
 
 /** How many of your stories the row shows before handing over to your
  *  bookshelf. */
@@ -24,7 +32,12 @@ const SHOWN = 6;
 /** Your bookshelf in one sideways row (originals, then saved). Past the
  *  first few it ends in an arrow card that opens your whole bookshelf. */
 export function MyCreationsRow({ username }: { username: string | null }) {
-  const [mine, setMine] = useState<GalleryEntry[] | null>(null);
+  // (what was here last time shows at once; the server is still asked)
+  const [mine, setMine] = useState<GalleryEntry[] | null>(() => {
+    const originals = recall<GalleryEntry[]>("mine");
+    const saved = recall<GalleryEntry[]>("saved");
+    return username && originals && saved ? oneRow(originals, saved) : null;
+  });
   const [openId, setOpenId] = useState<string | null>(null);
   const toast = useToast();
   // The story under way (if any) leads the row.
@@ -38,6 +51,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   useEffect(() => {
     const drop = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) forgetStory(id);
       setMine((list) => (list ? list.filter((s) => s.id !== id) : list));
       setOpenId(null);
       router.refresh();
@@ -56,11 +70,9 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     Promise.all([get("/api/gallery/mine"), get("/api/user/saved").catch(() => [])])
       .then(([originals, saved]) => {
         if (!live) return;
-        const own = [...originals].sort((a, b) => b.createdAt - a.createdAt);
-        const seen = new Set(own.map((e) => e.id));
-        setMine([...own, ...saved.filter((e) => !seen.has(e.id))]);
+        setMine(oneRow(remember("mine", originals), remember("saved", saved)));
       })
-      .catch(() => live && setMine([]));
+      .catch(() => live && setMine((cur) => cur ?? []));
     return () => {
       live = false;
     };
@@ -69,6 +81,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   useEffect(() => {
     const on = (e: Event) => {
       const d = (e as CustomEvent<{ id: string; saved: boolean }>).detail;
+      if (d && !d.saved) forgetStory(d.id, "saved");
       if (d && !d.saved) setMine((list) => (list ? list.filter((s) => s.id !== d.id || s.authorUsername?.toLowerCase() === username?.toLowerCase()) : list));
     };
     window.addEventListener(SAVED_EVENT, on);

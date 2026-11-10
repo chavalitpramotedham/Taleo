@@ -14,6 +14,9 @@ import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter"
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { ShelfSkeleton } from "./ShelfSkeleton";
 import { Segmented } from "./Segmented";
+import { forgetStory, recall, remember } from "@/lib/remember";
+
+type Shelf = { stories: GalleryEntry[]; categories: string[]; daily: GalleryEntry | null };
 
 export type GallerySort = "recent" | "rating";
 
@@ -54,17 +57,23 @@ export function GalleryShelf({
   heading: React.ReactNode;
   headClass: string;
 }) {
-  const [stories, setStories] = useState<GalleryEntry[] | null>(null);
   const [sort, setSort] = useState<GallerySort>("rating");
   // Category filter (the homepage asks the server for the top few of the
   // chosen category; full shelves filter what they have).
   const [category, setCategory] = useState<string | null>(null);
+  // What each shelf held when it was last fetched is kept while the tab is
+  // open (see lib/remember): coming back to the page shows it at once,
+  // and the server is asked again behind it.
+  const keyOf = (order: GallerySort, cat: string | null) => `shelf:${limit ?? "all"}:${author ?? ""}:${limit ? `${order}|${cat ?? ""}` : "recent"}`;
+  const first = recall<Shelf>(keyOf("rating", null));
+  const [stories, setStories] = useState<GalleryEntry[] | null>(first?.stories ?? null);
   const [error, setError] = useState(false);
   const flash = useToast();
   // A story deleted from its preview leaves the shelf at once.
   useEffect(() => {
     const drop = (e: Event) => {
       const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (id) forgetStory(id);
       setStories((list) => (list ? list.filter((s) => s.id !== id) : list));
       setOpenId(null);
     };
@@ -76,35 +85,36 @@ export function GalleryShelf({
   // the chosen order - not every story and cover in the library - and keeps
   // each order it has fetched so switching back is instant. The full
   // library fetches everything once and sorts here.
-  const byOrder = useRef<Record<string, GalleryEntry[]>>({});
-  const [homeCategories, setHomeCategories] = useState<string[]>([]);
+  const asked = useRef(new Set<string>());
+  const [homeCategories, setHomeCategories] = useState<string[]>(limit ? first?.categories ?? [] : []);
   // The library's story of the day leads the shelf, whatever the order
   // (not on one author's own bookshelf page).
-  const [daily, setDaily] = useState<GalleryEntry | null>(null);
+  const [daily, setDaily] = useState<GalleryEntry | null>(first?.daily ?? null);
   useEffect(() => {
-    if (!limit && byOrder.current.recent) return;
     // the homepage keeps each order (and category) it has fetched
-    const key = limit ? `${sort}|${category ?? ""}` : "recent";
-    const have = byOrder.current[key];
-    if (have) {
-      setStories(have);
-      return;
-    }
+    const key = keyOf(sort, category);
+    const have = recall<Shelf>(key);
+    if (have) setStories(have.stories);
+    // (asked once each time the page is opened, not on every switch back)
+    if (asked.current.has(key)) return;
     let live = true;
     fetchGalleryShelf(limit ? { sort, limit, category, daily: !author } : { daily: !author })
-      .then(({ stories: all, categories: cats, daily: today }) => {
+      .then(({ stories: all, categories, daily: today }) => {
         const list = author ? all.filter((e) => e.authorUsername?.toLowerCase() === author.toLowerCase()) : all;
-        byOrder.current[key] = list;
+        asked.current.add(key);
+        remember<Shelf>(key, { stories: list, categories, daily: today });
         if (live) {
+          setError(false);
           setStories(list);
           if (today) setDaily(today);
-          if (limit) setHomeCategories(cats);
+          if (limit) setHomeCategories(categories);
         }
       })
-      .catch(() => live && setError(true));
+      .catch(() => live && !have && setError(true));
     return () => {
       live = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit, sort, author, category]);
 
   const sorted = useMemo(() => {

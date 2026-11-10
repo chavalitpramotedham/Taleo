@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { recall, remember } from "@/lib/remember";
 import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
 import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
@@ -48,8 +49,13 @@ export default function CreatePage() {
   const [minutes, setMinutes] = useState<number | null>(null);
 
   const [group, setGroup] = useState<(typeof GROUPS)[number]["key"]>("all");
-  const [saved, setSaved] = useState<SavedCharacter[]>([]);
-  const [savedLoaded, setSavedLoaded] = useState(false);
+  // (the family's characters as they were last seen show at once; the
+  // server is still asked)
+  const [saved, setSaved] = useState<SavedCharacter[]>(() => recall<SavedCharacter[]>("characters") ?? []);
+  const [savedLoaded, setSavedLoaded] = useState(() => recall("characters") !== undefined);
+  useEffect(() => {
+    if (savedLoaded) remember("characters", saved);
+  }, [saved, savedLoaded]);
   const [selectedUids, setSelectedUids] = useState<string[]>([]);
   const [creatingCharacter, setCreatingCharacter] = useState(false);
 

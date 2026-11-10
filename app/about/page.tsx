@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
 import { OG_IMAGE } from "@/lib/seo";
 import { OrnamentRule } from "@/components/Icons";
+import { preload } from "react-dom";
 
 export const metadata: Metadata = {
   // (written out in full: "About" alone says nothing in search results)
@@ -20,6 +21,10 @@ export const metadata: Metadata = {
 
 /** About Taleo: the founder's story, and the "Say hello" form. */
 export default function AboutPage() {
+  // The picture at the top and the painted edge it shows through, asked for
+  // with the page itself (neither is found until the styles have arrived).
+  preload("/about/bedtime-story.webp", { as: "image", fetchPriority: "high" });
+  preload("/art/paint-edge-square.png", { as: "image" });
   return (
     <div className="container about">
       <header className="wizard-head">

@@ -5,7 +5,9 @@ import { Schoolbell } from "next/font/google";
 import { useNightMode } from "./NightMode";
 
 // (a thin, wobbly notebook scribble: the same loose pencil line as the arrow)
-const pencil = Schoolbell({ subsets: ["latin"], weight: "400", display: "swap" });
+// (not preloaded: one small note, and gone at night - it mustn't hold up
+// the page it is pencilled on)
+const pencil = Schoolbell({ subsets: ["latin"], weight: "400", display: "swap", preload: false });
 
 /**
  * A pencilled note in the margin, shown by daylight on the first step of

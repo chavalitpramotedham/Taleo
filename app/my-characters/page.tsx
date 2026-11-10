@@ -5,6 +5,7 @@ import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { recall, remember } from "@/lib/remember";
 import type { SavedCharacter, CharacterGender } from "@/lib/types";
 import { saveCharacterImage } from "@/lib/save-image";
 import { GrowingInput } from "@/components/GrowingInput";
@@ -19,7 +20,11 @@ import { PageLoading } from "@/components/PageLoading";
 export default function MyCharactersPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [characters, setCharacters] = useState<SavedCharacter[] | null>(null);
+  // (the ones here last time show at once; the server is still asked)
+  const [characters, setCharacters] = useState<SavedCharacter[] | null>(() => recall<SavedCharacter[]>("characters") ?? null);
+  useEffect(() => {
+    if (characters) remember("characters", characters);
+  }, [characters]);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SavedCharacter | null>(null);
 
@@ -32,7 +37,7 @@ export default function MyCharactersPage() {
     fetch("/api/characters")
       .then((r) => r.json())
       .then((d: { characters?: SavedCharacter[] }) => setCharacters(d.characters ?? []))
-      .catch(() => setCharacters([]));
+      .catch(() => setCharacters((cur) => cur ?? []));
   }, [status]);
 
   const limit = useCharacterLimit();

@@ -15,6 +15,7 @@ import "./globals.css";
 import { ToastHost } from "@/components/Toast";
 import { ServiceWorker } from "@/components/AddShortcut";
 import { INSTALL_CATCH } from "@/lib/install";
+import { EARLY_FETCH } from "@/lib/early";
 
 export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
@@ -66,20 +67,42 @@ export const viewport: Viewport = {
 
 // Self-hosted by Next.js (served from our own domain and preloaded), so the
 // first paint doesn't wait on a stylesheet from fonts.googleapis.com.
+//
+// Only the three upright faces are preloaded: they letter every page from
+// its first line. The two italics (a caption here, an aside there) are the
+// same families, declared apart so they aren't: they come when a page first
+// uses them, instead of 100 KB of them racing the stylesheet and scripts on
+// every visit.
 const garamond = EB_Garamond({
   subsets: ["latin"],
   // 400 for text, 600 for headings and bold; 500 was never used.
   weight: ["400", "600"],
-  style: ["normal", "italic"],
+  style: ["normal"],
   display: "swap",
   variable: "--font-garamond",
+});
+const garamondItalic = EB_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  style: ["italic"],
+  display: "swap",
+  preload: false,
+  variable: "--font-garamond-italic",
 });
 const fell = IM_Fell_English({
   subsets: ["latin"],
   weight: "400",
-  style: ["normal", "italic"],
+  style: ["normal"],
   display: "swap",
   variable: "--font-fell",
+});
+const fellItalic = IM_Fell_English({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["italic"],
+  display: "swap",
+  preload: false,
+  variable: "--font-fell-italic",
 });
 const fellSC = IM_Fell_English_SC({
   subsets: ["latin"],
@@ -90,12 +113,12 @@ const fellSC = IM_Fell_English_SC({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable} ${garamondItalic.variable} ${fellItalic.variable}`} suppressHydrationWarning>
       <head>
         {/* Apply night mode before the first paint (no flash of the light theme). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}${INSTALL_CATCH}`,
+            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}${INSTALL_CATCH}${EARLY_FETCH}`,
           }}
         />
       </head>

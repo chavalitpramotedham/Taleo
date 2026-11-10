@@ -8,7 +8,14 @@ const nextConfig: NextConfig = {
     return [{ source: "/library", destination: "/store", permanent: true }];
   },
   async headers() {
+    // The paintings and pictures the pages are made of: kept by the browser
+    // for a week (and shown from its copy while a newer one is fetched), so
+    // a returning reader's page doesn't ask about each of them again.
+    const kept = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }];
     return [
+      { source: "/art/:path*", headers: kept },
+      { source: "/steps/:path*", headers: kept },
+      { source: "/about/:path*", headers: kept },
       {
         // The service worker: always checked afresh (a browser must never
         // hold on to an old one), and allowed to run only our own code.
