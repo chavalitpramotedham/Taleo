@@ -8004,6 +8004,8 @@ html[data-night] .seg {
   white-space: nowrap;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+  /* (the lettering turns as the pill slides under it) */
+  transition: color 0.26s ease;
 }
 /* (a choice of two shares one width, the wider's, so the sliding pill only
    ever moves: it never has to stretch or shrink on the way. A longer row
@@ -8025,7 +8027,11 @@ html[data-night] .seg {
   left: 0;
   border-radius: 999px;
   background: var(--russet);
-  transition: transform 0.24s cubic-bezier(0.3, 0.7, 0.3, 1), width 0.24s cubic-bezier(0.3, 0.7, 0.3, 1);
+  /* (its own layer, so it glides whatever the page is busy drawing; eased
+     at both ends - a start at full speed read as a jump. Segmented waits
+     this long before passing the choice on: SLIDE_MS) */
+  will-change: transform;
+  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), width 0.26s cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .seg-thumb {
