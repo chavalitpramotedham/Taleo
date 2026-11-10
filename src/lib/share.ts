@@ -1,5 +1,3 @@
-import { decompressFromEncodedURIComponent } from "lz-string";
-import type { Story } from "./types";
 
 /** The story's own page in the public store (used for in-app navigation). */
 export function storeUrl(id: string, origin: string): string {
@@ -29,18 +27,5 @@ export async function shareStory(title: string, url: string, onCopied: () => voi
     onCopied();
   } catch {
     window.prompt("Copy this link to share:", url);
-  }
-}
-
-/** Decodes a story from a pre-store share link (`/shared#...`), kept so old links still open. */
-export function decodeShared(hash: string): Story | null {
-  try {
-    const json = decompressFromEncodedURIComponent(hash.replace(/^#/, ""));
-    if (!json) return null;
-    const s = JSON.parse(json) as Story;
-    if (!s || !Array.isArray(s.segments) || !s.hero) return null;
-    return { ...s, rating: 0, companions: s.companions ?? [] };
-  } catch {
-    return null;
   }
 }

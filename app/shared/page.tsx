@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import type { Story } from "@/lib/types";
-import { decodeShared } from "@/lib/share";
+import { decodeShared } from "@/lib/share-legacy";
 import { newId, saveStory } from "@/lib/storage";
 import { StoryReader } from "@/components/StoryReader";
 import { PageLoading } from "@/components/PageLoading";

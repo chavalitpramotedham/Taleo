@@ -3,10 +3,15 @@ import { useEffect, useRef } from "react";
 import { SessionProvider, useSession } from "next-auth/react";
 import { NightModeProvider } from "./NightMode";
 import { ErrorReporter } from "./ErrorReporter";
-import { DraftPrompt } from "./DraftPrompt";
-import { NextAdventure } from "./NextAdventure";
+import dynamic from "next/dynamic";
 import { EARLY_SIGNED_IN } from "@/lib/early";
 import { forgetEverything } from "@/lib/remember";
+
+// Asked only now and then (a draft to pick up, a finished story's next
+// idea), so their code - and the character paintings they show - load
+// after the page rather than with every page.
+const DraftPrompt = dynamic(() => import("./DraftPrompt").then((m) => m.DraftPrompt), { ssr: false });
+const NextAdventure = dynamic(() => import("./NextAdventure").then((m) => m.NextAdventure), { ssr: false });
 
 /**
  * Two small notes kept about who is signed in:
