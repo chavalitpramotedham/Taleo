@@ -10,7 +10,7 @@ import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, When } from "./Live";
 import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
-import { ZoomPicture } from "./Zoom";
+import { ZoomList, ZoomPicture, type ZoomItem } from "./Zoom";
 import { fuzzyPeople } from "@/lib/fuzzy";
 
 export const metadata: Metadata = { title: "Activity", robots: { index: false, follow: false } };
@@ -315,7 +315,12 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
   const twice = paintedTwice(records);
   // (paintings are shown as themselves, small, at the front of their row)
   const pictures = records.some((r) => r.kind === "painting");
+  // (the list's paintings in order, for stepping through them full size)
+  const shownPictures = records.filter((r) => r.kind === "painting" && r.hasResult);
+  const gallery: ZoomItem[] = shownPictures.map((r) => ({ src: `${HERE}/picture/${r.id}`, label: paintingLabel(r), record: href({ id: r.id }) }));
+  const place = new Map(shownPictures.map((r, i) => [r.id, i]));
   return (
+    <ZoomList items={gallery}>
     <div className="admin-scroll">
       <table className="admin-table admin-log">
         <thead>
@@ -350,7 +355,8 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
                       height={90}
                       lazy
                       record={href({ id: r.id })}
-                      label={r.what ? `Painting: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : "Painting"}
+                      label={paintingLabel(r)}
+                      index={place.get(r.id)}
                     />
                   )}
                 </td>
@@ -385,8 +391,11 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
         </tbody>
       </table>
     </div>
+    </ZoomList>
   );
 }
+
+const paintingLabel = (r: GenRecord) => (r.what ? `Painting: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : "Painting");
 
 /** One request, in full. */
 async function Detail({ id, now }: { id: string; now: number }) {
