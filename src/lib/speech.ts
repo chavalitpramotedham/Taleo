@@ -84,12 +84,12 @@ const voiceParam = () => {
 };
 const clipKey = (text: string, kind: SpeechKind) => `${voiceParam() ?? ""}\n${kind}\n${text}`;
 
-function loadClip(text: string, kind: SpeechKind): Promise<AudioBuffer | null> {
+function loadClip(text: string, kind: SpeechKind, ahead = false): Promise<AudioBuffer | null> {
   const key = clipKey(text, kind);
   const have = clips.get(key);
   if (have) return have;
   const v = voiceParam();
-  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}`)
+  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((buf) => {
       const c = getAudioContext();
@@ -105,11 +105,11 @@ function loadClip(text: string, kind: SpeechKind): Promise<AudioBuffer | null> {
 
 /** Start fetching a phrase's clip early (e.g. the page that's about to be
  *  read, or a word as it's tapped) so it plays without a pause. */
-export function prefetchSpeech(text: string, kind: SpeechKind = "page") {
+export function prefetchSpeech(text: string, kind: SpeechKind = "page", ahead = false) {
   const t = clean(text);
   if (!t || typeof window === "undefined") return;
   void neuralEnabled().then((on) => {
-    if (on) void loadClip(t, kind);
+    if (on) void loadClip(t, kind, ahead);
   });
 }
 

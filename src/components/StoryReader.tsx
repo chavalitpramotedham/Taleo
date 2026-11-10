@@ -695,9 +695,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // Have the voice ready before it's needed: this page's tappable word, and
   // (when reading aloud) the next page's text.
   useEffect(() => {
-    if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word");
+    if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
     const nextView = views[index + 1];
-    if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "));
+    if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "), "page", true);
   }, [view, views, index, readAloud]);
 
   useEffect(() => {

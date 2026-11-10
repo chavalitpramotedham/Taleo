@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/server/auth";
+import { AdminPages } from "./AdminPages";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
@@ -100,14 +100,7 @@ export default async function AdminPage() {
         <p className="sub">The last {DAYS} days, unless it says otherwise. Updated each time you open it.</p>
       </header>
 
-      <nav className="filter-row admin-pages" aria-label="Admin pages">
-        <Link href="/admin" className="chip on" aria-current="page">
-          Overall
-        </Link>
-        <Link href="/admin/activity" className="chip">
-          User details
-        </Link>
-      </nav>
+      <AdminPages on="overall" />
 
       {!metricsEnabled() && (
         <p className="admin-note">

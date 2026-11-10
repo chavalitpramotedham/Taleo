@@ -1,4 +1,5 @@
 "use client";
+import { Segmented } from "@/components/Segmented";
 import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -115,12 +116,15 @@ export default function MyStoriesPage() {
         <h1>My bookshelf</h1>
         {stories.length + saved.length > 1 && (
           <div className="filter-row">
-            <button className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => setSort("recent")}>
-              Newest
-            </button>
-            <button className={`chip ${sort === "rating" ? "on" : ""}`} onClick={() => setSort("rating")}>
-              Favourites
-            </button>
+            <Segmented
+              options={[
+                { key: "recent", label: "Newest" },
+                { key: "rating", label: "Favourites" },
+              ]}
+              value={sort}
+              onChange={setSort}
+              label="Sort by"
+            />
             {categories.length > 1 && (
               <>
                 <span className="filter-split" aria-hidden />

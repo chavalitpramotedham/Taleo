@@ -9,6 +9,7 @@ import { newId, saveStory } from "@/lib/storage";
 import { CharacterPortrait, Painting } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { SideScroll } from "@/components/SideScroll";
+import { Segmented } from "@/components/Segmented";
 import { GrowingInput } from "@/components/GrowingInput";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
@@ -376,19 +377,8 @@ export default function CreatePage() {
 
           <p className="divider-label">Choose a friend</p>
 
-          <div className="filter-row" role="tablist">
-            {GROUPS.map((g) => (
-              <button
-                key={g.key}
-                type="button"
-                role="tab"
-                aria-selected={group === g.key}
-                className={`chip ${group === g.key ? "on" : ""}`}
-                onClick={() => setGroup(g.key)}
-              >
-                {g.label}
-              </button>
-            ))}
+          <div className="filter-row">
+            <Segmented options={GROUPS} value={group} onChange={setGroup} label="Kinds of friend" />
           </div>
           <div className="grid chars">
             {visiblePresets.map((p) => {

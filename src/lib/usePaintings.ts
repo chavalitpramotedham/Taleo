@@ -48,6 +48,10 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   /** When each unpainted page was first seen waiting, so the server's log
    *  can say how long a picture queued here before it was even asked for. */
   const seenAt = useRef(new Map<string, number>());
+  /** The pages that had no picture when the story was opened (rather than
+   *  written while it was open): the log marks those requests, since a
+   *  page painted once shouldn't need painting when the story is reopened. */
+  const atOpening = useRef<Set<string> | null>(null);
   useEffect(() => {
     life.current = new AbortController();
     return () => life.current?.abort();
@@ -82,7 +86,11 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         const res = await fetch("/api/illustrate", {
           signal: attempt.signal,
           method: "POST",
-          headers: { "content-type": "application/json", "x-taleo-waited": String(Math.max(0, Date.now() - (seenAt.current.get(key) ?? Date.now()))) },
+          headers: {
+            "content-type": "application/json",
+            "x-taleo-waited": String(Math.max(0, Date.now() - (seenAt.current.get(key) ?? Date.now()))),
+            ...(atOpening.current?.has(key) ? { "x-taleo-reopened": "1" } : {}),
+          },
           body: JSON.stringify({
             world: s.world,
             cast: castFor(s, page),
@@ -157,6 +165,10 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
 
   useEffect(() => {
     if (!enabled) return;
+    if (!atOpening.current) {
+      atOpening.current = new Set();
+      story.segments.forEach((sg, si) => sg.pages.forEach((p, pi) => !p.svg && atOpening.current!.add(pageKey(si, pi))));
+    }
     const pending: { seg: number; idx: number; key: string }[] = [];
     story.segments.forEach((sg, si) =>
       sg.pages.forEach((p, pi) => {

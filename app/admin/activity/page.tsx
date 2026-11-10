@@ -8,6 +8,7 @@ import { metricsEnabled } from "@/server/metrics";
 import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, When } from "./Live";
+import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
 import { fuzzyPeople } from "@/lib/fuzzy";
 
@@ -54,13 +55,13 @@ const median = (list: number[]) => {
 const sawFirst = (r: GenRecord) => (r.firstMs == null ? null : (r.waitedMs ?? 0) + r.firstMs);
 const sawAll = (r: GenRecord) => (r.totalMs == null ? null : (r.waitedMs ?? 0) + r.totalMs);
 const models = (r: GenRecord) => {
-  if (!r.calls.length) return r.mock ? "(stand-in, no model)" : "-";
+  if (!r.calls.length) return [r.mock ? "(stand-in, no model)" : "-"];
   const seen = new Map<string, number>();
   for (const c of r.calls) {
     const key = `${c.model}${c.effort ? ` · ${c.effort}` : ""}`;
     seen.set(key, (seen.get(key) ?? 0) + 1);
   }
-  return [...seen.entries()].map(([k, v]) => (v > 1 ? `${k} ×${v}` : k)).join(", ");
+  return [...seen.entries()].map(([k, v]) => (v > 1 ? `${k} ×${v}` : k));
 };
 /** Which of the ways its kind of request can go this one was. Records from
  *  before these were kept say some of it in `sub` ("page 2 of its part,
@@ -78,8 +79,20 @@ const casesOf = (r: GenRecord): string[] => {
 };
 /** (the old records' `sub` without what's now shown as cases) */
 const subOf = (r: GenRecord) => (r.cases || r.kind !== "painting" ? r.sub : r.sub.split(",")[0]);
-function Cases({ record }: { record: GenRecord }) {
-  const list = casesOf(record);
+/** The paintings among these that were asked for although the same page of
+ *  the same story had already been painted and delivered: the picture was
+ *  paid for twice (the reader's device didn't keep the first). */
+const paintedTwice = (records: GenRecord[]): Set<string> => {
+  const first = new Map<string, number>();
+  for (const r of records) {
+    if (r.kind !== "painting" || r.status !== "ok" || !r.storyId) continue;
+    const k = `${r.storyId}|${r.what}`;
+    first.set(k, Math.min(first.get(k) ?? Infinity, r.at));
+  }
+  return new Set(records.filter((r) => r.kind === "painting" && r.storyId && (first.get(`${r.storyId}|${r.what}`) ?? Infinity) < r.at).map((r) => r.id));
+};
+function Cases({ record, again = false }: { record: GenRecord; again?: boolean }) {
+  const list = [...casesOf(record), ...(again ? ["already painted once"] : [])];
   if (!list.length) return <>-</>;
   return (
     <span className="admin-cases">
@@ -92,7 +105,7 @@ function Cases({ record }: { record: GenRecord }) {
   );
 }
 /** The cases worth a second look in a long list. */
-const STANDS_OUT = /^(second go|stand-in|answered by another model|no ticket|unsigned page)/;
+const STANDS_OUT = /^(fetched ahead|second go|story reopened|already painted once|stand-in|answered by another model|no ticket|unsigned page)/;
 const who = (u: UserProfile | null | undefined, id: string | null) => (u ? (u.username ? `@${u.username}` : u.email) : id ? `(${id.slice(0, 10)}…)` : "signed out");
 const href = (params: Record<string, string | undefined | false>) => {
   const q = new URLSearchParams();
@@ -156,19 +169,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         </p>
       </header>
 
-      <nav className="filter-row admin-pages" aria-label="Admin pages">
-        <Link href="/admin" className="chip">
-          Overall
-        </Link>
-        <Link href="/admin/activity" className="chip on" aria-current="page">
-          User details
-        </Link>
-      </nav>
-      {subjectId && (
-        <p className="meta admin-crumbs">
-          <Link href={HERE}>Everyone&apos;s activity</Link>
-        </p>
-      )}
+      <AdminPages on="users" />
 
       {!metricsEnabled() && (
         <p className="admin-note">
@@ -178,7 +179,12 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
       <section className="admin-section">
         <h2>Find a user</h2>
-        <FindUser key={q ?? ""} action={HERE} searched={q ?? ""} people={users.map((u) => ({ id: u.id, username: u.username ?? null, email: u.email }))} />
+        <FindUser
+          key={subjectId ?? q ?? ""}
+          action={HERE}
+          searched={subject ? (subject.username ? `@${subject.username}` : subject.email) : (q ?? subjectId ?? "")}
+          narrowed={!!(subjectId || q)}
+          people={users.map((u) => ({ id: u.id, username: u.username ?? null, email: u.email }))} />
         {matches && matches.length !== 1 && (
           <>
             <h3>{matches.length ? `${matches.length} accounts match “${q}”` : `Nobody matches “${q}”`}</h3>
@@ -209,8 +215,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 <KindTile key={k} kind={k} records={all.filter((r) => r.kind === k)} now={now} link={href({ ...keep, kind: k })} />
               ))}
             </div>
-            <p className="meta admin-filters">
-              <span>Show:</span>
+            <div className="filter-row admin-show" aria-label="Show">
               <FilterLink on={!kind} to={href({ ...keep, kind: undefined })}>
                 everything
               </FilterLink>
@@ -219,10 +224,11 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                   {KIND_NAME[k].toLowerCase()}
                 </FilterLink>
               ))}
-              <FilterLink on={issues} to={href({ ...keep, issues: !issues && "1" })} off>
+              <span className="filter-split" aria-hidden />
+              <FilterLink on={issues} to={href({ ...keep, issues: !issues && "1" })}>
                 only what went wrong
               </FilterLink>
-            </p>
+            </div>
             <AutoRefresh />
           </section>
 
@@ -260,12 +266,11 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
 /** A filter: bold when it's the one in force. One that's a switch (`off`)
  *  stays a link while on, so it can be turned off again. */
-function FilterLink({ on, to, off = false, children }: { on: boolean; to: string; off?: boolean; children: ReactNode }) {
-  if (on && !off) return <b className="admin-filter-on">{children}</b>;
+/** One of the "show" filters, as a pill: filled when it's the one in force. */
+function FilterLink({ on, to, children }: { on: boolean; to: string; children: ReactNode }) {
   return (
-    <Link href={to} className={on ? "admin-filter-on" : undefined}>
+    <Link href={to} className={`chip${on ? " on" : ""}`} aria-current={on ? "true" : undefined} scroll={false}>
       {children}
-      {on ? " ✕" : ""}
     </Link>
   );
 }
@@ -306,6 +311,7 @@ function Status({ record, now }: { record: GenRecord; now: number }) {
 
 function Records({ records, now, users, kinds = false }: { records: GenRecord[]; now: number; users: Map<string, UserProfile> | null; kinds?: boolean }) {
   if (!records.length) return <p className="meta">Nothing yet.</p>;
+  const twice = paintedTwice(records);
   return (
     <div className="admin-scroll">
       <table className="admin-table admin-log">
@@ -339,10 +345,16 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
                 {r.error && <span className="admin-error"> {r.error}</span>}
               </td>
               <td className="admin-left admin-case-cell">
-                <Cases record={r} />
+                <Cases record={r} again={twice.has(r.id)} />
               </td>
               {users && <td className="admin-left">{r.userId ? <Link href={href({ user: r.userId })}>{who(users.get(r.userId), r.userId)}</Link> : "signed out"}</td>}
-              <td className="admin-left admin-model">{models(r)}</td>
+              <td className="admin-left admin-model">
+                {models(r).map((m) => (
+                  <span key={m} className="admin-model-line">
+                    {m}
+                  </span>
+                ))}
+              </td>
               <td>
                 <Status record={r} now={now} />
               </td>
@@ -413,23 +425,12 @@ async function Detail({ id, now }: { id: string; now: number }) {
         </h1>
         {r.what && <p className="sub">{r.what}</p>}
       </header>
-      <nav className="filter-row admin-pages" aria-label="Admin pages">
-        <Link href="/admin" className="chip">
-          Overall
-        </Link>
-        <Link href="/admin/activity" className="chip on" aria-current="page">
-          User details
-        </Link>
-      </nav>
-      <p className="meta admin-crumbs">
-        <Link href={HERE}>Everyone&apos;s activity</Link>
-        {r.userId && (
-          <>
-            {" · "}
-            <Link href={href({ user: r.userId })}>{who(user, r.userId)}</Link>
-          </>
-        )}
-      </p>
+      <AdminPages on="users" />
+      {r.userId && (
+        <p className="meta admin-crumbs">
+          <Link href={href({ user: r.userId })}>{who(user, r.userId)}</Link>
+        </p>
+      )}
       {r.mock && (
         <p className="admin-note">
           <b>A stand-in.</b> No model key is set on this server, so this was made without calling a model.

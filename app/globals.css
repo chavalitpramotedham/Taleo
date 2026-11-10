@@ -6889,7 +6889,6 @@ html[data-night] .admin-spark.bad {
   text-align: center;
 }
 .admin-crumbs a,
-.admin-filters a,
 .admin-more a,
 .admin-table a {
   color: var(--russet);
@@ -6897,19 +6896,15 @@ html[data-night] .admin-spark.bad {
 .admin-tile-label a {
   color: inherit;
 }
-.admin-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  align-items: baseline;
-  margin: 14px 0 0;
+/* What the log below shows, as the pills that sort a shelf. */
+.admin-show {
+  margin: 16px 0 0;
 }
-.admin-filters .admin-filter-on {
-  color: var(--ink);
-  font-weight: 700;
+.admin-show .chip {
+  text-decoration: none;
 }
 .admin-live {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
 }
 .admin-live input {
   accent-color: var(--russet);
@@ -6958,6 +6953,11 @@ html[data-night] .admin-spark.bad {
   white-space: normal;
   font-size: 0.88rem;
   color: var(--ink-soft);
+}
+/* (one line for each model that worked on the request) */
+.admin-model-line {
+  display: block;
+  white-space: nowrap;
 }
 .admin-error {
   color: #b5533a;
@@ -7987,6 +7987,64 @@ html[data-night] .step-art img {
   }
   .filter-split {
     margin: 0 4px;
+  }
+}
+/* An either/or choice (Favourites / Newest, the dashboard's two pages):
+   one grey pill holding the options, and a smaller russet pill lying over
+   the chosen one, which slides across when the choice changes. The grey
+   pill is exactly the height of an ordinary one (its border and 3px of
+   padding stand in for the option's own), so a row of pills stays level. */
+.seg {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink-faint) 20%, var(--page));
+}
+.seg .chip.seg-opt {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 0;
+  background: none;
+  padding-top: 2px;
+  padding-bottom: 3px;
+  white-space: nowrap;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* (until the sliding pill has been placed, the chosen option wears the
+   colour itself) */
+.seg:not(.measured) .chip.seg-opt.on {
+  background: var(--russet);
+}
+.seg-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 999px;
+  background: var(--russet);
+  transition: transform 0.24s cubic-bezier(0.3, 0.7, 0.3, 1), width 0.24s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-thumb {
+    transition: none;
+  }
+}
+@media (max-width: 520px) {
+  .filter-row .seg .chip.seg-opt {
+    padding-top: 3px;
+    padding-bottom: 4px;
+  }
+  .filter-row > .seg:first-child {
+    margin-left: auto;
+  }
+  .filter-row > .seg:last-child {
+    margin-right: auto;
   }
 }
 /* pills keep their own height (the row's taller touch areas mustn't
@@ -11599,4 +11657,18 @@ html[data-night] .nav-begin-pill.is-making::before {
     padding-top: 6px;
     padding-bottom: 6px;
   }
+}
+/* The dashboard's "show" pills start at the left, in line with the tiles
+   above and the tick-box below, and wrap on a phone rather than scroll. */
+.filter-row.admin-show {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  overflow: visible;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.filter-row.admin-show .chip:first-child,
+.filter-row.admin-show .chip:last-child {
+  margin-left: 0;
+  margin-right: 0;
 }

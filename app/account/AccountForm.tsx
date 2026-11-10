@@ -50,7 +50,7 @@ export function AccountForm({
   const [nameError, setNameError] = useState<string | null>(null);
   const [nameSaved, setNameSaved] = useState(false);
   const [avatar, setAvatar] = useState(avatarKey);
-  const [, setDraftAvatar] = useState(avatarKey);
+  const [draftAvatar, setDraftAvatar] = useState(avatarKey);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarSaved, setAvatarSaved] = useState(false);
   const [busy, setBusy] = useState<"name" | "avatar" | "stories" | "account" | null>(null);
@@ -58,14 +58,14 @@ export function AccountForm({
 
   const [picking, setPicking] = useState(false);
   const [editingName, setEditingName] = useState(false);
-  // Choosing a face saves it at once and closes the dialog.
-  const chooseAvatar = async (key: string) => {
-    if (key === avatar) return setPicking(false);
-    setDraftAvatar(key);
-    setPicking(false);
-    await saveAvatar(key);
+  // Tapping a face only marks it; Save keeps it and closes the dialog.
+  // Closing any other way leaves the picture as it was.
+  const openPicker = () => {
+    setDraftAvatar(avatar);
+    setAvatarError(null);
+    setPicking(true);
   };
-  const saveAvatar = async (draftAvatar: string) => {
+  const saveAvatar = async () => {
     if (draftAvatar === avatar || busy) return;
     setBusy("avatar");
     setAvatarError(null);
@@ -80,6 +80,7 @@ export function AccountForm({
       if (!res.ok) throw new Error(data.error || "Couldn't save that picture.");
       setAvatar(draftAvatar);
       setAvatarSaved(true);
+      setPicking(false);
       // Re-sync the session (every avatar shown via useSession, e.g. the nav
       // icon) so the new picture appears everywhere without a manual reload.
       await update();
@@ -151,7 +152,7 @@ export function AccountForm({
       {/* You: your picture (tap to choose another) and your username (tap
           to edit) - one row, above your plan. */}
       <section className="panel profile-row">
-        <button type="button" className="profile-avatar" onClick={() => setPicking(true)} aria-label="Change profile picture" disabled={Boolean(busy)}>
+        <button type="button" className="profile-avatar" onClick={openPicker} aria-label="Change profile picture" disabled={Boolean(busy)}>
           <Avatar avatarKey={avatar} />
           <span className="profile-avatar-edit" aria-hidden>
             <PencilIcon />
@@ -195,7 +196,6 @@ export function AccountForm({
           {editingName ? <p className="meta">3-20 letters, numbers or underscores.</p> : nameSaved ? <p className="meta">Saved.</p> : null}
           {nameError && <p className="error">{nameError}</p>}
           {avatarSaved && !editingName && <p className="meta">Picture saved.</p>}
-          {avatarError && <p className="error">{avatarError}</p>}
         </div>
       </section>
       {picking && (
@@ -211,15 +211,21 @@ export function AccountForm({
                 <button
                   key={key}
                   type="button"
-                  className={`avatar-option ${avatar === key ? "selected" : ""}`}
-                  onClick={() => void chooseAvatar(key)}
+                  className={`avatar-option ${draftAvatar === key ? "selected" : ""}`}
+                  onClick={() => setDraftAvatar(key)}
                   disabled={Boolean(busy)}
                   aria-label={presetByKey(key)?.name || key}
-                  aria-pressed={avatar === key}
+                  aria-pressed={draftAvatar === key}
                 >
                   <Avatar avatarKey={key} />
                 </button>
               ))}
+            </div>
+            {avatarError && <p className="error">{avatarError}</p>}
+            <div className="avatar-save-row">
+              <button type="button" className="btn btn-primary btn-block" onClick={() => void saveAvatar()} disabled={draftAvatar === avatar || Boolean(busy)}>
+                {busy === "avatar" ? "Saving…" : "Save"}
+              </button>
             </div>
           </div>
         </div>

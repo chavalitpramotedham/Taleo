@@ -12,21 +12,22 @@ import { PreviewButtons, SaveStoryButton, StoryPreview, stepper, summaryFromEntr
 import { CategoryFilter, categoriesOf, matchesCategory } from "./CategoryFilter";
 import { PRESETS, presetCharacter } from "@/lib/presets";
 import { ShelfSkeleton } from "./ShelfSkeleton";
+import { Segmented } from "./Segmented";
 
 export type GallerySort = "recent" | "rating";
 
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
 
-/** Favourites / Newest pill toggle. */
+const SORTS = [
+  { key: "rating", label: "Favourites" },
+  { key: "recent", label: "Newest" },
+] as const;
+
+/** Favourites / Newest: two options in one pill. */
 export function SortPills({ sort, onChange, children }: { sort: GallerySort; onChange: (s: GallerySort) => void; children?: React.ReactNode }) {
   return (
-    <div className="filter-row" role="tablist">
-      <button role="tab" aria-selected={sort === "rating"} className={`chip ${sort === "rating" ? "on" : ""}`} onClick={() => onChange("rating")}>
-        Favourites
-      </button>
-      <button role="tab" aria-selected={sort === "recent"} className={`chip ${sort === "recent" ? "on" : ""}`} onClick={() => onChange("recent")}>
-        Newest
-      </button>
+    <div className="filter-row">
+      <Segmented options={SORTS} value={sort} onChange={onChange} label="Sort by" />
       {children && (
         <>
           <span className="filter-split" aria-hidden />

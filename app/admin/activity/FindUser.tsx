@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { fuzzyPeople } from "@/lib/fuzzy";
 
 export interface Person {
@@ -11,8 +12,23 @@ export interface Person {
 
 /** The search for one account's activity: as a handle or email is typed,
  *  the accounts it could mean are listed beneath (a loose match: letters
- *  in order, a slip forgiven), and a cross in the box clears it. */
-export function FindUser({ action, searched, people }: { action: string; searched: string; people: Person[] }) {
+ *  in order, a slip forgiven), and a cross in the box clears it - which,
+ *  when one account's activity is showing, goes back to everyone's. */
+export function FindUser({
+  action,
+  searched,
+  narrowed,
+  people,
+}: {
+  action: string;
+  /** What the box starts with: the search, or the account being shown. */
+  searched: string;
+  /** The page below is one account's (or a search's), not everyone's:
+   *  clearing the box goes back to everyone's. */
+  narrowed: boolean;
+  people: Person[];
+}) {
+  const router = useRouter();
   const [typed, setTyped] = useState(searched);
   const box = useRef<HTMLInputElement>(null);
   // (what was searched for is answered by the page itself, below)
@@ -45,6 +61,7 @@ export function FindUser({ action, searched, people }: { action: string; searche
               onClick={() => {
                 setTyped("");
                 box.current?.focus();
+                if (narrowed) router.push(action);
               }}
             >
               <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">

@@ -54,6 +54,9 @@ export async function POST(req: Request) {
     what: parsed.page.text,
     cases: [
       parsed.retry ? "second go" : "first go",
+      // (a page with no picture when its story was opened, not one written
+      // while it was open: worth a look if it had been painted before)
+      req.headers.get("x-taleo-reopened") === "1" && "story reopened",
       painter && (parsed.quick ? "quick painter" : "main painter"),
       painter && (paintsInLayers(parsed) ? "in layers" : "one painter"),
       parsed.cast.length ? `${parsed.cast.length} ${parsed.cast.length === 1 ? "character" : "characters"}` : "nobody on the page",

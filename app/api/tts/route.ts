@@ -56,15 +56,18 @@ export async function GET(req: Request) {
   const kind: TtsKind = url.searchParams.get("k") === "word" ? "word" : "page";
   // the reader's chosen voice (OpenAI's built-in ones), or the default
   const picked = chosenVoice(url.searchParams.get("v"));
+  // made ready before anyone asked to hear it (the page's tappable word as
+  // the page opens, the next page while this one is read aloud)
+  const ahead = req.headers.get("x-taleo-ahead") === "1";
 
   // A new clip, made and logged (clips served from the cache aren't: they
   // cost nothing and there'd be one line for every page turned).
   const make = async (user: { id: string } | null, tier?: string) => {
     const gen = beginGen({
       kind: "voice",
-      sub: `${kind === "word" ? "a word" : "a page"} read aloud${user ? "" : " (signed-out reader of a published story)"}`,
+      sub: `${kind === "word" ? "a word" : "a page"} ${ahead ? "made ready ahead" : "read aloud"}${user ? "" : " (signed-out reader of a published story)"}`,
       what: text,
-      cases: [kind === "word" ? "a word" : "a page", picked ? `voice: ${picked}` : "the default voice", user ? "signed in" : "signed-out reader"],
+      cases: [kind === "word" ? "a word" : "a page", picked ? `voice: ${picked}` : "the default voice", user ? "signed in" : "signed-out reader", ahead && "fetched ahead, not tapped"].filter((c): c is string => !!c),
       userId: user?.id ?? null,
       tier,
       storyId: url.searchParams.get("s") || undefined,
