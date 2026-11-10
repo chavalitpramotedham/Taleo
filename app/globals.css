@@ -5728,12 +5728,14 @@ html[data-night] .gender-opt.open.on {
    slightly firmer tint instead - same look at a glance, no blur work. */
 @media (hover: none) {
   .cover-time,
+  .ongoing-discard,
   .story-preview-close {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: rgba(255, 252, 244, 0.78);
   }
   html[data-night] .cover-time,
+  html[data-night] .ongoing-discard,
   html[data-night] .story-preview-close {
     background: rgba(22, 17, 24, 0.72);
   }
@@ -10467,9 +10469,23 @@ html[data-night] .char-arrange-grip {
    marked "Unfinished", with a ✕ in its corner to throw it away. */
 .ongoing-card {
   position: relative;
-  outline: 2px dashed var(--russet);
-  outline-offset: -2px;
+  /* (a fine dashed edge: a page still being written, not yet bound) */
+  outline: 1px dashed var(--russet);
+  outline-offset: -1px;
   cursor: default;
+}
+/* Its picture is paler than a finished book's, like a wash not yet dry;
+   the full colour comes back under the pointer. */
+.ongoing-open .cover > :not(.ongoing-badge) {
+  filter: saturate(0.55) sepia(0.18);
+  opacity: 0.72;
+  transition: filter 0.25s ease, opacity 0.25s ease;
+}
+@media (hover: hover) {
+  .ongoing-card:hover .ongoing-open .cover > :not(.ongoing-badge) {
+    filter: none;
+    opacity: 1;
+  }
 }
 .ongoing-open {
   display: flex;
@@ -10492,17 +10508,18 @@ html[data-night] .char-arrange-grip {
   height: 100%;
   background: var(--rule);
 }
-.ongoing-badge {
-  position: absolute;
+/* The same frosted glass as a finished book's reading time (.cover-time,
+   whose glass and night look it shares), in the opposite corner from
+   the X. */
+.ongoing-badge.cover-time {
+  top: 8px;
   left: 8px;
-  bottom: 8px;
+  right: auto;
   padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--russet);
-  color: #fff8ef;
   font-family: var(--font-caps);
   font-size: 0.82rem;
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 .ongoing-meta {
   color: var(--ink-soft);
@@ -10531,12 +10548,21 @@ html[data-night] .char-arrange-grip {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid var(--rule-strong);
-  background: var(--page);
-  color: var(--ink-soft);
+  /* (glass, like the badge across from it) */
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 252, 244, 0.42);
+  -webkit-backdrop-filter: blur(8px) saturate(1.3);
+  backdrop-filter: blur(8px) saturate(1.3);
+  color: var(--ink);
   font-size: 0.95rem;
   cursor: pointer;
-  box-shadow: 0 2px 6px -2px rgba(47, 34, 20, 0.5);
+  box-shadow: 0 2px 8px -3px rgba(60, 40, 20, 0.25);
+}
+html[data-night] .ongoing-discard {
+  background: rgba(22, 17, 24, 0.55);
+  border-color: rgba(255, 236, 205, 0.2);
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.6);
+  color: #f3e7cf;
 }
 /* (a bigger place to tap than it looks) */
 .ongoing-discard::after {

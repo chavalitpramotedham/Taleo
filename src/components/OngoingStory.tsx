@@ -62,7 +62,7 @@ export function OngoingCard({
           ) : (
             <span className="ongoing-blank" aria-hidden />
           )}
-          <span className="ongoing-badge">Unfinished</span>
+          <span className="cover-time ongoing-badge">Unfinished</span>
         </span>
         <span className="body">
           <span className="story-card-title">{title}</span>
