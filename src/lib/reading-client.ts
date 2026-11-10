@@ -8,21 +8,26 @@ export function localDay(d = new Date()): string {
   return `${y}-${m}-${day}`;
 }
 
-const LOGGED = "taleo.readingLogged.v1";
+const LOGGED = "taleo.readingLogged.v2";
 
-/** Marks today as a reading day for this account - once a day at most
- *  (remembered on this device, so reading more stories costs nothing). */
-export function logReadingToday(userId: string) {
+/** Marks today as a reading day for this account, with the story that was
+ *  finished - once a day per story at most (remembered on this device, so
+ *  reading the same story again costs nothing). */
+export function logReadingToday(userId: string, storyId?: string) {
   const day = localDay();
   const key = `${userId}:${day}`;
+  let done: string[] = [];
   try {
-    if (localStorage.getItem(LOGGED) === key) return;
+    const kept = JSON.parse(localStorage.getItem(LOGGED) || "null") as { key?: string; ids?: string[] } | null;
+    if (kept?.key === key && Array.isArray(kept.ids)) done = kept.ids;
   } catch {}
-  void fetch("/api/user/reading", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ day }) })
+  const id = storyId && /^[a-z0-9]{1,64}$/i.test(storyId) ? storyId : "";
+  if (done.includes(id) || (done.length && !id)) return;
+  void fetch("/api/user/reading", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ day, story: id || undefined }) })
     .then((r) => {
       if (!r.ok) return;
       try {
-        localStorage.setItem(LOGGED, key);
+        localStorage.setItem(LOGGED, JSON.stringify({ key, ids: [...done, id] }));
       } catch {}
     })
     .catch(() => {});

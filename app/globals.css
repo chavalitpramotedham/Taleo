@@ -10587,3 +10587,143 @@ html[data-night] .book-card.story-of-day {
     0 0 22px rgba(226, 184, 88, 0.22),
     var(--shadow);
 }
+
+/* ---------- the reading diary ----------
+   A filled square on the reading chart is a button: it opens that day -
+   the stories made on it first, then the ones read. */
+button.reading-cell {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+}
+/* (a 13px square is a small thing to hit: its reach is a little wider) */
+button.reading-cell::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+}
+button.reading-cell:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: 1px;
+}
+@media (hover: hover) {
+  button.reading-cell:hover {
+    transform: scale(1.25);
+  }
+}
+.reading-diary-open {
+  white-space: nowrap;
+}
+.diary-prompt .diary-summary {
+  margin: 0;
+}
+.diary-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  overflow-y: auto;
+  min-height: 0;
+}
+.diary-row {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 8px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--rule) 22%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.diary-row:active {
+  opacity: 0.82;
+}
+.diary-row:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: 1px;
+}
+.diary-thumb {
+  flex: none;
+  width: 64px;
+  aspect-ratio: 4 / 3;
+  border-radius: 7px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--rule) 60%, transparent);
+}
+.diary-thumb > *,
+.diary-thumb svg,
+.diary-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.diary-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.diary-row-title {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diary-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.diary-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--rule);
+  color: var(--ink-faint);
+}
+/* your own: the gold of a story you made, the russet of one you re-read */
+.diary-tag.made {
+  background: #f3dfa8;
+  border-color: #d9b866;
+  color: #5c4310;
+}
+.diary-tag.own {
+  border-color: color-mix(in srgb, var(--russet) 55%, transparent);
+  color: var(--russet);
+}
+.diary-row-go {
+  flex: none;
+  font-size: 1.3rem;
+  color: var(--ink-faint);
+}
+.diary-step {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+.diary-step .link-btn:disabled {
+  opacity: 0.35;
+  text-decoration: none;
+  cursor: default;
+}

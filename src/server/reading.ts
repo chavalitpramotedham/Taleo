@@ -1,34 +1,57 @@
 import { readJson, writeJson } from "./store";
 
 /**
- * The days a family read together - one small file per account, holding
- * the dates (in the family's own time zone, "YYYY-MM-DD") they read at
- * least a few pages. Logged at most once a day, so it costs at most one
- * write per family per day.
+ * A family's reading diary - one small file per account: the dates (in the
+ * family's own time zone, "YYYY-MM-DD") they finished a story, and which
+ * stories they finished on each. A write happens only when there is
+ * something new to keep: the first story of a day, and each different
+ * story after it (a handful a day at the very most) - reading the same
+ * story again costs nothing.
  */
 const pathFor = (userId: string) => `users/reading/${userId}.json`;
 const KEEP_DAYS = 400; // a little over a year - enough for the chart and long streaks
+const PER_DAY = 6; // titles kept for one day
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const ID_RE = /^[a-z0-9]{1,64}$/i;
 
-export async function readingDays(userId: string): Promise<string[]> {
-  return (await readJson<string[]>(pathFor(userId), { fresh: true })) ?? [];
+export interface ReadingDiary {
+  days: string[];
+  /** The stories finished on a day (days from before titles were kept
+   *  have none). */
+  read: Record<string, string[]>;
 }
 
-/** Records a reading day (no write if it's already there). */
-export async function logReadingDay(userId: string, day: string): Promise<string[]> {
+export async function readingDiary(userId: string): Promise<ReadingDiary> {
+  // (the file used to be just the list of days)
+  const raw = await readJson<string[] | Partial<ReadingDiary>>(pathFor(userId), { fresh: true });
+  if (Array.isArray(raw)) return { days: raw, read: {} };
+  return { days: Array.isArray(raw?.days) ? raw.days : [], read: raw?.read && typeof raw.read === "object" ? raw.read : {} };
+}
+
+const trimmed = (d: ReadingDiary): ReadingDiary => {
+  const days = [...new Set(d.days)].sort().slice(-KEEP_DAYS);
+  const kept = new Set(days);
+  return { days, read: Object.fromEntries(Object.entries(d.read).filter(([day]) => kept.has(day))) };
+};
+
+/** Records a reading day, and the story finished on it (no write if both
+ *  are already there). */
+export async function logReadingDay(userId: string, day: string, storyId?: string): Promise<ReadingDiary> {
   if (!DAY_RE.test(day)) throw new Error("Not a day.");
-  const days = await readingDays(userId);
-  if (days.includes(day)) return days;
-  const next = [...days, day].sort().slice(-KEEP_DAYS);
+  const diary = await readingDiary(userId);
+  const had = diary.read[day] ?? [];
+  const add = storyId && ID_RE.test(storyId) && !had.includes(storyId) && had.length < PER_DAY ? storyId : null;
+  if (diary.days.includes(day) && !add) return diary;
+  const next = trimmed({ days: [...diary.days, day], read: add ? { ...diary.read, [day]: [...had, add] } : diary.read });
   await writeJson(pathFor(userId), next);
   return next;
 }
 
 /** Adds days logged by hand (no write if they're all there already). */
-export async function addReadingDays(userId: string, days: string[], add: string[]): Promise<string[]> {
-  const missing = add.filter((d) => DAY_RE.test(d) && !days.includes(d));
-  if (!missing.length) return days;
-  const next = [...days, ...missing].sort().slice(-KEEP_DAYS);
+export async function addReadingDays(userId: string, diary: ReadingDiary, add: string[]): Promise<ReadingDiary> {
+  const missing = add.filter((d) => DAY_RE.test(d) && !diary.days.includes(d));
+  if (!missing.length) return diary;
+  const next = trimmed({ days: [...diary.days, ...missing], read: diary.read });
   await writeJson(pathFor(userId), next);
   return next;
 }

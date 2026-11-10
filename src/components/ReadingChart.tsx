@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { currentStreak, localDay } from "@/lib/reading-client";
+import { ReadingDiary } from "./ReadingDiary";
 
 const CELL = 13; // px, plus the gap below
 const GAP = 3;
@@ -10,10 +11,17 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 /** The days you read together, like a garden of little squares: one column
  *  per week (Sunday at the top), today at the far right, a filled square
  *  for every day you read - with the current streak above. As many weeks
- *  as fit the screen. */
+ *  as fit the screen.
+ *
+ *  It's a diary too: a filled square opens that day - the stories made on
+ *  it and the stories read. (A story of your own counts on the day it was
+ *  made, whether or not the day was logged at the time.) */
 export function ReadingChart() {
   const [days, setDays] = useState<Set<string> | null>(null);
   const [joined, setJoined] = useState<number | null>(null);
+  const [read, setRead] = useState<Record<string, string[]>>({});
+  const [made, setMade] = useState<{ id: string; at: number }[]>([]);
+  const [openDay, setOpenDay] = useState<string | null>(null);
   const [weeks, setWeeks] = useState(18);
   const box = useRef<HTMLDivElement>(null);
 
@@ -21,9 +29,11 @@ export function ReadingChart() {
     let live = true;
     fetch("/api/user/reading", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { days: [] }))
-      .then((d: { days?: string[]; joined?: number | null }) => {
+      .then((d: { days?: string[]; joined?: number | null; read?: Record<string, string[]>; made?: { id: string; at: number }[] }) => {
         if (!live) return;
         setJoined(d.joined ?? null);
+        setRead(d.read ?? {});
+        setMade(d.made ?? []);
         setDays(new Set(d.days ?? []));
       })
       .catch(() => live && setDays(new Set()));
@@ -69,9 +79,21 @@ export function ReadingChart() {
     cols.push(col);
   }
   const joinedShown = Boolean(joinedKey && cols.some((col) => col.some((c) => c.day === joinedKey)));
-  const preShown = cols.some((col) => col.some((c) => c.pre));
 
-  const set = days ?? new Set<string>();
+  // Your own stories, on the day (here) each was made - newest first.
+  const madeOn = useMemo(() => {
+    const by = new Map<string, string[]>();
+    for (const m of [...made].sort((a, b) => b.at - a.at)) {
+      const day = localDay(new Date(m.at));
+      by.set(day, [...(by.get(day) ?? []), m.id]);
+    }
+    return by;
+  }, [made]);
+  const mine = useMemo(() => new Set(made.map((m) => m.id)), [made]);
+  // A day counts if a story was finished on it - or made on it.
+  const set = useMemo(() => new Set([...(days ?? []), ...madeOn.keys()]), [days, madeOn]);
+  const diaryDays = useMemo(() => [...set].sort(), [set]);
+  const at = openDay ? diaryDays.indexOf(openDay) : -1;
   const streak = days ? currentStreak(set, today) : 0;
   const total = [...set].filter((d) => d >= fromKey && d <= todayKey).length;
   const readToday = set.has(todayKey);
@@ -105,7 +127,17 @@ export function ReadingChart() {
             </>
           )}
         </p>
-        <p className="meta reading-chart-sub">{secondary}</p>
+        <p className="meta reading-chart-sub">
+          {secondary}
+          {diaryDays.length > 0 && (
+            <>
+              {" "}
+              <button type="button" className="link-btn reading-diary-open" onClick={() => setOpenDay(diaryDays[diaryDays.length - 1])}>
+                Open diary
+              </button>
+            </>
+          )}
+        </p>
       </div>
       <div className="reading-grid-wrap" ref={box}>
         <div className="reading-days" aria-hidden>
@@ -125,22 +157,19 @@ export function ReadingChart() {
               );
             })}
           </div>
-          <div className="reading-grid" role="img" aria-label={`${daysRead} ${span}; current streak ${streak} ${streak === 1 ? "day" : "days"}`}>
+          <div className="reading-grid" role="group" aria-label={`${daysRead} ${span}; current streak ${streak} ${streak === 1 ? "day" : "days"}`}>
             {cols.map((col, i) => (
               <div key={i} className="reading-col">
                 {col.map((c) => {
                   const read = !c.future && set.has(c.day);
                   const cls = c.future ? "future" : read ? "read" : c.pre ? "pre" : "";
-                  return (
-                    <span
-                      key={c.day}
-                      className={`reading-cell ${cls}${c.day === todayKey ? " today" : ""}${c.day === joinedKey ? " joined" : ""}`}
-                      title={
-                        c.future || c.pre
-                          ? undefined
-                          : `${c.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}${read ? " - read together" : ""}${c.day === joinedKey ? " - you joined Taleo" : ""}`
-                      }
-                    />
+                  const className = `reading-cell ${cls}${c.day === todayKey ? " today" : ""}${c.day === joinedKey ? " joined" : ""}`;
+                  const label = `${c.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}${read ? " - read together" : ""}${c.day === joinedKey ? " - you joined Taleo" : ""}`;
+                  // (a day with a story in it opens as a diary page)
+                  return read ? (
+                    <button key={c.day} type="button" className={className} title={`${label} · open diary`} aria-label={`${label}. Open diary`} onClick={() => setOpenDay(c.day)} />
+                  ) : (
+                    <span key={c.day} className={className} title={c.future || c.pre ? undefined : label} />
                   );
                 })}
               </div>
@@ -149,31 +178,33 @@ export function ReadingChart() {
         </div>
       </div>
       <ul className="reading-legend" aria-label="Key">
-        <li>
-          <span className="reading-cell read" aria-hidden />
-          Finished a story
-        </li>
-        <li>
-          <span className="reading-cell" aria-hidden />
-          No story
-        </li>
-        <li>
-          <span className="reading-cell today" aria-hidden />
-          Today
-        </li>
         {joinedShown && (
           <li>
             <span className="reading-cell joined" aria-hidden />
             You joined
           </li>
         )}
-        {preShown && (
-          <li>
-            <span className="reading-cell pre" aria-hidden />
-            Before you joined
-          </li>
-        )}
+        <li>
+          <span className="reading-cell read" aria-hidden />
+          Finished a story
+        </li>
+        <li>
+          <span className="reading-cell today" aria-hidden />
+          Today
+        </li>
       </ul>
+      {openDay && (
+        <ReadingDiary
+          day={openDay}
+          made={madeOn.get(openDay) ?? []}
+          read={read[openDay] ?? []}
+          mine={mine}
+          earlier={at > 0 ? diaryDays[at - 1] : null}
+          later={at >= 0 && at < diaryDays.length - 1 ? diaryDays[at + 1] : null}
+          onDay={setOpenDay}
+          onClose={() => setOpenDay(null)}
+        />
+      )}
     </section>
   );
 }

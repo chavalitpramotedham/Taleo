@@ -524,8 +524,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const readerId = readerSession?.user?.id;
   useEffect(() => {
     if (!readerId || cover !== "open") return;
-    if (view?.kind === "end") logReadingToday(readerId);
-  }, [readerId, cover, view?.kind]);
+    if (view?.kind === "end") logReadingToday(readerId, story.id);
+  }, [readerId, cover, view?.kind, story.id]);
   // A story of one's own, just made and read to its end: back on the
   // bookshelf there's an idea waiting for the next one.
   useEffect(() => {
