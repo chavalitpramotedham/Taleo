@@ -10,6 +10,9 @@ import { NOTES_MAX } from "@/lib/characters";
 import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
 import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
+import { PhotoProblem, preparePhoto, type CharacterPhoto } from "@/lib/character-photo";
+
+type ChosenPhoto = CharacterPhoto & { preview: string; bytes: number };
 
 interface Props {
   onClose: () => void;
@@ -37,6 +40,12 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [confirming, setConfirming] = useState(false);
   const [replacing, setReplacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // An optional photo of who or what they are, to paint them from (kept
+  // only on this screen, sent only with the painting request).
+  const [photo, setPhoto] = useState<ChosenPhoto | null>(null);
+  // What was wrong with the photo, when it couldn't be used.
+  const [photoTrouble, setPhotoTrouble] = useState<string | null>(null);
+  const pickPhoto = useRef<(() => void) | null>(null);
 
   // Leaving while they're being painted asks first: stopping throws the
   // painting away, staying lets it finish.
@@ -68,26 +77,58 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const draw = async () => {
+  const draw = async (opts: { withoutPhoto?: boolean } = {}) => {
     if (!description.trim() || drawing) return;
+    const sending = opts.withoutPhoto ? null : photo;
+    if (opts.withoutPhoto) setPhoto(null);
     setDrawing(true);
     setProgress(null);
     setError(null);
+    setPhotoTrouble(null);
     const mine = (painting.current = new AbortController());
     try {
-      const data = await requestCharacter({ description, name: name.trim() || undefined }, setProgress, { signal: mine.signal });
+      const data = await requestCharacter(
+        { description, name: name.trim() || undefined, photo: sending ? { data: sending.data, type: sending.type } : undefined },
+        setProgress,
+        { signal: mine.signal },
+      );
       setDrafted(data.character);
       setName(data.character.name);
       // The description they were painted from is kept as their prompt
       // (shown in its own box); "About" is left for extra details.
       prefilled.current = description.trim();
     } catch (e) {
-      if (!(e instanceof PaintingCancelled)) setError(e instanceof Error ? e.message : "Something went wrong.");
+      if (e instanceof PhotoProblem) setPhotoTrouble(e.message);
+      else if (!(e instanceof PaintingCancelled)) setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       if (painting.current === mine) painting.current = null;
       setDrawing(false);
     }
   };
+  const photoField = (
+    <PhotoField
+      photo={photo}
+      onChange={(p) => {
+        setPhoto(p);
+        setPhotoTrouble(null);
+      }}
+      disabled={drawing || confirming}
+      pickRef={pickPhoto}
+    />
+  );
+  const trouble = photoTrouble && !drawing && (
+    <div className="photo-trouble" role="alert">
+      <p>{photoTrouble}</p>
+      <div className="photo-trouble-actions">
+        <button type="button" className="btn btn-soft btn-sm" onClick={() => pickPhoto.current?.()}>
+          Choose another photo
+        </button>
+        <button type="button" className="btn btn-soft btn-sm" onClick={() => draw({ withoutPhoto: true })}>
+          Paint without the photo
+        </button>
+      </div>
+    </div>
+  );
 
   const confirm = async (replaceId?: string) => {
     if (!drafted || confirming) return;
@@ -136,12 +177,14 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 maxLength={200}
                 placeholder="A sleepy hedgehog who loves pancakes…"
                 onChange={setDescription}
-                onEnter={draw}
+                onEnter={() => draw()}
                 aria-label="Describe your character"
               />
             </div>
+            {photoField}
+            {trouble}
             <div className="field-row">
-              <button type="button" className="btn btn-primary btn-block" onClick={draw} disabled={!description.trim() || drawing}>
+              <button type="button" className="btn btn-primary btn-block" onClick={() => draw()} disabled={!description.trim() || drawing}>
                 {drawing ? (
                   <>
                     <LeafLoader size={18} /> Painting…
@@ -177,12 +220,12 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                 value={description}
                 maxLength={200}
                 onChange={setDescription}
-                onEnter={draw}
+                onEnter={() => draw()}
                 aria-label="Description"
                 disabled={drawing}
               />
               <span className="field-box-foot">
-                <button type="button" className="btn btn-soft btn-sm" onClick={draw} disabled={!description.trim() || drawing}>
+                <button type="button" className="btn btn-soft btn-sm" onClick={() => draw()} disabled={!description.trim() || drawing}>
                   {drawing ? (
                     <>
                       <LeafLoader size={14} /> Painting…
@@ -194,6 +237,8 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
               </span>
             </label>
 
+            {photoField}
+            {trouble}
             {drawing && <CharacterProgressBar progress={progress} name={name} />}
 
             <CharacterNotesField value={notes} onChange={setNotes} name={name.trim() || drafted.name} disabled={confirming} />
@@ -252,6 +297,96 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
         {error && <p className="error">{error}</p>}
       </div>
       {askStop && drawing && <StopPaintingConfirm name={drafted ? name : undefined} onStop={stopAndClose} onStay={() => setAskStop(false)} />}
+    </div>
+  );
+}
+
+/** The optional photo of who or what the character is: take one (on a
+ *  phone) or choose one, see it small, replace or remove it. It's made
+ *  smaller and re-saved here before it's sent (dropping its location and
+ *  camera details), and it's never kept. */
+function PhotoField({
+  photo,
+  onChange,
+  disabled,
+  pickRef,
+}: {
+  photo: ChosenPhoto | null;
+  onChange: (p: ChosenPhoto | null) => void;
+  disabled?: boolean;
+  /** Set to a function opening the photo picker (for "choose another"). */
+  pickRef?: React.MutableRefObject<(() => void) | null>;
+}) {
+  const choose = useRef<HTMLInputElement>(null);
+  const take = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  if (pickRef) pickRef.current = () => choose.current?.click();
+  const got = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // (so the same photo can be picked again after removing it)
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    setProblem(null);
+    try {
+      onChange(await preparePhoto(file));
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : "That photo couldn't be used.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const kb = photo ? Math.max(1, Math.round(photo.bytes / 1024)) : 0;
+  return (
+    <div className="field-box photo-box">
+      <span className="field-box-label">
+        A photo of them <span className="field-box-optional">optional</span>
+      </span>
+      {photo ? (
+        <div className="photo-chosen">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="photo-thumb" src={photo.preview} alt="The photo they'll be painted from" />
+          <span className="meta photo-note">
+            We&apos;ll match their colours and look to this. Only used to paint them - never kept.
+            <span className="photo-size"> {kb < 1000 ? `${kb} KB` : `${(kb / 1024).toFixed(1)} MB`}</span>
+          </span>
+        </div>
+      ) : (
+        <span className="meta photo-note">
+          {busy ? "Getting the photo ready…" : "Add a photo of who or what they are, and we'll match their colours and look. It's only used to paint them, and never kept."}
+        </span>
+      )}
+      {problem && <span className="error photo-error">{problem}</span>}
+      <span className="field-box-foot photo-foot">
+        {photo ? (
+          <>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => onChange(null)} disabled={disabled || busy}>
+              Remove
+            </button>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => choose.current?.click()} disabled={disabled || busy}>
+              Replace
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="btn btn-soft btn-sm photo-take" onClick={() => take.current?.click()} disabled={disabled || busy}>
+              Take a photo
+            </button>
+            <button type="button" className="btn btn-soft btn-sm" onClick={() => choose.current?.click()} disabled={disabled || busy}>
+              {busy ? (
+                <>
+                  <LeafLoader size={14} /> Preparing…
+                </>
+              ) : (
+                "Choose a photo"
+              )}
+            </button>
+          </>
+        )}
+      </span>
+      <input ref={choose} type="file" accept="image/*" hidden onChange={got} aria-label="Choose a photo" />
+      <input ref={take} type="file" accept="image/*" capture="environment" hidden onChange={got} aria-label="Take a photo" />
     </div>
   );
 }

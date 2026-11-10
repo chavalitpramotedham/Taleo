@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { designCharacter, hasApiKey, StoryRefusal } from "@/server/claude";
+import { designCharacter, hasApiKey, PhotoProblem, StoryRefusal } from "@/server/claude";
+import { PHOTO_PROBLEM, photoBytes, readPhoto } from "@/lib/character-photo";
 import { mockCharacter } from "@/server/mock";
 import { errorResponse } from "@/server/errors";
 import { guard } from "@/server/limits";
@@ -51,10 +52,15 @@ function streamOf(subscribe: (send: (e: JobEvent) => void) => () => void, signal
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as { description?: unknown; name?: unknown; current?: unknown; jobId?: unknown; resume?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { description?: unknown; name?: unknown; current?: unknown; jobId?: unknown; resume?: unknown; photo?: unknown } | null;
   const description = typeof body?.description === "string" ? body.description.trim().slice(0, 200) : "";
   const name = typeof body?.name === "string" ? body.name.trim().slice(0, 40) : undefined;
   if (!description) return NextResponse.json({ error: "Tell me about your character first!" }, { status: 400 });
+  // A photo of who or what they are, to paint them from (optional; used
+  // for this request only and never kept - not even in the activity log,
+  // which notes only that there was one and its size).
+  const photo = readPhoto(body?.photo);
+  if (photo === "bad") return NextResponse.json({ error: "That photo couldn't be used. Please choose another, or go on without one." }, { status: 400 });
   // Redrawing a saved character: their current look and who they are.
   const cur = body?.current as { look?: unknown; notes?: unknown; relationships?: unknown; gender?: unknown } | undefined;
   const current =
@@ -90,11 +96,11 @@ export async function POST(req: Request) {
     kind: "character" as const,
     sub: current ? "a saved character painted again" : "a new character",
     what: `${name ? `${name}: ` : ""}${description}`,
-    cases: [current ? "painted again" : "a new character", name ? "named by the parent" : "no name given"],
+    cases: [current ? "painted again" : "a new character", name ? "named by the parent" : "no name given", photo ? "with a photo" : "no photo"],
     userId: user?.id ?? null,
     tier,
     req,
-    request: { description, name, current, jobId },
+    request: { description, name, current, jobId, photo: photo ? { type: photo.type, bytes: photoBytes(photo) } : undefined },
     mock: !hasApiKey(),
   });
   if (!g.ok) {
@@ -124,6 +130,10 @@ export async function POST(req: Request) {
         const slow = Number(process.env.TALEO_MOCK_CHARACTER_SLOW) || 1;
         onProgress({ stage: "thinking" });
         await wait(1800 * slow);
+        // (a stand-in for the art director looking at the photo: one with
+        // nothing in it - a blank or nearly blank picture, which saves
+        // very small - has no subject to paint)
+        if (photo && photoBytes(photo) < 6000) throw new PhotoProblem("We couldn't find anyone or anything in that photo to paint - it looks almost empty. Try one where they fill more of the picture.");
         onProgress({ stage: "sheet" });
         await wait(700 * slow);
         for (let n = 3; n <= 90; n += 6) {
@@ -133,7 +143,7 @@ export async function POST(req: Request) {
         }
         return await finished(mockCharacter({ description, name }));
       }
-      const made = await withMetricsUser(userId, () => designCharacter({ description, name, current }, onProgress, signal));
+      const made = await withMetricsUser(userId, () => designCharacter({ description, name, current, photo: photo ?? undefined }, onProgress, signal));
       withMetricsUser(userId, () => count({ characters: 1 }));
       return await finished(made);
       } catch (err) {
@@ -143,6 +153,13 @@ export async function POST(req: Request) {
       }
     }),
     async (err) => {
+      // (a photo it couldn't use isn't a failure: the parent is told why,
+      // and nothing counts against their plan)
+      if (err instanceof PhotoProblem) {
+        await gen.end("refused", { error: err.message.slice(PHOTO_PROBLEM.length) });
+        await g.release();
+        return err.message;
+      }
       await gen.end(err instanceof StoryRefusal ? "refused" : "error", { error: err });
       await g.release();
       const res = await errorResponse(err);

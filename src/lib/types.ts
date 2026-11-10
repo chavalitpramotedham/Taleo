@@ -245,6 +245,9 @@ export interface CharacterRequest {
    *  they are (family notes, male/female) - kept, with the description
    *  saying what to change. */
   current?: { look: string; notes?: string | null; relationships?: string | null; gender?: CharacterGender | null };
+  /** A photo of the subject to paint them from (never kept: see
+   *  lib/character-photo). */
+  photo?: { data: string; type: "image/jpeg" | "image/webp" };
 }
 
 export interface CharacterResponse {

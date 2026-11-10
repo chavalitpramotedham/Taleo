@@ -218,7 +218,7 @@ Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup
  *  loosely ordered paragraph - into a clear design brief the character
  *  designer can work from. It only ever adds and organises; it never
  *  changes or drops anything the parent said. */
-export const characterBriefPrompt = () => `You are the art director for Taleo, a watercolour picture-book app for children aged about 1-6. A parent has described a character they want drawn. Rewrite it into one clear design brief for our character designer.
+export const characterBriefPrompt = (photo = false) => `You are the art director for Taleo, a watercolour picture-book app for children aged about 1-6. A parent has described a character they want drawn. Rewrite it into one clear design brief for our character designer.
 
 THE RULE THAT MATTERS MOST: keep every specific thing the parent said, exactly - names, ages, species, colours, hair, clothes, accessories, markings, sizes, likes, personality, relationships. Never contradict, soften, swap or drop any of it. If the parent said "blue", it stays blue; if they said "no hat", there is no hat. Where they were vague, choose something that fits; where they said nothing, add what's missing.
 
@@ -229,7 +229,20 @@ Organise the brief so it's easy to draw from, in this order, as short plain sent
 4. One favourite item they hold or wear, if it suits them (keep the parent's if they named one).
 5. Personality in three words, and a characterful pose for their portrait that shows it.
 
-For a real child a parent describes (e.g. "my son, 4"): a gentle storybook child of that age matching every detail given - never a likeness claim. Keep everything kind and child-friendly; anything scary becomes its friendliest version. Write only the brief.`;
+For a real child a parent describes (e.g. "my son, 4"): a gentle storybook child of that age matching every detail given - never a likeness claim. Keep everything kind and child-friendly; anything scary becomes its friendliest version. Write only the brief.${photo ? PHOTO_BRIEF : ""}`;
+
+/** Added to the art director's instructions when the parent sent a photo
+ *  of the character's subject. */
+const PHOTO_BRIEF = `
+
+THE PARENT ALSO SENT A PHOTO of who or what the character is (a person, a pet or other animal, a toy, an object - anything).
+- Find its ONE main subject: the one the description is about. Ignore the background and anything else in the frame.
+- Describe that subject from the photo as precisely as you can, so the character can be painted to look like it: its exact colours as hex values (fur, skin, hair, eyes, clothes, each marking), the pattern and placement of markings, its proportions and build, and every distinctive trait (a white sock on one paw, a torn ear, curly hair, freckles, a sticker on a toy). Put these into the brief's points 1-3, specific and confident.
+- The parent's words win on the name, personality and anything the photo can't show, and wherever they differ from the photo.
+- A person becomes a gentle storybook person with their colouring, hair, clothes and features - never a likeness claim.
+- Start your reply with one line, then the brief:
+  "PHOTO: OK" when the photo shows one clear subject that fits the description, or
+  "PHOTO: UNCLEAR: <one short, kind sentence for the parent saying what was wrong, e.g. that you couldn't make out one main subject, saw several and couldn't tell which, or that what's in the photo doesn't seem to match the description>" - and nothing else after that line.`;
 
 export const characterDesignerPrompt = () => `You are the character designer for Taleo, a picture-book app painted in the style of classic English country watercolour books: fine sepia pen line, soft earthy washes, naturalistic animals with real proportions, and food or object characters given dot eyes and thin ink-line arms and legs.
 

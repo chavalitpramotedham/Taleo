@@ -1,4 +1,5 @@
 import type { CharacterResponse } from "@/lib/types";
+import { PHOTO_PROBLEM, PhotoProblem } from "@/lib/character-photo";
 
 /** How far a character's design has got (streamed from /api/character). */
 export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { stage: "painting"; shapes: number };
@@ -89,7 +90,8 @@ export async function requestCharacter(body: object, onProgress: (p: CharacterPr
       const res = await fetch("/api/character", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...body, jobId, resume: mode === "new" ? undefined : mode }),
+        // (only listening in again needs no photo: the painting has it)
+        body: JSON.stringify({ ...body, ...(mode === "attach" ? { photo: undefined } : {}), jobId, resume: mode === "new" ? undefined : mode }),
         signal: conn.signal,
       });
       // Answered without a stream: refused before it started (signed out,
@@ -193,6 +195,8 @@ export async function requestCharacter(body: object, onProgress: (p: CharacterPr
       void fetch(`/api/character?job=${jobId}`, { method: "DELETE", keepalive: true }).catch(() => {});
       throw new PaintingCancelled();
     }
+    // (the photo couldn't be used: said so, apart from a failed painting)
+    if (e instanceof Error && e.message.startsWith(PHOTO_PROBLEM)) throw new PhotoProblem(e.message.slice(PHOTO_PROBLEM.length));
     throw e;
   }
 }

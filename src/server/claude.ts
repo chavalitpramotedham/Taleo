@@ -16,6 +16,7 @@ import type {
   SegmentResponse,
   StoryRequest,
 } from "@/lib/types";
+import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, sceneryPrompt, writerPrompt } from "./prompts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
@@ -726,7 +727,7 @@ export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { s
 
 /** The design request, streamed so progress can be reported as it goes
  *  (the reply is JSON in schema order: name, look, then the svg). */
-async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void, signal?: AbortSignal) {
+async function streamCharacterDesign(user: string | Anthropic.Beta.BetaContentBlockParam[], onProgress?: (p: CharacterProgress) => void, signal?: AbortSignal) {
   const stream = getClient().beta.messages.stream({
     model: CHARACTER_MODEL,
     // (plenty of room: at high effort it thinks at length before it paints,
@@ -785,6 +786,20 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
  *  everything they said. If it fails, the design simply goes ahead from
  *  their own words. */
 const BRIEF_MODEL = process.env.TALEO_BRIEF_MODEL || "claude-sonnet-5-5";
+/** The photo as the model takes it. */
+const photoBlock = (p: NonNullable<CharacterRequest["photo"]>): Anthropic.Beta.BetaImageBlockParam => ({
+  type: "image",
+  source: { type: "base64", media_type: p.type, data: p.data },
+});
+
+/** The photo didn't show one clear subject to paint (or nothing in it
+ *  matched the description): the message is for the parent. */
+export class PhotoProblem extends Error {
+  constructor(message: string) {
+    super(`${PHOTO_PROBLEM}${message}`);
+  }
+}
+
 async function characterBrief(req: CharacterRequest): Promise<string | null> {
   const about = [
     req.name ? `Their name: ${req.name}` : "",
@@ -800,15 +815,27 @@ async function characterBrief(req: CharacterRequest): Promise<string | null> {
     const res = await getClient().beta.messages.create({
       model: BRIEF_MODEL,
       max_tokens: 1500,
-      system: characterBriefPrompt(),
-      messages: [{ role: "user", content: about }],
+      system: characterBriefPrompt(Boolean(req.photo)),
+      messages: [{ role: "user", content: req.photo ? [photoBlock(req.photo), { type: "text", text: about }] : about }],
       output_config: { effort: "low" },
     });
     usage.whole(res);
     const text = res.content.find((b) => b.type === "text");
-    const brief = text && text.type === "text" ? text.text.trim() : "";
-    return brief.length > 40 ? brief.slice(0, 2500) : null;
+    let brief = text && text.type === "text" ? text.text.trim() : "";
+    if (req.photo) {
+      // (its first line says whether the photo could be used)
+      const verdict = /^PHOTO:\s*(OK|UNCLEAR)\b[:\s-]*(.*)$/im.exec(brief.split("\n")[0] ?? "");
+      if (verdict?.[1].toUpperCase() === "UNCLEAR") {
+        throw new PhotoProblem(verdict[2].trim().slice(0, 240) || "We couldn't find one clear subject in that photo to paint.");
+      }
+      brief = brief.replace(/^PHOTO:.*\n?/i, "").trim();
+    }
+    return brief.length > 40 ? brief.slice(0, 3000) : null;
   } catch (err) {
+    if (err instanceof PhotoProblem) {
+      usage.finish();
+      throw err;
+    }
     usage.fail(err);
     usage.finish();
     console.error("[character] brief failed - designing from the parent's words", err);
@@ -834,7 +861,11 @@ export async function designCharacter(req: CharacterRequest, onProgress?: (p: Ch
         req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
       }${briefNote}\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
   signal?.throwIfAborted();
-  const out = await streamCharacterDesign(user, onProgress, signal);
+  // With a photo, the designer sees it too: the brief carries its colours
+  // and features in words, the picture itself everything words miss.
+  const photoNote =
+    "\nA photo of them is attached. Paint its main subject (the one the description is about): follow its colours, markings, proportions and distinctive features as closely as you can, as a storybook watercolour character in our style - not a photographic likeness. The parent's words win wherever they differ from the photo.";
+  const out = await streamCharacterDesign(req.photo ? [photoBlock(req.photo), { type: "text", text: user + photoNote }] : user, onProgress, signal);
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

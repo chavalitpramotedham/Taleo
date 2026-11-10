@@ -7986,6 +7986,70 @@ html[data-night] .step-art img {
   box-shadow: none;
   transform: none;
 }
+/* The character creator's optional photo: a field box like the others,
+   its buttons flat in the corner; the second one tucks into the corner,
+   the first sits just beside it. */
+.field-box.photo-box {
+  cursor: default;
+}
+.photo-box .photo-note {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.photo-chosen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+.photo-thumb {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--page);
+}
+.photo-size {
+  white-space: nowrap;
+  color: var(--ink-faint);
+}
+.photo-foot {
+  gap: 6px;
+}
+.field-box-foot.photo-foot .btn:not(:last-child) {
+  margin-right: 0;
+}
+.photo-error {
+  margin: 0;
+  font-size: 0.9rem;
+}
+/* (on a computer "Take a photo" would only open the file picker again) */
+@media (hover: hover) and (pointer: fine) {
+  .photo-take {
+    display: none;
+  }
+}
+/* The photo couldn't be used: why, and the two ways on. */
+.photo-trouble {
+  border: 1px solid color-mix(in srgb, var(--russet) 40%, var(--rule));
+  background: color-mix(in srgb, var(--russet) 7%, var(--page));
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.photo-trouble p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.photo-trouble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 /* "Get started" above the steps */
 .home-steps-head + .steps-wrap .steps {
   margin-top: clamp(14px, 2.5vw, 24px);
