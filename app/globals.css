@@ -2191,7 +2191,7 @@ html[data-night] .canvas-wait {
   cursor: default;
 }
 .end-actions {
-  /* read again (icon) - the one main action - copy link (icon) */
+  /* copy link (icon) - the one main action - save to bookshelf or read again (icon) */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9425,12 +9425,15 @@ html:has(.reader) .night-glow-shimmer {
 /* the Save button, once saved: the whole button filled in russet, the
    bookmark an outline in cream - unmistakably "on" */
 .story-preview-buttons .story-preview-save.on,
-.story-preview-buttons .story-preview-save.on:hover {
+.story-preview-buttons .story-preview-save.on:hover,
+.end-actions .story-preview-save.on,
+.end-actions .story-preview-save.on:hover {
   background: var(--russet);
   border-color: var(--russet);
   color: #fbf4e6;
 }
-html[data-night] .story-preview-buttons .story-preview-save.on {
+html[data-night] .story-preview-buttons .story-preview-save.on,
+html[data-night] .end-actions .story-preview-save.on {
   background: var(--russet);
   border-color: var(--russet);
   color: #1d1720;

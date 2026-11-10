@@ -18,6 +18,7 @@ import { GrowingInput } from "./GrowingInput";
 import { RateAndComment } from "./RateAndComment";
 import { MusicControl } from "./MusicControl";
 import { ReadAloudControl } from "./ReadAloudControl";
+import { SaveStoryButton } from "./StoryPreview";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 import { StoryProgressBar, countShapes } from "./StoryProgressBar";
 import { logReadingToday } from "@/lib/reading-client";
@@ -54,6 +55,9 @@ interface Props {
   onSaveCopy?: () => void;
   /** The keep-a-copy button's words, when not the usual "Keep this story". */
   saveCopyLabel?: string;
+  /** A library story: its end page carries the bookshelf bookmark (the
+   *  same button as on its preview) where "read it again" would be. */
+  bookmark?: boolean;
   /** Read-only stories whose later paintings are still loading in the
    *  background: show a gentle placeholder for those pages, not a sketch. */
   picturesPending?: boolean;
@@ -62,7 +66,7 @@ interface Props {
 const TEXT_SIZE_KEY = "taleo.textSize";
 const TEXT_SIZES = [0.8, 0.9, 1, 1.12, 1.25, 1.4];
 
-export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveCopyLabel, picturesPending = false }: Props) {
+export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveCopyLabel, bookmark = false, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
   // A brand-new story starts as a closed book (see BookCover): its cover
   // fills in while the first page is written and painted, then it swings
@@ -940,6 +944,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       </div>
     );
   } else if (view.kind === "end") {
+    const readAgain = (
+      <button className="icon-btn end-icon" onClick={() => turnTo(0, { force: true })} aria-label="Read it again" title="Read it again">
+        <ReplayIcon />
+      </button>
+    );
     words = (
       <div className="the-end page-anim">
         <p className="end-title">The End</p>
@@ -953,22 +962,20 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           prepare={readOnly ? undefined : ensurePublished}
           unpublished={!readOnly && !story.published}
         />
-        {/* One main action in the middle (share it, or keep a copy of
-            someone else's), with read-again and copy-link as quiet icons
-            either side. */}
+        {/* One main action in the middle (share it), with two quiet icons
+            either side: copy its link on the left; on the right, save it
+            to your bookshelf (someone else's library story - the same
+            bookmark as on its preview) or, where there is nothing to save
+            (your own, or signed out), read it again. */}
         <div className="end-actions">
-          <button className="icon-btn end-icon" onClick={() => turnTo(0, { force: true })} aria-label="Read it again" title="Read it again">
-            <ReplayIcon />
+          <button className="icon-btn end-icon" onClick={copyLink} aria-label="Copy link" title="Copy link">
+            <LinkIcon />
           </button>
-          {/* The same ending for every story, yours or someone else's:
-              share it, read it again, or copy its link. */}
           <button className="btn btn-primary end-main" onClick={share}>
             <ShareIcon />
             Share
           </button>
-          <button className="icon-btn end-icon" onClick={copyLink} aria-label="Copy link" title="Copy link">
-            <LinkIcon />
-          </button>
+          {bookmark ? <SaveStoryButton id={story.id} author={story.authorUsername} className="end-icon" fallback={readAgain} /> : readAgain}
         </div>
         {readOnly ? (
           <p className="end-links">

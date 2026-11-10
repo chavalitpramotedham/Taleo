@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Story } from "@/lib/types";
-import { useSaved, setStorySaved } from "@/lib/saved-client";
-import { useToast } from "./Toast";
 import { StoryReader } from "./StoryReader";
 import { fetchGalleryStory, noteStoryViewed } from "@/lib/gallery-client";
 
@@ -15,8 +13,6 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
   const signedIn = status === "authenticated";
   const me = session?.user?.username?.toLowerCase();
   const mine = Boolean(me && initial?.authorUsername?.toLowerCase() === me);
-  const saved = useSaved(initial?.id ?? "", signedIn && !mine && initial ? session?.user?.id : null);
-  const toast = useToast();
   // Reading is open to everyone; signed out, the end page invites you to
   // sign in and create your own story instead of keeping a copy.
   const signInToKeep = () => router.push(`/sign-in?next=${encodeURIComponent("/create")}`);
@@ -54,17 +50,7 @@ export function GalleryStoryClient({ story: initial, partial = false }: { story:
       </div>
     );
 
-  // Someone else's story can be saved to your bookshelf (a bookmark to the
-  // library's copy - it stays theirs); your own is on your shelf already.
-  const toggleSaved = async () => {
-    const userId = session?.user?.id;
-    if (!userId) return;
-    const next = !saved;
-    const ok = await setStorySaved(userId, story.id, next);
-    toast(ok ? (next ? "Added to your bookshelf" : "Removed from your bookshelf") : "Couldn't save that. Please try again.", ok ? (next ? "done" : "removed") : "error");
-  };
-  const label = !signedIn ? "Sign in to create your own" : saved ? "Saved to your bookshelf ✓" : "Save to my bookshelf";
-  const action = !signedIn ? signInToKeep : mine || saved === null ? undefined : toggleSaved;
-
-  return <StoryReader story={story} readOnly onSaveCopy={action} saveCopyLabel={label} picturesPending={partial && story === initial} />;
+  // Someone else's story can be saved to your bookshelf from its end page
+  // (the reader's bookmark button; your own is on your shelf already).
+  return <StoryReader story={story} readOnly bookmark onSaveCopy={signedIn ? undefined : signInToKeep} saveCopyLabel="Sign in to create your own" picturesPending={partial && story === initial} />;
 }

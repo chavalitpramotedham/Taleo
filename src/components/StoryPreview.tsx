@@ -360,14 +360,28 @@ export function PreviewButtons({
 
 /** Save someone else's library story to your bookshelf (or take it off) -
  *  for signed-in readers, never on your own stories. */
-export function SaveStoryButton({ id, author }: { id: string; author?: string }) {
+export function SaveStoryButton({
+  id,
+  author,
+  className = "story-preview-share",
+  fallback = null,
+}: {
+  id: string;
+  author?: string;
+  /** Where it sits: beside a preview's read button (the default), or as
+   *  one of the round icons at a story's end. */
+  className?: string;
+  /** Shown instead where there is nothing to save (your own story, or
+   *  signed out). */
+  fallback?: React.ReactNode;
+}) {
   const { data: session, status } = useSession();
   const me = session?.user?.username?.toLowerCase();
   const allowed = status === "authenticated" && (!author || author.toLowerCase() !== me);
   const userId = allowed ? session?.user?.id : null;
   const saved = useSaved(id, userId);
   const toast = useToast();
-  if (!allowed || !userId) return null;
+  if (!allowed || !userId) return fallback;
   const toggle = async () => {
     const next = !saved;
     const ok = await setStorySaved(userId, id, next);
@@ -376,7 +390,7 @@ export function SaveStoryButton({ id, author }: { id: string; author?: string })
   return (
     <button
       type="button"
-      className={`icon-btn story-preview-share story-preview-save ${saved ? "on" : ""}`}
+      className={`icon-btn ${className} story-preview-save ${saved ? "on" : ""}`}
       onClick={() => void toggle()}
       disabled={saved === null}
       aria-pressed={Boolean(saved)}
