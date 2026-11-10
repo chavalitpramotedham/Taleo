@@ -51,13 +51,21 @@ const QUICK_ART_UNTHINKING = process.env.TALEO_QUICK_ART_THINKING !== "adaptive"
  *  (the SDK retries those quietly) counts too. TALEO_FIRST_STROKE_S
  *  overrides (0: wait however long it takes). */
 const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 60) || 0) * 1000;
-/** Painting in layers (see paintsInLayers; on unless TALEO_LAYERED_PAINT is
- *  set): the scenery - sky, land, room, the things that stand about - is
- *  the plainer half of a picture, so it goes to the smaller model at low
- *  effort, without thinking first, while the page's ordinary painter does
- *  only the characters. TALEO_SCENERY_MODEL / TALEO_SCENERY_EFFORT override. */
+/** Painting in layers (see paintsInLayers; every picture unless
+ *  TALEO_LAYERED_PAINT says otherwise): the scenery - sky, land, room, the
+ *  things that stand about - is the plainer half of a picture, so it goes
+ *  to the smaller model at low effort, without thinking first, while the
+ *  page's ordinary painter does only the characters: the quick painter at
+ *  its usual effort on quick pages, the main painter on the rest.
+ *  TALEO_SCENERY_MODEL / TALEO_SCENERY_EFFORT override the scenery. */
 const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-sonnet-5-5";
 const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "low";
+/** The main painter's effort when it paints only the characters of a
+ *  layered page. Its own setting, deliberately NOT TALEO_ART_EFFORT: that
+ *  one was raised for whole pictures, and at medium the characters arrived
+ *  long after the scenery (or not inside the first-stroke limit at all).
+ *  TALEO_LAYER_CHARACTERS_EFFORT overrides. */
+const LAYER_CHARACTERS_EFFORT = (process.env.TALEO_LAYER_CHARACTERS_EFFORT as Effort) || "low";
 /** Designing a character runs at medium effort: with the art director's
  *  brief to work from (see characterBrief) it needs less thinking of its
  *  own, and designs finish well inside the 300-second limit (at high effort
@@ -570,13 +578,13 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
 /** Is this page painted in layers - the scenery by a cheaper, quicker
  *  painter while the main one paints only the characters over it?
  *
- *  Set by TALEO_LAYERED_PAINT: "1" (the default) for the main painter's pages, "0" for off,
- *  "all" for the quick painter's too. A second go is always one painter
+ *  Set by TALEO_LAYERED_PAINT: "all" (the default) for every page, "1" for
+ *  the main painter's pages only, "0" for off. A second go is always one painter
  *  (whatever went wrong, the simplest way is the one to fall back on), and
  *  so is a page with nobody and nothing on its stage. */
 export function paintsInLayers(req: IllustrateRequest): boolean {
-  // (on for the main painter's pages unless switched off with "0")
-  const mode = process.env.TALEO_LAYERED_PAINT || "1";
+  // (every page unless narrowed with "1" or switched off with "0")
+  const mode = process.env.TALEO_LAYERED_PAINT || "all";
   if (mode !== "1" && mode !== "all") return false;
   if (req.retry || (req.quick && mode !== "all")) return false;
   return req.cast.length > 0 || Boolean(req.page.action);
@@ -636,7 +644,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
   const model = req.quick ? QUICK_ART_MODEL : ART_MODEL;
   const main: Brush = {
     model,
-    effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT,
+    effort: req.quick ? QUICK_ART_EFFORT : layered ? LAYER_CHARACTERS_EFFORT : ART_EFFORT,
     label: layered ? "character painter" : req.quick ? "quick painter" : "main painter",
     unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING && model.startsWith("claude-sonnet-5-5"),
     clockMs: req.quick ? 0 : FIRST_STROKE_MS,
