@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { logReadingDay, readingDays } from "@/server/reading";
+import { logReadingDay, readingDays, addReadingDays } from "@/server/reading";
+import { getUser } from "@/server/users";
 
-/** The days you've read together (for the Home chart). */
+const ADMIN_LOGGED = ["2026-11-09", "2026-11-10"];
+
+/** The days you've read together (for the Home chart), and when you joined. */
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ days: [] });
-  const days = await readingDays(session.user.id).catch(() => []);
-  return NextResponse.json({ days }, { headers: { "Cache-Control": "no-store" } });
+  if (!session?.user?.id) return NextResponse.json({ days: [], joined: null });
+  const id = session.user.id;
+  const [read, user] = await Promise.all([readingDays(id).catch(() => [] as string[]), getUser(id).catch(() => null)]);
+  let days = read;
+  // (one-off: the admin account's reads logged by hand - written once)
+  if (session.user.isAdmin) days = await addReadingDays(id, days, ADMIN_LOGGED).catch(() => days);
+  const joined = user?.createdAt ? user.createdAt : null;
+  return NextResponse.json({ days, joined }, { headers: { "Cache-Control": "no-store" } });
 }
 
 /** Today counts as a reading day: { day: "YYYY-MM-DD" } in your own time zone. */

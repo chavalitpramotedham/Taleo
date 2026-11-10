@@ -23,3 +23,12 @@ export async function logReadingDay(userId: string, day: string): Promise<string
   await writeJson(pathFor(userId), next);
   return next;
 }
+
+/** Adds days logged by hand (no write if they're all there already). */
+export async function addReadingDays(userId: string, days: string[], add: string[]): Promise<string[]> {
+  const missing = add.filter((d) => DAY_RE.test(d) && !days.includes(d));
+  if (!missing.length) return days;
+  const next = [...days, ...missing].sort().slice(-KEEP_DAYS);
+  await writeJson(pathFor(userId), next);
+  return next;
+}

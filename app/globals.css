@@ -9967,43 +9967,56 @@ html[data-night] .glass-toast {
 .reading-chart {
   margin: clamp(18px, 3vw, 28px) auto 0;
   max-width: 900px;
-  padding: 16px clamp(14px, 3vw, 22px) 12px;
+  padding: 14px clamp(14px, 3vw, 22px) 14px;
   border: 1px solid var(--rule);
   border-radius: 16px;
   background: color-mix(in srgb, var(--page) 80%, transparent);
   box-shadow: 0 10px 24px -20px rgba(60, 40, 20, 0.5);
 }
+/* one line where there's room (big number left, the detail beside it),
+   stacked tightly on a phone */
 .reading-chart-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 4px 14px;
+  gap: 2px 14px;
   margin-bottom: 10px;
 }
 .reading-streak {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   margin: 0;
-  font-family: var(--font-caps);
-  letter-spacing: 0.04em;
+  flex: none;
   color: var(--ink-soft);
 }
 .reading-streak-num {
-  font-family: var(--font-title);
-  font-size: 2rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 1.9rem;
   line-height: 1;
+  color: var(--ink);
+}
+.reading-streak.on .reading-streak-num {
   color: var(--russet);
-  letter-spacing: 0;
 }
-.reading-chart-sub,
-.reading-chart-foot {
+.reading-streak-label {
+  font-family: var(--font-caps);
+  letter-spacing: 0.05em;
+  font-size: 1rem;
+}
+.reading-flame {
+  color: #d9773a;
+  margin-right: -1px;
+  filter: drop-shadow(0 1px 3px rgba(217, 119, 58, 0.35));
+}
+.reading-chart-sub {
   margin: 0;
-  font-size: 0.88rem;
-}
-.reading-chart-foot {
-  margin-top: 8px;
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 0.86rem;
+  line-height: 1.35;
 }
 .reading-grid-wrap {
   display: flex;
@@ -10027,6 +10040,8 @@ html[data-night] .glass-toast {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  /* (room for today's outline at the right edge) */
+  padding: 0 3px 3px 0;
 }
 .reading-months,
 .reading-grid {
@@ -10045,6 +10060,13 @@ html[data-night] .glass-toast {
   white-space: nowrap;
   overflow: visible;
 }
+.reading-months span.pre {
+  opacity: 0.55;
+}
+.reading-months .reading-joined-label {
+  color: var(--russet);
+  font-weight: 600;
+}
 .reading-col {
   display: grid;
   grid-template-rows: repeat(7, 13px);
@@ -10056,9 +10078,20 @@ html[data-night] .glass-toast {
   border-radius: 3px;
   background: color-mix(in srgb, var(--rule) 70%, transparent);
 }
+/* a read day: a small wash of sage watercolour - pigment gathering at the
+   edges as paint does when it dries, so it has depth without any shine */
 .reading-cell.read {
-  background: #6f8f4e;
-  box-shadow: 0 0 0 1px rgba(79, 90, 53, 0.25) inset;
+  background: radial-gradient(ellipse at 50% 45%, #93b072 0%, #7f9f5c 55%, #66874a 100%);
+  box-shadow: inset 0 0 0 1px rgba(74, 98, 48, 0.45);
+}
+/* before you joined: just a faint dot holding the place */
+.reading-cell.pre {
+  background: radial-gradient(circle, color-mix(in srgb, var(--rule) 90%, transparent) 0 1.6px, transparent 2.2px);
+}
+/* the day you joined: a russet seed */
+.reading-cell.joined:not(.read) {
+  background: radial-gradient(circle, var(--russet) 0 2.6px, transparent 3.2px), color-mix(in srgb, var(--russet) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--russet) 45%, transparent);
 }
 .reading-cell.today {
   outline: 1.5px solid var(--russet);
@@ -10071,17 +10104,12 @@ html[data-night] .reading-cell {
   background: rgba(255, 236, 205, 0.08);
 }
 html[data-night] .reading-cell.read {
-  background: #8fae6a;
+  background: radial-gradient(ellipse at 50% 45%, #a9c486 0%, #93b26f 55%, #7a9a58 100%);
+  box-shadow: inset 0 0 0 1px rgba(200, 230, 160, 0.25);
+}
+html[data-night] .reading-cell.pre {
+  background: radial-gradient(circle, rgba(255, 236, 205, 0.16) 0 1.6px, transparent 2.2px);
 }
 html[data-night] .reading-cell.future {
   background: transparent;
-}
-.reading-streak-num {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-variant-numeric: lining-nums tabular-nums;
-}
-/* (room for today's outline at the right edge) */
-.reading-grid-scroll {
-  padding: 0 3px 3px 0;
 }
