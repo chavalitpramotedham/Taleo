@@ -23,7 +23,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const rating = story.ratingCount ? ` Rated ${(story.ratingSum! / story.ratingCount).toFixed(1)}/5 by parents.` : "";
   const description = `A bedtime picture book about ${subject}, starring ${listNames(cast(story))}, for ages ${ages(story)}. Free to read on Taleo, with a watercolour picture on every page.${rating}`;
   return {
-    title,
+    // In search results the title says what it is and who it's for; link
+    // previews in chat apps keep the plain title.
+    title: `${title}: a bedtime story for ages ${ages(story)}`,
     description,
     keywords: [...cast(story), `${kind} story`, "bedtime story", "picture book", "children's story", "read aloud"],
     authors: story.authorUsername ? [{ name: `@${story.authorUsername}`, url: `/author/${encodeURIComponent(story.authorUsername)}` }] : undefined,
@@ -77,6 +79,42 @@ function structured(story: Story) {
   };
 }
 
+/**
+ * The story's words, written out under the book. The reader shows one
+ * page at a time once it's opened, so on its own the page holds only a
+ * cover; this puts the whole text in the page itself, for search engines
+ * and for anyone who'd rather read it straight through.
+ */
+function StoryWords({ story }: { story: Story }) {
+  const title = story.title || "An untitled story";
+  const last = story.segments.length - 1;
+  return (
+    <details className="story-words">
+      <summary>Read the words of this story</summary>
+      <article>
+        <h2>{title}</h2>
+        <p className="meta">
+          A bedtime story starring {listNames(cast(story))}, for ages {ages(story)}
+          {story.authorUsername ? ` · by @${story.authorUsername}` : ""}
+        </p>
+        {story.segments.map((seg, i) => (
+          <section key={i}>
+            {seg.pages.map((p, j) => (
+              <p key={j}>{p.text}</p>
+            ))}
+            {i < last && seg.choice && seg.chosen?.text && (
+              <p className="story-words-choice">
+                {seg.choice.prompt} <b>{seg.chosen.text}</b>
+              </p>
+            )}
+          </section>
+        ))}
+        <p className="story-words-end">The end</p>
+      </article>
+    </details>
+  );
+}
+
 // Each shared story page is built once and then served from Vercel's cache,
 // rebuilt at most every 5 minutes when visited (new ratings show within
 // that), instead of running a server function on every single visit.
@@ -109,6 +147,7 @@ export default async function GalleryStoryPage({ params }: { params: Promise<{ i
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(structured(story))} />
       <GalleryStoryClient story={light} partial={n > EAGER_PICTURES} />
+      <StoryWords story={story} />
     </>
   );
 }

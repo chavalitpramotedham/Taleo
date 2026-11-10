@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { Avatar } from "@/components/Avatar";
 import { getUserByUsername } from "@/server/users";
+import { StoryIndex, publicStories } from "@/components/StoryIndex";
 import { OG_IMAGE, SITE_URL, breadcrumbs, jsonLd } from "@/lib/seo";
 
 // Built on first visit and served from Vercel's cache, refreshed at most
@@ -17,6 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const name = decodeURIComponent(username);
   const profile = await getUserByUsername(name, { cacheSeconds: revalidate }).catch(() => null);
   const shown = profile?.username || name;
+  const count = profile && profile.visibility !== "private" ? (await publicStories(revalidate, shown)).length : 0;
   const title = `@${shown}'s bookshelf`;
   const description = `Bedtime picture-book stories by @${shown}, painted and shared on Taleo. Free to read, with a watercolour picture on every page.`;
   return {
@@ -24,8 +26,9 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
     description,
     alternates: { canonical: `/author/${encodeURIComponent(shown)}` },
     openGraph: { type: "profile", siteName: "Taleo", url: `/author/${encodeURIComponent(shown)}`, title, description, username: shown, images: [OG_IMAGE] },
-    // Unknown names and private bookshelves stay out of search results.
-    robots: profile && profile.visibility !== "private" ? undefined : { index: false, follow: true },
+    // Unknown names, private bookshelves and shelves with nothing on them
+    // yet stay out of search results.
+    robots: count > 0 ? undefined : { index: false, follow: true },
   };
 }
 
@@ -51,6 +54,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
       </div>
     );
   }
+  const stories = await publicStories(revalidate, shown);
   const url = `${SITE_URL}/author/${encodeURIComponent(shown)}`;
   const structured = {
     "@context": "https://schema.org",
@@ -88,6 +92,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
           </>
         }
       />
+      <StoryIndex stories={stories} heading={`Stories by @${shown}`} showAuthor={false} />
     </div>
   );
 }

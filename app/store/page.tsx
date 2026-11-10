@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GalleryShelf } from "@/components/GalleryShelf";
+import { StoryIndex, publicStories } from "@/components/StoryIndex";
 import { OG_IMAGE, SITE_URL, breadcrumbs, jsonLd } from "@/lib/seo";
 
 const TITLE = "The Public Library: free bedtime stories for kids";
@@ -35,7 +36,13 @@ const STRUCTURED = {
   ],
 };
 
-export default function StorePage() {
+// Built once and served from Vercel's cache, rebuilt at most every 5
+// minutes when visited: the list of stories at the foot of the page comes
+// with the page itself (one free read of the library list per rebuild).
+export const revalidate = 300;
+
+export default async function StorePage() {
+  const stories = await publicStories(revalidate);
   return (
     <div className="container">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(STRUCTURED)} />
@@ -49,6 +56,7 @@ export default function StorePage() {
           </>
         }
       />
+      <StoryIndex stories={stories} heading="Every story in the library" />
     </div>
   );
 }

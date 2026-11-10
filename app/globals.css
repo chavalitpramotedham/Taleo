@@ -10926,3 +10926,102 @@ button.reading-cell:focus-visible {
     width: min(100%, 420px, 41dvh);
   }
 }
+
+/* ---------- the written index of stories, and a story's words ---------- */
+/* Under a shelf: every story as a plain line of text, like the index at
+   the back of a book. It arrives with the page (the shelf above is filled
+   in afterwards), so each story can be found from here without scripts. */
+.story-index {
+  max-width: 44em;
+  margin: clamp(40px, 6vw, 64px) auto 0;
+  padding-top: clamp(24px, 4vw, 34px);
+  border-top: 1px solid var(--rule-strong);
+}
+.story-index h2 {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: clamp(1.3rem, 2.6vw, 1.6rem);
+}
+.story-index ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.story-index li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 10px 2px;
+  border-bottom: 1px dotted var(--rule-strong);
+}
+.story-index li:last-child {
+  border-bottom: 0;
+}
+.story-index a {
+  color: var(--ink);
+  font-size: 1.08rem;
+  text-decoration: none;
+}
+.story-index a:hover,
+.story-index a:focus-visible {
+  color: var(--russet);
+  text-decoration: underline;
+}
+.story-index-meta {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+/* Under the book: the whole story written out, folded away until asked
+   for. The reader's buttons float at the foot of the screen, so the foot
+   of this keeps clear of them. */
+.story-words {
+  max-width: 36em;
+  margin: 0 auto;
+  padding: 8px 20px calc(120px + env(safe-area-inset-bottom));
+}
+.story-words summary {
+  width: fit-content;
+  margin: 0 auto;
+  color: var(--russet);
+  text-decoration: underline;
+  cursor: pointer;
+  list-style: none;
+}
+.story-words summary::-webkit-details-marker {
+  display: none;
+}
+.story-words article {
+  margin-top: 22px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule-strong);
+}
+.story-words h2 {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+}
+.story-words .meta {
+  text-align: center;
+  margin: 0 0 22px;
+}
+.story-words section p {
+  margin: 0 0 0.9em;
+  font-size: 1.12rem;
+  line-height: 1.65;
+}
+.story-words .story-words-choice {
+  margin: 1.2em 0 1.4em;
+  color: var(--ink-soft);
+  font-style: italic;
+  text-align: center;
+}
+.story-words-end {
+  margin: 1.4em 0 0;
+  text-align: center;
+  font-family: var(--font-caps);
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}

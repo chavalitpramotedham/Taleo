@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/server/auth";
 import { getGalleryStory, listGallery, NotYourStoryError, publishStory } from "@/server/gallery";
 import { limitsFor } from "@/lib/tiers";
@@ -89,6 +90,9 @@ export async function POST(req: Request) {
   }
   try {
     const entry = await publishStory(story, { id: userId, username: session.user.username, isAdmin: session.user.isAdmin });
+    // The library and the author's bookshelf list their stories in the
+    // page itself: show the new one there straight away.
+    for (const p of ["/store", `/author/${encodeURIComponent(entry.authorUsername)}`]) revalidatePath(p);
     return NextResponse.json({ entry });
   } catch (err) {
     if (err instanceof NotYourStoryError) return NextResponse.json({ error: "That story belongs to someone else." }, { status: 403 });
