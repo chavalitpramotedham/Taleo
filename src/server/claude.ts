@@ -54,12 +54,21 @@ const FIRST_STROKE_MS = Math.max(0, Number(process.env.TALEO_FIRST_STROKE_S ?? 6
 /** Painting in layers (see paintsInLayers; every picture unless
  *  TALEO_LAYERED_PAINT says otherwise): the scenery - sky, land, room, the
  *  things that stand about - is the plainer half of a picture, so it goes
- *  to the smaller model at low effort, without thinking first, while the
- *  page's ordinary painter does only the characters: the quick painter at
- *  its usual effort on quick pages, the main painter on the rest.
+ *  to the smallest model (Haiku 5.5, at its ordinary medium effort),
+ *  without thinking first, while the page's ordinary painter does only the
+ *  characters: the quick painter at its usual effort on quick pages, the
+ *  main painter on the rest.
  *  TALEO_SCENERY_MODEL / TALEO_SCENERY_EFFORT override the scenery. */
-const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-sonnet-5-5";
-const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "low";
+const SCENERY_MODEL = process.env.TALEO_SCENERY_MODEL || "claude-haiku-5-5";
+const SCENERY_EFFORT = (process.env.TALEO_SCENERY_EFFORT as Effort) || "medium";
+/** How a model is told to paint without thinking first, if it can be:
+ *  Sonnet 5.5 has its own setting for it, Haiku 5.5 takes the plain
+ *  "disabled" (at these efforts), and Opus 5.5 can't be told at all. */
+function thinkingOff(model: string): { type: "between_tools" } | { type: "disabled" } | null {
+  if (model.startsWith("claude-sonnet-5-5")) return { type: "between_tools" };
+  if (model.startsWith("claude-haiku-5-5")) return { type: "disabled" };
+  return null;
+}
 /** The main painter's effort when it paints only the characters of a
  *  layered page. Its own setting, deliberately NOT TALEO_ART_EFFORT: that
  *  one was raised for whole pictures, and at medium the characters arrived
@@ -423,7 +432,7 @@ interface Brush {
   effort: Effort;
   /** As the activity log names it. */
   label: string;
-  /** Paint without thinking first (Sonnet 5.5's thinking-off setting). */
+  /** Paint without thinking first (see thinkingOff). */
   unthinking: boolean;
   /** How long it may take to lay its first stroke (0: however long). */
   clockMs: number;
@@ -440,7 +449,10 @@ async function* brushStrokes(
   stoppedBy?: () => string | undefined,
 ): AsyncGenerator<string> {
   const { model } = brush;
-  let unthinking = brush.unthinking;
+  let unthinking = brush.unthinking ? thinkingOff(model) : null;
+  // (Haiku 5.5 has no stand-in model: it turns a request that asks for one
+  // away, so it isn't asked)
+  const standIn = !model.startsWith("claude-haiku-5-5");
   const began = Date.now();
   let strokes = 0;
   for (;;) {
@@ -460,18 +472,17 @@ async function* brushStrokes(
     const usage = streamUsageTracker("painting", model, {
       label: brush.label,
       effort: brush.effort,
-      thinking: unthinking ? "off (between tools only)" : "the model's own",
+      thinking: unthinking ? (unthinking.type === "disabled" ? "off" : "off (between tools only)") : "the model's own",
     });
     try {
       const stream = getClient().beta.messages.stream(
         {
           model,
           max_tokens: 32000,
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
+          ...(standIn ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
           system: [{ type: "text", text: brush.system, cache_control: { type: "ephemeral" } }],
           messages: [{ role: "user", content: brush.content }],
-          ...(unthinking ? { thinking: { type: "between_tools" as const } } : {}),
+          ...(unthinking ? { thinking: unthinking } : {}),
           output_config: { effort: brush.effort },
         },
         { signal: go.signal },
@@ -502,7 +513,7 @@ async function* brushStrokes(
       // page the ordinary way rather than not at all)
       if (unthinking && !strokes && !signal?.aborted && err instanceof Anthropic.BadRequestError) {
         console.warn("painting: thinking-off setting refused, painting with thinking", err.message);
-        unthinking = false;
+        unthinking = null;
         log.thinkingOffRefused = true;
         continue;
       }
@@ -647,7 +658,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     model,
     effort: req.quick ? QUICK_ART_EFFORT : layered ? LAYER_CHARACTERS_EFFORT : ART_EFFORT,
     label: layered ? "character painter" : req.quick ? "quick painter" : "main painter",
-    unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING && model.startsWith("claude-sonnet-5-5"),
+    unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING,
     clockMs: req.quick ? 0 : FIRST_STROKE_MS,
     system: illustratorPrompt(),
     content,
@@ -667,7 +678,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
       model: SCENERY_MODEL,
       effort: SCENERY_EFFORT,
       label: "scenery painter",
-      unthinking: QUICK_ART_UNTHINKING && SCENERY_MODEL.startsWith("claude-sonnet-5-5"),
+      unthinking: QUICK_ART_UNTHINKING,
       clockMs: FIRST_STROKE_MS,
       system: sceneryPrompt(),
       content: [
