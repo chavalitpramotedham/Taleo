@@ -6,6 +6,7 @@ import { inLegacyGrace, pageIsSigned } from "@/server/tickets";
 import { allPages } from "@/lib/story-utils";
 import { privateUserIds } from "@/server/users";
 import type { Story } from "@/lib/types";
+import { pickDay, storyOfTheDay } from "@/lib/daily";
 
 const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? e.ratingSum / e.ratingCount : 0);
 
@@ -34,13 +35,16 @@ export async function GET(req: Request) {
   const categories = [...new Map(stories.filter((e) => e.keyword?.trim()).map((e) => [e.keyword!.trim().toLowerCase(), e.keyword!.trim()])).values()].sort((a, b) =>
     a.localeCompare(b),
   );
+  // The story of the day, drawn from the whole library for the reader's
+  // date (`?day=`): worked out from the list just read - nothing stored.
+  const daily = url.searchParams.has("day") ? storyOfTheDay(stories, pickDay(url.searchParams.get("day"))) : null;
   const category = url.searchParams.get("category")?.trim().toLowerCase();
   if (category) stories = stories.filter((e) => e.keyword?.trim().toLowerCase() === category);
   if (sort === "rating") stories = [...stories].sort((a, b) => avg(b) - avg(a) || b.createdAt - a.createdAt);
   else if (sort === "recent") stories = [...stories].sort((a, b) => b.createdAt - a.createdAt);
   if (limit) stories = stories.slice(0, limit);
   return NextResponse.json(
-    { stories, categories },
+    { stories, categories, daily },
     { headers: { "Cache-Control": "public, max-age=0, must-revalidate", "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } },
   );
 }

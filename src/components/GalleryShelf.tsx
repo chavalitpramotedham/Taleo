@@ -76,6 +76,9 @@ export function GalleryShelf({
   // library fetches everything once and sorts here.
   const byOrder = useRef<Record<string, GalleryEntry[]>>({});
   const [homeCategories, setHomeCategories] = useState<string[]>([]);
+  // The library's story of the day leads the shelf, whatever the order
+  // (not on one author's own bookshelf page).
+  const [daily, setDaily] = useState<GalleryEntry | null>(null);
   useEffect(() => {
     if (!limit && byOrder.current.recent) return;
     // the homepage keeps each order (and category) it has fetched
@@ -86,12 +89,13 @@ export function GalleryShelf({
       return;
     }
     let live = true;
-    fetchGalleryShelf(limit ? { sort, limit, category } : {})
-      .then(({ stories: all, categories: cats }) => {
+    fetchGalleryShelf(limit ? { sort, limit, category, daily: !author } : { daily: !author })
+      .then(({ stories: all, categories: cats, daily: today }) => {
         const list = author ? all.filter((e) => e.authorUsername?.toLowerCase() === author.toLowerCase()) : all;
         byOrder.current[key] = list;
         if (live) {
           setStories(list);
+          if (today) setDaily(today);
           if (limit) setHomeCategories(cats);
         }
       })
@@ -107,11 +111,14 @@ export function GalleryShelf({
       sort === "rating" ? avg(b) - avg(a) || b.createdAt - a.createdAt : b.createdAt - a.createdAt,
     );
     // (the homepage's few already come narrowed to the category)
-    return limit ? list.slice(0, limit) : list.filter((e) => matchesCategory(e, category));
-  }, [stories, sort, limit, category]);
+    const shown = limit ? list : list.filter((e) => matchesCategory(e, category));
+    const lead = daily && matchesCategory(daily, category) && (limit || list.some((e) => e.id === daily.id)) ? daily : null;
+    const all = lead ? [lead, ...shown.filter((e) => e.id !== lead.id)] : shown;
+    return limit ? all.slice(0, limit) : all;
+  }, [stories, sort, limit, category, daily]);
 
   const [openId, setOpenId] = useState<string | null>(null);
-  const open = openId ? stories?.find((e) => e.id === openId) ?? null : null;
+  const open = openId ? sorted.find((e) => e.id === openId) ?? null : null;
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -153,7 +160,7 @@ export function GalleryShelf({
       ) : (
         <div className="shelf">
           {sorted.map((s) => (
-            <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
+            <StoryCard key={s.id} entry={s} daily={s.id === daily?.id} onOpen={() => setOpenId(s.id)} />
           ))}
         </div>
       )}

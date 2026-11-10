@@ -10478,3 +10478,112 @@ html[data-night] .char-arrange-grip {
 .idea-card .ongoing-cta {
   white-space: nowrap;
 }
+
+/* ---------- the story of the day ---------- */
+/* One library story a day leads the shelf: a gold edge, a ribbon, and
+   three small stars that twinkle over its cover. The twinkling only ever
+   changes opacity and size (no layout, no repainting of the watercolour
+   beneath - each star is its own tiny layer), stops while the card is off
+   screen (shelf cards aren't drawn there at all), and doesn't run for
+   anyone who has asked for less motion. */
+.book-card.story-of-day {
+  position: relative;
+  border-color: #cfa544;
+  box-shadow:
+    0 0 0 2px rgba(214, 170, 72, 0.55),
+    0 0 22px rgba(226, 184, 88, 0.35),
+    var(--shadow);
+}
+.daily-ribbon {
+  /* (a sash across the top of the cover; the reading time sits below it) */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 24px;
+  background: linear-gradient(135deg, #f2d27a, #dcaa45);
+  color: #4a3212;
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(60, 40, 10, 0.3);
+  pointer-events: none;
+}
+.story-of-day .cover-time {
+  top: 32px;
+}
+.book-card .cover .daily-ribbon svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  fill: #7a5210;
+  stroke: #7a5210;
+}
+.daily-twinkles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.daily-twinkles i {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  background: #fff3c4;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  opacity: 0;
+  transform: scale(0.3);
+  will-change: transform, opacity;
+  animation: dailyTwinkle 3.6s ease-in-out infinite;
+}
+.daily-twinkles i:nth-child(1) {
+  top: 34%;
+  left: 14%;
+}
+.daily-twinkles i:nth-child(2) {
+  top: 22%;
+  right: 22%;
+  width: 11px;
+  height: 11px;
+  animation-delay: 1.2s;
+}
+.daily-twinkles i:nth-child(3) {
+  top: 56%;
+  right: 12%;
+  width: 18px;
+  height: 18px;
+  animation-delay: 2.4s;
+}
+@keyframes dailyTwinkle {
+  0%,
+  55%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+  75% {
+    opacity: 0.95;
+    transform: scale(1) rotate(45deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-twinkles i {
+    animation: none;
+    opacity: 0.8;
+    transform: none;
+  }
+}
+html[data-night] .book-card.story-of-day {
+  border-color: #b8923c;
+  box-shadow:
+    0 0 0 2px rgba(214, 170, 72, 0.45),
+    0 0 22px rgba(226, 184, 88, 0.22),
+    var(--shadow);
+}

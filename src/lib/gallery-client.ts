@@ -1,5 +1,6 @@
 "use client";
 import type { GalleryEntry, Story } from "./types";
+import { localDay } from "./daily";
 
 export async function fetchGallery(opts: { sort?: "rating" | "recent"; limit?: number } = {}): Promise<GalleryEntry[]> {
   return (await fetchGalleryShelf(opts)).stories;
@@ -9,18 +10,24 @@ export async function fetchGallery(opts: { sort?: "rating" | "recent"; limit?: n
  *  limited to the top N - plus every category in the library, for the
  *  filter. */
 export async function fetchGalleryShelf(
-  opts: { sort?: "rating" | "recent"; limit?: number; category?: string | null } = {},
-): Promise<{ stories: GalleryEntry[]; categories: string[] }> {
+  opts: { sort?: "rating" | "recent"; limit?: number; category?: string | null; daily?: boolean } = {},
+): Promise<{ stories: GalleryEntry[]; categories: string[]; daily: GalleryEntry | null }> {
   const q = new URLSearchParams();
   if (opts.sort) q.set("sort", opts.sort);
   if (opts.limit) q.set("limit", String(opts.limit));
   if (opts.category) q.set("category", opts.category);
+  // (the story of the day, for the date where the reader is)
+  if (opts.daily) q.set("day", localDay());
   const res = await fetch(`/api/gallery${q.size ? `?${q}` : ""}`);
   // A failure is an error, not "an empty library".
   if (!res.ok) throw new Error(`Library unavailable (${res.status})`);
-  const data = (await res.json()) as { stories?: GalleryEntry[]; categories?: string[] };
+  const data = (await res.json()) as { stories?: GalleryEntry[]; categories?: string[]; daily?: GalleryEntry | null };
   const gone = typeof window === "undefined" ? new Set<string>() : deletedStoryIds();
-  return { stories: (data.stories ?? []).filter((e) => !gone.has(e.id)), categories: data.categories ?? [] };
+  return {
+    stories: (data.stories ?? []).filter((e) => !gone.has(e.id)),
+    categories: data.categories ?? [],
+    daily: data.daily && !gone.has(data.daily.id) ? data.daily : null,
+  };
 }
 
 export async function fetchGalleryStory(id: string): Promise<Story | null> {
