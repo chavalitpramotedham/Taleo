@@ -7833,11 +7833,17 @@ html[data-night] .step-art img {
 .drafted-portrait .character-preview-portrait {
   margin: 0;
 }
-.field-box-foot .btn {
+/* Held inside the field's box, so flat (no raised lip, no press-down),
+   tucked into the box's corner with its own corners alongside the box's. */
+.field-box-foot .btn,
+.field-box-foot .btn:active:not(:disabled) {
   height: 34px;
   padding: 0 14px;
+  margin: 0 -9px -7px 0;
   font-size: 0.88rem;
-  box-shadow: 0 2px 0 var(--rule-strong);
+  border-radius: 8px;
+  box-shadow: none;
+  transform: none;
 }
 /* "Get started" above the steps */
 .home-steps-head + .steps-wrap .steps {
