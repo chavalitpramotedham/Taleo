@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 /** A moment, written in the clock of whoever is looking (the server only
@@ -67,5 +68,32 @@ export function AutoRefresh() {
         </>
       )}
     </p>
+  );
+}
+
+/** A filter that's on or off (as a link, so it's in the address), shown
+ *  as a pill that turns at once when tapped - the list follows when the
+ *  server has it - and stays where you are on the page. */
+export function ToggleChip({ on, href, children }: { on: boolean; href: string; children: React.ReactNode }) {
+  const [shown, setShown] = useState(on);
+  // (the page arrived, or changed from elsewhere: follow it)
+  const [seen, setSeen] = useState(on);
+  if (seen !== on) {
+    setSeen(on);
+    setShown(on);
+  }
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        setShown(!shown);
+      }}
+      className={`chip${shown ? " on" : ""}`}
+      aria-pressed={shown}
+    >
+      {children}
+    </Link>
   );
 }

@@ -11903,6 +11903,24 @@ html[data-night] .nav-begin-pill.is-making::before {
   margin-left: 0;
   margin-right: 0;
 }
+/* On a phone the five kinds don't fit across: the pill scrolls sideways
+   inside its own rounded shell (keeping the chosen one in view), and the
+   "only what went wrong" switch takes the line below, without the divider
+   that would otherwise be left hanging. */
+@media (max-width: 620px) {
+  .filter-row.admin-show .seg {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .filter-row.admin-show .seg::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-row.admin-show .filter-split {
+    display: none;
+  }
+}
 
 /* ---------- the pencilled note on the first step of making a story ----------
    "first, turn off the lights for bedtime", scribbled in the margin under

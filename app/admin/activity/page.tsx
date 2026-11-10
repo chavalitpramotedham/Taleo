@@ -7,7 +7,8 @@ import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
 import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
-import { AutoRefresh, When } from "./Live";
+import { AutoRefresh, ToggleChip, When } from "./Live";
+import { Segmented } from "@/components/Segmented";
 import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
 import { ZoomList, ZoomPicture, type ZoomItem } from "./Zoom";
@@ -216,19 +217,23 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 <KindTile key={k} kind={k} records={all.filter((r) => r.kind === k)} now={now} link={href({ ...keep, kind: k })} />
               ))}
             </div>
-            <div className="filter-row admin-show" aria-label="Show">
-              <FilterLink on={!kind} to={href({ ...keep, kind: undefined })}>
-                everything
-              </FilterLink>
-              {GEN_KINDS.map((k) => (
-                <FilterLink key={k} on={kind === k} to={href({ ...keep, kind: k })}>
-                  {KIND_NAME[k].toLowerCase()}
-                </FilterLink>
-              ))}
+            {/* One kind at a time (the site's sliding pill), and apart
+                from it, a switch for only what went wrong. */}
+            <div className="filter-row admin-show">
+              <Segmented
+                nav
+                keepScroll
+                label="Show"
+                value={kind ?? "all"}
+                options={[
+                  { key: "all", label: "Everything", href: href({ ...keep, kind: undefined }) },
+                  ...GEN_KINDS.map((k) => ({ key: k, label: KIND_NAME[k], href: href({ ...keep, kind: k }) })),
+                ]}
+              />
               <span className="filter-split" aria-hidden />
-              <FilterLink on={issues} to={href({ ...keep, issues: !issues && "1" })}>
-                only what went wrong
-              </FilterLink>
+              <ToggleChip on={issues} href={href({ ...keep, issues: !issues && "1" })}>
+                Only what went wrong
+              </ToggleChip>
             </div>
             <AutoRefresh />
           </section>
@@ -265,17 +270,6 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   );
 }
 
-/** A filter: bold when it's the one in force. One that's a switch (`off`)
- *  stays a link while on, so it can be turned off again. */
-/** One of the "show" filters, as a pill: filled when it's the one in force. */
-function FilterLink({ on, to, children }: { on: boolean; to: string; children: ReactNode }) {
-  return (
-    <Link href={to} className={`chip${on ? " on" : ""}`} aria-current={on ? "true" : undefined} scroll={false}>
-      {children}
-    </Link>
-  );
-}
-
 function KindTile({ kind, records, now, link }: { kind: GenKind; records: GenRecord[]; now: number; link: string }) {
   const bad = records.filter((r) => isIssue(shown(r, now))).length;
   const done = records.filter((r) => r.status === "ok");
@@ -286,7 +280,9 @@ function KindTile({ kind, records, now, link }: { kind: GenKind; records: GenRec
     <div className="admin-tile">
       <div className="admin-tile-head">
         <p className="admin-tile-label">
-          <Link href={link}>{KIND_NAME[kind]}</Link>
+          <Link href={link} scroll={false}>
+            {KIND_NAME[kind]}
+          </Link>
         </p>
         {records.length > 0 && <span className={`admin-change ${bad ? "bad" : "good"}`}>{bad ? `${bad} went wrong` : "all well"}</span>}
       </div>

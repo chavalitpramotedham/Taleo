@@ -21,6 +21,7 @@ export function Segmented<T extends string>({
   onChange,
   label,
   nav = false,
+  keepScroll = false,
   className = "",
 }: {
   options: readonly Option<T>[];
@@ -29,6 +30,9 @@ export function Segmented<T extends string>({
   label?: string;
   /** Pages rather than a setting: links in a <nav>. */
   nav?: boolean;
+  /** Links that only change what the page shows: stay where you are on it
+   *  rather than jumping back to the top. */
+  keepScroll?: boolean;
   className?: string;
 }) {
   const shell = useRef<HTMLElement | null>(null);
@@ -65,6 +69,14 @@ export function Segmented<T extends string>({
       const on = el.querySelector<HTMLElement>(".seg-opt.on");
       if (!on) return setAt(null);
       setAt((cur) => (cur && cur.x === on.offsetLeft && cur.w === on.offsetWidth ? cur : { x: on.offsetLeft, w: on.offsetWidth }));
+      // (a long row that scrolls sideways on a narrow screen keeps the
+      // chosen option in sight)
+      if (el.scrollWidth > el.clientWidth + 1) {
+        const left = on.offsetLeft - 3;
+        const right = on.offsetLeft + on.offsetWidth + 3 - el.clientWidth;
+        if (el.scrollLeft > left) el.scrollLeft = left;
+        else if (el.scrollLeft < right) el.scrollLeft = right;
+      }
     };
     measure();
     // (the lettering's font arriving, the phone's narrower pills...)
@@ -84,7 +96,18 @@ export function Segmented<T extends string>({
       {at && <span className="seg-thumb" aria-hidden style={{ width: at.w, transform: `translateX(${at.x}px)` }} />}
       {options.map((o) =>
         o.href ? (
-          <Link key={o.key} href={o.href} className={`chip seg-opt${o.key === shown ? " on" : ""}`} aria-current={o.key === shown ? "page" : undefined}>
+          <Link
+            key={o.key}
+            href={o.href}
+            scroll={!keepScroll}
+            // (the pill slides at once; the page follows when it arrives)
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+              if (o.key !== shown) setPicked(o.key);
+            }}
+            className={`chip seg-opt${o.key === shown ? " on" : ""}`}
+            aria-current={o.key === shown ? "page" : undefined}
+          >
             {o.label}
           </Link>
         ) : (
