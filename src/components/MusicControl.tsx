@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { wakeAudio } from "@/lib/audio-context";
 import { MUSIC_TRACKS, defaultTrack, playMusic, setMusicMuted, stopMusic, trackById } from "@/lib/music";
 import { MusicNoteIcon, SpeakerIcon } from "./Icons";
 
-// The reader's last choices, remembered on this device so every story
-// starts with the tune they picked (and stays muted if they muted it)
-// until they change it.
+// The reader's last tune, remembered on this device so it's ready when
+// they turn the music on. (Every story starts with the music off.)
 const TRACK_KEY = "taleo.music.track";
-const MUTED_KEY = "taleo.music.muted";
 
 function readPref(key: string): string | null {
   try {
@@ -24,33 +23,36 @@ function writePref(key: string, value: string) {
 
 /** Gentle looping background music for the story reader: a two-zone pill -
  *  the left half opens a picker to change the tune (and, on wider screens,
- *  shows the tune's name), the right half mutes it. Starts on mount with the
- *  reader's last-chosen tune (the default the first time), and stops when
- *  the reader unmounts. */
+ *  shows the tune's name), the right half turns it on and off. Every story
+ *  starts with it off: the player is still set up on mount with the
+ *  reader's last-chosen tune (media-style playback, so the silent switch
+ *  doesn't mute it on iPhone), and the tap that turns it on starts it at
+ *  once. Stops when the reader unmounts. */
 export function MusicControl() {
   const [trackId, setTrackId] = useState(defaultTrack.id);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // trackById falls back to the default for an unknown/removed tune.
     const track = trackById(readPref(TRACK_KEY) || defaultTrack.id);
-    const wasMuted = readPref(MUTED_KEY) === "1";
     setTrackId(track.id);
-    setMuted(wasMuted);
-    setMusicMuted(wasMuted);
-    playMusic(track);
+    setMusicMuted(true);
+    playMusic(track); // (loads it, ready - plays when turned on)
     return () => stopMusic();
   }, []);
 
   useEffect(() => setMusicMuted(muted), [muted]);
 
-  const toggleMute = () =>
-    setMuted((m) => {
-      writePref(MUTED_KEY, m ? "0" : "1");
-      return !m;
-    });
+  const toggleMute = () => {
+    // turning it on is a tap: start right here, inside the gesture
+    if (muted) {
+      wakeAudio();
+      setMusicMuted(false);
+    }
+    setMuted(!muted);
+  };
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -65,6 +67,12 @@ export function MusicControl() {
     setTrackId(id);
     setPickerOpen(false);
     writePref(TRACK_KEY, id);
+    // picking a tune means they want to hear it
+    if (muted) {
+      wakeAudio();
+      setMusicMuted(false);
+      setMuted(false);
+    }
     playMusic(trackById(id));
   };
   const trackName = trackById(trackId).name;
