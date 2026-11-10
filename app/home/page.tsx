@@ -10,6 +10,7 @@ import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
 import { QuotaNote } from "@/components/QuotaNote";
 import { ReadingChart } from "@/components/ReadingChart";
+import { readingDiary } from "@/server/reading";
 
 export const metadata: Metadata = { title: "Home", robots: { index: false, follow: true } };
 
@@ -21,11 +22,27 @@ export default async function HomePage() {
   if (!session?.user) redirect("/");
   const username = session.user.username ?? null;
 
-  // Their published stories (one read of the library index, cached briefly).
-  const all = await listGallery({ cacheSeconds: 60 }).catch(() => []);
+  // Their published stories (one read of the library index, cached
+  // briefly), and their reading diary: every story they've finished, on
+  // which day - their own and the library's alike.
+  const [all, diary] = await Promise.all([
+    listGallery({ cacheSeconds: 60 }).catch(() => []),
+    readingDiary(session.user.id).catch(() => ({ days: [], read: {} as Record<string, string[]> })),
+  ]);
   const mine = all.filter((e) => e.authorId === session.user.id);
-  const pages = mine.reduce((n, e) => n + (e.pages ?? 0), 0);
-  const minutes = mine.reduce((n, e) => n + (e.minutes || ageById(e.age).recommendedMinutes), 0);
+  const byId = new Map(all.map((e) => [e.id, e]));
+  const minutesOf = (e: (typeof all)[number]) => e.minutes || ageById(e.age).recommendedMinutes;
+  // Every book read counts, whoever wrote it: each story finished on a day
+  // (read again on another day, it counts again), plus each of their own
+  // stories, read as it was made, that isn't in the diary.
+  const readings = Object.values(diary.read).flat().flatMap((id) => byId.get(id) ?? []);
+  const inDiary = new Set(readings.map((e) => e.id));
+  const sessions = [...readings, ...mine.filter((e) => !inDiary.has(e.id))];
+  const minutes = sessions.reduce((n, e) => n + minutesOf(e), 0);
+  // ...and a new word for each page of each different book (a book read
+  // again teaches no new ones).
+  const books = new Map(sessions.map((e) => [e.id, e]));
+  const pages = [...books.values()].reduce((n, e) => n + (e.pages ?? 0), 0);
   const isNew = mine.length === 0;
   // Brand new: how a first story comes together, instead of three zeros.
   const firstSteps = [
@@ -36,9 +53,9 @@ export default async function HomePage() {
   const stats = [
     // (each number said as what it gave the child, not what was produced)
     { value: mine.length, label: mine.length === 1 ? "story created just for them" : "stories created just for them" },
+    { value: minutes, label: minutes === 1 ? "minute of story time together" : "minutes of story time together" },
     // every page teaches one new word (the tappable word on each page)
     { value: pages, label: pages === 1 ? "new word discovered together" : "new words discovered together" },
-    { value: minutes, label: minutes === 1 ? "minute of story time together" : "minutes of story time together" },
   ];
 
   return (
