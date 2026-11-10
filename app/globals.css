@@ -209,6 +209,14 @@ html.pull-reloading main {
   /* the leaf's soft shadow, cast straight down whichever way it turns */
   filter: drop-shadow(0.1em 1.6em 1em rgba(47, 34, 20, 0.25));
 }
+/* At night the title's leaves lift off the dark bar: a touch brighter,
+   with the faintest warm glow around them in place of the daytime shadow
+   (which disappears on a dark bar anyway). Still a static filter on the
+   leaf's holder, like the shadow it replaces - nothing new is drawn per
+   frame. The loaders keep their own look. */
+html[data-night] .brand-mark .leaf-pos {
+  filter: brightness(1.18) saturate(1.08) drop-shadow(0 0 3.2em rgba(255, 196, 120, 0.42));
+}
 .leaf-whirl {
   position: absolute;
   left: -10em;
