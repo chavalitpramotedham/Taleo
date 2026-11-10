@@ -579,14 +579,15 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
  *  painter while the main one paints only the characters over it?
  *
  *  Set by TALEO_LAYERED_PAINT: "all" (the default) for every page, "1" for
- *  the main painter's pages only, "0" for off. A second go is always one painter
- *  (whatever went wrong, the simplest way is the one to fall back on), and
- *  so is a page with nobody and nothing on its stage. */
+ *  the main painter's pages only, "0" for off. A second go is a quick page,
+ *  so it is layered whenever those are (both hands the quick model, which
+ *  paints without thinking first). A page with nobody and nothing on its
+ *  stage is always one painter. */
 export function paintsInLayers(req: IllustrateRequest): boolean {
   // (every page unless narrowed with "1" or switched off with "0")
   const mode = process.env.TALEO_LAYERED_PAINT || "all";
   if (mode !== "1" && mode !== "all") return false;
-  if (req.retry || (req.quick && mode !== "all")) return false;
+  if (req.quick && mode !== "all") return false;
   return req.cast.length > 0 || Boolean(req.page.action);
 }
 
