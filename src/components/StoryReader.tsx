@@ -975,6 +975,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const jumpable = views
     .map((v, i) => ({ v, i }))
     .filter((x): x is { v: Extract<View, { kind: "page" | "choice" | "end" }>; i: number } => x.v.kind === "page" || x.v.kind === "choice" || x.v.kind === "end");
+  // A story picked up again part-way: its cover offers a way straight back
+  // to the last page written (where the reading stopped), past the pages
+  // already read. Only on the closed cover, and only if that saves a turn.
+  const leftOff = !isNew && !revisit ? [...jumpable].reverse().find((x) => x.v.kind === "page") : undefined;
+  const skipTo = cover === "closed" && leftOff && leftOff.v.kind === "page" && leftOff.v.number > 1 ? { i: leftOff.i, number: leftOff.v.number } : null;
   const jumpLabel = (v: Extract<View, { kind: "page" | "choice" | "end" }>) =>
     v.kind === "page" ? `Page ${v.number}` : v.kind === "choice" ? "Your turn" : "The End";
 
@@ -1079,8 +1084,24 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         <button className={`reader-index ${position ? "" : "is-empty"}`} onClick={() => setOverviewOpen(true)} aria-label="Jump to a page" disabled={jumpable.length < 1}>
           {position}
         </button>
+        {skipTo && (
+          <button
+            type="button"
+            className="nav-skip"
+            onClick={() => {
+              indexRef.current = skipTo.i;
+              setIndex(skipTo.i);
+              openBook();
+            }}
+          >
+            <span className="nav-skip-label">Skip to page {skipTo.number}</span>
+            <span className="nav-skip-btn" aria-hidden="true">
+              »
+            </span>
+          </button>
+        )}
         <button
-          className="nav-btn nav-btn-next"
+          className={`nav-btn nav-btn-next ${skipTo ? "nav-btn-quiet" : ""}`}
           onClick={() => go(1)}
           disabled={!canForward || pendingNext}
           aria-label="Next page"
@@ -1093,9 +1114,24 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           <div className="modal-panel overview-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Jump to a page">
             <div className="modal-head">
               <h3>Jump to a page</h3>
-              <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
-                ✕
-              </button>
+              <span className="overview-head-btns">
+                <button
+                  type="button"
+                  className="icon-btn overview-to-end"
+                  onClick={() => {
+                    const strip = stripRef.current;
+                    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                    strip?.scrollTo({ left: strip.scrollWidth, behavior: calm ? "auto" : "smooth" });
+                  }}
+                  aria-label="Scroll to the last page"
+                  title="To the last page"
+                >
+                  »
+                </button>
+                <button type="button" className="icon-btn" onClick={() => setOverviewOpen(false)} aria-label="Close">
+                  ✕
+                </button>
+              </span>
             </div>
             <div className="overview-strip" ref={stripRef}>
               <button

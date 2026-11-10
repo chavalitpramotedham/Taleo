@@ -1778,7 +1778,9 @@ html[data-night] .canvas-wait {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  padding: 4px calc(50% - 90px) 10px;
+  /* (the row is wider than the panel's text by its negative margins, so
+     the first and last cards need that much more room to reach the middle) */
+  padding: 4px calc(50% + clamp(16px, 4vw, 28px) - 90px) 10px;
   margin: 0 calc(-1 * clamp(16px, 4vw, 28px));
   scrollbar-width: thin;
 }
@@ -10801,4 +10803,131 @@ button.reading-cell:focus-visible {
 }
 .shortcut-cant {
   margin: 4px 0 0;
+}
+
+/* ---------- picking a story up again: skip to where it stopped ---------- */
+/* On the cover of a story left part-way, a second way forward sits above
+   Next: "Skip to page N" and a raised double arrow, in the house colour.
+   Next itself steps back to the plain paper look while it's there. */
+.reader .nav-skip {
+  position: fixed;
+  z-index: 40;
+  right: max(18px, calc(50vw - 680px + 18px));
+  bottom: calc(22px + 56px + 18px + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: nav-skip-in 0.35s ease-out both;
+}
+@keyframes nav-skip-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.nav-skip-label {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  box-shadow: var(--shadow);
+  font-family: var(--font-caps);
+  letter-spacing: 0.06em;
+  color: var(--russet);
+  white-space: nowrap;
+}
+.nav-skip-btn {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--russet);
+  background: var(--russet);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 2rem;
+  line-height: 1;
+  padding-bottom: 8px;
+  box-shadow: 0 4px 0 var(--russet-dark), 0 10px 18px -10px rgba(70, 50, 30, 0.55);
+  transition: translate 70ms ease-out, box-shadow 70ms ease-out, background 0.2s;
+}
+.nav-skip:active .nav-skip-btn {
+  translate: 0 3px;
+  box-shadow: 0 1px 0 var(--russet-dark), 0 4px 8px -6px rgba(70, 50, 30, 0.5);
+  transition-duration: 0s;
+}
+@media (hover: hover) {
+  .nav-skip:hover .nav-skip-btn {
+    background: var(--russet-dark);
+    border-color: var(--russet-dark);
+  }
+  .nav-skip:hover .nav-skip-label {
+    border-color: var(--russet);
+  }
+}
+@media (max-width: 520px) {
+  .reader .nav-skip {
+    right: 16px;
+    bottom: calc(18px + 50px + 16px + env(safe-area-inset-bottom));
+  }
+  .nav-skip-btn {
+    width: 50px;
+    height: 50px;
+  }
+}
+@media (min-width: 760px) and (min-aspect-ratio: 5/4) {
+  .reader .nav-skip {
+    right: max(24px, calc(50vw - 680px + 24px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader .nav-skip {
+    animation: none;
+  }
+}
+.reader .nav-btn-next.nav-btn-quiet:not(:disabled) {
+  background: var(--page);
+  border-color: var(--rule-strong);
+  color: var(--ink);
+  box-shadow: 0 4px 0 var(--rule-strong), 0 10px 18px -10px rgba(70, 50, 30, 0.55);
+}
+.reader .nav-btn-next.nav-btn-quiet:not(:disabled):active {
+  box-shadow: 0 1px 0 var(--rule-strong), 0 4px 8px -6px rgba(70, 50, 30, 0.5);
+}
+@media (hover: hover) {
+  .reader .nav-btn-next.nav-btn-quiet:not(:disabled):hover {
+    background: var(--page);
+    border-color: var(--russet);
+    color: var(--russet);
+  }
+}
+/* The page list: a double arrow beside its close button runs the row to
+   its far end (the newest page). */
+.overview-head-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.overview-to-end {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+/* On phones the cover is drawn a little smaller while the skip is offered,
+   so its words ("Open the book") stay clear of the second row of buttons. */
+@media not ((min-width: 760px) and (min-aspect-ratio: 5/4)) {
+  .reader:has(.nav-skip) .book-cover {
+    width: min(100%, 420px, 41dvh);
+  }
 }
