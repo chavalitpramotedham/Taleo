@@ -10813,6 +10813,12 @@ button.reading-cell:focus-visible {
   cursor: default;
   pointer-events: none;
 }
+/* (waiting for the day's stories: the falling leaves, in the middle of the page) */
+.diary-body > .page-loading {
+  margin: auto;
+  min-height: 0;
+  padding: 0;
+}
 .diary-list {
   margin-top: 8px;
   display: flex;

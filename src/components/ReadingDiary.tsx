@@ -5,6 +5,7 @@ import type { GalleryEntry } from "@/lib/types";
 import { Painting } from "./art/Painting";
 import { StoryPreview, stepper, summaryFromEntry } from "./StoryPreview";
 import { LibraryActions } from "./GalleryShelf";
+import { PageLoading } from "./PageLoading";
 
 /** Library cards already fetched for the diary (null: no longer there). */
 const known = new Map<string, GalleryEntry | null>();
@@ -124,7 +125,7 @@ export function ReadingDiary({
             <p className="diary-weekday">{weekday(day)}</p>
             <p className="diary-day">{dayMonth(day)}</p>
             <p className="diary-summary">
-              {ready === "loading" ? "Opening the diary…" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "You finished a story together."}
+              {ready === "loading" ? "\u00a0" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "You finished a story together."}
             </p>
           </div>
           <button type="button" className="icon-btn diary-step" onClick={() => later && onDay(later)} disabled={!later} aria-label="Later day">
@@ -132,6 +133,7 @@ export function ReadingDiary({
           </button>
         </div>
         <div className="diary-body">
+          {ready === "loading" && <PageLoading compact label="Opening the diary…" />}
           {rows.length > 0 && (
             <div className="diary-list">
               {groups.map((g) => (
