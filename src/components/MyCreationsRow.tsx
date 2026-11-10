@@ -14,6 +14,7 @@ import { LibraryActions } from "./GalleryShelf";
 import { ShelfSkeleton } from "./ShelfSkeleton";
 import { OngoingCard } from "./OngoingStory";
 import { useOngoingStory } from "@/lib/ongoing";
+import { IdeaCard, useSavedIdea } from "./NextAdventure";
 
 /** How many of your stories the row shows before handing over to your
  *  bookshelf. */
@@ -27,6 +28,8 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   const [toast, setToast] = useState<string | null>(null);
   // The story under way (if any) leads the row.
   const ongoing = useOngoingStory();
+  // ...followed by the story idea put away for later (if any).
+  const idea = useSavedIdea();
 
   // A story deleted from its preview leaves the row, and the page's
   // numbers (worked out on the server) are refreshed.
@@ -71,9 +74,9 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     return () => window.removeEventListener(SAVED_EVENT, on);
   }, [username]);
 
-  if (mine === null || ongoing.story === undefined) return <ShelfSkeleton count={3} row />;
+  if (mine === null || ongoing.story === undefined || idea === undefined) return <ShelfSkeleton count={3} row />;
   const underWay = ongoing.story;
-  if (mine.length === 0 && !underWay)
+  if (mine.length === 0 && !underWay && !idea)
     return (
       <div className="empty creations-empty">
         <p className="meta">Every story you make together lands on this shelf, ready to read again tomorrow night.</p>
@@ -91,6 +94,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     <>
       <SideScroll className="creations-row" label="More of my stories">
         {underWay && <OngoingCard key={`ongoing-${underWay.id}`} story={underWay} onResume={ongoing.resume} onDiscard={() => ongoing.discard()} />}
+        {idea && <IdeaCard key={`idea-${idea.key}`} idea={idea} />}
         {mine.slice(0, SHOWN).map((s) => (
           <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
         ))}

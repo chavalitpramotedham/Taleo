@@ -3,6 +3,7 @@ import { SessionProvider } from "next-auth/react";
 import { NightModeProvider } from "./NightMode";
 import { ErrorReporter } from "./ErrorReporter";
 import { DraftPrompt } from "./DraftPrompt";
+import { NextAdventure } from "./NextAdventure";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider refetchOnWindowFocus={false}>
       <ErrorReporter />
       <DraftPrompt />
+      <NextAdventure />
       <NightModeProvider>{children}</NightModeProvider>
     </SessionProvider>
   );

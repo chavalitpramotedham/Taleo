@@ -10418,3 +10418,63 @@ html[data-night] .char-arrange-grip {
 .floating-cta:has(.quota-note) {
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
+
+/* "Start a new adventure now?" - a story idea: its cast in a row, its
+   title, and the line that sells it. */
+.idea-cast {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 2px 0 0;
+}
+.idea-cast figure {
+  margin: 0;
+  width: 30%;
+  max-width: 108px;
+}
+.idea-cast svg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+.idea-cast figcaption {
+  font-family: var(--font-caps);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.idea-pitch {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+.idea-prompt .quota-note {
+  margin-top: 4px;
+}
+.idea-other {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.idea-other:empty {
+  display: none;
+}
+/* ...and put away for later: a card on the bookshelf row, its cast where
+   a cover's painting would be. */
+.idea-cover-cast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2%;
+  width: 100%;
+  padding: 0 6% 8%;
+}
+.book-card .idea-cover-cast svg {
+  width: 31%;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 1 auto;
+}
+.idea-card .ongoing-cta {
+  white-space: nowrap;
+}

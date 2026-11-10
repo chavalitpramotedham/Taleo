@@ -17,6 +17,7 @@ import { LeafLoader, MapleMark } from "@/components/Icons";
 import { LimitDialog, type LimitNotice } from "@/components/LimitDialog";
 import { coverOf, titleOf } from "@/components/OngoingStory";
 import { useOngoingStory } from "@/lib/ongoing";
+import { forgetIdea, takeHandover } from "@/lib/ideas";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -44,6 +45,7 @@ export default function CreatePage() {
 
   const [group, setGroup] = useState<(typeof GROUPS)[number]["key"]>("all");
   const [saved, setSaved] = useState<SavedCharacter[]>([]);
+  const [savedLoaded, setSavedLoaded] = useState(false);
   const [selectedUids, setSelectedUids] = useState<string[]>([]);
   const [creatingCharacter, setCreatingCharacter] = useState(false);
 
@@ -70,7 +72,8 @@ export default function CreatePage() {
     fetch("/api/characters")
       .then((r) => r.json())
       .then((d: { characters?: SavedCharacter[] }) => setSaved(d.characters ?? []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSavedLoaded(true));
   }, [status]);
 
   const defForUid = (uid: string): CharacterDef | null => {
@@ -150,6 +153,8 @@ export default function CreatePage() {
     // (one at a time: anything left unfinished - say, begun in another tab
     // since this page opened - makes way for this one)
     await ongoing.discard({ all: true });
+    // (an idea that was waiting for later has now been begun)
+    if (fromIdea) forgetIdea(session.user.id);
     try {
       localStorage.setItem(AGE_KEY, age);
       localStorage.setItem(MINUTES_KEY, String(effectiveMinutes));
@@ -189,6 +194,34 @@ export default function CreatePage() {
     }
     router.push(`/story/${story.id}`);
   };
+
+  // Arriving with a ready-made idea ("Start a new adventure now?"): the
+  // cast and the idea are filled in. "Change it first" opens on the
+  // characters; "Start now" begins at once when nothing stands in the way
+  // (an age already chosen, no story under way to replace) - otherwise it
+  // stops on the last step, one tap from beginning.
+  const [fromIdea, setFromIdea] = useState(false);
+  const [autoGo, setAutoGo] = useState(false);
+  useEffect(() => {
+    if (!savedLoaded) return;
+    const h = takeHandover();
+    if (!h) return;
+    const uids = h.uids.filter((u) => (u.startsWith("saved:") ? saved.some((c) => c.id === u.slice(6)) : PRESETS.some((p) => `preset:${p.key}` === u))).slice(0, MAX_CENTRAL);
+    if (!uids.length) return;
+    setSelectedUids(uids);
+    setThemeText(h.line.slice(0, 160));
+    setFromIdea(true);
+    setStep(h.go ? (age ? 2 : 0) : 1);
+    setAutoGo(h.go);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedLoaded]);
+  useEffect(() => {
+    if (!autoGo || ongoing.story === undefined) return;
+    if (ongoing.story || limit || !age || !hero || !theme) return setAutoGo(false);
+    setAutoGo(false);
+    void start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGo, ongoing.story, limit, age, hero, theme]);
 
   const next = () => {
     if (!canNext) return;

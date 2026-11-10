@@ -20,6 +20,7 @@ import { ReadAloudControl } from "./ReadAloudControl";
 import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 import { StoryProgressBar, countShapes } from "./StoryProgressBar";
 import { logReadingToday } from "@/lib/reading-client";
+import { markJustFinished } from "@/lib/ideas";
 import { useSession } from "next-auth/react";
 import { LimitDialog, type LimitNotice } from "./LimitDialog";
 
@@ -525,6 +526,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (!readerId || cover !== "open") return;
     if (view?.kind === "end") logReadingToday(readerId);
   }, [readerId, cover, view?.kind]);
+  // A story of one's own, just made and read to its end: back on the
+  // bookshelf there's an idea waiting for the next one.
+  useEffect(() => {
+    if (!revisit && cover === "open" && view?.kind === "end") markJustFinished();
+  }, [revisit, cover, view?.kind]);
 
   // A new page keeps the reader's scroll, so the picture stays where it
   // was - unless the words had been scrolled up under the stuck picture:
