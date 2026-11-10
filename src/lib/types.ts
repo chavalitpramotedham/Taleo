@@ -228,6 +228,8 @@ export interface IllustrateRequest {
   /** Paint with the quicker painter (set by the server from `pageInPart`
    *  and the account's plan). */
   quick?: boolean;
+  /** A second go at a page whose first painting failed or stalled. */
+  retry?: boolean;
   /** The page's signature, and the story it belongs to (see server/tickets). */
   sig?: string;
   storyId?: string;

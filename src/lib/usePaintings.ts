@@ -6,6 +6,10 @@ import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
 
 const CONCURRENCY = 3;
 const DONE = "<!--taleo:done-->";
+/** A painting that sends nothing for this long has stalled: it's given up
+ *  on and begun again, rather than left until the server's own time limit
+ *  (five minutes) cuts it off. A healthy painter is never silent this long. */
+const STALL_MS = 90_000;
 
 type Updater = (fn: (s: Story) => Story) => void;
 
@@ -18,6 +22,13 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   const [failed, setFailed] = useState<Record<string, true>>({});
   const [tick, setTick] = useState(0);
   const inflight = useRef(new Set<string>());
+  // (the same as `failed`, but known at once: when several pages give up in
+  // the same moment, the state can lag a render behind, and a page already
+  // given up on must not be quietly sent a third time)
+  const gaveUp = useRef(new Set<string>());
+  // (and the pages just painted, until the story itself shows the picture:
+  // two paintings finishing together must not send the second one again)
+  const painted = useRef(new Set<string>());
   const storyRef = useRef(story);
   storyRef.current = story;
   // Only the page on screen shows its painting as it streams in; the rest
@@ -42,13 +53,26 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
       if (!page || !update) return;
       inflight.current.add(key);
       const signal = life.current?.signal;
+      // This attempt's own switch: thrown by leaving the story, or by the
+      // watchdog when the painter goes quiet (the server stops the model
+      // as soon as the request is dropped, so nothing more is spent on it).
+      const attempt = new AbortController();
+      const leave = () => attempt.abort();
+      signal?.addEventListener("abort", leave, { once: true });
+      let watchdog: ReturnType<typeof setTimeout> | undefined;
+      const heard = () => {
+        clearTimeout(watchdog);
+        watchdog = setTimeout(() => attempt.abort(), STALL_MS);
+      };
+      const again = retried.current.has(key);
       const prev = idx > 0 ? s.segments[seg].pages[idx - 1] : s.segments[seg - 1]?.pages.slice(-1)[0];
       let text = "";
       let last = 0;
       let refused = false;
       try {
+        heard();
         const res = await fetch("/api/illustrate", {
-          signal,
+          signal: attempt.signal,
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -61,6 +85,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             // quicker painter (the server decides how many, by plan); the
             // rest follow in parallel.
             pageInPart: idx,
+            // (a second go, automatic or asked for: the server gives it to
+            // the quick painter whatever page it is)
+            retry: again || undefined,
             // (proof that this page is the storyteller's own writing)
             sig: page.sig,
             storyId: s.id,
@@ -75,6 +102,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         for (;;) {
           const { done, value } = await reader.read();
           if (done) break;
+          heard();
           text += decoder.decode(value, { stream: true });
           const now = performance.now();
           if (now - last > 250 && focusRef.current === key) {
@@ -84,6 +112,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         }
         const svg = sanitizeSvg(extractSvgMarkup(text.replace(DONE, "")));
         if (!text.includes(DONE) || svg.length < 200) throw new Error("unfinished painting");
+        painted.current.add(key);
         update((cur) => ({
           ...cur,
           segments: cur.segments.map((sg, si) =>
@@ -99,8 +128,13 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           retried.current.add(key);
           await new Promise((r) => setTimeout(r, 4000));
           if (signal?.aborted) return;
-        } else setFailed((f) => ({ ...f, [key]: true }));
+        } else {
+          gaveUp.current.add(key);
+          setFailed((f) => ({ ...f, [key]: true }));
+        }
       } finally {
+        clearTimeout(watchdog);
+        signal?.removeEventListener("abort", leave);
         inflight.current.delete(key);
         setLive((l) => {
           const { [key]: _drop, ...rest } = l;
@@ -119,7 +153,8 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
     story.segments.forEach((sg, si) =>
       sg.pages.forEach((p, pi) => {
         const key = pageKey(si, pi);
-        if (!p.svg && !failed[key] && !inflight.current.has(key)) pending.push({ seg: si, idx: pi, key });
+        if (p.svg) painted.current.delete(key);
+        else if (!failed[key] && !gaveUp.current.has(key) && !painted.current.has(key) && !inflight.current.has(key)) pending.push({ seg: si, idx: pi, key });
       }),
     );
     if (!pending.length) return;
@@ -133,6 +168,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   }, [story, enabled, focus, failed, tick, paint]);
 
   const retry = useCallback((key: string) => {
+    gaveUp.current.delete(key);
     setFailed((f) => {
       const { [key]: _drop, ...rest } = f;
       void _drop;

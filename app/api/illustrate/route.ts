@@ -40,7 +40,10 @@ export async function POST(req: Request) {
   // part (the story's beginning, and after every decision) - how many is
   // set by the plan; the rest get the main painter.
   const quickPages = limitsFor(g.session.user).quickPages;
-  parsed.quick = parsed.pageInPart !== undefined && parsed.pageInPart < quickPages;
+  // A second go at a page (its first painting failed, or stalled and was
+  // given up on) goes to the quick painter too: whatever troubled the main
+  // one, the reader has waited long enough, and it costs less.
+  parsed.quick = parsed.retry === true || (parsed.pageInPart !== undefined && parsed.pageInPart < quickPages);
 
   // If the reader leaves (closes the tab, moves to another page), stop the
   // model straight away: nobody will receive the rest, so finishing it
