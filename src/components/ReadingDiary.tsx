@@ -131,37 +131,39 @@ export function ReadingDiary({
             ›
           </button>
         </div>
-        {rows.length > 0 && (
-          <div className="diary-list">
-            {groups.map((g) => (
-              <section key={g.label} aria-label={g.label}>
-                {groups.length > 1 && <h4 className="diary-group">{g.label}</h4>}
-                <ul>
-                  {g.rows.map((e) => {
-                    const note = made.includes(e.id) ? (read.includes(e.id) ? "Read to the end" : "") : mine.has(e.id) ? "Your story, read again" : `by @${e.authorUsername || "taleo"}`;
-                    return (
-                      <li key={e.id}>
-                        <button type="button" className="diary-row" onClick={() => setOpenId(e.id)} aria-haspopup="dialog">
-                          <span className="diary-thumb">{e.cover ? <Painting svg={e.cover} title="" /> : null}</span>
-                          <span className="diary-row-text">
-                            <span className="diary-row-title">{e.title || "An untitled story"}</span>
-                            {note && <span className="diary-row-meta">{note}</span>}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
-        {ready === "ready" && !ids.length && <p className="meta starts-left">This day is from before the diary began keeping titles.</p>}
-        {gone > 0 && (
-          <p className="meta starts-left">
-            {gone === 1 ? "One story from this day is" : `${gone} stories from this day are`} no longer in the library.
-          </p>
-        )}
+        <div className="diary-body">
+          {rows.length > 0 && (
+            <div className="diary-list">
+              {groups.map((g) => (
+                <section key={g.label} aria-label={g.label}>
+                  {groups.length > 1 && <h4 className="diary-group">{g.label}</h4>}
+                  <ul>
+                    {g.rows.map((e) => {
+                      const note = made.includes(e.id) ? (read.includes(e.id) ? "Read to the end" : "") : mine.has(e.id) ? "Your story, read again" : `by @${e.authorUsername || "taleo"}`;
+                      return (
+                        <li key={e.id}>
+                          <button type="button" className="diary-row" onClick={() => setOpenId(e.id)} aria-haspopup="dialog">
+                            <span className="diary-thumb">{e.cover ? <Painting svg={e.cover} title="" /> : null}</span>
+                            <span className="diary-row-text">
+                              <span className="diary-row-title">{e.title || "An untitled story"}</span>
+                              {note && <span className="diary-row-meta">{note}</span>}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          )}
+          {ready === "ready" && !ids.length && <p className="meta starts-left">This day is from before the diary began keeping titles.</p>}
+          {gone > 0 && (
+            <p className="meta starts-left">
+              {gone === 1 ? "One story from this day is" : `${gone} stories from this day are`} no longer in the library.
+            </p>
+          )}
+        </div>
       </div>
     </div>,
     document.body,

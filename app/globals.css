@@ -10751,6 +10751,22 @@ button.reading-cell:focus-visible {
 .diary-prompt {
   position: relative;
   padding-top: 52px;
+  /* The page is one size whatever the day holds - turning from a day of
+     one story to a day of six doesn't make it jump; a long day scrolls
+     under the date, which stays put. */
+  height: min(480px, 100%);
+  overflow: hidden;
+}
+.diary-body {
+  flex: 1;
+  min-height: 0;
+  margin: 8px calc(-1 * clamp(16px, 4vw, 28px)) 0;
+  padding: 0 clamp(16px, 4vw, 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .diary-close {
   position: absolute;
@@ -10798,13 +10814,11 @@ button.reading-cell:focus-visible {
   pointer-events: none;
 }
 .diary-list {
-  margin-top: 16px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   text-align: left;
-  overflow-y: auto;
-  min-height: 0;
 }
 .diary-list ul {
   list-style: none;
