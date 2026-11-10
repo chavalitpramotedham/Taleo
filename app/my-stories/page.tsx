@@ -1,4 +1,5 @@
 "use client";
+import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { STORY_DELETED_EVENT } from "@/lib/gallery-client";
@@ -140,6 +141,7 @@ export default function MyStoriesPage() {
             <MapleMark />
             Begin your first story
           </Link>
+          <QuotaNote />
         </div>
       ) : (
         <div className="shelf">

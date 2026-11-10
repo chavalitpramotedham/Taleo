@@ -1,4 +1,5 @@
 "use client";
+import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import type { Story } from "@/lib/types";
@@ -63,6 +64,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
           <MapleMark />
           Begin a new story
         </Link>
+        <QuotaNote />
       </div>
     );
   return <StoryReader story={story} update={update} />;

@@ -1,4 +1,5 @@
 "use client";
+import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -33,6 +34,7 @@ export default function SharedPage() {
           <MapleMark />
           Begin a story
         </Link>
+        <QuotaNote />
       </div>
     );
 

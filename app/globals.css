@@ -10381,3 +10381,40 @@ html[data-night] .char-arrange-grip {
   font-style: italic;
   opacity: 0.85;
 }
+
+/* Under a "Begin a story" button once the plan's stories are used up:
+   "Story limit reached. Refreshes in about 5 hours." The button stays. */
+.quota-note {
+  flex-basis: 100%;
+  width: 100%;
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align: center;
+}
+.hero-actions .quota-note {
+  text-align: left;
+  margin-top: 0;
+}
+.home-dash-begin.desktop-only {
+  flex-wrap: wrap;
+}
+/* (the floating bar sits over the page: its line gets a little paper
+   behind it so it reads over whatever scrolls underneath) */
+.floating-cta {
+  flex-direction: column;
+  align-items: center;
+}
+.floating-cta .quota-note {
+  width: auto;
+  flex-basis: auto;
+  margin-top: 6px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+}
+.floating-cta:has(.quota-note) {
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}

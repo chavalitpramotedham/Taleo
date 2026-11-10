@@ -1,3 +1,4 @@
+import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
 import { MapleMark } from "./Icons";
 
@@ -9,6 +10,7 @@ export function FloatingBeginBar() {
         <MapleMark />
         Begin a story
       </Link>
+      <QuotaNote />
     </div>
   );
 }

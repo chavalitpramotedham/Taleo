@@ -8,6 +8,7 @@ import { MyCreationsRow } from "@/components/MyCreationsRow";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
 import { MapleMark, OrnamentRule } from "@/components/Icons";
+import { QuotaNote } from "@/components/QuotaNote";
 import { ReadingChart } from "@/components/ReadingChart";
 
 export const metadata: Metadata = { title: "Home", robots: { index: false, follow: true } };
@@ -83,6 +84,7 @@ export default async function HomePage() {
           <MapleMark />
           {isNew ? "Begin your first story" : "Begin a story"}
         </Link>
+        <QuotaNote />
       </div>
 
       <OrnamentRule className="home-divider" />

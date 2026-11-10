@@ -1,3 +1,4 @@
+import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -127,6 +128,7 @@ export default async function Home({ searchParams }: HomeProps) {
               <MapleMark />
               Begin a story
             </Link>
+            <QuotaNote />
           </div>
         </div>
         <HeroPainting />

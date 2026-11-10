@@ -1,4 +1,5 @@
 "use client";
+import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
@@ -80,6 +81,7 @@ export function MyCreationsRow({ username }: { username: string | null }) {
           <MapleMark />
           Begin your first story
         </Link>
+        <QuotaNote />
       </div>
     );
 

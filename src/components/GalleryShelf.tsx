@@ -1,4 +1,5 @@
 "use client";
+import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryEntry } from "@/lib/types";
@@ -147,6 +148,7 @@ export function GalleryShelf({
             <MapleMark />
             Begin the first story
           </Link>
+          <QuotaNote />
         </div>
       ) : (
         <div className="shelf">
