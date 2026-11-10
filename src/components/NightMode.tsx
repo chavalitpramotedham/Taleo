@@ -229,9 +229,16 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       const content = Math.min(window.innerWidth, col);
       const w = Math.round(Math.min(60, Math.max(40, (content * 60) / col)));
       let cord = w <= 24 ? 6 : 12;
-      // Screen coordinates: the bar is fixed to the top, and so is this layer.
-      const x = s.left + s.width / 2;
-      const top = b.bottom;
+      // Screen coordinates: the bar is pinned to the top, and so is this
+      // layer - so the lantern's place is the switch's place *within the
+      // bar*, never where the bar happens to be measured on the screen. (On
+      // a phone with the keyboard up, a field growing by a line scrolls the
+      // page under the keyboard, and a measurement taken mid-scroll puts
+      // the bar somewhere above the screen: the lantern went with it.)
+      // Nothing to hang from (the bar not laid out yet): stay where it was.
+      if (!s.width || !b.height) return;
+      const x = s.left - b.left + s.width / 2;
+      const top = b.height;
       el.style.setProperty("--lamp-w", `${w}px`);
       el.style.setProperty("--lamp-x", `${x}px`);
       el.style.setProperty("--bar-y", `${top}px`);
@@ -251,9 +258,12 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     });
     document.fonts?.ready.then(place);
     window.addEventListener("resize", place);
+    // (a phone's keyboard coming and going resizes only this)
+    window.visualViewport?.addEventListener("resize", place);
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", place);
+      window.visualViewport?.removeEventListener("resize", place);
     };
   }, []);
 
