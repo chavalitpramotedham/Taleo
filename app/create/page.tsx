@@ -6,7 +6,7 @@ import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages"
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
 import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
-import { CharacterPortrait } from "@/components/art/Painting";
+import { CharacterPortrait, Painting } from "@/components/art/Painting";
 import { DictateButton } from "@/components/DictateButton";
 import { SideScroll } from "@/components/SideScroll";
 import { GrowingInput } from "@/components/GrowingInput";
@@ -14,6 +14,9 @@ import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { PageLoading } from "@/components/PageLoading";
 import { LeafLoader, MapleMark } from "@/components/Icons";
+import { LimitDialog, type LimitNotice } from "@/components/LimitDialog";
+import { coverOf, titleOf } from "@/components/OngoingStory";
+import { useOngoingStory } from "@/lib/ongoing";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -97,25 +100,56 @@ export default function CreatePage() {
 
   const charLimit = useCharacterLimit();
   const [checking, setChecking] = useState(false);
+
+  // Before the first step: is there room for a new story today, and is one
+  // already under way? (One story at a time: beginning another replaces it.)
+  const ongoing = useOngoingStory();
+  const [limit, setLimit] = useState<LimitNotice | null>(null);
+  // (how many more stories the plan lets this account begin; unknown or
+  // unlimited: null)
+  const [startsLeft, setStartsLeft] = useState<number | null>(null);
+  const [daily, setDaily] = useState(false);
+  const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
+  const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
+    try {
+      const res = await fetch("/api/story", { cache: "no-store" });
+      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number };
+      setDaily(data.windowHours === 24);
+      setStartsLeft(typeof data.startsLeft === "number" ? data.startsLeft : null);
+      if (data.canStart) return null;
+      return { limited: data.limited, plan: data.plan, message: data.error || "A new story can't begin just now." };
+    } catch {
+      return "failed";
+    }
+  };
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let live = true;
+    void askAllowance().then((n) => live && n !== "failed" && setLimit(n));
+    return () => {
+      live = false;
+    };
+  }, [status]);
+  const leave = () => router.push("/home");
   const start = async () => {
     if (!age || !hero || !theme || !session?.user.username || checking) return;
     // New stories are limited (one per day on Free, unlimited for the admin):
     // check first, so hitting the limit never leaves an empty story behind.
     setChecking(true);
     setError(null);
-    try {
-      const res = await fetch("/api/story", { cache: "no-store" });
-      const data = (await res.json().catch(() => ({}))) as { canStart?: boolean; error?: string };
-      if (!data.canStart) {
-        setError(data.error || "Couldn't start a story just now. Please try again.");
-        return;
-      }
-    } catch {
+    const notice = await askAllowance();
+    setChecking(false);
+    if (notice === "failed") {
       setError("Couldn't start a story just now. Please check your connection and try again.");
       return;
-    } finally {
-      setChecking(false);
     }
+    if (notice) {
+      setLimit(notice);
+      return;
+    }
+    // (one at a time: anything left unfinished - say, begun in another tab
+    // since this page opened - makes way for this one)
+    await ongoing.discard({ all: true });
     try {
       localStorage.setItem(AGE_KEY, age);
       localStorage.setItem(MINUTES_KEY, String(effectiveMinutes));
@@ -392,6 +426,65 @@ export default function CreatePage() {
       )}
 
       {error && <p className="error">{error}</p>}
+
+      {limit ? (
+        <LimitDialog notice={limit} onClose={leave}>
+          {ongoing.story && (
+            <button type="button" className="btn btn-primary btn-block" onClick={ongoing.resume}>
+              <MapleMark />
+              Carry on with your story
+            </button>
+          )}
+        </LimitDialog>
+      ) : (
+        ongoing.story &&
+        replacing !== "done" && (
+          // (laid out like the app's other "this can't be undone" dialogs)
+          <div className="modal-backdrop" onClick={() => replacing !== "busy" && leave()}>
+            <div className="modal-panel confirm-panel" onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true" aria-labelledby="confirm-replace-story">
+              {coverOf(ongoing.story) && (
+                <span className="confirm-cover">
+                  <Painting svg={coverOf(ongoing.story)!} title={titleOf(ongoing.story)} />
+                </span>
+              )}
+              <h3 id="confirm-replace-story">Start a new story?</h3>
+              <p className="confirm-warning">
+                One story at a time: starting a new one deletes &ldquo;{titleOf(ongoing.story)}&rdquo; for good. This can&apos;t be undone.
+              </p>
+              <div className="redraw-choices">
+                <button
+                  type="button"
+                  className="btn btn-danger btn-block"
+                  disabled={replacing === "busy"}
+                  onClick={async () => {
+                    setReplacing("busy");
+                    await ongoing.discard({ all: true });
+                    setReplacing("done");
+                  }}
+                >
+                  {replacing === "busy" ? (
+                    <>
+                      <LeafLoader size={18} /> Deleting…
+                    </>
+                  ) : (
+                    "Delete and start a new story"
+                  )}
+                </button>
+                <button type="button" className="btn btn-soft btn-block" onClick={ongoing.resume} disabled={replacing === "busy"}>
+                  Carry on with this story
+                </button>
+              </div>
+              {startsLeft !== null && startsLeft <= 2 && (
+                <p className="meta starts-left">
+                  {startsLeft === 1
+                    ? `This is the last new story you can start ${daily ? "today" : "for now"}.`
+                    : `You can start ${startsLeft} more new stories ${daily ? "today" : "for now"}.`}
+                </p>
+              )}
+            </div>
+          </div>
+        )
+      )}
 
       <nav className="wizard-nav" aria-label="Move between steps">
         {step > 0 && (

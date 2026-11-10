@@ -1,87 +1,81 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import type { Story } from "@/lib/types";
-import { deleteStory, getStory, saveStory } from "@/lib/storage";
-import { discardDraft, fetchDraft } from "@/lib/drafts-client";
-import { allPages } from "@/lib/story-utils";
-import { Painting } from "./art/Painting";
+import { useOngoingStory } from "@/lib/ongoing";
 import { MapleMark } from "./Icons";
+import { OngoingSummary } from "./OngoingStory";
 
 const ASKED = "taleo.draftAsked";
 
 /**
  * On a visit after leaving a story unfinished (on any device): "Pick up
  * where you left off?" - Resume opens it again (finishing it publishes it
- * as usual; leaving it unfinished again brings this back next visit),
- * Discard deletes it for good. Asked once per visit; closing the popup
- * just means "not now".
+ * as usual). Asked once per visit; closing the popup just means "not now":
+ * the story waits at the front of the bookshelf on the home page, to carry
+ * on with or to delete from there.
  */
 export function DraftPrompt() {
   const { status } = useSession();
   const path = usePathname();
-  const router = useRouter();
-  const [draft, setDraft] = useState<Story | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [ask, setAsk] = useState(false);
+  // Not while reading a story, and not on the way into a new one (that
+  // path has its own word to say about the story under way).
+  const quiet = path.startsWith("/story/") || path.startsWith("/create");
 
   useEffect(() => {
-    if (status !== "authenticated" || path.startsWith("/story/")) return;
+    if (status !== "authenticated" || quiet) return;
     try {
       if (sessionStorage.getItem(ASKED)) return;
+    } catch {}
+    setAsk(true);
+  }, [status, quiet]);
+
+  if (!ask || quiet) return null;
+  return <Prompt onDone={() => setAsk(false)} />;
+}
+
+function Prompt({ onDone }: { onDone: () => void }) {
+  const { story, resume } = useOngoingStory({ finishing: true });
+  // Once it has been shown, that's this visit's asking done.
+  useEffect(() => {
+    if (!story) return;
+    try {
       sessionStorage.setItem(ASKED, "1");
     } catch {}
-    let live = true;
-    void fetchDraft().then((d) => live && d && setDraft(d));
-    return () => {
-      live = false;
-    };
-  }, [status, path]);
-
-  if (!draft) return null;
-
-  const resume = () => {
-    // Use whichever copy is further along: this device's, or the account's.
-    const local = getStory(draft.id);
-    const newer = local && (local.updatedAt ?? 0) > (draft.updatedAt ?? 0) ? local : draft;
-    saveStory(newer);
-    setDraft(null);
-    router.push(`/story/${draft.id}`);
-  };
-  const discard = async () => {
-    setBusy(true);
-    await discardDraft(draft.id);
-    deleteStory(draft.id);
-    setDraft(null);
-  };
-
-  const cover = allPages(draft).find((p) => p.svg)?.svg ?? null;
-  const pages = allPages(draft).length;
+  }, [story]);
+  useEffect(() => {
+    if (story === null) onDone();
+  }, [story, onDone]);
+  if (!story) return null;
 
   return (
-    <div className="modal-backdrop" onClick={() => setDraft(null)}>
+    <div className="modal-backdrop" onClick={onDone}>
       <div className="modal-panel draft-prompt" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Unfinished story">
         <div className="modal-head">
           <h3>Pick up where you left off?</h3>
-          <button type="button" className="icon-btn" onClick={() => setDraft(null)} aria-label="Not now">
+          <button type="button" className="icon-btn" onClick={onDone} aria-label="Not now">
             ✕
           </button>
         </div>
-        {cover && <Painting svg={cover} title={draft.title} className="draft-cover" />}
-        <p className="draft-title">{draft.title || `${draft.hero.name}'s story`}</p>
-        <p className="meta">
-          Starring {draft.hero.name}
-          {pages ? ` · ${pages} page${pages === 1 ? "" : "s"} so far` : ""}
-        </p>
+        <OngoingSummary story={story} />
         <div className="story-preview-actions">
-          <button type="button" className="btn btn-primary btn-block" onClick={resume} disabled={busy}>
+          <button
+            type="button"
+            className="btn btn-primary btn-block"
+            onClick={() => {
+              onDone();
+              resume();
+            }}
+          >
             <MapleMark />
             Resume the story
           </button>
-          <button type="button" className="btn btn-soft btn-block" onClick={discard} disabled={busy}>
-            Discard it
+          <button type="button" className="btn btn-soft btn-block" onClick={onDone}>
+            Not now
           </button>
         </div>
+        <p className="meta draft-later">It will wait for you at the front of your bookshelf.</p>
       </div>
     </div>
   );

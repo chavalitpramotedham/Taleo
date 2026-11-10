@@ -11,6 +11,8 @@ import { StoryCard } from "./StoryCard";
 import { StoryPreview, stepper, summaryFromEntry } from "./StoryPreview";
 import { LibraryActions } from "./GalleryShelf";
 import { ShelfSkeleton } from "./ShelfSkeleton";
+import { OngoingCard } from "./OngoingStory";
+import { useOngoingStory } from "@/lib/ongoing";
 
 /** How many of your stories the row shows before handing over to your
  *  bookshelf. */
@@ -22,6 +24,8 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   const [mine, setMine] = useState<GalleryEntry[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  // The story under way (if any) leads the row.
+  const ongoing = useOngoingStory();
 
   // A story deleted from its preview leaves the row, and the page's
   // numbers (worked out on the server) are refreshed.
@@ -66,8 +70,9 @@ export function MyCreationsRow({ username }: { username: string | null }) {
     return () => window.removeEventListener(SAVED_EVENT, on);
   }, [username]);
 
-  if (mine === null) return <ShelfSkeleton count={3} row />;
-  if (mine.length === 0)
+  if (mine === null || ongoing.story === undefined) return <ShelfSkeleton count={3} row />;
+  const underWay = ongoing.story;
+  if (mine.length === 0 && !underWay)
     return (
       <div className="empty creations-empty">
         <p className="meta">Every story you make together lands on this shelf, ready to read again tomorrow night.</p>
@@ -83,16 +88,19 @@ export function MyCreationsRow({ username }: { username: string | null }) {
   return (
     <>
       <SideScroll className="creations-row" label="More of my stories">
+        {underWay && <OngoingCard key={`ongoing-${underWay.id}`} story={underWay} onResume={ongoing.resume} onDiscard={() => ongoing.discard()} />}
         {mine.slice(0, SHOWN).map((s) => (
           <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
         ))}
         {/* the way to your whole bookshelf, at the end of the row */}
-        <Link href={shelf} className="creations-more">
-          <span className="creations-more-arrow" aria-hidden>
-            →
-          </span>
-          <span>View all in bookshelf</span>
-        </Link>
+        {mine.length > 0 && (
+          <Link href={shelf} className="creations-more">
+            <span className="creations-more-arrow" aria-hidden>
+              →
+            </span>
+            <span>View all in bookshelf</span>
+          </Link>
+        )}
       </SideScroll>
       {open && (
         <StoryPreview story={summaryFromEntry(open)} onClose={() => setOpenId(null)} {...stepper(mine.slice(0, SHOWN), open.id, setOpenId)}>

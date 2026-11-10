@@ -10265,3 +10265,108 @@ html[data-night] .char-arrange-grip {
   justify-content: center;
   margin: 22px 0 8px;
 }
+
+/* The story under way, leading the bookshelf row: a card like the others,
+   marked "Unfinished", with a ✕ in its corner to throw it away. */
+.ongoing-card {
+  position: relative;
+  outline: 2px dashed var(--russet);
+  outline-offset: -2px;
+  cursor: default;
+}
+.ongoing-open {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ongoing-open .cover {
+  width: 100%;
+}
+.ongoing-blank {
+  width: 100%;
+  height: 100%;
+  background: var(--rule);
+}
+.ongoing-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--russet);
+  color: #fff8ef;
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+.ongoing-meta {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.ongoing-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: var(--russet);
+  font-family: var(--font-caps);
+  letter-spacing: 0.04em;
+}
+.ongoing-cta svg {
+  width: 16px;
+  height: 16px;
+}
+.ongoing-discard {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--page);
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px -2px rgba(47, 34, 20, 0.5);
+}
+/* (a bigger place to tap than it looks) */
+.ongoing-discard::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+@media (hover: hover) {
+  .ongoing-discard:hover {
+    color: #a83a2c;
+    border-color: #a83a2c;
+  }
+}
+.draft-later {
+  margin: 0;
+}
+.limit-message {
+  margin: 4px 0 6px;
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+.draft-prompt a.btn {
+  text-decoration: none;
+}
+/* How many more stories can be begun: small print under the choices. */
+.starts-left {
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.85;
+}

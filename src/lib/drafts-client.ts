@@ -25,7 +25,7 @@ export function saveDraftSoon(story: Story) {
   // Done = finished AND published with every painting (that's "saved as
   // usual"); until then it stays a draft, so nothing is lost if closed
   // while the last pictures are still painting.
-  if (story.status === "complete" && story.publishedPainted) return clearDraftFor(story.id);
+  if (story.status === "complete" && story.publishedPainted) return void clearDraftFor(story.id);
   pending = story;
   window.clearTimeout(timer);
   timer = window.setTimeout(flushDraft, DELAY_MS);
@@ -50,12 +50,12 @@ const cleared = (): string[] => {
   }
 };
 
-export function clearDraftFor(id: string) {
+export function clearDraftFor(id: string): Promise<void> {
   window.clearTimeout(timer);
   if (pending?.id === id) pending = null;
   const done = cleared();
-  if (done.includes(id)) return;
-  void fetch(`/api/draft?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+  if (done.includes(id)) return Promise.resolve();
+  return fetch(`/api/draft?id=${encodeURIComponent(id)}`, { method: "DELETE" })
     .then((r) => {
       if (!r.ok) return;
       try {
@@ -65,16 +65,21 @@ export function clearDraftFor(id: string) {
     .catch(() => {});
 }
 
-export async function fetchDraft(): Promise<Story | null> {
-  try {
-    const res = await fetch("/api/draft", { cache: "no-store" });
-    if (!res.ok) return null;
-    return ((await res.json()) as { draft: Story | null }).draft;
-  } catch {
-    return null;
-  }
+// (several parts of a page ask at once - the popup, the bookshelf card -
+// and share the one answer)
+let asked: { at: number; answer: Promise<Story | null> } | null = null;
+export function fetchDraft(): Promise<Story | null> {
+  if (asked && Date.now() - asked.at < 4000) return asked.answer;
+  const answer = fetch("/api/draft", { cache: "no-store" })
+    .then((res) => (res.ok ? (res.json() as Promise<{ draft: Story | null }>) : { draft: null }))
+    .then((d) => d.draft)
+    .catch(() => null);
+  asked = { at: Date.now(), answer };
+  return answer;
 }
 
+/** Throws the draft away (done by the time this resolves). */
 export async function discardDraft(id: string) {
-  clearDraftFor(id);
+  asked = null;
+  await clearDraftFor(id);
 }

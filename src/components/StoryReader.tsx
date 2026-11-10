@@ -21,6 +21,7 @@ import { LeafLoader, LinkIcon, Ornament, ReplayIcon, ShareIcon } from "./Icons";
 import { StoryProgressBar, countShapes } from "./StoryProgressBar";
 import { logReadingToday } from "@/lib/reading-client";
 import { useSession } from "next-auth/react";
+import { LimitDialog, type LimitNotice } from "./LimitDialog";
 
 /** Strokes a page's painting needs before the waiting page opens onto it. */
 const RELEASE_SHAPES = 70;
@@ -75,6 +76,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // offered at the end instead.
   const [revisit] = useState(() => readOnly || story.status === "complete");
   const [error, setError] = useState<string | null>(null);
+  const [limit, setLimit] = useState<LimitNotice | null>(null);
+  // (closing the dialog keeps the kinder heading on the page behind it)
+  const [limitOpen, setLimitOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [customIdea, setCustomIdea] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -221,6 +225,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       setBusy(true);
       setProgressStart(Date.now());
       setError(null);
+      setLimit(null);
       const body =
         s.segments.length === 0
           ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
@@ -259,7 +264,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           body: JSON.stringify(body),
         });
         if (!res.ok || !res.body) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          const data = (await res.json().catch(() => ({}))) as { error?: string; limited?: string; plan?: string };
+          // The plan's allowance for new stories is used up: say so
+          // properly, with what can be done about it.
+          if (res.status === 429 && data.error && (data.limited === "story" || data.limited === "start")) {
+            setLimit({ limited: data.limited, plan: data.plan, message: data.error });
+            setLimitOpen(true);
+          }
           throw new Error(data.error || "The story got stuck. Let's try again!");
         }
         const reader = res.body.getReader();
@@ -798,7 +809,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   } else if (view.kind === "error") {
     words = (
       <div className="choice-wrap">
-        <p className="choice-prompt">Oh dear, the pages stuck together.</p>
+        <p className="choice-prompt">{limit ? "This story will have to wait a little." : "Oh dear, the pages stuck together."}</p>
         <p className="meta">{error}</p>
         <div>
           <button className="btn btn-primary" onClick={() => generate(storyRef.current)}>
@@ -1110,6 +1121,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         </div>
       )}
       {toast && <div className="toast">{toast}</div>}
+      {limit && limitOpen && <LimitDialog notice={limit} onClose={() => setLimitOpen(false)} />}
     </div>
   );
 }
