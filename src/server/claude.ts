@@ -138,7 +138,7 @@ function buildSegmentRequest(req: StoryRequest) {
   if (isStart) {
     const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
     parts.push(
-      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end. Then give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening that hooks the child straight away, plant the situation that will test the heart of the story, and end on an exciting moment with a choice for the child.`,
+      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end. Then give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening that hooks the child on the very first page (start in the middle of something happening, not with a description), make clear what they want today, plant one small detail you will pay off at the end, set up the situation that will test the heart of the story, and end on an exciting moment with a choice for the child.`,
     );
   } else {
     const story = segments
@@ -159,8 +159,8 @@ function buildSegmentRequest(req: StoryRequest) {
     }
     parts.push(
       isLast
-        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words before a cosy last page. Set choice to null and ending to true. Leave title, world, moral and keyword empty.`
-        : `Write segment ${index} of ${totalSegments}: show the result of the choice, add a fun new twist that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world, moral and keyword empty.`,
+        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, bring the problem to its biggest (still gentle) moment, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words. Pay off something planted earlier (a detail, the refrain, the running joke - one last time, with a twist). End on a calm, cosy last page that echoes the opening and feels like a goodnight. Set choice to null and ending to true. Leave title, world, moral and keyword empty.`
+        : `Write segment ${index} of ${totalSegments}: show the result of the choice on the first page so the child sees their decision mattered, then raise things a notch - a fun new twist, a try that doesn't quite work or a funny complication - that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world, moral and keyword empty.`,
     );
   }
   parts.push(
@@ -314,7 +314,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     newCharacters.push({
       id,
       name: c.name.slice(0, 40),
-      look: (preset && !c.look ? preset.look : c.look).slice(0, 500),
+      look: (preset && !c.look ? preset.look : c.look).slice(0, 600),
       preset: preset ? preset.key : null,
       svg: null,
     });
@@ -363,28 +363,51 @@ function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text:
 
 // ---------------------------------------------------------------- illustrations
 
+const CENTRAL_IDS = ["hero", "companion1", "companion2"];
+
+/** A character's reference painting as the painter reads it: the same
+ *  shapes, with needlessly precise coordinates rounded to one decimal place
+ *  (invisible at this size, and a good deal shorter to read). */
+const referenceArt = (c: Pick<CharacterDef, "preset" | "svg">) =>
+  characterArt(c)
+    .trim()
+    .replace(/(\d+)\.(\d{2,})/g, (n, whole: string) => (whole === "0" ? n : String(Math.round(Number(n) * 10) / 10)))
+    .replace(/>\s+</g, "><");
+
 /** Streams the SVG markup of one painted page. */
 export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): AsyncGenerator<string> {
-  const sheets = req.cast
-    .map((c) => {
-      const art = characterArt(c);
-      return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art.trim()}` : ""}`;
-    })
-    .join("\n\n");
+  const sheet = (c: CharacterDef) => {
+    const art = referenceArt(c);
+    return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
+  };
+  // The book's central characters come first, always in the same order and
+  // each as its own cached block: their reference paintings are by far the
+  // largest part of the request, and every page of the book repeats them.
+  // Read back from the cache they cost a tenth as much, and the painter
+  // starts sooner. (Four cache points at most: the system prompt and up to
+  // three central characters.)
+  const central = CENTRAL_IDS.map((id) => req.cast.find((c) => c.id === id)).filter((c): c is CharacterDef => Boolean(c));
+  const others = req.cast.filter((c) => !central.includes(c));
 
-  const user = [
-    `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}`,
-    sheets || "No characters in this picture.",
+  const rest = [
+    others.map(sheet).join("\n\n"),
+    req.cast.length ? "" : "No characters in this picture.",
     req.previous ? `PREVIOUS PAGE'S PICTURE (for continuity of place and light): ${req.previous}` : "",
     `THIS PAGE'S TEXT: ${req.page.text}`,
     `PAINT THIS MOMENT: ${req.page.picture}`,
     req.page.action
       ? `TAP TARGET: "${req.page.action.target}"${req.cast.some((c) => c.id === req.page.action!.target) ? " (the character with that id)" : ""}, acting out the word "${req.page.action.word}". Wrap it in <g class="target">.`
       : "",
-    `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the SVG markup now.`,
+    `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
   ]
     .filter(Boolean)
     .join("\n\n");
+
+  const content: Anthropic.Beta.BetaTextBlockParam[] = [
+    { type: "text", text: `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}` },
+    ...central.map((c): Anthropic.Beta.BetaTextBlockParam => ({ type: "text", text: sheet(c), cache_control: { type: "ephemeral" } })),
+    { type: "text", text: rest },
+  ];
 
   const stream = getClient().beta.messages.stream({
     model: req.quick ? QUICK_ART_MODEL : ART_MODEL,
@@ -392,7 +415,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",
     system: [{ type: "text", text: illustratorPrompt(), cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: user }],
+    messages: [{ role: "user", content }],
     output_config: { effort: req.quick ? QUICK_ART_EFFORT : ART_EFFORT },
   }, { signal });
 
@@ -525,7 +548,7 @@ export async function designCharacter(req: CharacterRequest, onProgress?: (p: Ch
     character: {
       id: "hero",
       name: (req.name?.trim() || out.name).slice(0, 40),
-      look: out.look.slice(0, 500),
+      look: out.look.slice(0, 600),
       preset: svg ? null : "star",
       svg: svg || null,
     },

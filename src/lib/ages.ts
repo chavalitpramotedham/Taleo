@@ -36,14 +36,14 @@ export const AGES: AgeLevel[] = [
     emoji: "🍼",
     choices: 2,
     pagesPerSegment: [3, 4],
-    words: [4, 12],
+    words: [8, 18],
     optionCount: 2,
     recommendedMinutes: 3,
-    secondsPerPage: 17,
+    secondsPerPage: 20,
     vocab:
       "First words: everyday concrete nouns and very simple action words a toddler can point at or copy (ball, duck, splash, hug, clap, sleep). A fun sound word is fine now and then. Repeat the word in the text so it's heard twice.",
     guide:
-      "Very first words. One short sentence per page (often 3-8 words). Use concrete nouns the child can point at in the picture (ball, duck, moon), animal sounds and fun noises, lots of repetition and a repeated refrain. Name colours and simple counting to 3. Present tense. No abstract ideas, no time jumps. Choices are between two very concrete things (e.g. 'the red ball' or 'the yellow duck').",
+      "The very youngest listeners. A grown-up reads every word aloud, so write it to be a joy to PERFORM, never a list of labels. 1-2 short, bouncy sentences per page with a strong beat, like a nursery rhyme: light rhyme or a near-rhyme, a sing-song rhythm, and a refrain that comes back on most pages with one word changed each time ('Not in the pot! Not in the sock!') so the child can join in. Never a bare label like 'A ball.' or a flat description. Give the grown-up something to do on every page: an animal sound or noise to make together (in the text, not as a stage direction), a question to ask the child and answer on the same page ('Where is Duck? There she is!'), a peekaboo reveal, counting one-two-three, or a word that begs for a funny voice. A tiny but real plot: someone wants or loses something, looks in two or three places with a small silly surprise in each (the wrong animal pops out, a hat on the wrong head, a great big sneeze), then finds it, and ends in a cuddle. Humour is physical and gentle: surprises, mix-ups, things going plop. Concrete things the child can point at in the picture, colours, counting to 3, present tense, simple everyday words. No abstract ideas, no time jumps. Choices are between two very concrete things (e.g. 'the red ball' or 'the yellow duck').",
   },
   {
     id: "2-3",
@@ -52,14 +52,14 @@ export const AGES: AgeLevel[] = [
     emoji: "🧸",
     choices: 2,
     pagesPerSegment: [3, 5],
-    words: [10, 22],
+    words: [12, 26],
     optionCount: 2,
     recommendedMinutes: 4,
-    secondsPerPage: 20,
+    secondsPerPage: 21,
     vocab:
       "Simple, vivid action words and familiar things (hop, roll, bubble, wave, peek, stomp). At most one sound word (like splash or pop) per segment - the rest should be real action words or objects.",
     guide:
-      "Toddler talkers. 1-2 short sentences per page with simple words. Gentle repetition, rhymes and onomatopoeia ('Splish! Splash!'). Simple feelings (happy, sleepy, surprised). Short speech lines between characters. Simple cause and effect. Choices are concrete actions ('climb the tree' or 'look under the rock').",
+      "Toddler talkers, read aloud by a grown-up - make it fun to perform. 2-3 short sentences per page with simple words and a bouncy rhythm. A refrain or repeated pattern the child can chant along with, rhymes and onomatopoeia ('Splish! Splash!'), and now and then a question for the child ('Can you guess who is hiding?'). A small plot with a clear want, a funny mishap or two (things too big, too small, upside down, in the wrong place) and a happy fix. Simple feelings (happy, sleepy, surprised, a bit cross) shown in what characters do. Short speech lines between characters, each with their own way of talking. Simple cause and effect. Choices are concrete actions ('climb the tree' or 'look under the rock').",
   },
   {
     id: "3-4",
@@ -75,7 +75,7 @@ export const AGES: AgeLevel[] = [
     vocab:
       "Lively, more specific verbs and describing words that grow vocabulary (tiptoe, wobble, scramble, gather, sparkle, gigantic). Avoid pure sound effects; prefer the word that names the action.",
     guide:
-      "Pre-schoolers. 2-3 sentences per page. Playful dialogue, silly jokes and funny mix-ups, simple problem-solving, naming feelings, sharing and kindness. Vocabulary is everyday with one fun new word now and then (explained by context). Choices are meaningful actions with different consequences.",
+      "Pre-schoolers. 2-3 sentences per page. Playful dialogue, silly jokes and funny mix-ups (absurd ideas said seriously, a character who keeps getting one thing wrong, a running gag that pays off at the end), simple problem-solving, naming feelings, sharing and kindness. Vocabulary is everyday with one fun new word now and then (explained by context). Choices are meaningful actions with different consequences.",
   },
   {
     id: "4-5",
