@@ -10816,15 +10816,19 @@ button.reading-cell:focus-visible {
   bottom: calc(22px + 56px + 18px + env(safe-area-inset-bottom));
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  height: 56px;
   padding: 0;
-  border: 0;
-  background: none;
+  border: 1px solid var(--russet);
+  border-radius: 999px;
+  background: var(--russet);
+  color: var(--paper);
+  box-shadow: 0 4px 0 var(--russet-dark), 0 10px 18px -10px rgba(70, 50, 30, 0.55);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  transition: translate 70ms ease-out, box-shadow 70ms ease-out, background 0.2s, border-color 0.2s;
   animation: nav-skip-in 0.35s ease-out both;
 }
 @keyframes nav-skip-in {
@@ -10833,48 +10837,33 @@ button.reading-cell:focus-visible {
     transform: translateY(8px);
   }
 }
+/* (one capsule: the words run into the arrow, whose round end sits
+   exactly over Next's circle) */
 .nav-skip-label {
-  display: inline-flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: 1px solid var(--rule-strong);
-  background: var(--page);
-  box-shadow: var(--shadow);
+  padding: 0 2px 0 22px;
   font-family: var(--font-caps);
   letter-spacing: 0.06em;
-  color: var(--russet);
   white-space: nowrap;
 }
 .nav-skip-btn {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 1px solid var(--russet);
-  background: var(--russet);
-  color: var(--paper);
+  width: 54px;
+  height: 54px;
   font-family: var(--font-body);
   font-size: 2rem;
   line-height: 1;
   padding-bottom: 8px;
-  box-shadow: 0 4px 0 var(--russet-dark), 0 10px 18px -10px rgba(70, 50, 30, 0.55);
-  transition: translate 70ms ease-out, box-shadow 70ms ease-out, background 0.2s;
 }
-.nav-skip:active .nav-skip-btn {
+.reader .nav-skip:active {
   translate: 0 3px;
   box-shadow: 0 1px 0 var(--russet-dark), 0 4px 8px -6px rgba(70, 50, 30, 0.5);
   transition-duration: 0s;
 }
 @media (hover: hover) {
-  .nav-skip:hover .nav-skip-btn {
+  .reader .nav-skip:hover {
     background: var(--russet-dark);
     border-color: var(--russet-dark);
-  }
-  .nav-skip:hover .nav-skip-label {
-    border-color: var(--russet);
   }
 }
 @media (max-width: 520px) {
@@ -10882,9 +10871,15 @@ button.reading-cell:focus-visible {
     right: 16px;
     bottom: calc(18px + 50px + 16px + env(safe-area-inset-bottom));
   }
-  .nav-skip-btn {
-    width: 50px;
+  .reader .nav-skip {
     height: 50px;
+  }
+  .nav-skip-label {
+    padding-left: 18px;
+  }
+  .nav-skip-btn {
+    width: 48px;
+    height: 48px;
   }
 }
 @media (min-width: 760px) and (min-aspect-ratio: 5/4) {
