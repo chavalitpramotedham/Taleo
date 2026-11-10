@@ -6878,6 +6878,16 @@ html[data-night] .admin-spark.bad {
 .admin-crumbs {
   margin: 0 0 4px;
 }
+/* The dashboard's two pages, as the pills that sort a shelf. */
+.admin-pages {
+  margin: 14px 0 12px;
+}
+.admin-pages .chip {
+  text-decoration: none;
+}
+.admin-crumbs {
+  text-align: center;
+}
 .admin-crumbs a,
 .admin-filters a,
 .admin-more a,
@@ -9723,7 +9733,7 @@ html[data-night] .tier-badge {
   gap: 2px;
   border: 1px solid var(--rule);
   border-radius: 12px;
-  padding: 2px 4px 2px 12px;
+  padding: 2px 3px 2px 12px;
   background: color-mix(in srgb, var(--page) 70%, var(--paper));
   transition: border-color 0.2s ease;
 }
@@ -9745,10 +9755,20 @@ html[data-night] .tier-badge {
   padding: 10px 0;
   outline: none;
 }
-.profile-name-save {
+/* A button held inside a field's box sits flat in it (no raised lip, no
+   press-down) and its corners run alongside the box's own. */
+.profile-name-save,
+.profile-name-save:active:not(:disabled) {
   flex: none;
-  padding: 8px 14px;
+  align-self: stretch;
+  margin: 1px 0;
+  padding: 0 16px;
   min-height: 0;
+  font-size: 1rem;
+  border-radius: 8px;
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
 }
 .profile-name .meta,
 .profile-name .error {

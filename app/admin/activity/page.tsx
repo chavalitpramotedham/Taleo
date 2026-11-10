@@ -121,15 +121,19 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
         </p>
       </header>
 
-      <p className="meta admin-crumbs">
-        <Link href="/admin">Admin dashboard</Link>
-        {subjectId && (
-          <>
-            {" · "}
-            <Link href={HERE}>Everyone&apos;s activity</Link>
-          </>
-        )}
-      </p>
+      <nav className="filter-row admin-pages" aria-label="Admin pages">
+        <Link href="/admin" className="chip">
+          Overall
+        </Link>
+        <Link href="/admin/activity" className="chip on" aria-current="page">
+          User details
+        </Link>
+      </nav>
+      {subjectId && (
+        <p className="meta admin-crumbs">
+          <Link href={HERE}>Everyone&apos;s activity</Link>
+        </p>
+      )}
 
       {!metricsEnabled() && (
         <p className="admin-note">
@@ -374,9 +378,15 @@ async function Detail({ id, now }: { id: string; now: number }) {
         </h1>
         {r.what && <p className="sub">{r.what}</p>}
       </header>
+      <nav className="filter-row admin-pages" aria-label="Admin pages">
+        <Link href="/admin" className="chip">
+          Overall
+        </Link>
+        <Link href="/admin/activity" className="chip on" aria-current="page">
+          User details
+        </Link>
+      </nav>
       <p className="meta admin-crumbs">
-        <Link href="/admin">Admin dashboard</Link>
-        {" · "}
         <Link href={HERE}>Everyone&apos;s activity</Link>
         {r.userId && (
           <>

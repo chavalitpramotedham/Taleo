@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/server/auth";
 import { listUsers } from "@/server/users";
@@ -99,9 +100,14 @@ export default async function AdminPage() {
         <p className="sub">The last {DAYS} days, unless it says otherwise. Updated each time you open it.</p>
       </header>
 
-      <p className="meta admin-crumbs">
-        <a href="/admin/activity">Activity, request by request</a>: what each reader asked for, how long they waited, and what went wrong.
-      </p>
+      <nav className="filter-row admin-pages" aria-label="Admin pages">
+        <Link href="/admin" className="chip on" aria-current="page">
+          Overall
+        </Link>
+        <Link href="/admin/activity" className="chip">
+          User details
+        </Link>
+      </nav>
 
       {!metricsEnabled() && (
         <p className="admin-note">
