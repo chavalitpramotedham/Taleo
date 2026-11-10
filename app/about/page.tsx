@@ -24,7 +24,7 @@ export default function AboutPage() {
   // The picture at the top and the painted edge it shows through, asked for
   // with the page itself (neither is found until the styles have arrived).
   preload("/about/bedtime-story.webp", { as: "image", fetchPriority: "high" });
-  preload("/art/paint-edge-square.png", { as: "image" });
+  preload("/art/paint-edge-square.webp", { as: "image", fetchPriority: "high", crossOrigin: "anonymous" });
   return (
     <div className="container about">
       <header className="wizard-head">

@@ -5710,12 +5710,12 @@ html[data-night] .gender-opt.open.on {
   mask-size: 100% 100%;
 }
 .painted-edge {
-  -webkit-mask-image: url(/art/paint-edge.png);
-  mask-image: url(/art/paint-edge.png);
+  -webkit-mask-image: url(/art/paint-edge.webp);
+  mask-image: url(/art/paint-edge.webp);
 }
 .painted-edge-square {
-  -webkit-mask-image: url(/art/paint-edge-square.png);
-  mask-image: url(/art/paint-edge-square.png);
+  -webkit-mask-image: url(/art/paint-edge-square.webp);
+  mask-image: url(/art/paint-edge-square.webp);
 }
 
 /* ---------- snappier on phones ---------- */

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { preload } from "react-dom";
 import { EB_Garamond, IM_Fell_English, IM_Fell_English_SC } from "next/font/google";
 import { PaintDefs } from "@/components/art/PaintDefs";
 import { BrandMark } from "@/components/Icons";
@@ -112,6 +113,12 @@ const fellSC = IM_Fell_English_SC({
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // The torn-paper edge every painting is shown through (covers, pages,
+  // the landing picture): small, and nothing of a painting can be drawn
+  // until it's here, so it's asked for with the page rather than found
+  // late in the styles. (A mask is fetched the way styles' masks are -
+  // "cors" - so the preload must be too, or it's fetched twice.)
+  preload("/art/paint-edge.webp", { as: "image", fetchPriority: "high", crossOrigin: "anonymous" });
   return (
     <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable} ${garamondItalic.variable} ${fellItalic.variable}`} suppressHydrationWarning>
       <head>

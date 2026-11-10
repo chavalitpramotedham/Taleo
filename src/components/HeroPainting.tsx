@@ -56,9 +56,8 @@ export function HeroPainting() {
   // for up front; the rest are requested once painting begins, so on a slow
   // connection they don't hold up the first ones - they arrive well before
   // their turn, a few seconds into the painting.
-  // (and the torn-paper edge they're shown through: without it nothing of
-  // the painting can be drawn)
-  preload("/art/paint-edge.png", { as: "image" });
+  // (the torn-paper edge they're shown through is asked for by every
+  // page: see the root layout)
   HOME_LAYERS.slice(0, EAGER).forEach((l, i) => {
     if ("src" in l) preload(l.src, { as: "image", fetchPriority: i === 0 ? "high" : "auto" });
   });
