@@ -68,7 +68,8 @@ export function ReadingChart() {
     }
     cols.push(col);
   }
-  const joinedCol = joinedKey ? cols.findIndex((col) => col.some((c) => c.day === joinedKey)) : -1;
+  const joinedShown = Boolean(joinedKey && cols.some((col) => col.some((c) => c.day === joinedKey)));
+  const preShown = cols.some((col) => col.some((c) => c.pre));
 
   const set = days ?? new Set<string>();
   const streak = days ? currentStreak(set, today) : 0;
@@ -105,9 +106,6 @@ export function ReadingChart() {
         <div className="reading-grid-scroll">
           <div className="reading-months" aria-hidden>
             {cols.map((col, i) => {
-              if (i === joinedCol) return <span key={i} className="reading-joined-label">Joined</span>;
-              // (room for "Joined" to its right)
-              if (joinedCol >= 0 && i > joinedCol && i <= joinedCol + 3) return <span key={i} />;
               const first = col.find((c) => c.date.getDate() <= 7 && c.date.getDay() === 0) ?? (i === 0 ? col[0] : null);
               const pre = col.every((c) => c.pre);
               return (
@@ -140,6 +138,32 @@ export function ReadingChart() {
           </div>
         </div>
       </div>
+      <ul className="reading-legend" aria-label="Key">
+        <li>
+          <span className="reading-cell read" aria-hidden />
+          Finished a story
+        </li>
+        <li>
+          <span className="reading-cell" aria-hidden />
+          No story
+        </li>
+        <li>
+          <span className="reading-cell today" aria-hidden />
+          Today
+        </li>
+        {joinedShown && (
+          <li>
+            <span className="reading-cell joined" aria-hidden />
+            You joined
+          </li>
+        )}
+        {preShown && (
+          <li>
+            <span className="reading-cell pre" aria-hidden />
+            Before you joined
+          </li>
+        )}
+      </ul>
     </section>
   );
 }

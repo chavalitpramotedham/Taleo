@@ -10063,9 +10063,28 @@ html[data-night] .glass-toast {
 .reading-months span.pre {
   opacity: 0.55;
 }
-.reading-months .reading-joined-label {
-  color: var(--russet);
-  font-weight: 600;
+/* the key, under the chart */
+.reading-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 10px 0 0;
+  padding: 10px 0 0 30px;
+  list-style: none;
+  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+.reading-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reading-legend .reading-cell {
+  flex: none;
+}
+.reading-legend .reading-cell.today {
+  background: transparent;
 }
 .reading-col {
   display: grid;
