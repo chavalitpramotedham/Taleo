@@ -11090,3 +11090,109 @@ button.reading-cell:focus-visible {
     translate: 0 -0.09em;
   }
 }
+
+/* ---------- the Begin leaf while a story is being made ---------- */
+/* Not a button now but a little lamp: the pill fills with the lantern's
+   candlelight, a soft halo breathes around it, and the leaf itself turns
+   to pale gold and glows. Only opacity and transform move (the halo's
+   shadow is painted once), so it costs nothing while pages are painted. */
+.nav-begin-pill.is-making,
+.nav-begin-pill.is-making:hover {
+  position: relative;
+  isolation: isolate;
+  cursor: default;
+  user-select: none;
+  color: #8a5412;
+  border-color: #e9b45c;
+  background: radial-gradient(ellipse 70% 130% at 22px 50%, #fff6d8 0, #ffe6ae 48%, #ffd58a 100%);
+}
+/* (the nav row scrolls sideways, which clips anything outside its box:
+   while the lamp is lit it takes a margin of room for the halo, and gives
+   the same back so nothing in the header moves) */
+.topnav:has(.is-making) {
+  padding: 16px;
+  margin: -16px;
+}
+.nav-begin-pill.is-making::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow:
+    0 0 5px 1px rgba(255, 213, 138, 0.95),
+    0 0 11px 3px rgba(255, 184, 96, 0.8);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: makingHalo 2.8s ease-in-out infinite;
+}
+.nav-begin-pill.is-making .maple-mark {
+  overflow: visible;
+  filter: drop-shadow(0 0 2.5px rgba(255, 244, 205, 0.95)) drop-shadow(0 0 5px rgba(255, 191, 107, 0.7));
+  animation: makingLeaf 2.8s ease-in-out infinite;
+}
+.nav-begin-pill.is-making .maple-mark > path:first-child {
+  fill: #fff1c4;
+  stroke: #c9892c;
+}
+.nav-begin-pill.is-making .maple-mark g {
+  stroke: #dca74c;
+}
+.nav-begin-pill.is-making .maple-mark > path:last-child {
+  stroke: #c9892c;
+}
+.nav-begin-pill.is-making .nav-begin-label {
+  animation: makingWords 2.8s ease-in-out infinite;
+}
+@keyframes makingHalo {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes makingLeaf {
+  0%,
+  100% {
+    transform: scale(0.96) rotate(-4deg);
+    opacity: 0.86;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+}
+@keyframes makingWords {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* By lamplight the pill is a glow on the dark, not a bright tablet. */
+html[data-night] .nav-begin-pill.is-making,
+html[data-night] .nav-begin-pill.is-making:hover {
+  color: #ffd58a;
+  border-color: rgba(255, 200, 120, 0.6);
+  background: radial-gradient(ellipse 70% 130% at 22px 50%, rgba(255, 224, 150, 0.34) 0, rgba(255, 191, 107, 0.16) 55%, rgba(255, 176, 85, 0.1) 100%);
+}
+html[data-night] .nav-begin-pill.is-making::before {
+  box-shadow:
+    0 0 5px 1px rgba(255, 213, 138, 0.75),
+    0 0 12px 3px rgba(255, 176, 85, 0.7);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-begin-pill.is-making::before,
+  .nav-begin-pill.is-making .maple-mark,
+  .nav-begin-pill.is-making .nav-begin-label {
+    animation: none;
+    opacity: 1;
+  }
+  .nav-begin-pill.is-making::before {
+    opacity: 0.6;
+  }
+}

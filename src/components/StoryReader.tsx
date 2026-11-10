@@ -6,6 +6,7 @@ import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
+import { useMarkMaking } from "@/lib/making";
 import { usePaintings } from "@/lib/usePaintings";
 import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
@@ -151,6 +152,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const focus = holdSeg !== null ? pageKey(holdSeg, 0) : shown ? pageKey(shown.seg, shown.n) : null;
 
   const { live, failed, retry, painting } = usePaintings(story, update, focus, !readOnly);
+  // The menu's maple leaf glows while this story is still being made:
+  // its words unfinished, or a picture of it yet to be painted.
+  useMarkMaking(
+    !readOnly &&
+      (story.status !== "complete" || story.segments.some((sg, si) => sg.pages.some((p, pi) => !p.svg && !failed[pageKey(si, pi)]))),
+  );
 
   // Let the held part through once its first page is painted (a moment's
   // grace so the picture is there when it appears), or after 30s with the
