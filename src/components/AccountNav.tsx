@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { AccountIcon } from "./Icons";
+import { AccountIcon, AddTileIcon, CharacterIcon, ChartIcon, CogIcon, ShelfIcon, SignOutIcon } from "./Icons";
 import { Avatar } from "./Avatar";
 import { AddShortcutDialog, canAddShortcut } from "./AddShortcut";
 
@@ -52,16 +52,20 @@ export function AccountNav() {
         <div className="account-dropdown" role="menu">
           <p className="account-dropdown-name">@{session.user.username}</p>
           <Link href="/my-stories" className={item("/my-stories")} aria-current={path.startsWith("/my-stories") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
+            <ShelfIcon />
             My bookshelf
           </Link>
           <Link href="/my-characters" className={item("/my-characters")} aria-current={path.startsWith("/my-characters") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
+            <CharacterIcon />
             My characters
           </Link>
           <Link href="/account" className={item("/account")} aria-current={path.startsWith("/account") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
+            <CogIcon />
             Manage account
           </Link>
           {session.user.isAdmin && (
             <Link href="/admin" className={item("/admin")} aria-current={path.startsWith("/admin") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
+              <ChartIcon />
               Admin dashboard
             </Link>
           )}
@@ -76,6 +80,7 @@ export function AccountNav() {
                 setShortcut(true);
               }}
             >
+              <AddTileIcon />
               Add shortcut
             </button>
           )}
@@ -88,6 +93,7 @@ export function AccountNav() {
               signOut({ callbackUrl: "/" });
             }}
           >
+            <SignOutIcon />
             Sign out
           </button>
         </div>

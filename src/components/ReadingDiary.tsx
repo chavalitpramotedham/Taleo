@@ -20,6 +20,10 @@ async function cardsFor(ids: string[]): Promise<void> {
   for (const e of data.stories ?? []) known.set(e.id, e);
 }
 
+/** The first day the diary noted which stories were read (before it, only
+ *  that the day was a reading day). */
+const TITLES_FROM = "2026-11-10";
+
 const longDate = (day: string) =>
   new Date(`${day}T12:00:00`).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const at = (day: string) => new Date(`${day}T12:00:00`);
@@ -31,7 +35,7 @@ const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : 
  * One day of the reading diary, opened from its square on the chart: the
  * stories made that day first, then the ones read (your own before other
  * people's). Tapping a story opens its preview, as on the bookshelf; the
- * arrows on either side of the date step to the day before or after that
+ * arrows on either side of the weekday step to the day before or after that
  * has something in it.
  */
 export function ReadingDiary({
@@ -118,19 +122,21 @@ export function ReadingDiary({
         {/* The day, with the way to the day before and the day after on
             either side of it (only days with a story in them). */}
         <div className="diary-head">
-          <button type="button" className="icon-btn diary-step" onClick={() => earlier && onDay(earlier)} disabled={!earlier} aria-label="Earlier day">
-            ‹
-          </button>
           <div className="diary-date" aria-live="polite">
-            <p className="diary-weekday">{weekday(day)}</p>
+            <p className="diary-weekday">
+              <button type="button" className="diary-step" onClick={() => earlier && onDay(earlier)} disabled={!earlier} aria-label="Earlier day">
+                ‹
+              </button>
+              <span className="diary-weekday-name">{weekday(day)}</span>
+              <button type="button" className="diary-step" onClick={() => later && onDay(later)} disabled={!later} aria-label="Later day">
+                ›
+              </button>
+            </p>
             <p className="diary-day">{dayMonth(day)}</p>
             <p className="diary-summary">
-              {ready === "loading" ? "\u00a0" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "You finished a story together."}
+              {ready === "loading" ? "\u00a0" : ready === "failed" ? "The diary can't be reached right now. Try again in a moment." : summary || "A reading day"}
             </p>
           </div>
-          <button type="button" className="icon-btn diary-step" onClick={() => later && onDay(later)} disabled={!later} aria-label="Later day">
-            ›
-          </button>
         </div>
         <div className="diary-body">
           {ready === "loading" && <PageLoading compact label="Opening the diary…" />}
@@ -159,7 +165,11 @@ export function ReadingDiary({
               ))}
             </div>
           )}
-          {ready === "ready" && !ids.length && <p className="meta starts-left">This day is from before the diary began keeping titles.</p>}
+          {ready === "ready" && !ids.length && (
+            <p className="meta starts-left">
+              {day < TITLES_FROM ? "This day is from before the diary began keeping titles." : "A story was finished this day, but the diary didn't note which one."}
+            </p>
+          )}
           {gone > 0 && (
             <p className="meta starts-left">
               {gone === 1 ? "One story from this day is" : `${gone} stories from this day are`} no longer in the library.

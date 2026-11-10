@@ -204,9 +204,9 @@ export function ReadingChart() {
 /** A small ember for a streak that's alight. */
 function FlameMark() {
   return (
-    <svg className="reading-flame" viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+    <svg className="reading-flame" viewBox="0 0 24 24" width="27" height="27" aria-hidden>
       <path d="M12.6 2.5c.4 3.1-1.3 4.9-2.9 6.6C8 10.9 6.5 12.6 6.5 15.4A5.6 5.6 0 0 0 12 21a5.6 5.6 0 0 0 5.5-5.6c0-2.3-1-4-2-5.3-.2 1.3-.8 2.3-1.8 2.8.6-3.6-.4-7.4-1.1-9.4Z" fill="currentColor" />
-      <path d="M12.2 13.2c-1.6 1.4-2.4 2.5-2.4 3.7A2.2 2.2 0 0 0 12 19.1a2.2 2.2 0 0 0 2.2-2.2c0-1.4-1-2.6-2-3.7Z" fill="#f6d27a" />
+      <path d="M12.2 13.2c-1.6 1.4-2.4 2.5-2.4 3.7A2.2 2.2 0 0 0 12 19.1a2.2 2.2 0 0 0 2.2-2.2c0-1.4-1-2.6-2-3.7Z" className="reading-flame-heart" fill="#ffdf7e" />
     </svg>
   );
 }

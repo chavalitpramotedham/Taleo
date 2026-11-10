@@ -303,3 +303,59 @@ export const ClockIcon = () => (
     <path d="M12 7.5V12l3 2" />
   </svg>
 );
+
+// ------------------------------------------------- the account menu's items
+// (a little smaller than the toolbar icons: they sit beside a line of text)
+const menu = { ...base, width: 18, height: 18 };
+
+/** My bookshelf: three books standing on a shelf, the last one leaning. */
+export const ShelfIcon = () => (
+  <svg {...menu}>
+    <path d="M3 20.5h18" />
+    <rect x="4.5" y="6" width="3.6" height="14.5" rx="0.6" />
+    <rect x="8.1" y="9" width="3.6" height="11.5" rx="0.6" />
+    <path d="M13.6 8.2l3.3-1 3.6 12.3-3.3 1z" />
+  </svg>
+);
+
+/** My characters: a little bear's face. */
+export const CharacterIcon = () => (
+  <svg {...menu}>
+    <circle cx="6.6" cy="6.6" r="2.6" />
+    <circle cx="17.4" cy="6.6" r="2.6" />
+    <circle cx="12" cy="13" r="7.5" fill="var(--page)" />
+    <path d="M9.4 11.6v.4M14.6 11.6v.4" strokeWidth="2" />
+    <path d="M10.2 15.4c.9 1 2.7 1 3.6 0" />
+  </svg>
+);
+
+/** Manage account: a cog. */
+export const CogIcon = () => (
+  <svg {...menu}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 2.8l1.6 2.6 2.9-.8.7 3 3 .7-.8 2.9 2.6 1.6-2.6 1.6.8 2.9-3 .7-.7 3-2.9-.8L12 21.2l-1.6-2.6-2.9.8-.7-3-3-.7.8-2.9L2 12.8l2.6-1.6-.8-2.9 3-.7.7-3 2.9.8z" transform="translate(0 -0.8)" />
+  </svg>
+);
+
+/** Admin dashboard: a small bar chart. */
+export const ChartIcon = () => (
+  <svg {...menu}>
+    <path d="M3.5 20.5h17M6.5 20.5v-6M12 20.5V5.5M17.5 20.5v-10" strokeWidth="2.2" />
+  </svg>
+);
+
+/** Add shortcut: an app tile on the home screen, with a plus. */
+export const AddTileIcon = () => (
+  <svg {...menu}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+    <path d="M12 8v8M8 12h8" />
+  </svg>
+);
+
+/** Sign out: an open door, and the way out of it. */
+export const SignOutIcon = () => (
+  <svg {...menu}>
+    <path d="M10 3.5H5.5a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1H10" />
+    <path d="M10.5 12h10M17 8.2l3.8 3.8-3.8 3.8" />
+  </svg>
+);
