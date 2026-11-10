@@ -2,6 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { currentStreak, localDay } from "@/lib/reading-client";
 import { ReadingDiary } from "./ReadingDiary";
+import { recall, remember } from "@/lib/remember";
+
+type Diary = { days?: string[]; joined?: number | null; read?: Record<string, string[]>; made?: { id: string; at: number }[] };
 
 const CELL = 13; // px, plus the gap below
 const GAP = 3;
@@ -17,10 +20,12 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
  *  it and the stories read. (A story of your own counts on the day it was
  *  made, whether or not the day was logged at the time.) */
 export function ReadingChart() {
-  const [days, setDays] = useState<Set<string> | null>(null);
-  const [joined, setJoined] = useState<number | null>(null);
-  const [read, setRead] = useState<Record<string, string[]>>({});
-  const [made, setMade] = useState<{ id: string; at: number }[]>([]);
+  // (the diary as it was last seen shows at once; the server is still asked)
+  const [diary, setDiary] = useState<Diary | null>(() => recall<Diary>("reading") ?? null);
+  const days = useMemo(() => (diary ? new Set(diary.days ?? []) : null), [diary]);
+  const joined = diary?.joined ?? null;
+  const read = useMemo(() => diary?.read ?? {}, [diary]);
+  const made = useMemo(() => diary?.made ?? [], [diary]);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [weeks, setWeeks] = useState(18);
   const box = useRef<HTMLDivElement>(null);
@@ -29,14 +34,8 @@ export function ReadingChart() {
     let live = true;
     fetch("/api/user/reading", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { days: [] }))
-      .then((d: { days?: string[]; joined?: number | null; read?: Record<string, string[]>; made?: { id: string; at: number }[] }) => {
-        if (!live) return;
-        setJoined(d.joined ?? null);
-        setRead(d.read ?? {});
-        setMade(d.made ?? []);
-        setDays(new Set(d.days ?? []));
-      })
-      .catch(() => live && setDays(new Set()));
+      .then((d: Diary) => live && setDiary(remember("reading", d)))
+      .catch(() => live && setDiary((cur) => cur ?? { days: [] }));
     return () => {
       live = false;
     };
@@ -98,28 +97,37 @@ export function ReadingChart() {
   const total = [...set].filter((d) => d >= fromKey && d <= todayKey).length;
   const readToday = set.has(todayKey);
   const span = sinceJoining ? "since you joined" : "in the past 12 months";
-  const daysRead = `${total.toLocaleString()} ${total === 1 ? "day" : "days"} read`;
+  // (said the way a parent counts them: evenings spent together, not days
+  // logged)
+  const daysRead = `${total.toLocaleString()} ${total === 1 ? "bedtime" : "bedtimes"} spent together`;
 
   // With a streak, it leads (and the total follows); without one, the
   // total leads, with a nudge to begin one tonight.
   // Not a single story finished since joining: a beginning, not a zero.
   const fresh = Boolean(days) && !total && sinceJoining;
-  const primary = streak ? { num: streak, label: "day streak" } : { num: total, label: total === 1 ? "day read" : "days read" };
+  const primary = streak
+    ? { num: streak, label: streak === 1 ? "bedtime together, and counting" : "bedtimes together in a row" }
+    : { num: total, label: total === 1 ? "bedtime spent together" : "bedtimes spent together" };
+  const tonight = readToday ? "" : " · tonight's story keeps it going";
   const secondary = !days
     ? "\u00a0"
     : fresh
-      ? "Finish a story together and today's square turns green - that's day one of your streak."
+      ? "Finish a story together and today's square turns green - the first of many bedtimes they'll remember."
       : streak
-      ? `${daysRead} ${span}${readToday ? "" : " · finish a story tonight to keep it going"}`
-      : `${total ? `${span[0].toUpperCase()}${span.slice(1)}. ` : ""}Finish a story together today to start a streak.`;
+        ? // (every bedtime so far is in the run: saying the same number twice
+          // says nothing, so say what it's becoming)
+          streak >= total
+          ? `A bedtime ritual they'll look forward to is taking shape${tonight}`
+          : `${daysRead} ${span}${tonight}`
+        : `${total ? `${span[0].toUpperCase()}${span.slice(1)}. ` : ""}Tonight's story starts a new run of bedtimes together.`;
 
   return (
-    <section className="reading-chart" aria-label="Your reading days">
+    <section className="reading-chart" aria-label="Your bedtimes together">
       <div className="reading-chart-head">
         <p className={`reading-streak${streak ? " on" : ""}`}>
           {streak ? <FlameMark /> : null}
           {fresh ? (
-            <span className="reading-streak-label reading-streak-fresh">Your reading garden starts here</span>
+            <span className="reading-streak-label reading-streak-fresh">Your bedtimes together start here</span>
           ) : (
             <>
               <span className="reading-streak-num">{days ? primary.num.toLocaleString() : "–"}</span>
@@ -149,7 +157,7 @@ export function ReadingChart() {
               );
             })}
           </div>
-          <div className="reading-grid" role="group" aria-label={`${daysRead} ${span}; current streak ${streak} ${streak === 1 ? "day" : "days"}`}>
+          <div className="reading-grid" role="group" aria-label={`${daysRead} ${span}; ${streak} in a row`}>
             {cols.map((col, i) => (
               <div key={i} className="reading-col">
                 {col.map((c) => {
@@ -178,7 +186,7 @@ export function ReadingChart() {
         )}
         <li>
           <span className="reading-cell read" aria-hidden />
-          Finished a story
+          A bedtime together
         </li>
         <li>
           <span className="reading-cell today" aria-hidden />

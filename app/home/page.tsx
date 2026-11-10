@@ -34,10 +34,11 @@ export default async function HomePage() {
     { value: 3, label: "Read it together tonight" },
   ];
   const stats = [
-    { value: mine.length, label: mine.length === 1 ? "story created" : "stories created" },
+    // (each number said as what it gave the child, not what was produced)
+    { value: mine.length, label: mine.length === 1 ? "story made just for them" : "stories made just for them" },
     // every page teaches one new word (the tappable word on each page)
-    { value: pages, label: pages === 1 ? "new word learned" : "new words learned" },
-    { value: minutes, label: minutes === 1 ? "minute of stories" : "minutes of stories" },
+    { value: pages, label: pages === 1 ? "new word discovered together" : "new words discovered together" },
+    { value: minutes, label: minutes === 1 ? "minute of story time together" : "minutes of story time together" },
   ];
 
   return (
