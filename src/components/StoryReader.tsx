@@ -27,6 +27,10 @@ import { LimitDialog, type LimitNotice } from "./LimitDialog";
 
 /** Strokes a page's painting needs before the waiting page opens onto it. */
 const RELEASE_SHAPES = 70;
+/** The longest the story waits for a picture once the words are there:
+ *  past this the book opens (or the next part begins) and the picture
+ *  finishes on the page. Nothing a painter does can hold up the reading. */
+const PICTURE_WAIT_MS = 20_000;
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -160,10 +164,15 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   );
 
   // Let the held part through once its first page is painted (a moment's
-  // grace so the picture is there when it appears), or after 30s with the
-  // words ready (a slow painting shouldn't keep everyone waiting), or if
-  // writing or painting it failed.
+  // grace so the picture is there when it appears), or 20s after its first
+  // words arrive (a slow painting never keeps the story waiting: the
+  // picture finishes on the page), or if writing or painting it failed.
   const heldFirst = holdSeg !== null ? story.segments[holdSeg]?.pages[0] : undefined;
+  // (whether it's there at all - the page itself is a new object with every
+  // word that streams in, which used to start the 20s over each time)
+  const heldMissing = holdSeg !== null && !story.segments[holdSeg];
+  const heldHasWords = Boolean(heldFirst);
+  const heldHasPicture = Boolean(heldFirst?.svg);
   const heldFailed = holdSeg !== null && Boolean(failed[pageKey(holdSeg, 0)]);
   // Once its painting is well under way (the scene and its characters
   // laid in), the page opens and the painting finishes in front of the
@@ -171,16 +180,19 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const heldPainted = holdSeg !== null && countShapes(live[pageKey(holdSeg, 0)]) >= RELEASE_SHAPES;
   useEffect(() => {
     if (holdSeg === null) return;
-    if (error || (!busy && !story.segments[holdSeg]) || heldFailed) return setHoldSeg(null);
-    if (heldFirst?.svg || heldPainted) {
+    if (error || (!busy && heldMissing) || heldFailed) return setHoldSeg(null);
+    if (heldHasPicture || heldPainted) {
       const t = window.setTimeout(() => setHoldSeg(null), 350);
       return () => window.clearTimeout(t);
     }
-    if (heldFirst) {
-      const t = window.setTimeout(() => setHoldSeg(null), 30000);
+    if (heldHasWords) {
+      const t = window.setTimeout(() => setHoldSeg(null), PICTURE_WAIT_MS);
       return () => window.clearTimeout(t);
     }
-  }, [holdSeg, heldFirst, heldFirst?.svg, heldPainted, heldFailed, error, busy, story.segments]);
+    // (story.segments is only read for "is the part there", which
+    // `missing` carries: listing it would restart the clock on every word)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holdSeg, heldHasWords, heldHasPicture, heldPainted, heldFailed, error, busy, heldMissing]);
 
   const flash = (msg: string) => {
     setToast(msg);
@@ -206,13 +218,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // (see RELEASE_SHAPES) - or if something went wrong.
   const firstUnderWay = countShapes(live[pageKey(0, 0)]) >= RELEASE_SHAPES;
   const firstReady = Boolean(firstPage?.svg) || firstUnderWay;
+  const firstHasWords = Boolean(firstPage);
+  const firstFailed = Boolean(failed[pageKey(0, 0)]);
   useEffect(() => {
     if (cover !== "closed" || !isNew || hasOpened) return;
-    if (error) return openBook();
-    if (!firstReady) return;
-    const t = window.setTimeout(openBook, 900);
+    if (error || firstFailed) return openBook();
+    // (with the words there but no picture yet, the book still opens after
+    // a short wait: a slow painter never keeps the story shut)
+    if (!firstReady && !firstHasWords) return;
+    const t = window.setTimeout(openBook, firstReady ? 900 : PICTURE_WAIT_MS);
     return () => window.clearTimeout(t);
-  }, [cover, firstReady, error, openBook, isNew, hasOpened]);
+  }, [cover, firstReady, firstHasWords, firstFailed, error, openBook, isNew, hasOpened]);
 
   // ---------------------------------------------------------------- writing
   // Leaving the story cancels a segment still being written: it couldn't be
