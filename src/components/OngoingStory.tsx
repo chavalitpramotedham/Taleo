@@ -67,7 +67,7 @@ export function OngoingCard({
         <span className="body">
           <span className="story-card-title">{title}</span>
           <span className="ongoing-meta">{soFar(story)}</span>
-          <span className="ongoing-cta">
+          <span className="btn btn-primary btn-sm ongoing-cta">
             <MapleMark /> Carry on
           </span>
         </span>

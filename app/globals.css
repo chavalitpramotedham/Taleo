@@ -4312,10 +4312,21 @@ html[data-night] .modal-backdrop {
 /* Long shelves: let the browser skip rendering story cards (each with a
    filtered watercolour cover) until they're scrolled near, so the first
    view of the library appears faster. The intrinsic size keeps the
-   scrollbar and layout steady. */
+   scrollbar and layout steady: it is the card's real height, worked out
+   from the shelf's own width (a 4:3 cover over a pill and a three-line
+   title), so a card not yet drawn - a real one or a loading placeholder -
+   holds exactly the room it will fill, on any screen, either way up. */
+.shelf {
+  container-type: inline-size;
+}
 .shelf > .book-card {
   content-visibility: auto;
   contain-intrinsic-size: auto 420px;
+  contain-intrinsic-size: auto
+    calc(
+      (100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols) * 0.75 + 65px + 3.75 *
+        clamp(1.05rem, 0.85rem + 1vw, 1.35rem)
+    );
 }
 
 /* "How it works" scroller: a soft fade and a floating arrow on the right
@@ -10525,14 +10536,18 @@ html[data-night] .char-arrange-grip {
   color: var(--ink-soft);
   font-size: 0.95rem;
 }
-.ongoing-cta {
-  display: inline-flex;
-  align-items: center;
+/* What to do with the card, not something about the story: a button (the
+   site's own primary pill) across the foot of the card, its words centred. */
+.ongoing-cta.btn {
+  align-self: stretch;
   gap: 6px;
   margin-top: auto;
-  color: var(--russet);
-  font-family: var(--font-caps);
-  letter-spacing: 0.04em;
+  padding-left: 8px;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+.ongoing-card .body {
+  padding-bottom: 14px;
 }
 .ongoing-cta svg {
   width: 16px;

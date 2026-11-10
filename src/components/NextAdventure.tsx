@@ -268,12 +268,12 @@ export function IdeaCard({ idea }: { idea: NextIdea }) {
               <CharacterPortrait key={c.uid} character={c} />
             ))}
           </span>
-          <span className="ongoing-badge">Story idea</span>
+          <span className="cover-time ongoing-badge">Story idea</span>
         </span>
         <span className="body">
           <span className="story-card-title">{concept.title}</span>
           <span className="ongoing-meta">Starring {nameList(idea.cast.map((c) => c.name))}</span>
-          <span className="ongoing-cta">
+          <span className="btn btn-primary btn-sm ongoing-cta">
             <MapleMark /> Open idea
           </span>
         </span>
