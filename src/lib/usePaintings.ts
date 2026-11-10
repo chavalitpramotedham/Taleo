@@ -27,6 +27,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   focusRef.current = focus;
   // Leaving the story cancels paintings still in progress: their result
   // could no longer be saved, and cancelling stops the paid work at once.
+  const retried = useRef(new Set<string>());
   const life = useRef<AbortController | null>(null);
   useEffect(() => {
     life.current = new AbortController();
@@ -40,12 +41,14 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
       const page = s.segments[seg]?.pages[idx];
       if (!page || !update) return;
       inflight.current.add(key);
+      const signal = life.current?.signal;
       const prev = idx > 0 ? s.segments[seg].pages[idx - 1] : s.segments[seg - 1]?.pages.slice(-1)[0];
       let text = "";
       let last = 0;
+      let refused = false;
       try {
         const res = await fetch("/api/illustrate", {
-          signal: life.current?.signal,
+          signal,
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -63,6 +66,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             storyId: s.id,
           }),
         });
+        // (a refusal - a limit reached, a page that can't be painted - is
+        // an answer, not a hiccup: asking again would get the same one)
+        if (res.status >= 400 && res.status < 500) refused = true;
         if (!res.ok || !res.body) throw new Error("paint failed");
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -85,8 +91,15 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           ),
         }));
       } catch {
-        if (life.current?.signal.aborted) return; // left the story
-        setFailed((f) => ({ ...f, [key]: true }));
+        if (signal?.aborted) return; // left the story
+        // A painting that slips (a dropped connection, a painter cut off
+        // mid-stroke) gets one quiet second go after a breath, so the
+        // reader rarely has to ask; after that it's "Paint this page again".
+        if (!refused && !retried.current.has(key)) {
+          retried.current.add(key);
+          await new Promise((r) => setTimeout(r, 4000));
+          if (signal?.aborted) return;
+        } else setFailed((f) => ({ ...f, [key]: true }));
       } finally {
         inflight.current.delete(key);
         setLive((l) => {
