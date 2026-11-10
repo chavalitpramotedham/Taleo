@@ -30,7 +30,7 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Couldn't set that username.");
       await update();
-      router.push(next || "/");
+      router.push(next || "/home");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

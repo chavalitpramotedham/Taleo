@@ -6,7 +6,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   const session = await auth();
   if (!session?.user) redirect("/sign-in");
   const { next } = await searchParams;
-  if (session.user.username) redirect(next || "/");
+  if (session.user.username) redirect(next || "/home");
 
   return (
     <div className="container wizard">

@@ -5,7 +5,7 @@ import { Ornament } from "@/components/Icons";
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
   const session = await auth();
-  if (session?.user) redirect(session.user.username ? next || "/" : "/welcome");
+  if (session?.user) redirect(session.user.username ? next || "/home" : "/welcome");
 
   return (
     <div className="container empty">

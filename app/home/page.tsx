@@ -35,7 +35,11 @@ export default async function HomePage() {
   return (
     <div className="container home home-dash">
       <header className="home-dash-head">
-        <p className="eyebrow">Welcome back{username ? `, @${username}` : ""}</p>
+        {/* (brand new - nothing made yet - it's a first welcome, not "back") */}
+        <p className="eyebrow">
+          {mine.length ? "Welcome back" : "Welcome"}
+          {username ? `, @${username}` : ""}
+        </p>
         <h1>
           Stories dreamt up at bedtime,
           <br />
