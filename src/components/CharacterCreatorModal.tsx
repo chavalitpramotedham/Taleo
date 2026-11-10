@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CharacterDef, CharacterGender, SavedCharacter } from "@/lib/types";
 import { GenderPicker } from "@/components/GenderPicker";
 import { CharacterPortrait } from "@/components/art/Painting";
@@ -301,10 +302,12 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   );
 }
 
-/** The optional photo of who or what the character is: take one (on a
- *  phone) or choose one, see it small, replace or remove it. It's made
- *  smaller and re-saved here before it's sent (dropping its location and
- *  camera details), and it's never kept. */
+/** The optional photo of who or what the character is. The box itself is
+ *  the button: tap it to add a photo (a phone offers its camera or photo
+ *  library); once added the photo fills the box, and tapping it opens a
+ *  small menu to replace or remove it. The photo is made smaller and
+ *  re-saved here before it's sent (dropping its location and camera
+ *  details), and it's never kept. */
 function PhotoField({
   photo,
   onChange,
@@ -317,11 +320,15 @@ function PhotoField({
   /** Set to a function opening the photo picker (for "choose another"). */
   pickRef?: React.MutableRefObject<(() => void) | null>;
 }) {
-  const choose = useRef<HTMLInputElement>(null);
-  const take = useRef<HTMLInputElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const box = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  if (pickRef) pickRef.current = () => choose.current?.click();
+  const [menuAt, setMenuAt] = useState<{ top: number; left: number; width: number } | null>(null);
+  const pick = () => input.current?.click();
+  if (pickRef) pickRef.current = pick;
+
   const got = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     // (so the same photo can be picked again after removing it)
@@ -337,56 +344,124 @@ function PhotoField({
       setBusy(false);
     }
   };
-  const kb = photo ? Math.max(1, Math.round(photo.bytes / 1024)) : 0;
+
+  // The menu sits on the page (the dialog scrolls, and would clip it),
+  // just under the photo - or above it, if there's no room below.
+  const openMenu = () => {
+    const r = box.current?.getBoundingClientRect();
+    if (!r) return;
+    const below = window.innerHeight - r.bottom > 120;
+    setMenuAt({ top: below ? r.bottom + 6 : r.top - 6, left: r.left + r.width / 2, width: r.width });
+  };
+  const open = menuAt !== null;
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: Event) => {
+      const t = e.target as Node;
+      if (menu.current?.contains(t) || box.current?.contains(t)) return;
+      setMenuAt(null);
+      // (a tap outside only puts the menu away: it doesn't also close the
+      // dialog behind it, or press whatever it landed on)
+      const swallow = (c: Event) => {
+        c.stopPropagation();
+        c.preventDefault();
+      };
+      document.addEventListener("click", swallow, { capture: true, once: true });
+      window.setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 600);
+    };
+    // (Escape closes the menu, not the whole dialog)
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setMenuAt(null);
+      box.current?.focus();
+    };
+    const moved = () => setMenuAt(null);
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    window.addEventListener("resize", moved);
+    window.addEventListener("scroll", moved, { capture: true, passive: true });
+    menu.current?.querySelector("button")?.focus();
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", key);
+      window.removeEventListener("resize", moved);
+      window.removeEventListener("scroll", moved, { capture: true });
+    };
+  }, [open]);
+
   return (
-    <div className="field-box photo-box">
-      <span className="field-box-label">
-        A photo of them <span className="field-box-optional">optional</span>
-      </span>
-      {photo ? (
-        <div className="photo-chosen">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="photo-thumb" src={photo.preview} alt="The photo they'll be painted from" />
-          <span className="meta photo-note">
-            We&apos;ll match their colours and look to this. Only used to paint them - never kept.
-            <span className="photo-size"> {kb < 1000 ? `${kb} KB` : `${(kb / 1024).toFixed(1)} MB`}</span>
-          </span>
-        </div>
-      ) : (
-        <span className="meta photo-note">
-          {busy ? "Getting the photo ready…" : "Add a photo of who or what they are, and we'll match their colours and look. It's only used to paint them, and never kept."}
-        </span>
-      )}
-      {problem && <span className="error photo-error">{problem}</span>}
-      <span className="field-box-foot photo-foot">
+    <div className="photo-field">
+      <button
+        ref={box}
+        type="button"
+        className={`photo-drop${photo ? " filled" : ""}${busy ? " busy" : ""}`}
+        onClick={() => (photo ? (open ? setMenuAt(null) : openMenu()) : pick())}
+        disabled={disabled || busy}
+        aria-haspopup={photo ? "menu" : undefined}
+        aria-expanded={photo ? open : undefined}
+        aria-label={photo ? "The photo they'll be painted from - change or remove it" : "Add a photo of them (optional)"}
+      >
         {photo ? (
           <>
-            <button type="button" className="btn btn-soft btn-sm" onClick={() => onChange(null)} disabled={disabled || busy}>
-              Remove
-            </button>
-            <button type="button" className="btn btn-soft btn-sm" onClick={() => choose.current?.click()} disabled={disabled || busy}>
-              Replace
-            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photo.preview} alt="" />
+            <span className="photo-drop-tag">Photo added</span>
           </>
+        ) : busy ? (
+          <span className="photo-drop-empty">
+            <LeafLoader size={28} />
+            <span className="photo-drop-title">Getting the photo ready…</span>
+          </span>
         ) : (
-          <>
-            <button type="button" className="btn btn-soft btn-sm photo-take" onClick={() => take.current?.click()} disabled={disabled || busy}>
-              Take a photo
-            </button>
-            <button type="button" className="btn btn-soft btn-sm" onClick={() => choose.current?.click()} disabled={disabled || busy}>
-              {busy ? (
-                <>
-                  <LeafLoader size={14} /> Preparing…
-                </>
-              ) : (
-                "Choose a photo"
-              )}
-            </button>
-          </>
+          <span className="photo-drop-empty">
+            <svg className="photo-drop-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden>
+              <path d="M4 8.5a2 2 0 0 1 2-2h1.6l1.3-2h6.2l1.3 2H18a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <circle cx="12" cy="12.6" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            <span className="photo-drop-title">
+              Add a photo of them <span className="field-box-optional">optional</span>
+            </span>
+            <span className="photo-drop-sub">We&apos;ll match their colours and look</span>
+          </span>
         )}
-      </span>
-      <input ref={choose} type="file" accept="image/*" hidden onChange={got} aria-label="Choose a photo" />
-      <input ref={take} type="file" accept="image/*" capture="environment" hidden onChange={got} aria-label="Take a photo" />
+      </button>
+      <p className="photo-drop-note">{problem ? <span className="error">{problem}</span> : "Only used to paint them - never kept."}</p>
+      <input ref={input} type="file" accept="image/*" hidden onChange={got} aria-label="Choose a photo" />
+      {open &&
+        createPortal(
+          <div
+            ref={menu}
+            className="music-dropdown photo-menu"
+            role="menu"
+            aria-label="Photo"
+            style={{ position: "fixed", top: menuAt.top, left: menuAt.left, right: "auto", transform: `translate(-50%, ${menuAt.top < (box.current?.getBoundingClientRect().top ?? 0) ? "-100%" : "0"})` }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="music-dropdown-item"
+              onClick={() => {
+                setMenuAt(null);
+                pick();
+              }}
+            >
+              Replace photo
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="music-dropdown-item"
+              onClick={() => {
+                setMenuAt(null);
+                onChange(null);
+              }}
+            >
+              Remove photo
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

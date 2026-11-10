@@ -8006,51 +8006,109 @@ html[data-night] .step-art img {
   box-shadow: none;
   transform: none;
 }
-/* The character creator's optional photo: a field box like the others,
-   its buttons flat in the corner; the second one tucks into the corner,
-   the first sits just beside it. */
-.field-box.photo-box {
-  cursor: default;
-}
-.photo-box .photo-note {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-.photo-chosen {
+/* The character creator's optional photo: the box is the button. Empty,
+   a soft dashed box inviting a photo; with one, the photo fills it, and a
+   tap opens a small menu to replace or remove it. */
+.photo-field {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 2px;
-}
-.photo-thumb {
-  width: 64px;
-  height: 64px;
-  flex: none;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid var(--rule);
-  background: var(--page);
-}
-.photo-size {
-  white-space: nowrap;
-  color: var(--ink-faint);
-}
-.photo-foot {
+  flex-direction: column;
   gap: 6px;
 }
-.field-box-foot.photo-foot .btn:not(:last-child) {
-  margin-right: 0;
+.photo-drop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 12px;
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--page) 70%, transparent);
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-.photo-error {
-  margin: 0;
-  font-size: 0.9rem;
-}
-/* (on a computer "Take a photo" would only open the file picker again) */
-@media (hover: hover) and (pointer: fine) {
-  .photo-take {
-    display: none;
+@media (hover: hover) {
+  .photo-drop:hover:not(:disabled) {
+    border-color: var(--russet);
+    background: color-mix(in srgb, var(--russet) 5%, var(--page));
   }
+}
+.photo-drop:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: 2px;
+}
+.photo-drop:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.photo-drop-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.photo-drop-icon {
+  color: var(--russet);
+  margin-bottom: 2px;
+}
+.photo-drop-title {
+  font-family: var(--font-caps);
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.photo-drop-sub {
+  font-size: 0.9rem;
+  color: var(--ink-faint);
+}
+/* with a photo: it fills the box, edge to edge */
+.photo-drop.filled {
+  padding: 0;
+  min-height: 0;
+  height: 176px;
+  border-style: solid;
+  border-width: 1px;
+}
+.photo-drop.filled img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-drop-tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.88);
+  color: var(--ink);
+  font-size: 0.82rem;
+}
+html[data-night] .photo-drop-tag {
+  background: rgba(28, 22, 30, 0.85);
+}
+.photo-drop-note {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+  text-align: center;
+}
+.photo-drop-note .error {
+  margin: 0;
+}
+.photo-menu {
+  min-width: 170px;
+  z-index: 60;
+  border-radius: 14px;
+  animation: fadeIn 0.12s ease both;
 }
 /* The photo couldn't be used: why, and the two ways on. */
 .photo-trouble {
