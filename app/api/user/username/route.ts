@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (typeof body.username !== "string") return NextResponse.json({ error: "Missing username." }, { status: 400 });
 
   try {
-    const profile = await setUsername(session.user.id, body.username);
+    const profile = await setUsername(session.user.id, body.username, session.user);
     return NextResponse.json({ profile });
   } catch (e) {
     const status = e instanceof UsernameTakenError ? 409 : 400;

@@ -27,17 +27,24 @@ function defaultAvatarFor(id: string): string {
   return AVATAR_KEYS[hash % AVATAR_KEYS.length];
 }
 
-export async function listUsers(opts: { cacheSeconds?: number } = {}): Promise<UserProfile[]> {
+export async function listUsers(opts: { cacheSeconds?: number; fresh?: boolean } = {}): Promise<UserProfile[]> {
   return (await readJson<UserProfile[]>(INDEX_PATH, opts)) ?? [];
 }
+
+/** The index as it is right now, not the CDN's copy (which lags an overwrite
+ *  by up to a minute). Every read-modify-write starts from this - otherwise
+ *  a write made from a stale copy quietly drops whoever signed up in the
+ *  last minute, and a brand-new account isn't in the list yet when they
+ *  choose their username. */
+const currentUsers = () => listUsers({ fresh: true });
 
 async function writeUsers(users: UserProfile[]) {
   await writeJson(INDEX_PATH, users);
 }
 
-export async function getUser(id: string): Promise<UserProfile | null> {
+export async function getUser(id: string, opts: { fresh?: boolean } = {}): Promise<UserProfile | null> {
   if (id === ADMIN_USER_ID) return ADMIN_PROFILE;
-  const users = await listUsers();
+  const users = await listUsers(opts);
   return users.find((u) => u.id === id) ?? null;
 }
 
@@ -52,7 +59,7 @@ export async function getUserByUsername(username: string, opts: { cacheSeconds?:
  *  the Google-provided name/picture each time. Username starts out null. */
 export async function upsertFromGoogle(input: { id: string; email: string; name: string | null; image: string | null }): Promise<UserProfile> {
   const isAdmin = Boolean(ADMIN_EMAIL) && input.email.toLowerCase() === ADMIN_EMAIL;
-  const users = await listUsers();
+  const users = await currentUsers();
   const i = users.findIndex((u) => u.id === input.id);
   if (i < 0) {
     const profile: UserProfile = {
@@ -88,28 +95,49 @@ export class UsernameTakenError extends Error {}
 
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
-export async function setUsername(id: string, raw: string): Promise<UserProfile> {
+export async function setUsername(
+  id: string,
+  raw: string,
+  /** who's asking (from their session): if their profile is missing from
+   *  the index, it's re-created rather than leaving them stuck */
+  who?: { email?: string | null; name?: string | null; image?: string | null },
+): Promise<UserProfile> {
   const username = raw.trim().toLowerCase();
   if (!USERNAME_RE.test(username)) {
     throw new Error("Usernames are 3-20 letters, numbers or underscores.");
   }
   if (username === ADMIN_PROFILE.username) throw new UsernameTakenError("That username is taken.");
-  const users = await listUsers();
+  const users = await currentUsers();
   if (users.some((u) => u.id !== id && u.username?.toLowerCase() === username)) {
     throw new UsernameTakenError("That username is taken.");
   }
   const i = users.findIndex((u) => u.id === id);
-  if (i < 0) throw new Error("Sign in again and retry.");
-  const profile: UserProfile = { ...users[i], username };
+  if (i < 0 && !who?.email) throw new Error("Sign in again and retry.");
+  const base: UserProfile =
+    i >= 0
+      ? users[i]
+      : {
+          id,
+          email: who!.email!,
+          name: who?.name ?? null,
+          image: who?.image ?? null,
+          username: null,
+          avatarKey: defaultAvatarFor(id),
+          isAdmin: Boolean(ADMIN_EMAIL) && who!.email!.toLowerCase() === ADMIN_EMAIL,
+          createdAt: Date.now(),
+        };
+  const profile: UserProfile = { ...base, username };
+  if (i >= 0 && users[i].username === username) return profile; // already saved (a retry)
   const next = [...users];
-  next[i] = profile;
+  if (i >= 0) next[i] = profile;
+  else next.push(profile);
   await writeUsers(next);
   return profile;
 }
 
 export async function setAvatar(id: string, key: string): Promise<UserProfile> {
   if (!AVATAR_KEYS.includes(key)) throw new Error("Not a valid avatar.");
-  const users = await listUsers();
+  const users = await currentUsers();
   const i = users.findIndex((u) => u.id === id);
   if (i < 0) throw new Error("Sign in again and retry.");
   const profile: UserProfile = { ...users[i], avatarKey: key };
@@ -120,7 +148,7 @@ export async function setAvatar(id: string, key: string): Promise<UserProfile> {
 }
 
 export async function deleteUser(id: string) {
-  const users = await listUsers();
+  const users = await currentUsers();
   await writeUsers(users.filter((u) => u.id !== id));
 }
 
@@ -131,7 +159,7 @@ export const privateProfilesAvailable = () => process.env.TALEO_ALLOW_PRIVATE ==
 export async function setVisibility(id: string, visibility: ContentVisibility): Promise<UserProfile> {
   if (visibility !== "public" && visibility !== "private") throw new Error("Not a valid setting.");
   if (visibility === "private" && !privateProfilesAvailable()) throw new Error("Private bookshelves aren't available yet.");
-  const users = await listUsers();
+  const users = await currentUsers();
   const i = users.findIndex((u) => u.id === id);
   if (i < 0) throw new Error("Sign in again and retry.");
   const profile: UserProfile = { ...users[i], visibility };

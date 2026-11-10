@@ -41,7 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // token already has rather than blanking the username and picture.
       const stale = Date.now() - ((token.profileAt as number | undefined) ?? 0) > 10 * 60 * 1000;
       if (token.uid && (account || trigger === "update" || !token.username || stale)) {
-        const profile = await getUser(token.uid as string).catch(() => null);
+        const profile = await getUser(token.uid as string, { fresh: true }).catch(() => null);
         if (profile) {
           token.username = profile.username ?? null;
           token.isAdmin = profile.isAdmin ?? false;

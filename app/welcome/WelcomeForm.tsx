@@ -27,13 +27,16 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ username }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Couldn't set that username.");
-      await update();
+      // (a timeout or server hiccup can answer with a page, not JSON)
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(data.error || "That didn't save - please try again.");
+      // Refresh the sign-in so it carries the new username; if that fails the
+      // username is still saved, so carry on regardless.
+      await update().catch(() => null);
       router.push(next || "/home");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof TypeError ? "No connection - check your internet and try again." : e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setBusy(false);
     }
