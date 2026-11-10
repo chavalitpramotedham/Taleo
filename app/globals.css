@@ -10497,33 +10497,47 @@ html[data-night] .char-arrange-grip {
     var(--shadow);
 }
 .daily-ribbon {
-  /* (a sash across the top of the cover; the reading time sits below it) */
+  /* (an award ribbon hanging from the top of the cover, at its left: a
+     star over the words, a swallow-tail at the foot. The reading time
+     keeps its own corner on the right.) */
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 10px;
   z-index: 2;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  height: 24px;
-  background: linear-gradient(135deg, #f2d27a, #dcaa45);
+  gap: 3px;
+  width: 50px;
+  padding: 7px 0 15px;
   color: #4a3212;
   font-family: var(--font-caps);
-  font-size: 0.82rem;
+  font-size: 0.66rem;
   letter-spacing: 0.05em;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(60, 40, 10, 0.3);
+  line-height: 1.12;
+  text-align: center;
+  filter: drop-shadow(0 2px 3px rgba(60, 40, 10, 0.4));
   pointer-events: none;
 }
-.story-of-day .cover-time {
-  top: 32px;
+.daily-ribbon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(160deg, #f6dc8c, #dcaa45 70%, #c9942f);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 10px), 0 100%);
+}
+/* (a fine stitched line inside each edge, as on a sewn ribbon) */
+.daily-ribbon::after {
+  content: "";
+  position: absolute;
+  inset: 0 3px 12px;
+  border-left: 1px dashed rgba(122, 82, 16, 0.45);
+  border-right: 1px dashed rgba(122, 82, 16, 0.45);
 }
 .book-card .cover .daily-ribbon svg {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
   fill: #7a5210;
   stroke: #7a5210;

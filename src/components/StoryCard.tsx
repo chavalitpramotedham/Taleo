@@ -17,7 +17,7 @@ export function StoryCard({
 }: {
   entry: GalleryEntry;
   onOpen: () => void;
-  /** It's the library's story of the day: a ribbon and a few twinkles. */
+  /** It's the library's story of the day: an award ribbon in the corner and a few twinkles. */
   daily?: boolean;
 }) {
   const title = s.title || "An untitled story";
@@ -35,7 +35,14 @@ export function StoryCard({
         {daily && (
           <>
             <span className="daily-ribbon">
-              <StarGlyph /> Story of the day
+              <StarGlyph />
+              <span>
+                Story
+                <br />
+                of the
+                <br />
+                day
+              </span>
             </span>
             <span className="daily-twinkles" aria-hidden>
               <i />
