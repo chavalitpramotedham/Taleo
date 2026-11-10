@@ -10821,6 +10821,12 @@ html[data-night] .ongoing-discard {
 .idea-prompt .quota-note {
   margin-top: 4px;
 }
+/* (the two quieter choices under "Start now": one line each, however
+   narrow the phone) */
+.idea-prompt .story-preview-row .btn {
+  white-space: nowrap;
+  padding-inline: 6px;
+}
 .idea-other {
   margin: 0;
   font-size: 0.95rem;

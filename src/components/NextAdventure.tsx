@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { SavedCharacter } from "@/lib/types";
-import { tierIdFor } from "@/lib/tiers";
 import { quotaLine, useStoryAllowance } from "@/lib/allowance";
 import { useOngoingStory } from "@/lib/ongoing";
 import {
@@ -62,8 +61,9 @@ function Cast({ idea }: { idea: NextIdea }) {
 
 /**
  * A story idea, offered: who it's about, what happens, and what to do
- * with it - begin it now, change it first (the wizard opens with it
- * filled in), or put it away for later. With the plan's stories used up
+ * with it - begin it now (always the main button), or, side by side
+ * beneath, change it first (the wizard opens with it filled in) or put it
+ * away for later. With the plan's stories used up
  * there's no "Start now": it can only be kept, with a word on when the
  * next story can begin.
  */
@@ -89,10 +89,6 @@ export function IdeaDialog({
   const concept = ideaByKey(idea.key);
   if (!concept || !userId) return null;
   const spent = quotaLine(allowance);
-  // On Free a story begun now is the day's only one: keeping the idea for
-  // tomorrow is the first thing offered.
-  const keepFirst = !saved && tierIdFor(session.user) === "free";
-
   const open = (go: boolean) => {
     handOver(idea, go);
     onClose();
@@ -104,21 +100,21 @@ export function IdeaDialog({
     if (onSaved) onSaved();
     else onClose();
   };
-  const startBtn = (primary: boolean) => (
-    <button key="start" type="button" className={`btn ${primary ? "btn-primary" : "btn-soft"} btn-block`} onClick={() => open(true)}>
-      {primary && <MapleMark />}
+  const startBtn = (
+    <button key="start" type="button" className="btn btn-primary btn-block" onClick={() => open(true)}>
+      <MapleMark />
       Start now
     </button>
   );
   const keepBtn = (primary: boolean) => (
-    <button key="keep" type="button" className={`btn ${primary ? "btn-primary" : "btn-soft"} btn-block`} onClick={keep}>
+    <button key="keep" type="button" className={`btn ${primary ? "btn-primary btn-block" : "btn-soft btn-sm"}`} onClick={keep}>
       {primary && <MapleMark />}
       Save for later
     </button>
   );
   const changeBtn = (
-    <button key="change" type="button" className="btn btn-soft btn-block" onClick={() => open(false)}>
-      Change it first
+    <button key="change" type="button" className={`btn btn-soft ${saved ? "btn-block" : "btn-sm"}`} onClick={() => open(false)}>
+      {saved ? "Change it first" : "Change it"}
     </button>
   );
 
@@ -144,11 +140,16 @@ export function IdeaDialog({
               keepBtn(true)
             )
           ) : saved ? (
-            [startBtn(true), changeBtn]
-          ) : keepFirst ? (
-            [keepBtn(true), startBtn(false), changeBtn]
+            [startBtn, changeBtn]
           ) : (
-            [startBtn(true), changeBtn, keepBtn(false)]
+            // One thing to do, and two quieter ones side by side beneath it.
+            <>
+              {startBtn}
+              <div className="story-preview-row">
+                {changeBtn}
+                {keepBtn(false)}
+              </div>
+            </>
           )}
         </div>
         {spent && (
@@ -156,7 +157,7 @@ export function IdeaDialog({
             {spent}
           </p>
         )}
-        {!saved && <p className="meta starts-left">A saved idea waits on your home page, on this device. Saving it doesn&apos;t use up a story.</p>}
+        {!saved && spent && <p className="meta starts-left">A saved idea waits on your home page, on this device.</p>}
         <p className="meta idea-other">
           {saved ? (
             <button
