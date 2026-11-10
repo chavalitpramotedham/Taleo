@@ -11077,3 +11077,16 @@ button.reading-cell:focus-visible {
   color: var(--russet);
   white-space: nowrap;
 }
+
+/* Small-caps lettering, centred by eye: trimming the line box to the
+   capital height centres the one tall capital, but nearly every letter
+   is a small capital two-thirds that height, so the words read as
+   sitting low in the pill. Lift them by most of half the difference -
+   the row of small capitals then straddles the pill's middle line. The
+   plain menu words take the same lift, so the row keeps one baseline. */
+@supports (text-box: trim-both cap alphabetic) {
+  .nav-begin-pill .nav-begin-label,
+  .topnav .nav-link:not(.nav-begin) {
+    translate: 0 -0.09em;
+  }
+}
