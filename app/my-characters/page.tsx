@@ -1,5 +1,6 @@
 "use client";
-import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -368,19 +369,40 @@ function CharacterEditModal({
     setStage("drawing");
     setProgress(null);
     setError(null);
+    const mine = (painting.current = new AbortController());
     try {
       const data = await requestCharacter(
         { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender } },
         setProgress,
+        { signal: mine.signal },
       );
       if (!data.character.svg) throw new Error("Couldn't paint that one. Try again?");
       setRedrawn({ look: data.character.look, svg: data.character.svg });
       setStage("compare");
     } catch (e) {
+      if (e instanceof PaintingCancelled) return; // stopped on purpose
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setStage("redraw");
+    } finally {
+      if (painting.current === mine) painting.current = null;
     }
   };
+  // Leaving while the new look is being painted asks first: stopping
+  // throws the painting away, staying lets it finish.
+  const painting = useRef<AbortController | null>(null);
+  const [askStop, setAskStop] = useState(false);
+  const stopPainting = () => {
+    painting.current?.abort();
+    setAskStop(false);
+    setStage("idle");
+  };
+  useLeaveWarning(stage === "drawing");
+  useEffect(() => () => painting.current?.abort(), []);
+  useEffect(() => {
+    if (stage !== "drawing") setAskStop(false);
+  }, [stage]);
+  const drawingRef = useRef(false);
+  drawingRef.current = stage === "drawing";
   const acceptRedraw = async () => {
     if (!redrawn || busy) return;
     setBusy("save");
@@ -406,7 +428,12 @@ function CharacterEditModal({
   };
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // (mid-painting, Escape asks; over the question it means "keep painting")
+      if (drawingRef.current) setAskStop((asking) => !asking);
+      else onClose();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -544,8 +571,8 @@ function CharacterEditModal({
           <div className="modal-panel redraw-panel" role="dialog" aria-modal="true" aria-label={`Redraw ${character.name}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>{stage === "compare" ? `${character.name}'s new look` : `Redraw ${character.name}`}</h3>
-              {stage !== "drawing" && busy !== "save" && (
-                <button type="button" className="icon-btn" onClick={() => setStage("idle")} aria-label="Close">
+              {busy !== "save" && (
+                <button type="button" className="icon-btn" onClick={() => (stage === "drawing" ? setAskStop(true) : setStage("idle"))} aria-label="Close">
                   ✕
                 </button>
               )}
@@ -622,6 +649,7 @@ function CharacterEditModal({
           </div>
         </div>
       )}
+      {askStop && stage === "drawing" && <StopPaintingConfirm name={character.name} onStop={stopPainting} onStay={() => setAskStop(false)} />}
     </div>
   );
 }

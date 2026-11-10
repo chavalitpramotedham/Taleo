@@ -441,7 +441,7 @@ export type CharacterProgress = { stage: "thinking" } | { stage: "sheet" } | { s
 
 /** The design request, streamed so progress can be reported as it goes
  *  (the reply is JSON in schema order: name, look, then the svg). */
-async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void) {
+async function streamCharacterDesign(user: string, onProgress?: (p: CharacterProgress) => void, signal?: AbortSignal) {
   const stream = getClient().beta.messages.stream({
     model: CHARACTER_MODEL,
     // (plenty of room: at high effort it thinks at length before it paints,
@@ -453,7 +453,7 @@ async function streamCharacterDesign(user: string, onProgress?: (p: CharacterPro
     system: [{ type: "text", text: characterDesignerPrompt(), cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: user }],
     output_config: { effort: CHARACTER_EFFORT, format: betaZodOutputFormat(CharacterDesignSchema) },
-  });
+  }, { signal });
   const usage = streamUsageTracker("character", CHARACTER_MODEL);
   let text = "";
   let stage: CharacterProgress["stage"] | null = null;
@@ -525,7 +525,7 @@ async function characterBrief(req: CharacterRequest): Promise<string | null> {
   }
 }
 
-export async function designCharacter(req: CharacterRequest, onProgress?: (p: CharacterProgress) => void): Promise<CharacterResponse> {
+export async function designCharacter(req: CharacterRequest, onProgress?: (p: CharacterProgress) => void, signal?: AbortSignal): Promise<CharacterResponse> {
   onProgress?.({ stage: "thinking" });
   const brief = await characterBrief(req);
   const briefNote = brief
@@ -542,7 +542,8 @@ export async function designCharacter(req: CharacterRequest, onProgress?: (p: Ch
     : `Design this character: "${req.description}".${
         req.name ? ` Their name is "${req.name}".` : " Give them a short, fun name."
       }${briefNote}\nReturn the name, the model sheet ("look") and the reference painting ("svg").`;
-  const out = await streamCharacterDesign(user, onProgress);
+  signal?.throwIfAborted();
+  const out = await streamCharacterDesign(user, onProgress, signal);
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

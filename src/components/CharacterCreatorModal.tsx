@@ -7,7 +7,8 @@ import { DictateButton } from "@/components/DictateButton";
 import { GrowingInput } from "@/components/GrowingInput";
 import { LeafLoader, MapleMark } from "@/components/Icons";
 import { NOTES_MAX } from "@/lib/characters";
-import { requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
+import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 
 interface Props {
@@ -37,27 +38,53 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   const [replacing, setReplacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Leaving while they're being painted asks first: stopping throws the
+  // painting away, staying lets it finish.
+  const [askStop, setAskStop] = useState(false);
+  const painting = useRef<AbortController | null>(null);
+  const close = () => (drawing ? setAskStop(true) : onClose());
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  const stopAndClose = () => {
+    painting.current?.abort();
+    onClose();
+  };
+  useLeaveWarning(drawing);
+  useEffect(() => () => painting.current?.abort(), []);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    if (!drawing) setAskStop(false);
+  }, [drawing]);
+
+  const askRef = useRef(false);
+  askRef.current = askStop;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // (over the question, Escape means "keep painting")
+      if (askRef.current) setAskStop(false);
+      else closeRef.current();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   const draw = async () => {
     if (!description.trim() || drawing) return;
     setDrawing(true);
     setProgress(null);
     setError(null);
+    const mine = (painting.current = new AbortController());
     try {
-      const data = await requestCharacter({ description, name: name.trim() || undefined }, setProgress);
+      const data = await requestCharacter({ description, name: name.trim() || undefined }, setProgress, { signal: mine.signal });
       setDrafted(data.character);
       setName(data.character.name);
       // The description they were painted from is kept as their prompt
       // (shown in its own box); "About" is left for extra details.
       prefilled.current = description.trim();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      if (!(e instanceof PaintingCancelled)) setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
+      if (painting.current === mine) painting.current = null;
       setDrawing(false);
     }
   };
@@ -90,11 +117,11 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={close}>
       <div className="modal-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Create a character">
         <div className="modal-head">
           <h3>{replacing ? "Pick one to replace" : drafted ? "Here they are!" : "Dream up a character"}</h3>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+          <button type="button" className="icon-btn" onClick={close} aria-label="Close">
             ✕
           </button>
         </div>
@@ -173,7 +200,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
             <CharacterRelationshipsField value={relationships} onChange={setRelationships} disabled={confirming} />
 
             <div className="redraw-actions">
-              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={confirming}>
+              <button type="button" className="btn btn-ghost" onClick={close} disabled={confirming}>
                 Cancel
               </button>
               <button type="button" className="btn btn-primary btn-block" onClick={() => confirm()} disabled={!name.trim() || confirming || drawing}>
@@ -224,6 +251,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
 
         {error && <p className="error">{error}</p>}
       </div>
+      {askStop && drawing && <StopPaintingConfirm name={drafted ? name : undefined} onStop={stopAndClose} onStay={() => setAskStop(false)} />}
     </div>
   );
 }
