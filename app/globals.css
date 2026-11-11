@@ -13525,19 +13525,36 @@ html {
 }
 
 /* ---------- What a button's action costs in credits ---------- */
-/* After the button's words: a middle dot, the coin, the number. */
+/* After the button's words: a middle dot, the coin, the number - the coin
+   and the number a little larger than the words, and both exactly on the
+   button's middle line (measured). */
 .credit-cost {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin-left: 2px;
   white-space: nowrap;
-  font-variant-numeric: lining-nums;
+  line-height: 1;
 }
 .credit-cost-dot {
-  margin-right: 2px;
+  margin-right: 1px;
   opacity: 0.8;
 }
 .credit-cost .credit-icon {
   flex: none;
+  display: block;
+}
+.credit-cost-n {
+  /* (the book face's upright figures: all one height, unlike the small
+     capitals' own, which hang below the line) */
+  font-family: var(--font-body);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-size: 1.22em;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  position: relative;
+  /* (measured: at rest the figure's ink sits 0.8px below the button's
+     middle line; this puts it on it) */
+  top: -0.8px;
 }

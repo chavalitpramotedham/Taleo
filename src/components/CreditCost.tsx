@@ -34,8 +34,8 @@ export function CreditCost({ credits }: { credits: number | null | undefined }) 
       <span className="credit-cost-dot" aria-hidden>
         ·
       </span>
-      <CreditIcon size={16} />
-      <span>
+      <CreditIcon size={20} />
+      <span className="credit-cost-n">
         {credits.toLocaleString("en-GB")}
         <span className="sr-only"> {credits === 1 ? "credit" : "credits"}</span>
       </span>
