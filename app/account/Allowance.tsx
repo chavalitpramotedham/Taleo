@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
-import { MAX_CREDITS_ADDED } from "@/lib/tiers";
+import { MAX_CREDITS_ADDED, monthOf, weekOf } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -22,14 +22,25 @@ const wait = (sec: number) => {
   return m >= 90 ? `about ${Math.round(m / 60)} hours` : `about ${Math.max(1, m)} minute${m === 1 ? "" : "s"}`;
 };
 
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+/** "Resets Monday, 16th Nov": when a count starts afresh, by the reader's own calendar. */
+const resets = (at: number) => `Resets ${DAYS[new Date(at).getDay()]}, ${shortDate(at)}`;
+
 type Tab = "plan" | "credits";
 
 /** One line of a menu: the thing on the left, a row of dots, what it is
  *  (or costs) on the right. */
-function Line({ what, value }: { what: React.ReactNode; value: React.ReactNode }) {
+function Line({ what, value, sub }: { what: React.ReactNode; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
-    <li className="menu-line">
-      <span>{what}</span>
+    <li className={`menu-line${sub ? " has-sub" : ""}`}>
+      <span>
+        {what}
+        {sub && (
+          <small className="menu-sub" suppressHydrationWarning>
+            {sub}
+          </small>
+        )}
+      </span>
       <span className="menu-dots" aria-hidden />
       <b>{value}</b>
     </li>
@@ -151,15 +162,14 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <section className="panel credits-panel" aria-label="What your plan allows right now">
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} />
-                <Line what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`} value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
+                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} sub={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                <Line
+                  what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
+                  value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)}
+                  sub={c.designsLeft !== null && c.designsPer ? resets((c.designsPer === "month" ? monthOf : weekOf)(Date.now()).end) : undefined}
+                />
                 <Line what="Custom character slots used" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
               </ul>
-              {s.left === 0 && s.nextInSec > 0 && (
-                <p className="meta menu-note">
-                  The next free story comes back in {wait(s.nextInSec)}.{credits ? " Until then, stories use credits." : ""}
-                </p>
-              )}
             </section>
           )}
           {children}

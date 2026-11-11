@@ -13991,3 +13991,18 @@ html.leaves-taken .brand-mark {
 .plans-head h2 {
   margin: 0;
 }
+
+/* A line of the quota with a small grey note beneath its words. */
+.menu-line.has-sub {
+  align-items: flex-start;
+}
+.menu-line.has-sub > .menu-dots {
+  margin-top: 1em;
+}
+.menu-sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.8em;
+  color: var(--ink-faint);
+  line-height: 1.25;
+}

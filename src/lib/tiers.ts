@@ -105,7 +105,7 @@ export const PLANS: Record<TierId, TierInfo> = {
   admin: {
     id: "admin",
     name: "Admin",
-    blurb: "Unlimited bedtime goodness",
+    blurb: "Unlimited storytelling bedtime goodness, just for me",
     credits: "auto",
     // (the same free story a week and free character a month as the Free plan, so
     // both flows can be tried: free first, then credits. Room for ten
