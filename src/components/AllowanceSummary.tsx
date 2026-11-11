@@ -11,20 +11,14 @@ const read = (): Promise<Rights | null> =>
     .then((r) => (r.ok ? (r.json() as Promise<Rights>) : null))
     .catch(() => null);
 
-const backIn = (sec: number) => {
-  const m = Math.max(1, Math.ceil(sec / 60));
-  return m >= 90 ? `${Math.round(m / 60)} hours` : `${m} minute${m === 1 ? "" : "s"}`;
-};
-
-/** The plan's free stories: "1 free story left", or once they're used,
- *  when the next one comes back - "Free story back in 5 hours". (Null: the
- *  plan has no free stories to count.) */
+/** The plan's free stories: "1 free story left" while there are some;
+ *  "No free stories left" once they're used. (Null: the plan has no free
+ *  stories to count.) */
 export function storiesLeftText(r: Rights): string | null {
   if (r.creditsMode === "always") return null;
   const n = r.stories.left;
   if (n === null) return null;
-  if (n === 0) return r.stories.nextInSec > 0 ? `Free story back in ${backIn(r.stories.nextInSec)}` : "No free stories left";
-  return `${n} free ${n === 1 ? "story" : "stories"} left`;
+  return n === 0 ? "No free stories left" : `${n} free ${n === 1 ? "story" : "stories"} left`;
 }
 
 /**
@@ -52,12 +46,16 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
         <>
           {/* the plan's free stories first (how many are left, or when the
               next comes back), then the credits that pay for more */}
-          {storiesLeftText(rights) && (
-            <span className="allowance-item">
-              <OpenBookIcon />
-              <span>{storiesLeftText(rights)}</span>
-            </span>
-          )}
+          {storiesLeftText(rights) &&
+            (rights.stories.left === 0 ? (
+              // (none left: said quietly, without the book)
+              <span className="allowance-item allowance-none">{storiesLeftText(rights)}</span>
+            ) : (
+              <span className="allowance-item">
+                <OpenBookIcon />
+                <span>{storiesLeftText(rights)}</span>
+              </span>
+            ))}
           {rights.credits !== null && (
             <span className="allowance-item">
               <CreditIcon />

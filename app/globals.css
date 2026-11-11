@@ -12802,7 +12802,8 @@ html[data-night] .allowance-summary::after {
   flex: none;
   color: var(--ink-soft);
 }
-.allowance-wait {
+.allowance-wait,
+.allowance-none {
   font-style: italic;
   color: var(--ink-faint);
 }
