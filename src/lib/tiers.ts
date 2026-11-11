@@ -141,6 +141,10 @@ export const PLANS: Record<TierId, TierInfo> = {
 export type CreditsMode = "beyond" | "auto" | "always";
 export const CREDITS_PER_STORY_MINUTE = 1;
 export const CHARACTER_CREDITS = 3;
+/** The longest story that can be one of a plan's free ones. A longer story
+ *  is paid for with credits (all of its minutes), and leaves the free one
+ *  for another day. */
+export const FREE_STORY_MINUTES = 5;
 /** The shortest and longest story (lib/ages), kept here so prices need no
  *  other file: a story costs between these. */
 const STORY_MINUTES: [number, number] = [3, 8];
@@ -178,7 +182,7 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
-  { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
+  { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "Free stories are up to 5 minutes; a story counts once you make its first choice") : undefined },
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
   { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },

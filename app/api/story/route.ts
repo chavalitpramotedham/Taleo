@@ -6,7 +6,7 @@ import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
 import { guard, limitMessage, peekStart, whoIs } from "@/server/limits";
-import { limitsFor, tierFor, storyCredits, CREDITS_PER_STORY_MINUTE, STORY_CREDITS_RANGE } from "@/lib/tiers";
+import { limitsFor, tierFor, storyCredits, CREDITS_PER_STORY_MINUTE, FREE_STORY_MINUTES, STORY_CREDITS_RANGE } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
@@ -43,9 +43,17 @@ export async function GET(req: Request) {
       ok = balance >= STORY_CREDITS_RANGE[0];
     }
   }
+  // One of the plan's free stories is there to be used: it can be up to
+  // so many minutes - a longer story is paid for with credits instead (the
+  // page asks which, with what's in the account).
+  let free: { minutes: number; perMinute: number; balance: number | null } | undefined;
+  if (peek.ok && tierFor(user).credits === "auto" && tierFor(user).limits.stories && me.account) {
+    free = { minutes: FREE_STORY_MINUTES, perMinute: CREDITS_PER_STORY_MINUTE, balance: await me.account.credits().catch(() => null) };
+  }
   return NextResponse.json({
     canStart: ok,
     credits,
+    free,
     retryAfterSec,
     limited: ok ? undefined : limited,
     startsLeft: left,

@@ -14653,3 +14653,18 @@ html[data-night] .topbar {
   border-color: color-mix(in srgb, var(--sage) 60%, var(--rule));
   background: color-mix(in srgb, var(--sage) 12%, transparent);
 }
+
+/* "Free stories are up to 5 minutes": the note under the credits button
+   when the account hasn't enough for the longer story. */
+.free-length-short {
+  margin: -4px 0 2px;
+  text-align: center;
+}
+/* A making button's words and the small line beneath them: a breath more
+   room between the two. */
+.make-label.has-sub .make-label-sub {
+  margin-top: 0;
+}
+.make-label.has-sub .make-label-stack {
+  gap: 1px;
+}

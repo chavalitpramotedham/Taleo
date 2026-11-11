@@ -3,7 +3,7 @@ import { DiscardCreditsNote } from "@/components/DiscardCreditsNote";
 import { deviceHeader } from "@/lib/device";
 import { MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { useEscape } from "@/lib/useEscape";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { recall, remember } from "@/lib/remember";
@@ -137,10 +137,16 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // (from the check made as the wizard opens, or - until that answers - from the account's own figures)
   const creditsPerMinute = perMinute ?? storyCost.perMinute;
   const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
+  // One of the plan's free stories is there to use: how long it can be,
+  // and what the account holds for a longer one (null: none to use).
+  const freeStory = useRef<{ minutes: number; perMinute: number; balance: number | null } | null>(null);
+  // "A free story is up to 5 minutes": asked when a longer one is chosen.
+  const [tooLong, setTooLong] = useState<{ minutes: number; freeMinutes: number; cost: number; balance: number | null } | null>(null);
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
     try {
       const res = await fetch("/api/story", { cache: "no-store", headers: deviceHeader() });
-      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number } };
+      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number }; free?: { minutes: number; perMinute: number; balance: number | null } };
+      freeStory.current = data.canStart && data.free ? data.free : null;
       setDaily(data.windowHours === 168 ? "this week" : data.windowHours === 24 ? "today" : "for now");
       // (the plan's free story is used: this one will be paid for with credits)
       setPerMinute(data.credits ? data.credits.perMinute : null);
@@ -164,8 +170,13 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // (Escape on "start a new one?": back home, as a tap
   // outside does)
   useEscape(() => replacing !== "busy" && leave(), !limit && Boolean(ongoing.story && replacing !== "done"));
-  const start = async () => {
+  /** `length`: the minutes to make it (the slider's, unless the "free
+   *  stories are up to 5 minutes" question has just been answered - then
+   *  what was answered, which also means: don't ask again). */
+  useEscape(() => setTooLong(null), Boolean(tooLong));
+  const start = async (length?: number) => {
     if (!age || !hero || !theme || checking) return;
+    const storyMinutes = length ?? effectiveMinutes;
     // New stories are limited (one per day on Free, unlimited for the admin):
     // check first, so hitting the limit never leaves an empty story behind.
     setChecking(true);
@@ -180,6 +191,13 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       setLimit(notice);
       return;
     }
+    // A free story can be up to so many minutes. Longer than that, it's
+    // asked: keep the length and pay with credits, or make it a free one?
+    const f = freeStory.current;
+    if (length === undefined && f && storyMinutes > f.minutes) {
+      setTooLong({ minutes: storyMinutes, freeMinutes: f.minutes, cost: storyMinutes * f.perMinute, balance: f.balance });
+      return;
+    }
     // (one at a time: anything left unfinished - say, begun in another tab
     // since this page opened - makes way for this one)
     await ongoing.discard({ all: true });
@@ -187,7 +205,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
     if (fromIdea) forgetIdea(session?.user.id ?? me.id);
     try {
       localStorage.setItem(AGE_KEY, age);
-      localStorage.setItem(MINUTES_KEY, String(effectiveMinutes));
+      localStorage.setItem(MINUTES_KEY, String(storyMinutes));
     } catch {}
     const story: Story = {
       id: newId(),
@@ -195,7 +213,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       createdAt: Date.now(),
       updatedAt: Date.now(),
       age,
-      minutes: effectiveMinutes,
+      minutes: storyMinutes,
       theme,
       world: "",
       hero,
@@ -538,6 +556,53 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             </div>
           </div>
         )
+      )}
+
+      {tooLong && (
+        <div className="modal-backdrop" onClick={() => setTooLong(null)}>
+          <div className="modal-panel draft-prompt free-length" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="free-length-title">
+            <div className="modal-head">
+              <h3 id="free-length-title">Free stories are up to {tooLong.freeMinutes} minutes</h3>
+              <button type="button" className="icon-btn" onClick={() => setTooLong(null)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <p className="limit-message">
+              This story is set to {tooLong.minutes} minutes. Keep that length by using credits, or make it {tooLong.freeMinutes} minutes and use your free story.
+            </p>
+            <div className="story-preview-actions">
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                disabled={tooLong.balance !== null && tooLong.balance < tooLong.cost}
+                onClick={() => {
+                  const m = tooLong.minutes;
+                  setTooLong(null);
+                  void start(m);
+                }}
+              >
+                <MakeLabel credits={tooLong.cost}>Keep {tooLong.minutes} minutes</MakeLabel>
+              </button>
+              {tooLong.balance !== null && tooLong.balance < tooLong.cost && (
+                <p className="meta free-length-short">
+                  That needs {tooLong.cost} credits, and there {tooLong.balance === 1 ? "is" : "are"} {tooLong.balance} in your account.
+                </p>
+              )}
+              <button
+                type="button"
+                className="btn btn-soft btn-block"
+                onClick={() => {
+                  const m = tooLong.freeMinutes;
+                  setTooLong(null);
+                  setMinutes(m);
+                  void start(m);
+                }}
+              >
+                Make it {tooLong.freeMinutes} minutes, free
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <nav className="wizard-nav" aria-label="Move between steps">

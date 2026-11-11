@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readPrivate as readJson, writePrivate as writeJson } from "./store";
-import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
+import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, CREDITS_PER_STORY_MINUTE, FREE_STORY_MINUTES, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { applyCredits, billingAvailable, heldCredits, holdCredits, markPaid, pendingStoryHold, releaseHold, releasePendingStories, settleHold, STORY_PENDING } from "./billing";
+import { applyCredits, billingAvailable, heldCredits, holdCredits, markPaid, pendingStoryHold, releaseHold, releasePendingStories, settleHold, wasPaid, STORY_PENDING } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
@@ -413,6 +413,55 @@ export async function guard(
     if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
     if (!paid.down) return { ok: false, response: notEnough(paid.offer) };
     console.error("[limits] credits unavailable: the plan's own allowance stands");
+  }
+
+  // A story longer than a free one can be (lib/tiers: FREE_STORY_MINUTES)
+  // is never one of the plan's free stories: it's paid for with credits,
+  // all of its minutes, and the free one is left for another day.
+  if (item === "story" && price > FREE_STORY_MINUTES * CREDITS_PER_STORY_MINUTE && mode === "auto" && account && !me.stale && billingAvailable()) {
+    const settleWaiting = (waiting: { ref: string; amount: number }, paidRef: string) => ({
+      ok: true as const,
+      session,
+      credits: waiting.amount,
+      release: nothing,
+      settle: async () => {
+        await settleHold(userId, waiting.ref, `A ${waiting.amount}-minute story`);
+        await markPaid(userId, paidRef);
+      },
+    });
+    if (!beginning && storyRef) {
+      // (its first choice asked again - a retry, another tab: paid already)
+      if (await wasPaid(userId, storyRef)) {
+        const more = await take(session.user, { bucket: "segment" }).catch(() => null);
+        if (more && !more.ok) {
+          return { ok: false, response: NextResponse.json({ error: limitMessage(session.user, "segment", more.retryAfterSec), retryAfterSec: more.retryAfterSec, limited: "segment" }, { status: 429, headers: { "Retry-After": String(more.retryAfterSec) } }) };
+        }
+        return { ok: true, session, release: nothing, settle: nothing };
+      }
+      // (what was set aside when it was begun becomes the spend)
+      const waiting = await pendingStoryHold(userId);
+      if (waiting) return settleWaiting(waiting, storyRef);
+    }
+    const paid = await pay();
+    if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
+    if (!paid.down) {
+      const o = paid.offer;
+      return {
+        ok: false,
+        response: NextResponse.json(
+          {
+            error: `A free story is up to ${FREE_STORY_MINUTES} minutes. This one is ${o.price} minutes, which needs ${o.price} credits (one for each minute) - there ${o.balance === 1 ? "is" : "are"} ${o.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it can be a free one.`,
+            limited: "credits",
+            credits: o,
+            freeMinutes: FREE_STORY_MINUTES,
+          },
+          { status: 402 },
+        ),
+      };
+    }
+    // (the credits can't be reached just now: nothing longer than a free
+    // story is begun on a guess)
+    return unavailable;
   }
 
   let took: Took;
