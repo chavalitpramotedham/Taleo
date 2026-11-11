@@ -13244,3 +13244,61 @@ html {
 .account-plans .plan-row > .plan-card:last-child {
   margin-right: max(0px, calc(50% - 170px));
 }
+
+/* ---------- The plans row: all of them, where there's room ---------- */
+/* Where the page is wide enough to show every plan at once, they simply
+   stand side by side in the middle - nothing to swipe, no dots. The row
+   is allowed a little wider than the page's column for this. Narrower
+   than that, it's the sideways row above, your plan in the middle. */
+.account-plans {
+  container-type: inline-size;
+}
+@container (min-width: 600px) {
+  .account-plans .plan-row[data-count="2"] {
+    justify-content: center;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  .account-plans .plan-row[data-count="2"] > .plan-card {
+    flex: 0 1 340px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .account-plans .plan-dots[data-count="2"] {
+    display: none;
+  }
+}
+@container (min-width: 900px) {
+  .account-plans .plan-row[data-count="3"] {
+    justify-content: center;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  .account-plans .plan-row[data-count="3"] > .plan-card {
+    flex: 0 1 340px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .account-plans .plan-dots[data-count="3"] {
+    display: none;
+  }
+}
+
+/* A fine upright line in the row: what's on its left is set apart from
+   what's on its right (the admin's plan, from the plans families have). */
+.plan-divider {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin: 10px 10px;
+  background: var(--rule-strong);
+}
+/* On a wide screen the row of plans may be wider than the page's column
+   (which is sized for reading), so three cards stand at their full width. */
+@media (min-width: 1000px) {
+  .account-plans {
+    --plans-w: min(1104px, calc(100vw - 96px));
+    width: var(--plans-w);
+    margin-left: calc((100% - var(--plans-w)) / 2);
+  }
+}

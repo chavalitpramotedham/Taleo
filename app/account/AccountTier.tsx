@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CrownMark, MapleMark } from "@/components/Icons";
 import { PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
@@ -109,12 +109,13 @@ export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier
     : [noCaps(fromTier(mine, true)), others(COMING, "Upgrade - coming soon")];
   return (
     <div className="account-plans">
-      <PlanRow cards={cards} />
+      {/* (the admin's own plan is set apart from the plans families have) */}
+      <PlanRow cards={cards} divideAfter={isAdmin ? 0 : undefined} />
     </div>
   );
 }
 
-function PlanRow({ cards }: { cards: Card[] }) {
+function PlanRow({ cards, divideAfter }: { cards: Card[]; divideAfter?: number }) {
   const row = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   useEffect(() => {
@@ -129,7 +130,7 @@ function PlanRow({ cards }: { cards: Card[] }) {
         const mid = box.left + box.width / 2;
         let best = 0;
         let near = Infinity;
-        [...el.children].forEach((c, i) => {
+        el.querySelectorAll(":scope > .plan-card").forEach((c, i) => {
           const r = c.getBoundingClientRect();
           const d = Math.abs(r.left + r.width / 2 - mid);
           if (d < near) {
@@ -148,7 +149,7 @@ function PlanRow({ cards }: { cards: Card[] }) {
   }, [cards.length]);
   const go = (i: number) => {
     const el = row.current;
-    const card = el?.children[i] as HTMLElement | undefined;
+    const card = el?.querySelectorAll<HTMLElement>(":scope > .plan-card")[i];
     if (!el || !card) return;
     const box = el.getBoundingClientRect();
     const r = card.getBoundingClientRect();
@@ -156,13 +157,16 @@ function PlanRow({ cards }: { cards: Card[] }) {
   };
   return (
     <>
-      <div className="plan-row" ref={row}>
-        {cards.map((c) => (
-          <PlanCard key={c.key} card={c} />
+      <div className="plan-row" ref={row} data-count={cards.length}>
+        {cards.map((c, i) => (
+          <Fragment key={c.key}>
+            <PlanCard card={c} />
+            {i === divideAfter && <span className="plan-divider" aria-hidden />}
+          </Fragment>
         ))}
       </div>
       {cards.length > 1 && (
-        <div className="plan-dots" role="tablist" aria-label="Plans">
+        <div className="plan-dots" role="tablist" aria-label="Plans" data-count={cards.length}>
           {cards.map((c, i) => (
             <button
               key={c.key}
