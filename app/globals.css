@@ -14696,3 +14696,27 @@ html[data-night] .topbar {
 .make-label.has-sub .make-label-stack {
   gap: 1px;
 }
+
+/* ---------- The falling leaves' shadow, drawn once ---------- */
+/* The shadow used to be a filter on each leaf's holder - the box around
+   the moving leaf - so the browser had to work the blurred shadow out
+   again for every frame of the fall, for every leaf, on every page (the
+   title's leaves never stop). It is now part of each leaf's own picture:
+   drawn once with the leaf, and carried along as the leaf moves. (It
+   turns with the leaf, so it is a soft shadow all round rather than one
+   cast downward.) */
+.leaf-pos,
+html[data-night] .brand-mark .leaf-pos {
+  filter: none;
+}
+.leaf-whirl > svg {
+  filter: drop-shadow(0 0 1em rgba(47, 34, 20, 0.3));
+}
+html[data-night] .brand-mark .leaf-whirl > svg {
+  filter: brightness(1.13) saturate(1.06) drop-shadow(0 0 3.2em rgba(255, 196, 120, 0.29));
+}
+/* The pull-to-refresh loader is always on the page, unseen until a pull:
+   its leaves hold still until then. */
+html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
+  animation-play-state: paused;
+}
