@@ -19,7 +19,7 @@ export interface LimitNotice {
  * with the story under way, read from the library, or look at the plans.
  */
 export function LimitDialog({ notice, onClose, children }: { notice: LimitNotice; onClose: () => void; children?: ReactNode }) {
-  const title = notice.limited === "start" ? "Let's finish one first" : "That's this week's story!";
+  const title = notice.limited === "busy" ? "A story is under way elsewhere" : notice.limited === "start" ? "Let's finish one first" : "That's this week's story!";
   useEscape(onClose);
   return (
     <div className="modal-backdrop" onClick={onClose}>

@@ -375,33 +375,92 @@ export const settleHold = (userId: string, ref: string, note?: string) => endHol
 /** The work failed or was stopped: the held credits go back. */
 export const releaseHold = (userId: string, ref: string, note?: string) => endHold(userId, ref, "release", note);
 
+/** A story's credits are held from the moment it's begun until its first
+ *  choice - which may be a good while later (a parent reading the opening
+ *  pages aloud) - so that hold is given a day before it counts as left
+ *  behind. Everything else is over in minutes. */
+export const STORY_PENDING = "story:pending:";
+const STORY_PENDING_STALE_MS = 24 * 3600_000;
+
+/** Every hold on an account as it stands (null: couldn't be read). */
+async function listHolds(userId: string): Promise<[string, { amount: number; at: number }][] | null> {
+  if (!metricsEnabled()) {
+    if (onVercel) return null;
+    return Object.entries((await localOf(userId)).holds ?? {});
+  }
+  try {
+    const [raw] = await pipeline([["HGETALL", holdsKey(userId)]]);
+    const flat = Array.isArray(raw) ? raw.map(String) : raw && typeof raw === "object" ? Object.entries(raw as Record<string, unknown>).flat().map(String) : [];
+    const holds: [string, { amount: number; at: number }][] = [];
+    for (let i = 0; i + 1 < flat.length; i += 2) {
+      const [amount, at] = flat[i + 1].split(":").map(Number);
+      holds.push([flat[i], { amount: amount || 0, at: at || 0 }]);
+    }
+    return holds;
+  } catch (e) {
+    console.error("[billing] couldn't read the holds", e);
+    return null;
+  }
+}
+
 /** What's set aside right now for work in progress - after releasing any
  *  hold left behind by work that never finished. Null if it can't be read. */
 export async function heldCredits(userId: string): Promise<number | null> {
   if (!safe(userId)) return null;
   const now = Date.now();
-  let holds: [string, { amount: number; at: number }][];
-  if (!metricsEnabled()) {
-    if (onVercel) return null;
-    holds = Object.entries((await localOf(userId)).holds ?? {});
-  } else {
-    try {
-      const [raw] = await pipeline([["HGETALL", holdsKey(userId)]]);
-      const flat = Array.isArray(raw) ? raw.map(String) : raw && typeof raw === "object" ? Object.entries(raw as Record<string, unknown>).flat().map(String) : [];
-      holds = [];
-      for (let i = 0; i + 1 < flat.length; i += 2) {
-        const [amount, at] = flat[i + 1].split(":").map(Number);
-        holds.push([flat[i], { amount: amount || 0, at: at || 0 }]);
-      }
-    } catch (e) {
-      console.error("[billing] couldn't read the holds", e);
-      return null;
-    }
-  }
+  const holds = await listHolds(userId);
+  if (!holds) return null;
   let held = 0;
   for (const [ref, h] of holds) {
-    if (now - h.at > HOLD_STALE_MS) await releaseHold(userId, ref, "The work never finished: credits returned");
+    const stale = ref.startsWith(STORY_PENDING) ? STORY_PENDING_STALE_MS : HOLD_STALE_MS;
+    if (now - h.at > stale) await releaseHold(userId, ref, ref.startsWith(STORY_PENDING) ? "The story was never carried on: credits returned" : "The work never finished: credits returned");
     else held += h.amount;
   }
   return held;
+}
+
+/** The credits held for a story that's been begun but hasn't reached its
+ *  first choice (there is at most one such story at a time). */
+export async function pendingStoryHold(userId: string): Promise<{ ref: string; amount: number } | null> {
+  if (!safe(userId)) return null;
+  const holds = (await listHolds(userId)) ?? [];
+  const mine = holds.filter(([ref]) => ref.startsWith(STORY_PENDING)).sort((a, b) => b[1].at - a[1].at)[0];
+  return mine ? { ref: mine[0], amount: mine[1].amount } : null;
+}
+
+/** Gives back whatever is held for stories begun and not carried on (one
+ *  was thrown away, or another begun in its place). Returns the credits
+ *  returned. */
+export async function releasePendingStories(userId: string, note: string): Promise<number> {
+  if (!safe(userId)) return 0;
+  let back = 0;
+  for (const [ref] of ((await listHolds(userId)) ?? []).filter(([r]) => r.startsWith(STORY_PENDING))) back += (await releaseHold(userId, ref, note)).amount;
+  return back;
+}
+
+/** Notes that `ref` has been paid for (by settling some other hold), so
+ *  asking to pay for it again takes nothing. */
+export async function markPaid(userId: string, ref: string): Promise<void> {
+  if (!safe(userId) || !safe(ref)) return;
+  if (!metricsEnabled()) {
+    if (onVercel) return;
+    return localInTurn(async () => {
+      const rec = await localOf(userId);
+      rec.refs[ref] = 1;
+      await localSave(userId, rec);
+    });
+  }
+  await pipeline([["SET", refKey(userId, ref), "1", "EX", REF_KEPT_S]]).catch((e) => console.error("[billing] couldn't note a payment", e));
+}
+
+/** Whether `ref` was paid for with credits. */
+export async function wasPaid(userId: string, ref: string): Promise<boolean> {
+  if (!safe(userId) || !safe(ref)) return false;
+  if (!metricsEnabled()) return onVercel ? false : Boolean((await localOf(userId)).refs[ref]);
+  try {
+    const [n] = await pipeline([["EXISTS", refKey(userId, ref)]]);
+    return Number(n) === 1;
+  } catch {
+    return false;
+  }
 }

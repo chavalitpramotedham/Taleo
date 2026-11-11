@@ -11,6 +11,7 @@ import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/serv
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
 import { beginGen, logDenied } from "@/server/genlog";
+import { BUSY_ELSEWHERE, busyElsewhere, claimStorySession, deviceOf } from "@/server/story-session";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -18,7 +19,7 @@ export const maxDuration = 120;
 /** Can the signed-in user begin a new story right now? (Checked by the
  *  setup wizard before it creates the story, so nobody ends up with an
  *  empty draft when they've hit the limit.) */
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
   // (the plan as the records have it now, not the cookie's copy)
@@ -26,6 +27,8 @@ export async function GET() {
   if (!me) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
   if (me.account?.suspended) return NextResponse.json({ canStart: false, error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 });
   const user = me.user;
+  // (one story at a time, on one device at a time)
+  if (await busyElsewhere(user.id, deviceOf(req))) return NextResponse.json({ canStart: false, limited: "busy", error: BUSY_ELSEWHERE, plan: tierFor(user).name });
   const peek = await peekStart(user);
   const { retryAfterSec, limited, left } = peek;
   let ok = peek.ok;
@@ -70,6 +73,14 @@ export async function POST(req: Request) {
   // else that calls itself a continuation is counted as what it is, a new
   // story.
   // (for the activity log: what it was counted as)
+  // One story at a time, on one device at a time: a story can't be begun
+  // here while another device is in the middle of making one. (Carrying a
+  // story on is never refused - only noted, so the session follows it.)
+  const asker = (await auth())?.user?.id;
+  if (asker) {
+    const mine = await claimStorySession(asker, deviceOf(req));
+    if (!mine && parsed.kind === "start") return NextResponse.json({ error: BUSY_ELSEWHERE, limited: "busy" }, { status: 409 });
+  }
   let countedAs: string | null = null;
   const g = await guard((session) => {
     // (in credits: one a minute of the length chosen - see lib/tiers)

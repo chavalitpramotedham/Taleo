@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ONGOING_EVENT } from "./ongoing";
+import { deviceHeader } from "./device";
 
 /**
  * Can this account begin a new story right now - and if not, when again?
@@ -33,7 +34,7 @@ let held: { userId: string; at: number; answer: Promise<StoryAllowance | null> }
 /** Ask (or reuse a very recent answer). Null: couldn't find out. */
 export function askStoryAllowance(userId: string, { fresh = false } = {}): Promise<StoryAllowance | null> {
   if (!fresh && held && held.userId === userId && Date.now() - held.at < FRESH_MS) return held.answer;
-  const answer = fetch("/api/story", { cache: "no-store" })
+  const answer = fetch("/api/story", { cache: "no-store", headers: deviceHeader() })
     .then(async (res) => {
       if (res.status === 401) return null;
       const d = (await res.json()) as Partial<StoryAllowance>;

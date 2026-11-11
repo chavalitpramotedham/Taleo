@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { clearDraft, DRAFT_MAX_BYTES, getDraft, saveDraft } from "@/server/drafts";
 import type { Story } from "@/lib/types";
+import { releasePendingStories } from "@/server/billing";
+import { releaseStorySession } from "@/server/story-session";
 
 /** The signed-in user's unfinished story: GET it, PUT to save, DELETE to
  *  discard (or, with ?id=, to clear it once that story is finished). */
@@ -40,7 +42,16 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
-  const id = new URL(req.url).searchParams.get("id") || undefined;
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id") || undefined;
   await clearDraft(session.user.id, id);
-  return NextResponse.json({ ok: true });
+  // Thrown away (not finished): credits set aside for it when it was begun
+  // come back - if it hadn't reached its first choice, when they'd have
+  // been spent - and the account's story session is free again.
+  let returned = 0;
+  if (url.searchParams.get("discard") === "1") {
+    returned = await releasePendingStories(session.user.id, "The story was discarded before its first choice: credits returned").catch(() => 0);
+    await releaseStorySession(session.user.id, null, true);
+  }
+  return NextResponse.json({ ok: true, returned });
 }

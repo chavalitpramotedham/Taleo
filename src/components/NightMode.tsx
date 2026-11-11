@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LanternArt, MoonIcon } from "./NightLamp";
+import { DayLight } from "./DayLight";
 import { NIGHT_AT_KEY, NIGHT_KEY } from "@/lib/night-clock";
 
 /**
@@ -153,6 +154,8 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     <Ctx.Provider value={{ night, leaving, settled, toggle }}>
       {children}
       {night && <NightAmbience leaving={leaving} settled={settled} />}
+      {/* by day: sunshine across the page (behind it) */}
+      {SHOW_DAYLIGHT && !night && <DayLight />}
       {fadeFrom && <div className={`theme-fade from-${fadeFrom}`} aria-hidden />}
     </Ctx.Provider>
   );
@@ -201,6 +204,9 @@ const FIREFLIES = 16;
  *  beside the switch, its warm light, a soft dimming toward the edges, and
  *  fireflies drifting across the screen. Decorative only - never catches a
  *  tap. */
+/** The daylight rays are built but not switched on yet (being looked at first). */
+const SHOW_DAYLIGHT = false;
+
 /** The stars: where each is on the screen (percent across, percent down),
  *  how big (px, tip to tip), and how its glimmer is timed (seconds:
  *  delay, length - each different, so no two keep time).

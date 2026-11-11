@@ -50,12 +50,14 @@ const cleared = (): string[] => {
   }
 };
 
-export function clearDraftFor(id: string): Promise<void> {
+/** `discarded`: thrown away rather than finished - credits set aside for
+ *  it come back, and the account is free to begin another anywhere. */
+export function clearDraftFor(id: string, discarded = false): Promise<void> {
   window.clearTimeout(timer);
   if (pending?.id === id) pending = null;
   const done = cleared();
-  if (done.includes(id)) return Promise.resolve();
-  return fetch(`/api/draft?id=${encodeURIComponent(id)}`, { method: "DELETE" })
+  if (done.includes(id) && !discarded) return Promise.resolve();
+  return fetch(`/api/draft?id=${encodeURIComponent(id)}${discarded ? "&discard=1" : ""}`, { method: "DELETE" })
     .then((r) => {
       if (!r.ok) return;
       try {
@@ -81,5 +83,18 @@ export function fetchDraft(): Promise<Story | null> {
 /** Throws the draft away (done by the time this resolves). */
 export async function discardDraft(id: string) {
   asked = null;
-  await clearDraftFor(id);
+  await clearDraftFor(id, true);
+}
+
+/** What throwing the unfinished story away would mean for credits (see
+ *  /api/draft/credits). Null: couldn't find out, or nothing to say. */
+export async function discardCredits(): Promise<{ held: number; spent: boolean } | null> {
+  try {
+    const res = await fetch("/api/draft/credits", { cache: "no-store" });
+    if (!res.ok) return null;
+    const d = (await res.json()) as { held?: number; spent?: boolean };
+    return d.held || d.spent ? { held: d.held ?? 0, spent: Boolean(d.spent) } : null;
+  } catch {
+    return null;
+  }
 }

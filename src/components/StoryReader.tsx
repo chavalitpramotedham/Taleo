@@ -1,4 +1,5 @@
 "use client";
+import { deviceHeader, holdStorySession } from "@/lib/device";
 import Link from "next/link";
 import { paintingStage, preparingStage } from "@/lib/art/paintingStage";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -87,6 +88,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // always to hand at the top. While a story is first being made, it's
   // offered at the end instead.
   const [revisit] = useState(() => readOnly || story.status === "complete");
+  // While a story is being made here, this device holds the account's
+  // story session (so another device can't begin one in the middle of
+  // it); leaving the story, or finishing it, lets it go.
+  const making = !readOnly && story.status !== "complete" && !story.demo;
+  useEffect(() => (making ? holdStorySession() : undefined), [making]);
   const [error, setError] = useState<string | null>(null);
   const [limit, setLimit] = useState<LimitNotice | null>(null);
   // (closing the dialog keeps the kinder heading on the page behind it)
@@ -289,7 +295,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         const res = await fetch("/api/story", {
           signal,
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: { "content-type": "application/json", ...deviceHeader() },
           body: JSON.stringify(body),
         });
         if (!res.ok || !res.body) {

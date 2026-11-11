@@ -14451,3 +14451,166 @@ html[data-night] .topbar {
   background-color: #181620;
   border-bottom-color: #2d2b3a;
 }
+
+/* ---------- Daylight: rays of sunshine and motes of dust ---------- */
+/* Behind the whole page, pinned to the screen. Three narrow beams of warm
+   light fan out, down and across, from one point (--sun-x, --sun-y: the
+   leaf in the menu), fading with distance, and each brightening and
+   dimming slowly in its own time. Each beam is painted once into a box
+   only as big as the light reaches (not the whole screen), and after that
+   only its opacity changes - and the motes' opacity, with a small drift -
+   which is the compositor's work alone. They hold still while the page
+   is scrolled. */
+.day-light {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  animation: dayLightIn 1.6s ease 0.3s both;
+}
+@keyframes dayLightIn {
+  from {
+    opacity: 0;
+  }
+}
+.day-ray {
+  position: absolute;
+  left: var(--sun-x, 60px);
+  top: var(--sun-y, 40px);
+  /* (the light's reach: the beams lie in the quarter below and to the
+     right of the point they start from) */
+  width: 70vmax;
+  height: 70vmax;
+  /* fades out with distance from the point */
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.55) 34%, transparent 70%);
+  mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.55) 34%, transparent 70%);
+  opacity: 0.6;
+  will-change: opacity;
+  animation: dayRay 9s ease-in-out infinite;
+}
+/* (the fan: three beams of different widths and reaches - a fine bright
+   one, a broad soft one, a long one - each soft at both edges and fading
+   with distance; angles are measured clockwise from straight up) */
+.day-ray.r1 {
+  background: conic-gradient(from 0deg at 0 0, transparent 158deg, rgba(255, 255, 255, 0.4) 164deg, rgba(255, 255, 255, 1) 171deg, rgba(255, 255, 255, 0.4) 177deg, transparent 180deg, transparent);
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.8) 45%, transparent 92%);
+  mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.8) 45%, transparent 92%);
+}
+.day-ray.r2 {
+  background: conic-gradient(from 0deg at 0 0, transparent 132deg, rgba(255, 255, 255, 0.34) 142deg, rgba(255, 255, 255, 0.9) 153deg, rgba(255, 255, 255, 0.34) 163deg, transparent 172deg, transparent);
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.75) 42%, transparent 86%);
+  mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.75) 42%, transparent 86%);
+  animation-duration: 11.5s;
+  animation-delay: -3s;
+}
+.day-ray.r3 {
+  background: conic-gradient(from 0deg at 0 0, transparent 112deg, rgba(255, 255, 255, 0.36) 121deg, rgba(255, 255, 255, 0.95) 131deg, rgba(255, 255, 255, 0.36) 141deg, transparent 150deg, transparent);
+  -webkit-mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.8) 48%, transparent 96%);
+  mask-image: radial-gradient(circle at 0 0, #000 0, rgba(0, 0, 0, 0.8) 48%, transparent 96%);
+  animation-duration: 13s;
+  animation-delay: -7s;
+}
+/* The bright spot they come from: a soft white bloom around the leaf. */
+.day-glow {
+  position: absolute;
+  left: var(--sun-x, 60px);
+  top: var(--sun-y, 40px);
+  width: 30vmax;
+  height: 30vmax;
+  margin: -15vmax 0 0 -15vmax;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0, rgba(255, 255, 255, 0.5) 18%, rgba(255, 255, 255, 0.14) 42%, transparent 68%);
+  opacity: 0.8;
+  will-change: opacity;
+  animation: dayRay 8s ease-in-out -2s infinite;
+}
+.day-light.scrolling .day-glow {
+  animation-play-state: paused;
+}
+@keyframes dayRay {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.day-light b {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  will-change: opacity, transform;
+  animation: dayMote 6s ease-in-out infinite;
+}
+/* a speck afloat: it drifts slowly along and down a little, turning
+   in and out of the light as it goes */
+@keyframes dayMote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  42% {
+    opacity: 0.35;
+    transform: translate(9px, 12px);
+  }
+  66% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(20px, 30px);
+  }
+}
+.day-light.scrolling .day-ray,
+.day-light.scrolling b {
+  animation-play-state: paused;
+}
+/* (a phone's screen: the light reaches further down it, with fewer motes) */
+@media (max-width: 640px) {
+  .day-ray {
+    width: 74vmax;
+    height: 74vmax;
+  }
+  .day-light b:nth-child(even) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .day-light,
+  .day-ray,
+  .day-glow,
+  .day-light b {
+    animation: none;
+  }
+  .day-light b {
+    opacity: 0.4;
+  }
+}
+
+/* Under a "delete this story?" question: what happens to its credits. */
+.discard-credits {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--ink-soft);
+}
+.discard-credits .credit-icon {
+  flex: none;
+  margin-top: 2px;
+}
+.discard-credits.back {
+  border-color: color-mix(in srgb, var(--sage) 60%, var(--rule));
+  background: color-mix(in srgb, var(--sage) 12%, transparent);
+}

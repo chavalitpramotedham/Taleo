@@ -1,4 +1,5 @@
 "use client";
+import { DiscardCreditsNote } from "./DiscardCreditsNote";
 import { useEscape } from "@/lib/useEscape";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -110,6 +111,7 @@ export function OngoingCard({
                 This can&apos;t be undone. The story isn&apos;t finished yet, so
                 it will be gone for good.
               </p>
+              <DiscardCreditsNote />
               <div className="redraw-choices">
                 <button
                   type="button"

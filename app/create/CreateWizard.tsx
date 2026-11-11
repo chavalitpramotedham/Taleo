@@ -1,4 +1,6 @@
 "use client";
+import { DiscardCreditsNote } from "@/components/DiscardCreditsNote";
+import { deviceHeader } from "@/lib/device";
 import { MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { useEscape } from "@/lib/useEscape";
 import { useEffect, useMemo, useState } from "react";
@@ -137,7 +139,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
     try {
-      const res = await fetch("/api/story", { cache: "no-store" });
+      const res = await fetch("/api/story", { cache: "no-store", headers: deviceHeader() });
       const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number } };
       setDaily(data.windowHours === 168 ? "this week" : data.windowHours === 24 ? "today" : "for now");
       // (the plan's free story is used: this one will be paid for with credits)
@@ -502,6 +504,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               <p className="confirm-warning">
                 One story at a time: starting a new one deletes &ldquo;{titleOf(ongoing.story)}&rdquo; for good. This can&apos;t be undone.
               </p>
+              <DiscardCreditsNote />
               <div className="redraw-choices">
                 <button
                   type="button"

@@ -4,7 +4,7 @@ import { auth } from "./auth";
 import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { applyCredits, billingAvailable, heldCredits, holdCredits, releaseHold, settleHold } from "./billing";
+import { applyCredits, billingAvailable, heldCredits, holdCredits, markPaid, pendingStoryHold, releaseHold, releasePendingStories, settleHold, STORY_PENDING } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
@@ -368,18 +368,22 @@ export async function guard(
   // there must be enough for the story it begins).
   const item: CreditOffer["item"] | null = b === "character" ? "character" : (b === "story" && cost.key) || b === "start" ? "story" : null;
   const price = item === "character" ? CHARACTER_CREDITS : item ? Math.max(0, Math.round(cost.credits ?? 0)) : 0;
-  const charges = b !== "start"; // (a beginning only has to be affordable)
-  const ref = item === "story" && cost.key ? `story:${cost.key}`.replace(/[^\w.:-]/g, "").slice(0, 110) : `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+  // A story's credits are held from the moment it's begun (they leave the
+  // balance at once) and become the spend at its first choice. A story
+  // thrown away, or replaced by another, before that choice has them
+  // returned.
+  const beginning = b === "start";
+  const fresh = `${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+  const storyRef = item === "story" && cost.key ? `story:${cost.key}`.replace(/[^\w.:-]/g, "").slice(0, 110) : null;
+  const ref = beginning ? `${STORY_PENDING}${fresh}` : (storyRef ?? `${item}:${fresh}`);
   /** Take the credits (or, for a beginning, see that they're there). */
   // (`down`: the credits themselves couldn't be read or changed just now -
   // which is never reported as "you have none")
   const pay = async (): Promise<{ ok: true; spent: number } | { ok: false; offer: CreditOffer; down?: boolean }> => {
     if (!account || !item || !price) return { ok: true, spent: 0 };
-    if (!charges) {
-      const balance = await account.credits();
-      if (balance === null) return { ok: false, offer: { item, price, balance: 0 }, down: true };
-      return balance >= price ? { ok: true, spent: 0 } : { ok: false, offer: { item, price, balance } };
-    }
+    // (a new beginning takes the place of one not carried on: its credits
+    // come back first)
+    if (beginning) await releasePendingStories(userId, "Another story was begun instead: credits returned");
     // (set aside as the work begins - gone from the balance at once - and
     // settled or released when it's known how the work went)
     await heldCredits(userId).catch(() => null); // (first, anything left by work that never finished goes back)
@@ -388,6 +392,9 @@ export async function guard(
     return { ok: false, offer: { item, price, balance: paid.balance }, down: paid.reason === "unavailable" };
   };
   const what = item === "story" ? `A ${price}-minute story` : "A character";
+  // (a beginning's credits stay held when its opening has been written -
+  // they're settled at the first choice - and go back if writing it fails)
+  const heldOpen = (spent: number) => ({ ok: true as const, session, credits: spent, release: giveBack(spent), settle: nothing });
   const giveBack = (spent: number) => async () => {
     if (spent) await releaseHold(userId, ref, `${what}: it didn't work out, credits returned`);
   };
@@ -403,7 +410,7 @@ export async function guard(
   // of making things by the credit store being away.)
   if (mode === "always" && item && price && !me.stale && billingAvailable()) {
     const paid = await pay();
-    if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
+    if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
     if (!paid.down) return { ok: false, response: notEnough(paid.offer) };
     console.error("[limits] credits unavailable: the plan's own allowance stands");
   }
@@ -429,13 +436,32 @@ export async function guard(
     const coverable = item && price && account && (took.limited === "story" || took.limited === "character") && took.limited === item;
     let offer: CreditOffer | undefined;
     if (coverable) {
+      // A story at its first choice whose credits were set aside when it
+      // was begun: nothing more is taken - that hold becomes the spend
+      // once the next part is written (and stays held if writing it
+      // fails, to be tried again).
+      const waiting = item === "story" ? await pendingStoryHold(userId) : null;
+      if (waiting && !beginning && storyRef) {
+        return {
+          ok: true,
+          session,
+          credits: waiting.amount,
+          release: nothing,
+          settle: async () => {
+            await settleHold(userId, waiting.ref, `A ${waiting.amount}-minute story`);
+            await markPaid(userId, storyRef);
+          },
+        };
+      }
       const balance = await account.credits();
-      if (balance !== null && balance >= price) offer = { item, price, balance };
+      // (beginning another gives back what's held for one not carried on)
+      const free = balance === null ? null : balance + (beginning ? (waiting?.amount ?? 0) : 0);
+      if (free !== null && free >= price) offer = { item, price, balance: free };
       // (said yes: in so many words, or by being on a plan that pays with
       // credits without asking each time)
       if (offer && (opts.useCredits || mode === "auto")) {
         const paid = await pay();
-        if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
+        if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
       }
     }
     return {
@@ -446,6 +472,13 @@ export async function guard(
         { status: 429, headers: { "Retry-After": String(took.retryAfterSec) } },
       ),
     };
+  }
+  // (it turned out to be one of the plan's own after all - a new week has
+  // begun since it was started: what was set aside for it goes back)
+  // (and a beginning on the plan's own allowance takes the place of one
+  // that was being paid for and never carried on)
+  if (item === "story" && account && (beginning || storyRef)) {
+    await releasePendingStories(userId, beginning ? "Another story was begun instead: credits returned" : "The story was one of the plan's own: credits returned").catch(() => 0);
   }
   const used = took.limited;
   return { ok: true, session, release: () => refund(userId, used, took.at), settle: nothing };
