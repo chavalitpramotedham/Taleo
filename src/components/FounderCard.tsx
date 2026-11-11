@@ -8,7 +8,7 @@ export function FounderCard() {
       <span className="policy-card-rule" aria-hidden />
       <span className="policy-card-who">
         <b>Chavalit Pramotedham</b>
-        <span className="policy-card-role">Founder</span>
+        <span className="policy-card-role">Associate Dad</span>
         <a href="mailto:taleostories.dev@gmail.com">taleostories.dev@gmail.com</a>
         <span className="policy-card-site">taleo-stories.app</span>
       </span>

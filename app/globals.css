@@ -13852,3 +13852,12 @@ html[data-night] .history-in {
   display: block;
   margin: 8px auto 0;
 }
+
+/* A page being turned away carries no lit word: the voice stopped the
+   moment the turn began (the leaf is a snapshot of the page as it was). */
+.flip-leaf .story-text .reading,
+html[data-night] .flip-leaf .story-text .reading {
+  background-color: transparent;
+  box-shadow: none;
+  transition: none;
+}
