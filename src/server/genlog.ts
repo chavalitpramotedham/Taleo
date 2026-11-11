@@ -389,3 +389,25 @@ function closed(svg: string): string {
   }
   return open.length ? whole + open.reverse().map((t) => `</${t}>`).join("") : svg;
 }
+
+/** Removes an account's lines from the activity log, with what was made
+ *  for them (the account was deleted). */
+export async function forgetGens(userId: string): Promise<void> {
+  if (!metricsEnabled()) {
+    const m = memory();
+    for (const [id, r] of m.records) {
+      if (r.userId !== userId) continue;
+      m.records.delete(id);
+      m.results.delete(id);
+    }
+    return;
+  }
+  const [ids] = await pipeline([["ZRANGE", `gl:u:${userId}`, 0, -1]]);
+  const mine = (Array.isArray(ids) ? ids : []).map(String);
+  const cmds: Cmd[] = [["DEL", `gl:u:${userId}`]];
+  for (let i = 0; i < mine.length; i += 200) {
+    const some = mine.slice(i, i + 200);
+    cmds.push(["DEL", ...some.flatMap((id) => [`gl:${id}`, `gl:r:${id}`])], ["ZREM", "gl:all", ...some]);
+  }
+  await pipeline(cmds);
+}

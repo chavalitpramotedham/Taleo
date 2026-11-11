@@ -10,6 +10,7 @@ import { NightToggle } from "@/components/NightMode";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { AudioUnlock } from "@/components/AudioUnlock";
 import { AccountNav } from "@/components/AccountNav";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Providers } from "@/components/Providers";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
@@ -170,6 +171,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PullToRefresh />
             {children}
           </main>
+          <SiteFooter />
         </Providers>
       </body>
     </html>

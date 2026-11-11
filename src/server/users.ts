@@ -1,6 +1,6 @@
 import type { ContentVisibility, UserProfile } from "@/lib/types";
 import { AVATAR_KEYS } from "@/lib/presets";
-import { readJson, writeJson } from "./store";
+import { readPrivate, writePrivate } from "./store";
 
 const INDEX_PATH = "users/index.json";
 
@@ -28,7 +28,7 @@ function defaultAvatarFor(id: string): string {
 }
 
 export async function listUsers(opts: { cacheSeconds?: number; fresh?: boolean } = {}): Promise<UserProfile[]> {
-  return (await readJson<UserProfile[]>(INDEX_PATH, opts)) ?? [];
+  return (await readPrivate<UserProfile[]>(INDEX_PATH, opts)) ?? [];
 }
 
 /** The index as it is right now, not the CDN's copy (which lags an overwrite
@@ -39,7 +39,7 @@ export async function listUsers(opts: { cacheSeconds?: number; fresh?: boolean }
 const currentUsers = () => listUsers({ fresh: true });
 
 async function writeUsers(users: UserProfile[]) {
-  await writeJson(INDEX_PATH, users);
+  await writePrivate(INDEX_PATH, users);
 }
 
 export async function getUser(id: string, opts: { fresh?: boolean } = {}): Promise<UserProfile | null> {

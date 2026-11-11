@@ -13071,3 +13071,85 @@ html[data-night] .painting-badge.stage {
   outline: 2px solid var(--russet);
   outline-offset: -4px;
 }
+
+/* ---------- The foot of every page, and the privacy page ---------- */
+/* (the generous space main kept below itself, for floating buttons, goes
+   under the footer instead: the links sit just after the page's content
+   and can always be scrolled clear of a floating button) */
+main:has(+ .site-footer) {
+  padding-bottom: 36px;
+}
+main:has(.reader):has(+ .site-footer) {
+  padding-bottom: 0;
+}
+.site-footer {
+  padding: 0 16px calc(104px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  font-size: 0.92rem;
+}
+.site-footer nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 4px;
+  color: var(--ink-faint);
+}
+.site-footer a {
+  /* (a comfortable target for a thumb) */
+  padding: 10px 8px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  color: var(--russet);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+main:has(.reader) + .site-footer {
+  display: none;
+}
+.policy-date {
+  margin: 6px 0 0;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+.policy-body {
+  font-size: clamp(1.04rem, 1rem + 0.25vw, 1.14rem);
+  line-height: 1.65;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.policy-body p,
+.policy-body ul {
+  margin: 0 0 14px;
+}
+.policy-body h2 {
+  margin: 34px 0 10px;
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.policy-body h3 {
+  margin: 18px 0 4px;
+  font-size: 1.08em;
+  font-weight: 600;
+  color: var(--russet);
+}
+.policy-body ul {
+  padding-left: 1.2em;
+}
+.policy-body li {
+  margin-bottom: 6px;
+}
+.policy-body a {
+  color: var(--russet);
+  text-underline-offset: 3px;
+}
+.policy-note {
+  padding: 12px 16px;
+  border-left: 3px solid var(--russet);
+  background: color-mix(in srgb, var(--russet) 8%, transparent);
+  border-radius: 0 8px 8px 0;
+}

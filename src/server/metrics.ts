@@ -255,3 +255,15 @@ export async function activeUsersOver(days: number): Promise<number | null> {
   const [n] = await pipeline([["SUNIONSTORE", "au:tmp", ...keys], ["EXPIRE", "au:tmp", 60]]);
   return Number(n) || 0;
 }
+
+/** Takes an account out of the usage figures kept by name: who was active
+ *  on which day, and each month's cost per account (the account was
+ *  deleted). The day's totals themselves name nobody and stay. */
+export async function forgetMetricsUser(userId: string): Promise<void> {
+  if (!metricsEnabled()) return;
+  const cmds: Cmd[] = [];
+  const now = new Date();
+  for (let m = 0; m < 14; m++) cmds.push(["HDEL", `uc:${monthKey(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - m, 15))}`, userId]);
+  for (let d = 0; d < 100; d++) cmds.push(["SREM", `au:${dayKey(Date.now() - d * 86_400_000)}`, userId]);
+  await pipeline(cmds);
+}

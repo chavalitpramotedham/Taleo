@@ -234,3 +234,14 @@ export function planOf(sub: Subscription | null, now = Date.now()): TierId | nul
   if (sub.status === "canceled") return now < sub.periodEnd ? sub.plan : null;
   return now < sub.periodEnd + GRACE_MS ? sub.plan : null;
 }
+
+/** Removes everything kept about an account's credits and subscription
+ *  (the account was deleted). */
+export async function forgetBilling(userId: string): Promise<void> {
+  if (!safe(userId)) return;
+  if (!metricsEnabled()) {
+    if (!onVercel) await localInTurn(() => fs.unlink(localFile(userId)).catch(() => {}));
+    return;
+  }
+  await pipeline([["DEL", balKey(userId), ledgerKey(userId), subKey(userId)]]);
+}

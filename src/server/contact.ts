@@ -1,5 +1,5 @@
 import type { ContactAttachment } from "@/lib/contact";
-import { readJson, writeJson } from "./store";
+import { deletePrivate, readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { reportError } from "./alerts";
 
 /**
@@ -32,11 +32,36 @@ export interface ContactMessage {
 }
 
 const INDEX = "contact/index.json";
+export const CONTACT_INDEX = INDEX;
+const messagePath = (id: string) => `contact/messages/${id}.json`;
+interface ContactEntry {
+  id: string;
+  createdAt: number;
+  title: string;
+  emailed: boolean;
+  /** who sent it (not kept on the oldest entries) */
+  userId?: string;
+}
+
+/** Removes the saved copies of everything an account sent us (it was
+ *  deleted). Returns how many. */
+export async function forgetContactMessages(userId: string): Promise<number> {
+  const index = (await readJson<ContactEntry[]>(INDEX, { fresh: true })) ?? [];
+  const theirs: string[] = [];
+  for (const e of index) {
+    const from = e.userId ?? (await readJson<ContactMessage>(messagePath(e.id)).catch(() => null))?.from?.userId;
+    if (from === userId) theirs.push(e.id);
+  }
+  if (!theirs.length) return 0;
+  await writeJson(INDEX, index.filter((e) => !theirs.includes(e.id)));
+  await Promise.all(theirs.map((id) => deletePrivate(messagePath(id)).catch(() => {})));
+  return theirs.length;
+}
 
 export async function saveContactMessage(msg: ContactMessage) {
-  await writeJson(`contact/messages/${msg.id}.json`, msg);
-  const index = (await readJson<{ id: string; createdAt: number; title: string; emailed: boolean }[]>(INDEX)) ?? [];
-  const entry = { id: msg.id, createdAt: msg.createdAt, title: msg.title, emailed: msg.emailed };
+  await writeJson(messagePath(msg.id), msg);
+  const index = (await readJson<ContactEntry[]>(INDEX, { fresh: true })) ?? [];
+  const entry: ContactEntry = { id: msg.id, createdAt: msg.createdAt, title: msg.title, emailed: msg.emailed, userId: msg.from.userId };
   await writeJson(INDEX, [entry, ...index.filter((e) => e.id !== msg.id)].slice(0, 1000));
 }
 

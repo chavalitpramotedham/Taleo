@@ -1,7 +1,7 @@
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import type { CharacterDef, SavedCharacter } from "@/lib/types";
 import { NOTES_MAX, asGender } from "@/lib/characters";
-import { readJson, writeJson } from "./store";
+import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 
 /** Each signed-in user's saved custom-character roster, used to populate
  *  the "Your characters" shelf in story creation without redrawing one
@@ -9,6 +9,7 @@ import { readJson, writeJson } from "./store";
 
 
 const path = (ownerId: string) => `characters/${ownerId}.json`;
+export const charactersPath = path;
 const newCharacterId = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
 const cleanNotes = (notes: string | null | undefined) => (notes ?? "").trim().slice(0, NOTES_MAX) || null;
 /** How many story links to keep per character (most recent). */

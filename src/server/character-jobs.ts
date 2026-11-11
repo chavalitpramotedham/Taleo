@@ -1,6 +1,6 @@
 import type { CharacterResponse } from "@/lib/types";
 import type { CharacterProgress } from "@/lib/character-client";
-import { readJson, writeJson } from "./store";
+import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 
 /**
  * A character being designed, kept apart from the request that asked for
@@ -46,7 +46,7 @@ interface Parked {
 const KEEP_MS = 30 * 60 * 1000;
 const store = globalThis as unknown as { __taleoCharacterJobs?: Map<string, Job> };
 const jobs = (store.__taleoCharacterJobs ??= new Map<string, Job>());
-const parkedPath = (userId: string) => `pending/character/${userId}.json`;
+export const parkedPath = (userId: string) => `pending/character/${userId}.json`;
 
 export const validJobId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(v);
 

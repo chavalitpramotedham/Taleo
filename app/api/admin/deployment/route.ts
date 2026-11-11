@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { sweepPlainFiles } from "@/server/account-data";
 import { currentAdmin } from "@/server/entitlements";
 import type { DeployedCommit, Deployment } from "@/lib/deployment";
 
@@ -9,6 +10,9 @@ export const dynamic = "force-dynamic";
  *  foot of the admin's account menu. Anyone else: a plain "not found". */
 export async function GET() {
   if (!(await currentAdmin())) return new NextResponse(null, { status: 404 });
+  // (a one-off chore, started by the admin simply being about: files from
+  // before private storage are moved into it - nothing to do once done)
+  after(() => sweepPlainFiles());
   let built: { version?: string; sha?: string; branch?: string; previousSha?: string; builtAt?: string; commits?: DeployedCommit[] } = {};
   try {
     built = JSON.parse(process.env.TALEO_BUILD_INFO || "{}");

@@ -13,7 +13,7 @@ import { deleteJson, readJson, writeJson } from "./store";
  */
 
 const secret = process.env.AUTH_SECRET || "taleo-dev";
-const draftPath = (userId: string) =>
+export const draftPath = (userId: string) =>
   `drafts/${createHash("sha256").update(`${secret}:draft:${userId}`).digest("hex").slice(0, 40)}.json`;
 
 /** Generous: a draft carries its finished paintings so they never need

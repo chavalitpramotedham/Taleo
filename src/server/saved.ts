@@ -1,5 +1,5 @@
 import type { GalleryEntry } from "@/lib/types";
-import { readJson, writeJson } from "./store";
+import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { listGallery } from "./gallery";
 import { privateUserIds } from "./users";
 
@@ -11,11 +11,11 @@ import { privateUserIds } from "./users";
  * reads.
  */
 const MAX = 500;
-const pathFor = (userId: string) => `users/saved/${userId}.json`;
+export const savedPath = (userId: string) => `users/saved/${userId}.json`;
 
 export async function savedIds(userId: string): Promise<string[]> {
   // (fresh: a tap on Save must show on the bookshelf straight away)
-  return (await readJson<string[]>(pathFor(userId), { fresh: true })) ?? [];
+  return (await readJson<string[]>(savedPath(userId), { fresh: true })) ?? [];
 }
 
 export async function setSaved(userId: string, storyId: string, saved: boolean): Promise<string[]> {
@@ -23,7 +23,7 @@ export async function setSaved(userId: string, storyId: string, saved: boolean):
   const has = ids.includes(storyId);
   if (has === saved) return ids;
   const next = saved ? [storyId, ...ids].slice(0, MAX) : ids.filter((id) => id !== storyId);
-  await writeJson(pathFor(userId), next);
+  await writeJson(savedPath(userId), next);
   return next;
 }
 

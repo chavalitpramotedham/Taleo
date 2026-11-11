@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
-import { readJson, writeJson } from "./store";
+import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { allowancePhrase, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
 import { applyCredits, billingAvailable, refundCredits, spendCredits } from "./billing";
@@ -47,6 +47,9 @@ const stored = (bucket: Bucket): bucket is StoredBucket => STORED.includes(bucke
  *  the story's key, and when). */
 type Usage = Partial<Record<Bucket, number[]>> & { counted?: Record<string, number> };
 const path = (userId: string) => `ratelimits/${userId}.json`;
+export const usagePath = path;
+/** Forget what this server remembers of an account's uses (it was deleted). */
+export const forgetUsage = (userId: string) => void memory.delete(userId);
 
 /** What a plan allows in a bucket (null: no limit). */
 type Window = { count: number; windowMs: number; week?: boolean };
