@@ -353,6 +353,16 @@ export const AddTileIcon = () => (
 );
 
 /** Sign out: an open door, and the way out of it. */
+/** A story of your own to make: one open book (the bookshelf's icon is a
+ *  row of books standing - this is a single one, open to be written). */
+export const OpenBookIcon = () => (
+  <svg {...menu}>
+    <path d="M12 6.6C10 5.1 7 4.7 3.8 5.1v13c3.2-.4 6.2 0 8.2 1.5 2-1.5 5-1.9 8.2-1.5v-13C17 4.7 14 5.1 12 6.6Z" />
+    <path d="M12 6.6v13" />
+    <path d="M6.6 9.2c1.1 0 2.1.2 3 .6M6.6 12.4c1.1 0 2.1.2 3 .6" opacity="0.7" />
+  </svg>
+);
+
 /** A credit: a coin with a small star struck on it. */
 export const CreditIcon = ({ size = 18 }: { size?: number }) => (
   <svg className="credit-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden focusable="false">

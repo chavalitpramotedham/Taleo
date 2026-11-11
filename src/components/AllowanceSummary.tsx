@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Rights } from "@/server/rights";
-import { CreditIcon, ShelfIcon } from "./Icons";
+import { CreditIcon, OpenBookIcon } from "./Icons";
 
 /** Asked for when the account menu opens (and again each time it does:
  *  what's left changes as stories are made). */
@@ -54,7 +54,7 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
               next comes back), then the credits that pay for more */}
           {storiesLeftText(rights) && (
             <span className="allowance-item">
-              <ShelfIcon />
+              <OpenBookIcon />
               <span>{storiesLeftText(rights)}</span>
             </span>
           )}
