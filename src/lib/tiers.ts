@@ -15,12 +15,23 @@ export interface Allowance {
   count: number;
   hours: number;
   week?: boolean;
+  /** ...or in each calendar month (from the 1st). */
+  month?: boolean;
 }
+/** One a month, by the calendar. */
+const MONTHLY = (count: number): Allowance => ({ count, hours: 720, month: true });
 /** One a week, by the calendar. */
 const WEEKLY = (count: number): Allowance => ({ count, hours: 168, week: true });
 /** The weeks are counted in this one clock for everyone (hours ahead of
  *  UTC): a week begins at Monday's midnight there. */
 export const WEEK_UTC_OFFSET_HOURS = 0;
+/** When the calendar month containing `at` began, and when the next does
+ *  (ms; by the same clock as the weeks). */
+export function monthOf(at: number): { start: number; end: number } {
+  const shift = WEEK_UTC_OFFSET_HOURS * 3600_000;
+  const d = new Date(at + shift);
+  return { start: Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1) - shift, end: Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) - shift };
+}
 /** When the calendar week containing `at` began, and when the next does (ms). */
 export function weekOf(at: number): { start: number; end: number } {
   const shift = WEEK_UTC_OFFSET_HOURS * 3600_000;
@@ -77,11 +88,12 @@ export const PLANS: Record<TierId, TierInfo> = {
     blurb: "Everything you need for a story at bedtime.",
     credits: "beyond",
     limits: {
-      // (one free story and one free character each calendar week)
+      // (one free story each calendar week, one free character each
+      // calendar month)
       stories: WEEKLY(1),
       changesOfMind: 3,
       characters: 3,
-      designs: WEEKLY(1),
+      designs: MONTHLY(1),
       quickPages: 2,
       burst: { minutes: 30, segment: 16, illustrate: 80, tts: 400 },
       verified: true,
@@ -90,14 +102,14 @@ export const PLANS: Record<TierId, TierInfo> = {
   admin: {
     id: "admin",
     name: "Admin",
-    blurb: "The test account: a free story and a free character each week like everyone, then credits - and the keys to the admin dashboard.",
+    blurb: "The test account: a free story each week and a free character each month like everyone, then credits - and the keys to the admin dashboard.",
     credits: "auto",
-    // (the same free story and free character a week as the Free plan, so
+    // (the same free story a week and free character a month as the Free plan, so
     // both flows can be tried: free first, then credits. Plenty of
     // beginnings; no other caps.)
-    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: null, designs: WEEKLY(1), quickPages: 1, burst: null, verified: false },
+    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: null, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
     extras: [
-      { label: "After the free ones", value: "Credits", note: "One a minute of story, one a character" },
+      { label: "After the free ones", value: "Credits", note: "One a minute of story, three a character" },
       { label: "Adding credits", value: "Any time" },
       { label: "Admin dashboard", value: "Full access" },
     ],
@@ -126,7 +138,7 @@ export const PLANS: Record<TierId, TierInfo> = {
  */
 export type CreditsMode = "beyond" | "auto" | "always";
 export const CREDITS_PER_STORY_MINUTE = 1;
-export const CHARACTER_CREDITS = 1;
+export const CHARACTER_CREDITS = 3;
 /** The shortest and longest story (lib/ages), kept here so prices need no
  *  other file: a story costs between these. */
 const STORY_MINUTES: [number, number] = [3, 8];
@@ -156,10 +168,10 @@ export const characterLimit = (who: Parameters<typeof tierIdFor>[0]) => limitsFo
 
 // ---- how a plan reads on the Account pages ----
 
-const per = (hours: number) => (hours === 24 ? "day" : hours === 168 ? "week" : hours === 1 ? "hour" : hours % 24 === 0 ? `${hours / 24} days` : `${hours} hours`);
+const per = (hours: number) => (hours === 24 ? "day" : hours === 168 ? "week" : hours === 720 ? "month" : hours === 1 ? "hour" : hours % 24 === 0 ? `${hours / 24} days` : `${hours} hours`);
 /** "one new story a day", "3 new stories every 2 days" */
 export const allowancePhrase = (a: Allowance, one: string, many: string) =>
-  `${a.count === 1 ? "one" : a.count} ${a.count === 1 ? one : many} ${a.hours === 24 ? "a day" : a.hours === 168 ? "a week" : `every ${per(a.hours)}`}`;
+  `${a.count === 1 ? "one" : a.count} ${a.count === 1 ? one : many} ${a.hours === 24 ? "a day" : a.hours === 168 ? "a week" : a.hours === 720 ? "a month" : `every ${per(a.hours)}`}`;
 export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per(a.hours)}` : "Unlimited");
 
 /** The headline allowances. */

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readPrivate as readJson, writePrivate as writeJson } from "./store";
-import { allowancePhrase, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
+import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
 import { applyCredits, billingAvailable, refundCredits, spendCredits } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
@@ -52,27 +52,29 @@ export const usagePath = path;
 export const forgetUsage = (userId: string) => void memory.delete(userId);
 
 /** What a plan allows in a bucket (null: no limit). */
-type Window = { count: number; windowMs: number; week?: boolean };
+type Window = { count: number; windowMs: number; week?: boolean; month?: boolean };
+/** The calendar stretch an allowance is counted over, if it is. */
+const calendar = (a: Window, now: number) => (a.week ? weekOf(now) : a.month ? monthOf(now) : null);
 function allowance(plan: TierInfo, bucket: Bucket): Window | null {
   const l = plan.limits;
   if (bucket === "story") return l.stories && { count: l.stories.count, windowMs: l.stories.hours * 3600_000, week: l.stories.week };
   if (bucket === "start") return l.stories && { count: l.stories.count + l.changesOfMind, windowMs: l.stories.hours * 3600_000, week: l.stories.week };
-  if (bucket === "character") return l.designs && { count: l.designs.count, windowMs: l.designs.hours * 3600_000, week: l.designs.week };
+  if (bucket === "character") return l.designs && { count: l.designs.count, windowMs: l.designs.hours * 3600_000, week: l.designs.week, month: l.designs.month };
   return l.burst && { count: l.burst[bucket as "segment" | "illustrate" | "tts"], windowMs: l.burst.minutes * 60_000 };
 }
 /** Which uses still count now: those of the last so-many hours - or, for
  *  an allowance counted by the calendar week, those since this week began. */
 const counted = (a: Window, uses: number[] | undefined, now: number) => {
-  const from = a.week ? weekOf(now).start : now - a.windowMs;
+  const from = calendar(a, now)?.start ?? now - a.windowMs;
   return (uses ?? []).filter((t) => t >= from && t <= now + 1000);
 };
 /** Seconds until there's room again, given the uses that count (all of
  *  the allowance used): when the week turns, or when the oldest of them
  *  falls out of the stretch. */
 const waitFor = (a: Window, recent: number[], now: number) =>
-  Math.max(1, Math.ceil(((a.week ? weekOf(now).end : recent[recent.length - a.count] + a.windowMs) - now) / 1000));
+  Math.max(1, Math.ceil(((calendar(a, now)?.end ?? recent[recent.length - a.count] + a.windowMs) - now) / 1000));
 // (the longest any stored entry can matter, whichever plan asks)
-const KEEP_MS = 8 * 24 * 3600_000;
+const KEEP_MS = 32 * 24 * 3600_000;
 
 // In-memory counts: the burst buckets live here, and so does a copy of this
 // instance's own recent stored uses - a read made a moment after a write
@@ -237,8 +239,8 @@ const LIMIT_MESSAGES: Record<Bucket, (wait: string, plan: TierInfo) => string> =
   segment: (w) => `That's a lot of story for one sitting! Please try again in about ${w}.`,
   illustrate: (w) => `The painter needs a little rest. The pictures will carry on in about ${w}.`,
   character: (w, plan) =>
-    plan.limits.designs?.week
-      ? `This week's free character has been dreamt up! The ${plan.name} plan comes with ${allowancePhrase(plan.limits.designs, "new character", "new characters")}, and the next can be made in about ${w}.`
+    plan.limits.designs?.week || plan.limits.designs?.month
+      ? `This ${plan.limits.designs.month ? "month" : "week"}'s free character has been dreamt up! The ${plan.name} plan comes with ${allowancePhrase(plan.limits.designs, "new character", "new characters")}, and the next can be made in about ${w}.`
       : `You've dreamt up lots of characters! Try again in about ${w}.`,
   tts: (w) => `The storyteller's voice needs a rest. Try again in about ${w}.`,
 };
@@ -332,7 +334,7 @@ export async function guard(
   const unavailable = { ok: false as const, response: NextResponse.json({ error: "Couldn't start that just now. Please try again." }, { status: 503 }) };
   // (the plan couldn't be read: nothing the plan counts is begun on a guess)
   if (me.stale && (stored(b) || (cost.needs && stored(cost.needs)))) return unavailable;
-  // ---- credits (see lib/tiers: one a minute of story, one a character)
+  // ---- credits (see lib/tiers: one a minute of story, three a character)
   const userId = session.user.id;
   const account = me.account;
   const mode = account?.plan.credits ?? "beyond";

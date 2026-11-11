@@ -43,6 +43,8 @@ export interface Rights {
     limit: number | null;
     /** Designs and redraws the plan still allows (null: no limit). */
     designsLeft: number | null;
+    /** What the free designs are counted over: "week", "month", or null (a rolling stretch, or no limit). */
+    designsPer: "week" | "month" | null;
   };
 }
 
@@ -75,6 +77,6 @@ export async function rightsOf(account: Account): Promise<Rights> {
       weekly: Boolean(limits.stories?.week),
       nextInSec: story.ok ? 0 : story.retryAfterSec,
     },
-    characters: { saved, limit: limits.characters, designsLeft: limits.designs ? (design.left ?? 0) : null },
+    characters: { saved, limit: limits.characters, designsLeft: limits.designs ? (design.left ?? 0) : null, designsPer: limits.designs?.month ? "month" : limits.designs?.week ? "week" : null },
   };
 }

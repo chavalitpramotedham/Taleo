@@ -101,13 +101,13 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
         <>
           {!always && (
             <section className="panel credits-panel" aria-label="What your plan allows right now">
-              <h4 className="menu-title">Free on your plan{s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}</h4>
+              <h4 className="menu-title">Free on your plan</h4>
               <ul className="menu-list">
-                <Line what="Free stories left" value={s.left === null ? "Unlimited" : n(s.left)} />
+                <Line what={`Free stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} />
                 {/* (where credits pay for more, a count of free beginnings would only confuse) */}
                 {rights.creditsMode === "beyond" && <Line what="Stories you can begin" value={s.startsLeft === null ? "Unlimited" : n(s.startsLeft)} />}
                 <Line what="Characters kept" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
-                <Line what="Free character designs left" value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
+                <Line what={`Free character designs left${c.designsPer ? ` this ${c.designsPer}` : ""}`} value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
               </ul>
               {s.left === 0 && s.nextInSec > 0 && (
                 <p className="meta menu-note">

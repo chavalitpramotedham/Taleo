@@ -13125,6 +13125,14 @@ main:has(.reader) + .site-footer {
 .policy-body ul {
   margin: 0 0 14px;
 }
+/* (justified like the About page - a printed book's page; hyphenation
+   keeps narrow phone lines from opening wide gaps between words) */
+.policy-body p,
+.policy-body li {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
 .policy-body h2 {
   margin: 34px 0 10px;
   font-family: var(--font-title);
