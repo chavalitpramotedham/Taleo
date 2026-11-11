@@ -13161,3 +13161,22 @@ main:has(.reader) + .site-footer {
   background: color-mix(in srgb, var(--russet) 8%, transparent);
   border-radius: 0 8px 8px 0;
 }
+
+/* ---------- The menu bar is pinned, not sticky ---------- */
+/* A sticky bar is moved by the page's own scrolling, a frame behind it on
+   a fast swipe on a phone: it trembles, and the page shows through above
+   it for a moment. Pinned to the screen it takes no part in scrolling at
+   all. The page begins below it instead: the bar's height is noted the
+   moment the bar exists (see the layout) and kept up to date. */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* (it already reaches the screen's edges: nothing to reach back over) */
+  margin-left: 0;
+  margin-right: 0;
+}
+body {
+  padding-top: var(--topbar-h, 64px);
+}

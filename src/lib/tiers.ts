@@ -105,9 +105,9 @@ export const PLANS: Record<TierId, TierInfo> = {
     blurb: "The test account: a free story each week and a free character each month like everyone, then credits - and the keys to the admin dashboard.",
     credits: "auto",
     // (the same free story a week and free character a month as the Free plan, so
-    // both flows can be tried: free first, then credits. Plenty of
-    // beginnings; no other caps.)
-    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: null, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
+    // both flows can be tried: free first, then credits. Room for ten
+    // saved characters where Free has three, and plenty of beginnings.)
+    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: 10, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
     extras: [
       { label: "After the free ones", value: "Credits", note: "One a minute of story, three a character" },
       { label: "Adding credits", value: "Any time" },
