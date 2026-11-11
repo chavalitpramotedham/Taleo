@@ -1,4 +1,5 @@
 "use client";
+import { CreditCost } from "@/components/CreditCost";
 import { useEscape } from "@/lib/useEscape";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -547,7 +548,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
           ) : (
             <>
               <MapleMark />
-              {step === 2 ? (perMinute && minutes ? `Begin the story · ${minutes * perMinute} credits` : "Begin the story") : "Next ›"}
+              {step === 2 ? "Begin the story" : "Next ›"}
+              {step === 2 && <CreditCost credits={perMinute && minutes ? minutes * perMinute : null} />}
             </>
           )}
         </button>

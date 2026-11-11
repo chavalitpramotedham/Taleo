@@ -1,4 +1,5 @@
 "use client";
+import { CreditCost, useCharacterCredits } from "@/components/CreditCost";
 import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
 import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
@@ -407,6 +408,8 @@ function CharacterEditModal({
       setSaving(false);
     }
   };
+  // (what a redraw costs in credits, if anything)
+  const cost = useCharacterCredits();
   const redraw = async () => {
     if (!change.trim() || stage === "drawing") return;
     setStage("drawing");
@@ -427,6 +430,7 @@ function CharacterEditModal({
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setStage("redraw");
     } finally {
+      cost.again(); // (the free one may just have been used)
       if (painting.current === mine) painting.current = null;
     }
   };
@@ -682,6 +686,7 @@ function CharacterEditModal({
                     <>
                       <MapleMark />
                       Redraw
+                      <CreditCost credits={cost.credits} />
                     </>
                   )}
                 </button>

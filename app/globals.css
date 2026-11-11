@@ -13523,3 +13523,21 @@ html {
     padding-right: 34px;
   }
 }
+
+/* ---------- What a button's action costs in credits ---------- */
+/* After the button's words: a middle dot, the coin, the number. */
+.credit-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 2px;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums;
+}
+.credit-cost-dot {
+  margin-right: 2px;
+  opacity: 0.8;
+}
+.credit-cost .credit-icon {
+  flex: none;
+}
