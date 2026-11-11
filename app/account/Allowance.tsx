@@ -2,98 +2,139 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Rights } from "@/server/rights";
-import { CreditIcon, LeafLoader } from "@/components/Icons";
+import { CreditIcon, CrownMark, LeafLoader, MapleMark } from "@/components/Icons";
+import { Segmented } from "@/components/Segmented";
 import { useEscape } from "@/lib/useEscape";
 import { MAX_CREDITS_ADDED } from "@/lib/tiers";
 
 const n = (v: number) => v.toLocaleString("en-GB");
-const hours = (h: number | null) => (h === 24 ? "today" : h ? `in this ${h}-hour stretch` : "");
 const wait = (sec: number) => {
   const m = Math.ceil(sec / 60);
   return m >= 90 ? `about ${Math.round(m / 60)} hours` : `about ${Math.max(1, m)} minute${m === 1 ? "" : "s"}`;
 };
 
+type Tab = "plan" | "credits";
+
+/** One line of a menu: the thing on the left, a row of dots, what it is
+ *  (or costs) on the right. */
+function Line({ what, value }: { what: React.ReactNode; value: React.ReactNode }) {
+  return (
+    <li className="menu-line">
+      <span>{what}</span>
+      <span className="menu-dots" aria-hidden />
+      <b>{value}</b>
+    </li>
+  );
+}
+
 /**
- * What this account can do right now (Plans, above the plans themselves):
- * stories that can still be finished and begun, characters, credits and
- * what they buy - as the server's records have it. The admin's test
- * account can add credits to itself from here.
+ * The Plans page: at the top, the two things an account has - its plan and
+ * its credits - side by side; under them one pill to switch between the
+ * two, since they are separate things. "Plan" is what the plan allows
+ * today and the plans themselves; "Credits" is the balance, a way to add
+ * to it (the test account only) and what things cost, set out like a
+ * menu. All as the server's records have it.
  */
-export function Allowance({ rights: first }: { rights: Rights }) {
+export function PlansView({ rights: first, children }: { rights: Rights; children: React.ReactNode }) {
   const [rights, setRights] = useState(first);
+  const always = rights.creditsMode === "always";
+  const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
   const [adding, setAdding] = useState(false);
   const router = useRouter();
-  const always = rights.creditsMode === "always";
   const s = rights.stories;
   const c = rights.characters;
   const [lo, hi] = rights.prices.story;
+  const credits = rights.credits;
   return (
-    <section className="panel allowance" aria-label="What you can do right now">
-      <div className="tier-summary-head">
-        <h3>What you can do right now</h3>
-        {rights.canAddCredits && (
-          <button type="button" className="btn btn-primary tier-manage" onClick={() => setAdding(true)}>
-            Add credits
-          </button>
-        )}
+    <>
+      <section className="plans-summary" aria-label="Your plan and credits">
+        <button type="button" className={`plans-summary-item${tab === "plan" ? " on" : ""}`} onClick={() => setTab("plan")}>
+          <span className="plans-summary-label">Plan</span>
+          <span className="plans-summary-value">
+            {rights.isAdmin ? <CrownMark /> : <MapleMark />} {rights.plan}
+          </span>
+        </button>
+        <button type="button" className={`plans-summary-item${tab === "credits" ? " on" : ""}`} onClick={() => setTab("credits")}>
+          <span className="plans-summary-label">Credits</span>
+          <span className="plans-summary-value">
+            <CreditIcon size={20} /> {credits === null ? "-" : n(credits)}
+          </span>
+        </button>
+      </section>
+      <div className="filter-row plans-tabs">
+        <Segmented
+          label="Plan or credits"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { key: "plan", label: "Plan" },
+            { key: "credits", label: "Credits" },
+          ]}
+        />
       </div>
       {rights.suspended && <p className="error">This account can&apos;t make anything new at the moment. Please get in touch with us.</p>}
-      <dl className="allowance-grid">
-        <div>
-          <dt>Stories to finish</dt>
-          <dd>{always ? "With credits" : s.left === null ? "Unlimited" : n(s.left)}</dd>
-          <p className="meta">
-            {always
-              ? `Each story uses a credit a minute: ${lo} to ${hi}.`
-              : s.left === null
-                ? "No limit on this plan."
-                : s.left > 0
-                  ? `New stories left ${hours(s.windowHours)}. A story counts once you make its first choice.`
-                  : `The next one opens up in ${wait(s.nextInSec)}.`}
-          </p>
-        </div>
-        <div>
-          <dt>Stories to begin</dt>
-          <dd>{always ? "With credits" : s.startsLeft === null ? "Unlimited" : n(s.startsLeft)}</dd>
-          <p className="meta">{always ? "A story begun and dropped before its first choice costs nothing." : "Beginnings, including ones dropped before the first choice."}</p>
-        </div>
-        <div>
-          <dt>Characters kept</dt>
-          <dd>{c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`}</dd>
-          <p className="meta">
-            {always
-              ? `Designing or repainting one uses ${rights.prices.character} credit.`
-              : c.designsLeft === null
-                ? "No limit on designs."
-                : `${n(c.designsLeft)} design${c.designsLeft === 1 ? "" : "s"} or repaint${c.designsLeft === 1 ? "" : "s"} left today.`}
-          </p>
-        </div>
-        <div>
-          <dt>
-            <CreditIcon size={16} /> Credits
-          </dt>
-          <dd>{rights.credits === null ? "-" : n(rights.credits)}</dd>
-          <p className="meta">
-            {rights.credits === null
-              ? "Credits aren't available here yet."
-              : always
-                ? `Enough for ${n(Math.floor(rights.credits / hi))} to ${n(Math.floor(rights.credits / lo))} stories.`
-                : `One credit is a minute of story (${lo} to ${hi} a story) or one character, once the plan's own are used up.`}
-          </p>
-        </div>
-      </dl>
+
+      {tab === "credits" ? (
+        <section className="panel credits-panel" aria-label="Credits">
+          <div className="credits-head">
+            <p className="credits-amount">
+              <CreditIcon size={30} />
+              <b>{credits === null ? "-" : n(credits)}</b>
+              <span>{credits === 1 ? "credit" : "credits"}</span>
+            </p>
+            {rights.canAddCredits && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setAdding(true)}>
+                Add credits
+              </button>
+            )}
+          </div>
+          {credits === null ? (
+            <p className="meta">Credits aren&apos;t available here yet.</p>
+          ) : (
+            <p className="meta">
+              {always ? "Every story and character on this account uses credits." : `Credits pay for more once your plan's own stories and characters are used up.`}
+            </p>
+          )}
+          <h4 className="menu-title">What things cost</h4>
+          <ul className="menu-list">
+            <Line what="A story, for each minute" value={1} />
+            <Line what={`The shortest story (${lo} minutes)`} value={lo} />
+            <Line what={`The longest story (${hi} minutes)`} value={hi} />
+            <Line what="A character, new or repainted" value={rights.prices.character} />
+            <Line what="Reading, and the whole library" value="Free" />
+          </ul>
+          <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
+        </section>
+      ) : (
+        <>
+          {!always && (
+            <section className="panel credits-panel" aria-label="What your plan allows right now">
+              <h4 className="menu-title">Left on your plan{s.windowHours === 24 ? " today" : ""}</h4>
+              <ul className="menu-list">
+                <Line what="New stories" value={s.left === null ? "Unlimited" : n(s.left)} />
+                <Line what="Stories you can begin" value={s.startsLeft === null ? "Unlimited" : n(s.startsLeft)} />
+                <Line what="Characters kept" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
+                <Line what="Character designs and repaints" value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
+              </ul>
+              {s.left === 0 && s.nextInSec > 0 && <p className="meta menu-note">The next story opens up in {wait(s.nextInSec)}.</p>}
+            </section>
+          )}
+          {children}
+        </>
+      )}
+
       {adding && (
         <AddCredits
-          balance={rights.credits ?? 0}
+          balance={credits ?? 0}
           onClose={() => setAdding(false)}
-          onAdded={(credits) => {
-            setRights({ ...rights, credits });
+          onAdded={(now) => {
+            setRights({ ...rights, credits: now });
             setAdding(false);
             router.refresh();
           }}
         />
       )}
-    </section>
+    </>
   );
 }
 

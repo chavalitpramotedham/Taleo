@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { AccountPlans } from "../AccountTier";
-import { Allowance } from "../Allowance";
+import { PlansView } from "../Allowance";
 import { currentAccount } from "@/server/entitlements";
 import { rightsOf } from "@/server/rights";
 
@@ -19,10 +19,15 @@ export default async function PlansPage() {
         <p className="eyebrow">
           <Link href="/account">Manage account</Link>
         </p>
-        <h1>Plans</h1>
+        <h1>Plan and credits</h1>
       </header>
-      {rights && <Allowance rights={rights} />}
-      <AccountPlans isAdmin={account ? account.isAdmin : session.user.isAdmin} tier={account ? account.tier : session.user.tier} />
+      {rights ? (
+        <PlansView rights={rights}>
+          <AccountPlans isAdmin={rights.isAdmin} tier={rights.tier} />
+        </PlansView>
+      ) : (
+        <AccountPlans isAdmin={session.user.isAdmin} tier={session.user.tier} />
+      )}
     </div>
   );
 }

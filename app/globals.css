@@ -12757,36 +12757,128 @@ html[data-night] .hero-lesson b {
     background: var(--sage-soft);
   }
 }
-/* The details: four figures, each with a line about it. */
-.allowance {
-  margin-bottom: clamp(18px, 3vw, 28px);
-}
-.allowance-grid {
+/* The Plans page: plan and credits side by side at the top (each a tap to
+   its own tab), the pill that switches between them, and small menus -
+   the thing on the left, a row of dots, what it is or costs on the right. */
+.plans-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px 22px;
-  margin: 14px 0 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 30rem;
+  margin: 0 auto;
 }
-.allowance-grid > div {
-  padding-top: 10px;
-  border-top: 1px solid var(--rule);
+.plans-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 12px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--page);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
 }
-.allowance-grid dt {
+.plans-summary-item.on {
+  border-color: var(--russet);
+  box-shadow: 0 0 0 1px var(--russet) inset;
+}
+.plans-summary-label {
   font-family: var(--font-caps);
-  font-size: 0.86rem;
-  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
 }
-.allowance-grid dd {
-  margin: 2px 0 2px;
-  font-size: 1.7rem;
-  line-height: 1.15;
+.plans-summary-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-variant-numeric: lining-nums;
+}
+.plans-summary-value .maple-mark,
+.plans-summary-value .crown-mark {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.plans-tabs {
+  justify-content: center;
+  margin: 14px 0 16px;
+}
+.credits-panel {
+  max-width: 30rem;
+  margin: 0 auto clamp(16px, 3vw, 24px);
+  padding: 16px 18px 14px;
+}
+.credits-panel > .meta {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+}
+/* (the amount is the thing: large, with the way to add beside it) */
+.credits-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.credits-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink-soft);
+}
+.credits-amount .credit-icon {
+  align-self: center;
+}
+.credits-amount b {
+  font-size: 2.3rem;
+  line-height: 1;
+  font-weight: 600;
   color: var(--ink);
   font-variant-numeric: lining-nums;
 }
-.allowance-grid .meta {
+.menu-title {
+  margin: 14px 0 6px;
+  font-family: var(--font-caps);
+  font-size: 0.84rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.credits-panel > .menu-title:first-child {
+  margin-top: 0;
+}
+.menu-list {
+  list-style: none;
   margin: 0;
-  font-size: 0.9rem;
+  padding: 0;
+}
+.menu-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+.menu-dots {
+  flex: 1;
+  min-width: 18px;
+  border-bottom: 2px dotted var(--rule-strong);
+  transform: translateY(-4px);
+}
+.menu-line b {
+  font-weight: 600;
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
+}
+.credits-panel > .menu-note {
+  margin-top: 8px;
+  font-size: 0.86rem;
 }
 /* Add credits: a few quick amounts over the number itself. */
 .add-credits .modal-head h3 {
