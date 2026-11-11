@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
@@ -148,6 +149,7 @@ const lost = (e: unknown, fallback: string) => (e instanceof TypeError ? "No con
  *  went is said in a toast at the top of the screen. */
 function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: () => void; onAdded: (credits: number) => void }) {
   const toast = useToast();
+  const me = useSession().data?.user?.username ?? null;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -238,7 +240,7 @@ function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: (
           </button>
         </div>
         <Segmented
-          label="Who the credits are for"
+          label="Whose account the credits go to"
           className="add-credits-whom"
           options={[
             { key: "me", label: "My account" },
@@ -250,88 +252,105 @@ function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: (
             setError(null);
           }}
         />
-        {whom === "me" ? (
-          <p className="meta">
-            You have <b>{n(balance)}</b>. These are added to your own account.
-          </p>
-        ) : person ? (
-          <p className="add-credits-person">
-            <span>
-              <b>{called(person)}</b>
-              <span className="meta">
-                {person.username ? `${person.email} · ` : ""}
-                {theirs === null ? "…" : `${n(theirs)} credit${theirs === 1 ? "" : "s"} now`}
+
+        {/* who they're for: you (said plainly), or someone to find */}
+        <section className="add-credits-box" aria-labelledby="add-credits-who">
+          <h4 id="add-credits-who" className="menu-title">
+            For who?
+          </h4>
+          {whom === "me" ? (
+            <p className="add-credits-person">
+              <span>
+                <b>{me ? `@${me}` : "Your account"}</b>
+                <span className="meta">
+                  {n(balance)} credit{balance === 1 ? "" : "s"} now
+                </span>
               </span>
-            </span>
-            <button
-              type="button"
-              className="link-btn"
-              onClick={() => {
-                setPerson(null);
-                setTheirs(null);
-              }}
-              disabled={busy}
-            >
-              Change
-            </button>
-          </p>
-        ) : (
-          <div className="add-credits-find">
-            <input
-              className="input add-credits-search"
-              type="text"
-              inputMode="search"
-              value={typed}
-              onChange={(e) => setTyped(e.target.value)}
-              placeholder="Handle or email"
-              aria-label="Find a user by handle or email"
-              autoComplete="off"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              autoFocus
-            />
-            {typed.trim() !== "" &&
-              (people === null ? (
-                <p className="meta">Finding accounts…</p>
-              ) : found.length === 0 ? (
-                <p className="meta">Nobody like “{typed.trim()}”.</p>
-              ) : (
-                <ul className="add-credits-found" role="listbox" aria-label="Accounts it could be">
-                  {found.map((p) => (
-                    <li key={p.id}>
-                      <button type="button" role="option" aria-selected={false} onClick={() => setPerson(p)}>
-                        <b>{called(p)}</b>
-                        {p.username && <span className="meta">{p.email}</span>}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ))}
+            </p>
+          ) : person ? (
+            <p className="add-credits-person">
+              <span>
+                <b>{called(person)}</b>
+                <span className="meta">
+                  {person.username ? `${person.email} · ` : ""}
+                  {theirs === null ? "…" : `${n(theirs)} credit${theirs === 1 ? "" : "s"} now`}
+                </span>
+              </span>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  setPerson(null);
+                  setTheirs(null);
+                }}
+                disabled={busy}
+              >
+                Change
+              </button>
+            </p>
+          ) : (
+            <div className="add-credits-find">
+              <input
+                className="input add-credits-search"
+                type="text"
+                inputMode="search"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder="Handle or email"
+                aria-label="Find a user by handle or email"
+                autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              {typed.trim() !== "" &&
+                (people === null ? (
+                  <p className="meta">Finding accounts…</p>
+                ) : found.length === 0 ? (
+                  <p className="meta">Nobody like “{typed.trim()}”.</p>
+                ) : (
+                  <ul className="add-credits-found" role="listbox" aria-label="Accounts it could be">
+                    {found.map((p) => (
+                      <li key={p.id}>
+                        <button type="button" role="option" aria-selected={false} onClick={() => setPerson(p)}>
+                          <b>{called(p)}</b>
+                          {p.username && <span className="meta">{p.email}</span>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ))}
+            </div>
+          )}
+        </section>
+
+        {/* how many: a number to type, or one of a few to tap */}
+        <section className="add-credits-box" aria-labelledby="add-credits-amount">
+          <h4 id="add-credits-amount" className="menu-title">
+            Amount
+          </h4>
+          <input
+            className="input add-credits-number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            maxLength={4}
+            value={text}
+            // (digits only, whatever is typed or pasted)
+            onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 4))}
+            placeholder="How many?"
+            aria-label="How many credits to add"
+          />
+          <div className="add-credits-quick" role="group" aria-label="Quick amounts">
+            {QUICK.map((q) => (
+              <button key={q} type="button" className={`chip${amount === q ? " on" : ""}`} onClick={() => setText(String(q))} disabled={busy}>
+                +{q}
+              </button>
+            ))}
           </div>
-        )}
-        <div className="add-credits-quick" role="group" aria-label="Quick amounts">
-          {QUICK.map((q) => (
-            <button key={q} type="button" className={`chip${amount === q ? " on" : ""}`} onClick={() => setText(String(q))} disabled={busy}>
-              +{q}
-            </button>
-          ))}
-        </div>
-        <input
-          className="input"
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          autoComplete="off"
-          maxLength={4}
-          value={text}
-          // (digits only, whatever is typed or pasted)
-          onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 4))}
-          placeholder="How many?"
-          aria-label="How many credits to add"
-          autoFocus={whom === "me"}
-        />
-        {text !== "" && !(amount >= 1 && amount <= MAX_CREDITS_ADDED) && <p className="error">Enter a whole number from 1 to {n(MAX_CREDITS_ADDED)}.</p>}
+          {text !== "" && !(amount >= 1 && amount <= MAX_CREDITS_ADDED) && <p className="error">Enter a whole number from 1 to {n(MAX_CREDITS_ADDED)}.</p>}
+        </section>
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={!valid || busy}>
           {busy ? (

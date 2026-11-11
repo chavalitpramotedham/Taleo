@@ -13380,3 +13380,95 @@ html {
   white-space: nowrap;
   overflow-wrap: normal;
 }
+
+/* ---------- Add credits: one structure, top to bottom ---------- */
+/* Whose account (a pill across the dialog), then two titled boxes - who
+   it's for, how many - then the button. */
+.add-credits {
+  gap: 12px;
+}
+/* (the pill is the same one as on every other page, in the middle) */
+.add-credits .seg.add-credits-whom {
+  align-self: center;
+}
+.add-credits-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--page) 70%, var(--paper));
+  text-align: left;
+}
+.add-credits-box .menu-title {
+  margin: 0;
+}
+.add-credits-box .add-credits-person {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.add-credits-box .error {
+  margin: 0;
+}
+.add-credits-quick {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.add-credits-quick .chip {
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+}
+/* (a text field asks for room along its row; these stand in a column, at
+   their own height - and nothing in the dialog is squeezed to fit: it
+   scrolls on a very short screen instead) */
+.add-credits-box .input {
+  flex: none;
+}
+.add-credits > * {
+  flex-shrink: 0;
+}
+
+/* ---------- Add credits: neat boxes ---------- */
+/* Inside each titled box, everything is itself a box of the same shape and
+   height: the account shown, the field to type in, the amounts to tap. */
+.add-credits-box .input,
+.add-credits-box .add-credits-person {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 50px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background: var(--page);
+}
+.add-credits-box .input {
+  font-style: normal;
+  font-size: 1.1rem;
+}
+.add-credits-box .input:focus {
+  outline: none;
+  border-color: var(--russet);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--russet) 18%, transparent);
+}
+.add-credits-box .add-credits-number {
+  text-align: center;
+  font-size: 1.3rem;
+  font-variant-numeric: lining-nums;
+}
+.add-credits-box .add-credits-person {
+  align-items: center;
+}
+.add-credits-found {
+  border-radius: 10px;
+  border-color: var(--rule-strong);
+  background: var(--page);
+}
+.add-credits-quick .chip {
+  min-height: 44px;
+  border-radius: 10px;
+}
