@@ -1,5 +1,5 @@
 import type { ContactAttachment } from "@/lib/contact";
-import { readJson, writeJson } from "./store";
+import { updatePrivate, writePrivate } from "./private-store";
 import { reportError } from "./alerts";
 
 /**
@@ -31,13 +31,17 @@ export interface ContactMessage {
   emailed: boolean;
 }
 
-const INDEX = "contact/index.json";
+/** Where messages are kept: the private store (they carry the sender's
+ *  email address and whatever they wrote to us). */
+export const CONTACT_INDEX = "contact/index.json";
+export const contactMessagePath = (id: string) => `contact/messages/${id}.json`;
+export type ContactIndex = { id: string; createdAt: number; title: string; emailed: boolean }[];
 
 export async function saveContactMessage(msg: ContactMessage) {
-  await writeJson(`contact/messages/${msg.id}.json`, msg);
-  const index = (await readJson<{ id: string; createdAt: number; title: string; emailed: boolean }[]>(INDEX)) ?? [];
+  await writePrivate(contactMessagePath(msg.id), msg);
   const entry = { id: msg.id, createdAt: msg.createdAt, title: msg.title, emailed: msg.emailed };
-  await writeJson(INDEX, [entry, ...index.filter((e) => e.id !== msg.id)].slice(0, 1000));
+  // (added to the list as it is now: two messages arriving together both stay)
+  await updatePrivate<ContactIndex>(CONTACT_INDEX, (index) => [entry, ...(index ?? []).filter((e) => e.id !== msg.id)].slice(0, 1000));
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);

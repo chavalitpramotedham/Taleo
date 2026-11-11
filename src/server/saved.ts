@@ -1,21 +1,21 @@
 import type { GalleryEntry } from "@/lib/types";
-import { readJson, writeJson } from "./store";
+import { ACCOUNT_DOCS, readPrivate, writePrivate } from "./private-store";
 import { listGallery } from "./gallery";
 import { privateUserIds } from "./users";
 
 /**
  * Stories someone has saved from the library to their bookshelf - just the
- * story ids, newest first, in one small file per person. Saving or
+ * story ids, newest first, in one small private record per person. Saving or
  * unsaving is a person's own tap (never a hot path), so it costs one
  * write; their bookshelf reads it alongside the library index it already
  * reads.
  */
 const MAX = 500;
-const pathFor = (userId: string) => `users/saved/${userId}.json`;
+const pathFor = ACCOUNT_DOCS.saved;
 
 export async function savedIds(userId: string): Promise<string[]> {
   // (fresh: a tap on Save must show on the bookshelf straight away)
-  return (await readJson<string[]>(pathFor(userId), { fresh: true })) ?? [];
+  return (await readPrivate<string[]>(pathFor(userId))) ?? [];
 }
 
 export async function setSaved(userId: string, storyId: string, saved: boolean): Promise<string[]> {
@@ -23,7 +23,7 @@ export async function setSaved(userId: string, storyId: string, saved: boolean):
   const has = ids.includes(storyId);
   if (has === saved) return ids;
   const next = saved ? [storyId, ...ids].slice(0, MAX) : ids.filter((id) => id !== storyId);
-  await writeJson(pathFor(userId), next);
+  await writePrivate(pathFor(userId), next);
   return next;
 }
 

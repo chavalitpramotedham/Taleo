@@ -1,14 +1,15 @@
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import type { CharacterDef, SavedCharacter } from "@/lib/types";
 import { NOTES_MAX, asGender } from "@/lib/characters";
-import { readJson, writeJson } from "./store";
+import { ACCOUNT_DOCS, readPrivate, writePrivate } from "./private-store";
 
 /** Each signed-in user's saved custom-character roster, used to populate
  *  the "Your characters" shelf in story creation without redrawing one
- *  each time. Private, never shown to anyone else. */
+ *  each time. Private, never shown to anyone else - and kept in the
+ *  private store (they carry a family's names and notes). */
 
 
-const path = (ownerId: string) => `characters/${ownerId}.json`;
+const path = ACCOUNT_DOCS.characters;
 const newCharacterId = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
 const cleanNotes = (notes: string | null | undefined) => (notes ?? "").trim().slice(0, NOTES_MAX) || null;
 /** How many story links to keep per character (most recent). */
@@ -17,9 +18,7 @@ const MAX_STORY_LINKS = 50;
 export class CharacterLimitError extends Error {}
 
 export async function listCharacters(ownerId: string): Promise<SavedCharacter[]> {
-  // (fresh: an edit or a new order must show straight away, and every
-  // write starts from this list - the CDN's copy lags by up to a minute)
-  const list = (await readJson<SavedCharacter[]>(path(ownerId), { fresh: true })) ?? [];
+  const list = (await readPrivate<SavedCharacter[]>(path(ownerId))) ?? [];
   // Back-fill fields added after the first characters were saved.
   return list.map((c) => ({ ...c, notes: c.notes ?? null, relationships: c.relationships ?? null, gender: asGender(c.gender), storyIds: Array.isArray(c.storyIds) ? c.storyIds : [] }));
 }
@@ -54,7 +53,7 @@ export async function saveCharacter(
     const updated: SavedCharacter = { ...list[i], name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], updatedAt: now };
     const next = [...list];
     next[i] = updated;
-    await writeJson(path(ownerId), next);
+    await writePrivate(path(ownerId), next);
     return updated;
   }
 
@@ -62,7 +61,7 @@ export async function saveCharacter(
     throw new CharacterLimitError(`You can keep ${limit} custom characters on your plan - replace one to add another.`);
   }
   const created: SavedCharacter = { id: newCharacterId(), name, look, svg: input.svg, notes, relationships, gender, prompt, storyIds: [], createdAt: now, updatedAt: now };
-  await writeJson(path(ownerId), [...list, created]);
+  await writePrivate(path(ownerId), [...list, created]);
   return created;
 }
 
@@ -91,7 +90,7 @@ export async function updateCharacter(
   };
   const next = [...list];
   next[i] = updated;
-  await writeJson(path(ownerId), next);
+  await writePrivate(path(ownerId), next);
   return updated;
 }
 
@@ -105,14 +104,14 @@ export async function linkStory(ownerId: string, characterIds: string[], storyId
     changed = true;
     return { ...c, storyIds: [...c.storyIds, storyId].slice(-MAX_STORY_LINKS) };
   });
-  if (changed) await writeJson(path(ownerId), next);
+  if (changed) await writePrivate(path(ownerId), next);
 }
 
 /** Forget a deleted story on the owner's characters ("starred in" links). */
 export async function unlinkStory(ownerId: string, storyId: string): Promise<void> {
   const list = await listCharacters(ownerId);
   if (!list.some((c) => c.storyIds.includes(storyId))) return;
-  await writeJson(
+  await writePrivate(
     path(ownerId),
     list.map((c) => (c.storyIds.includes(storyId) ? { ...c, storyIds: c.storyIds.filter((s) => s !== storyId) } : c)),
   );
@@ -133,13 +132,13 @@ export async function reorderCharacters(ownerId: string, ids: string[]): Promise
   }
   const next = [...ordered, ...list.filter((c) => !seen.has(c.id))];
   if (next.every((c, i) => c.id === list[i].id)) return list; // nothing moved
-  await writeJson(path(ownerId), next);
+  await writePrivate(path(ownerId), next);
   return next;
 }
 
 export async function deleteCharacter(ownerId: string, id: string): Promise<void> {
   const list = await listCharacters(ownerId);
-  await writeJson(
+  await writePrivate(
     path(ownerId),
     list.filter((c) => c.id !== id),
   );

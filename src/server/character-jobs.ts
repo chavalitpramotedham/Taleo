@@ -1,6 +1,6 @@
 import type { CharacterResponse } from "@/lib/types";
 import type { CharacterProgress } from "@/lib/character-client";
-import { readJson, writeJson } from "./store";
+import { ACCOUNT_DOCS, readPrivate, writePrivate } from "./private-store";
 
 /**
  * A character being designed, kept apart from the request that asked for
@@ -12,10 +12,10 @@ import { readJson, writeJson } from "./store";
  *
  *  - in this server's memory (free), for whoever is still listening or
  *    asks again on the same instance;
- *  - in storage - one small write - only when nobody was listening at the
- *    moment it finished, so a page that comes back later, possibly to a
- *    different instance, still finds it. One file per person, overwritten
- *    each time: never listed, never deleted, read by its direct address.
+ *  - in the private store - one small write - only when nobody was
+ *    listening at the moment it finished, so a page that comes back later,
+ *    possibly to a different instance, still finds it. One record per
+ *    person, overwritten each time, and forgotten after a week.
  */
 
 export type JobEvent = ({ type: "progress" } & CharacterProgress) | ({ type: "done" } & CharacterResponse) | { type: "error"; error: string };
@@ -46,7 +46,7 @@ interface Parked {
 const KEEP_MS = 30 * 60 * 1000;
 const store = globalThis as unknown as { __taleoCharacterJobs?: Map<string, Job> };
 const jobs = (store.__taleoCharacterJobs ??= new Map<string, Job>());
-const parkedPath = (userId: string) => `pending/character/${userId}.json`;
+const parkedPath = ACCOUNT_DOCS.parkedCharacter;
 
 export const validJobId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(v);
 
@@ -112,7 +112,7 @@ export function startJob(
     // Nobody there to hand it to: leave it where they'll find it.
     if (!tell(last)) {
       const parked: Parked = { jobId, at: job.at, character: job.result?.character, error: job.error };
-      await writeJson(parkedPath(userId), parked).catch((e) => console.error("[character] couldn't keep a finished painting for later", e));
+      await writePrivate(parkedPath(userId), parked, { ttlSeconds: 7 * 86_400 }).catch((e) => console.error("[character] couldn't keep a finished painting for later", e));
     }
   })();
   jobs.set(jobId, job);
@@ -138,14 +138,14 @@ export type JobStatus =
   | { status: "unknown" };
 
 /** What became of a job: from memory if this instance ran it, otherwise
- *  from what was left in storage (a free read). "unknown" can also mean
+ *  from what was left in the private store. "unknown" can also mean
  *  it's still being painted on another instance. */
 export async function jobStatus(jobId: string, userId: string): Promise<JobStatus> {
   const job = findJob(jobId, userId);
   if (job?.state === "running") return { status: "running", progress: job.progress };
   if (job?.state === "done" && job.result) return { status: "done", ...job.result };
   if (job?.state === "error") return { status: "error", error: job.error || "Couldn't paint that one. Try again?" };
-  const parked = await readJson<Parked>(parkedPath(userId), { fresh: true }).catch(() => null);
+  const parked = await readPrivate<Parked>(parkedPath(userId)).catch(() => null);
   if (parked?.jobId === jobId) {
     if (parked.character) return { status: "done", character: parked.character };
     if (parked.error) return { status: "error", error: parked.error };

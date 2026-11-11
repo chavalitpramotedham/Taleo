@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
+import { AccountMove } from "./AccountMove";
 import { anthropicCosts, anthropicCostsEnabled, type AnthropicCosts } from "@/server/anthropic-costs";
 
 const DAYS = 30;
@@ -98,6 +99,7 @@ export default async function AdminPage() {
           <b>Activity and token tracking is off.</b> Add Upstash Redis to the project (Vercel → Storage → Marketplace → Upstash for Redis, connected to <i>taleo</i>) and redeploy. Stories, paintings, words, tokens and cost per feature are recorded from then on.
         </p>
       )}
+      <AccountMove />
       {!anthropicCostsEnabled() && (
         <p className="admin-note">
           <b>Actual API costs aren&apos;t connected.</b> Create an Admin API key in the Claude Console (Settings → Admin keys) and add it as <code>ANTHROPIC_ADMIN_KEY</code> in Vercel. Until then, costs are estimates from token counts and list prices.

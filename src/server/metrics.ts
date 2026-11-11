@@ -21,16 +21,24 @@ export const metricsEnabled = () => Boolean(URL_ && TOKEN);
 
 export type Cmd = (string | number)[];
 
-export async function pipeline(cmds: Cmd[]): Promise<unknown[]> {
+/** `cacheSeconds`: for a page that is itself cached - the answer is kept
+ *  that long (as the file store's reads are). `strict`: a command the
+ *  store refused is an error, not an empty answer - for records that must
+ *  never be mistaken for missing. */
+export async function pipeline(cmds: Cmd[], opts: { cacheSeconds?: number; strict?: boolean } = {}): Promise<unknown[]> {
   if (!metricsEnabled() || cmds.length === 0) return [];
   const res = await fetch(`${URL_.replace(/\/$/, "")}/pipeline`, {
     method: "POST",
     headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
     body: JSON.stringify(cmds),
-    cache: "no-store",
+    ...(opts.cacheSeconds ? { next: { revalidate: opts.cacheSeconds } } : { cache: "no-store" as const }),
   });
   if (!res.ok) throw new Error(`metrics store ${res.status}`);
   const out = (await res.json()) as { result?: unknown; error?: string }[];
+  if (opts.strict) {
+    const bad = out.find((r) => r.error);
+    if (bad || out.length !== cmds.length) throw new Error(`metrics store refused a command: ${bad?.error ?? "short answer"}`);
+  }
   return out.map((r) => r.result);
 }
 

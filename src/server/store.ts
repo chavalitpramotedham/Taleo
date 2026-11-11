@@ -3,10 +3,15 @@ import path from "path";
 import { reportError } from "./alerts";
 
 /**
- * Shared JSON-blob storage used by the public story store and the user
- * store. Uses Vercel Blob when BLOB_READ_WRITE_TOKEN is set (production),
- * and local JSON files otherwise, so everything still works offline in dev
- * without any cloud credentials.
+ * Shared JSON-blob storage for what is published: the library's stories,
+ * their ratings and comments. Uses Vercel Blob when BLOB_READ_WRITE_TOKEN
+ * is set (production), and local JSON files otherwise, so everything still
+ * works offline in dev without any cloud credentials.
+ *
+ * Every file here is PUBLIC: anyone who has its address can read it, and
+ * the addresses are easy to work out. Nothing about an account belongs
+ * here - profiles, usage, saved characters and the like are kept in
+ * server/private-store.
  */
 
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
@@ -95,6 +100,32 @@ async function blobDelete(pathname: string) {
   if (url) await del(url, { token: BLOB_TOKEN });
 }
 
+async function blobDeletePrefix(prefix: string): Promise<number> {
+  const { list, del } = await import("@vercel/blob");
+  let removed = 0;
+  let cursor: string | undefined;
+  do {
+    const page = await list({ prefix, cursor, limit: 500, token: BLOB_TOKEN });
+    const found = page.blobs.filter((b) => b.pathname.startsWith(prefix));
+    if (found.length) await del(found.map((b) => b.url), { token: BLOB_TOKEN });
+    removed += found.length;
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+  return removed;
+}
+
+async function localDeletePrefix(prefix: string): Promise<number> {
+  // (a folder, or one file)
+  const target = localFile(prefix);
+  const walk = async (dir: string): Promise<string[]> => {
+    const here = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
+    return (await Promise.all(here.map((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)])))).flat();
+  };
+  const files = prefix.endsWith("/") ? await walk(target) : (await fs.stat(target).then((st) => st.isFile(), () => false)) ? [target] : [];
+  await Promise.all(files.map((f) => fs.unlink(f).catch(() => {})));
+  return files.length;
+}
+
 export const readJson = async <T>(pathname: string, opts: { cacheSeconds?: number; fresh?: boolean } = {}) => {
   assertStorage();
   return useBlob ? blobRead<T>(pathname, opts.cacheSeconds, opts.fresh) : localRead<T>(pathname);
@@ -106,4 +137,13 @@ export const writeJson = async (pathname: string, data: unknown) => {
 export const deleteJson = async (pathname: string) => {
   assertStorage();
   return useBlob ? blobDelete(pathname) : localDelete(pathname);
+};
+/** Removes every file whose name begins with `prefix` (a folder, with its
+ *  trailing slash, or one file's whole name); says how many there were.
+ *  It asks the store for a listing - a metered operation - so it is for
+ *  one-off housekeeping only, never a page. */
+export const deletePrefix = async (prefix: string): Promise<number> => {
+  assertStorage();
+  if (!prefix || prefix === "/") throw new Error("Not a folder to clear.");
+  return useBlob ? blobDeletePrefix(prefix) : localDeletePrefix(prefix);
 };

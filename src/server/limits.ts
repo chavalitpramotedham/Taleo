@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
-import { readJson, writeJson } from "./store";
+import { ACCOUNT_DOCS, readPrivate, writePrivate } from "./private-store";
 import { allowancePhrase, tierFor, CREDIT_PRICES, type CreditItem, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
 import { refundCredits, spendCredits } from "./billing";
@@ -27,13 +27,13 @@ import { refundCredits, spendCredits } from "./billing";
  * begun once the stories themselves are used up.
  *
  * `story`, `start` and `character` are the plan's product limits and the
- * costliest requests, so their counts are kept in the shared store, where
- * every server instance sees them (one small write each time).
+ * costliest requests, so their counts are kept in the private store
+ * (server/private-store), where every server instance sees them (one small
+ * write each time).
  *
- * The burst caps are counted in the server's memory: every stored write is a
- * metered Blob operation, and writing on each painted page or voice clip
- * would burn through the store's allowance. Memory is per server instance,
- * which is plenty for a safety cap.
+ * The burst caps are counted in the server's memory: a stored write on each
+ * painted page or voice clip would be a great many for very little.
+ * Memory is per server instance, which is plenty for a safety cap.
  */
 
 export type Bucket = "story" | "start" | "segment" | "illustrate" | "character" | "tts";
@@ -45,7 +45,7 @@ const stored = (bucket: Bucket): bucket is StoredBucket => STORED.includes(bucke
  *  first choice counts once - which stories have been counted (`counted`:
  *  the story's key, and when). */
 type Usage = Partial<Record<Bucket, number[]>> & { counted?: Record<string, number> };
-const path = (userId: string) => `ratelimits/${userId}.json`;
+const path = ACCOUNT_DOCS.usage;
 
 /** What a plan allows in a bucket (null: no limit). */
 function allowance(plan: TierInfo, bucket: Bucket): { count: number; windowMs: number } | null {
@@ -68,7 +68,7 @@ const merged = (a: number[] = [], b: number[] = []) => [...new Set([...a, ...b])
 async function load(userId: string, bucket: Bucket): Promise<Usage> {
   const mine = memory.get(userId) ?? {};
   if (!stored(bucket)) return mine;
-  const saved = (await readJson<Usage>(path(userId), { fresh: true })) ?? {};
+  const saved = (await readPrivate<Usage>(path(userId))) ?? {};
   const usage: Usage = {};
   for (const b of STORED) usage[b] = merged(saved[b] as number[] | undefined, mine[b] as number[] | undefined);
   usage.counted = { ...saved.counted, ...mine.counted };
@@ -85,7 +85,8 @@ async function save(userId: string, bucket: Bucket, usage: Usage) {
   for (const b of STORED) kept[b] = ((usage[b] as number[] | undefined) ?? []).filter((t) => now - t < KEEP_MS);
   kept.counted = Object.fromEntries(Object.entries(usage.counted ?? {}).filter(([, t]) => now - t < KEEP_MS));
   memory.set(userId, { ...mine, ...kept });
-  await writeJson(path(userId), kept);
+  // (the store forgets an account's counts by itself once none can matter)
+  await writePrivate(path(userId), kept, { ttlSeconds: Math.ceil(KEEP_MS / 1000) + 86_400 });
 }
 
 // One stored check-and-write at a time per account (on this instance), so

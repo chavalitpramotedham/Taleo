@@ -1,14 +1,14 @@
-import { readJson, writeJson } from "./store";
+import { ACCOUNT_DOCS, readPrivate, writePrivate } from "./private-store";
 
 /**
- * A family's reading diary - one small file per account: the dates (in the
+ * A family's reading diary - one small private record per account: the dates (in the
  * family's own time zone, "YYYY-MM-DD") they finished a story, and which
  * stories they finished on each. A write happens only when there is
  * something new to keep: the first story of a day, and each different
  * story after it (a handful a day at the very most) - reading the same
  * story again costs nothing.
  */
-const pathFor = (userId: string) => `users/reading/${userId}.json`;
+const pathFor = ACCOUNT_DOCS.reading;
 const KEEP_DAYS = 400; // a little over a year - enough for the chart and long streaks
 const PER_DAY = 6; // titles kept for one day
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -23,7 +23,7 @@ export interface ReadingDiary {
 
 export async function readingDiary(userId: string): Promise<ReadingDiary> {
   // (the file used to be just the list of days)
-  const raw = await readJson<string[] | Partial<ReadingDiary>>(pathFor(userId), { fresh: true });
+  const raw = await readPrivate<string[] | Partial<ReadingDiary>>(pathFor(userId));
   if (Array.isArray(raw)) return { days: raw, read: {} };
   return { days: Array.isArray(raw?.days) ? raw.days : [], read: raw?.read && typeof raw.read === "object" ? raw.read : {} };
 }
@@ -43,7 +43,7 @@ export async function logReadingDay(userId: string, day: string, storyId?: strin
   const add = storyId && ID_RE.test(storyId) && !had.includes(storyId) && had.length < PER_DAY ? storyId : null;
   if (diary.days.includes(day) && !add) return diary;
   const next = trimmed({ days: [...diary.days, day], read: add ? { ...diary.read, [day]: [...had, add] } : diary.read });
-  await writeJson(pathFor(userId), next);
+  await writePrivate(pathFor(userId), next);
   return next;
 }
 
@@ -52,6 +52,6 @@ export async function addReadingDays(userId: string, diary: ReadingDiary, add: s
   const missing = add.filter((d) => DAY_RE.test(d) && !diary.days.includes(d));
   if (!missing.length) return diary;
   const next = trimmed({ days: [...diary.days, ...missing], read: diary.read });
-  await writeJson(pathFor(userId), next);
+  await writePrivate(pathFor(userId), next);
   return next;
 }

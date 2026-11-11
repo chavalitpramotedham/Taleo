@@ -131,7 +131,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   if (id) return <Detail id={id} now={now} />;
 
-  const users = await listUsers({ cacheSeconds: 60 }).catch(() => [] as UserProfile[]);
+  // (as they are now: someone who signed up a moment ago can be searched for)
+  const users = await listUsers().catch(() => [] as UserProfile[]);
   const byId = new Map(users.map((u) => [u.id, u]));
 
   // A search: by email or handle (loosely: a part of either will do, and
