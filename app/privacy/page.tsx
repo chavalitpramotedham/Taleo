@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BrandMark } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: { absolute: "Privacy at Taleo" },
@@ -142,10 +141,9 @@ export default function PrivacyPage() {
 
       {/* who runs Taleo, as a calling card */}
       <address className="policy-card" aria-label="Who runs Taleo">
-        <span className="policy-card-brand">
-          <BrandMark />
-          <span>Taleo</span>
-        </span>
+        {/* (the app's own icon, as it sits on a phone's home screen) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="policy-card-icon" src="/icon-192.png?v=2" alt="Taleo" width={192} height={192} loading="lazy" decoding="async" />
         <span className="policy-card-rule" aria-hidden />
         <span className="policy-card-who">
           <b>Chavalit Pramotedham</b>

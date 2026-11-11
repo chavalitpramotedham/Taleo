@@ -13747,3 +13747,22 @@ html[data-night] .policy-card {
 .policy-card-site {
   color: var(--ink-faint);
 }
+
+/* (the card: the app's icon on the left, and no taller than its contents
+   need - a card, not a panel) */
+.policy-card {
+  aspect-ratio: auto;
+  gap: clamp(14px, 4vw, 22px);
+  padding: clamp(14px, 3.5vw, 20px) clamp(16px, 4.5vw, 26px);
+}
+.policy-card-icon {
+  display: block;
+  width: clamp(64px, 19vw, 84px);
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 22%;
+  box-shadow: 0 6px 14px -8px rgba(40, 25, 10, 0.6);
+}
+.policy-card-role {
+  margin-bottom: 4px;
+}
