@@ -93,8 +93,10 @@ export function GalleryShelf({
   // library fetches everything once and sorts here.
   const asked = useRef(new Set<string>());
   const [homeCategories, setHomeCategories] = useState<string[]>(limit ? first?.categories ?? [] : []);
-  // The library's story of the day leads the shelf, whatever the order
-  // (not on one author's own bookshelf page).
+  // The library's story of the day leads the shelf under Favourites (not
+  // on one author's own bookshelf page). Under Newest the shelf is simply
+  // newest first: today's story sits wherever its date puts it, as an
+  // ordinary card.
   const [daily, setDaily] = useState<GalleryEntry | null>(first?.daily ?? null);
   useEffect(() => {
     // the homepage keeps each order (and category) it has fetched
@@ -130,7 +132,7 @@ export function GalleryShelf({
     );
     // (the homepage's few already come narrowed to the category)
     const shown = limit ? list : list.filter((e) => matchesCategory(e, category));
-    const lead = daily && matchesCategory(daily, category) && (limit || list.some((e) => e.id === daily.id)) ? daily : null;
+    const lead = sort === "rating" && daily && matchesCategory(daily, category) && (limit || list.some((e) => e.id === daily.id)) ? daily : null;
     const all = lead ? [lead, ...shown.filter((e) => e.id !== lead.id)] : shown;
     return limit ? all.slice(0, limit) : all;
   }, [stories, sort, limit, category, daily]);
@@ -173,7 +175,7 @@ export function GalleryShelf({
       ) : (
         <div className="shelf">
           {sorted.map((s) => (
-            <StoryCard key={s.id} entry={s} daily={s.id === daily?.id} onOpen={() => setOpenId(s.id)} />
+            <StoryCard key={s.id} entry={s} daily={sort === "rating" && s.id === daily?.id} onOpen={() => setOpenId(s.id)} />
           ))}
         </div>
       )}
