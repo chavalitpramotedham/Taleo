@@ -1,7 +1,51 @@
 import type { NextConfig } from "next";
+import { execFileSync } from "node:child_process";
+import pkg from "./package.json";
+
+/**
+ * What this build is, noted as it's built, for the admin's "what's live"
+ * marker (see app/api/admin/deployment): the commit it was built from,
+ * when, and the last few commits with their full messages - the log of
+ * what changed. Read from git where the build has it (Vercel's has the
+ * last ten commits), else from what Vercel says about the one commit.
+ * Only the admin-only route reads it, so it is in no page's scripts.
+ */
+function buildInfo() {
+  const git = (...args: string[]) => {
+    try {
+      return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 4 << 20 }).trim();
+    } catch {
+      return "";
+    }
+  };
+  const clip = (t: string, n: number) => (t.length > n ? `${t.slice(0, n)}…` : t);
+  // (unit and record separators: nothing a commit message contains)
+  const log = git("log", "-n", "12", "--format=%H%x1f%cI%x1f%s%x1f%b%x1e");
+  let commits = log
+    .split("\x1e")
+    .map((row) => row.replace(/^\s+/, "").split("\x1f"))
+    .filter((f) => f.length >= 4 && f[0])
+    .map(([sha, at, subject, body]) => ({ sha, at, subject: clip(subject, 300), body: clip(body.trim(), 6000) }));
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA || commits[0]?.sha || "";
+  if (!commits.length && sha) {
+    const [subject = "", ...rest] = (process.env.VERCEL_GIT_COMMIT_MESSAGE ?? "").split("\n");
+    commits = [{ sha, at: "", subject: clip(subject, 300), body: clip(rest.join("\n").trim(), 6000) }];
+  }
+  return {
+    version: pkg.version,
+    sha,
+    branch: process.env.VERCEL_GIT_COMMIT_REF || git("rev-parse", "--abbrev-ref", "HEAD"),
+    // (the commit the deployment before this one was built from, where
+    // Vercel says: everything after it arrived with this deployment)
+    previousSha: process.env.VERCEL_GIT_PREVIOUS_SHA || "",
+    builtAt: new Date().toISOString(),
+    commits,
+  };
+}
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  env: { TALEO_BUILD_INFO: JSON.stringify(buildInfo()) },
   // The library's old address: a real permanent redirect (308), answered
   // before any page is rendered, so search engines move the address over.
   async redirects() {

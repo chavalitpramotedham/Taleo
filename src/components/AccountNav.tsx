@@ -7,11 +7,14 @@ import { signOut, useSession } from "next-auth/react";
 import { AccountIcon, AddTileIcon, CharacterIcon, ChartIcon, CogIcon, ShelfIcon, SignOutIcon } from "./Icons";
 import { Avatar } from "./Avatar";
 import { AddShortcutDialog, canAddShortcut } from "./AddShortcut";
+import { DeploymentDialog, DeploymentMarker } from "./DeploymentMarker";
+import type { Deployment } from "@/lib/deployment";
 
 export function AccountNav() {
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
   const [shortcut, setShortcut] = useState(false);
+  const [deployment, setDeployment] = useState<Deployment | null>(null);
   const path = usePathname() || "/";
   const item = (href: string) => `account-dropdown-item ${path.startsWith(href) ? "current" : ""}`;
   const ref = useRef<HTMLDivElement>(null);
@@ -96,9 +99,19 @@ export function AccountNav() {
             <SignOutIcon />
             Sign out
           </button>
+          {/* (admin only) what's live: the version, and when it was deployed */}
+          {session.user.isAdmin && (
+            <DeploymentMarker
+              onShow={(live) => {
+                setOpen(false);
+                setDeployment(live);
+              }}
+            />
+          )}
         </div>
       )}
       {shortcut && createPortal(<AddShortcutDialog onClose={() => setShortcut(false)} />, document.body)}
+      {deployment && createPortal(<DeploymentDialog live={deployment} onClose={() => setDeployment(null)} />, document.body)}
     </div>
   );
 }

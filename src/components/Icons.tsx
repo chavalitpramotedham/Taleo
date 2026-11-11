@@ -353,6 +353,13 @@ export const AddTileIcon = () => (
 );
 
 /** Sign out: an open door, and the way out of it. */
+export const InfoIcon = () => (
+  <svg {...menu}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 11v5.5" />
+    <circle cx="12" cy="7.8" r="0.6" fill="currentColor" />
+  </svg>
+);
 export const SignOutIcon = () => (
   <svg {...menu}>
     <path d="M10 3.5H5.5a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1H10" />
