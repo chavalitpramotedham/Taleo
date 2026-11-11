@@ -13495,3 +13495,31 @@ html {
   padding-bottom: 2px;
   font-size: 0.95rem;
 }
+
+/* ---------- Your characters in the story wizard, on wider screens ---------- */
+/* The row was laid out for five at most, in a narrow column: a sixth tile
+   ("New", or a sixth character) dropped to a line of its own beside a lot
+   of empty room. Tiles now fill the width of the panel at one size and wrap
+   only when a row is full. There is room above and to the right of the row
+   for the numbered badge on a chosen tile, which pokes out of its corner. */
+@media (min-width: 641px) {
+  .hero-slots {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    max-width: none;
+    padding: 10px 10px 4px 2px;
+    margin-top: -6px;
+  }
+}
+
+/* ---------- "Begin a story" on a phone: a button, not a bar ---------- */
+/* It hugs its words, with generous room at its sides, and floats in the
+   middle - rather than running the whole width of the screen. */
+@media (max-width: 640px) {
+  .floating-cta-btn {
+    width: auto;
+    max-width: calc(100% - 32px);
+    min-height: 52px;
+    padding-left: 30px;
+    padding-right: 34px;
+  }
+}

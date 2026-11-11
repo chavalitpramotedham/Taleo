@@ -186,7 +186,11 @@ export async function POST(req: Request) {
           }
         }
         if (stop.signal.aborted) await gen.end("left", { error: "The reader left before it was written." });
-        else if (made.v) await gen.end("ok", made.v);
+        else if (made.v) {
+          // (written and sent: credits held for it are now spent)
+          await g.settle();
+          await gen.end("ok", made.v);
+        }
       } catch (err) {
         if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("story writing", err, { kind: parsed.kind });
         await g.release(); // a story that failed to write doesn't count

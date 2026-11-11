@@ -10,7 +10,7 @@ const TITLE =
 /** The story, in the two lines written under the picture: before the
  *  choice, and after it. */
 const LINE_1 = "The stream looked so wide. “I can’t,” said Kit.";
-const LINE_2 = "“Not yet,” said Papa. Kit tried once more, and flew.";
+const LINE_2 = "“You can do it,” said Papa. Kit tried once more, and flew.";
 /** The choice a parent and child would be given at this point. */
 const QUESTION = "What should Kit do?";
 const OPTIONS = ["Turn back", "Try once more"] as const;

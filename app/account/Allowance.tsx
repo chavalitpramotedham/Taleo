@@ -84,6 +84,11 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
               </button>
             )}
           </div>
+          {rights.reserved > 0 && (
+            <p className="meta credits-reserved">
+              <b>{n(rights.reserved)}</b> more set aside for what&apos;s being made right now. {rights.reserved === 1 ? "It comes" : "They come"} back if it doesn&apos;t work out.
+            </p>
+          )}
           {credits === null ? (
             <p className="meta">Credits aren&apos;t available here yet.</p>
           ) : (
@@ -109,7 +114,7 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
               <ul className="menu-list">
                 <Line what={`Free stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} />
                 <Line what={`Free characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`} value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
-                <Line what="Characters saved" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
+                <Line what="Custom character slots used" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
               </ul>
               {s.left === 0 && s.nextInSec > 0 && (
                 <p className="meta menu-note">

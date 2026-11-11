@@ -122,6 +122,8 @@ export async function POST(req: Request) {
         report(p);
       };
       const finished = async (made: Awaited<ReturnType<typeof designCharacter>>) => {
+        // (painted: credits held for it are now spent)
+        await g.settle();
         await gen.end("ok", { summary: `${made.character.name}: ${made.character.look ?? ""}`, result: JSON.stringify(made, null, 1) });
         return made;
       };

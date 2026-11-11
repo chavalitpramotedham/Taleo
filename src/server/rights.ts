@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 import type { Account } from "./entitlements";
-import { billingAvailable } from "./billing";
+import { billingAvailable, heldCredits } from "./billing";
 import { peekLimit, peekStart, starterCredits } from "./limits";
 import { listCharacters } from "./characters";
 import { CHARACTER_CREDITS, STORY_CREDITS_RANGE, type CreditsMode, type TierId } from "@/lib/tiers";
@@ -22,6 +22,9 @@ export interface Rights {
   creditsMode: CreditsMode;
   /** null: not kept here, or unreadable just now. */
   credits: number | null;
+  /** Credits set aside right now for a story or character being made
+   *  (already out of `credits`; they come back if the work fails). */
+  reserved: number;
   /** Whether this account may add credits to itself by hand (the admin's
    *  test account only). */
   canAddCredits: boolean;
@@ -54,6 +57,9 @@ export async function rightsOf(account: Account): Promise<Rights> {
   const who = { id: account.id, isAdmin: account.isAdmin, tier: account.tier, username: account.username } as unknown as Session["user"];
   await starterCredits(account);
   const limits = account.plan.limits;
+  // (first: anything held for work that never finished goes back - so the
+  // balance read below is the true one)
+  const reserved = billingAvailable() ? ((await heldCredits(account.id).catch(() => null)) ?? 0) : 0;
   const [story, start, design, saved, credits] = await Promise.all([
     peekLimit(who, "story"),
     peekStart(who),
@@ -68,6 +74,7 @@ export async function rightsOf(account: Account): Promise<Rights> {
     suspended: account.suspended,
     creditsMode: account.plan.credits,
     credits,
+    reserved,
     canAddCredits: account.isAdmin && billingAvailable(),
     prices: { story: STORY_CREDITS_RANGE, character: CHARACTER_CREDITS },
     stories: {

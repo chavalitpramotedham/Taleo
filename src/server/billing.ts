@@ -53,7 +53,11 @@ export interface CreditEntry {
   at: number;
   /** Credits added (a purchase, a refund, a gift) or taken (a spend). */
   delta: number;
-  reason: "purchase" | "spend" | "refund" | "grant" | "adjust";
+  /** A spend goes in two steps: "hold" sets the credits aside as the work
+   *  begins (they leave the balance at once), then either "spend" settles
+   *  it when the work is done (no further change: delta 0) or "release"
+   *  puts them back because it failed. */
+  reason: "purchase" | "spend" | "refund" | "grant" | "adjust" | "hold" | "release";
   /** A few words for a person reading the ledger. */
   note?: string;
   /** The balance once this was applied. */
@@ -97,6 +101,7 @@ interface Local {
   balance: number;
   refs: Record<string, 1>;
   ledger: CreditEntry[];
+  holds?: Record<string, { amount: number; at: number }>;
   sub?: Subscription | null;
 }
 const localFile = (id: string) => path.join(process.cwd(), ".data", "billing", `${id}.json`);
@@ -243,5 +248,160 @@ export async function forgetBilling(userId: string): Promise<void> {
     if (!onVercel) await localInTurn(() => fs.unlink(localFile(userId)).catch(() => {}));
     return;
   }
-  await pipeline([["DEL", balKey(userId), ledgerKey(userId), subKey(userId)]]);
+  await pipeline([["DEL", balKey(userId), ledgerKey(userId), subKey(userId), holdsKey(userId)]]);
+}
+
+// ------------------------------------------------------------------ holds
+//
+// Paying for a piece of work is a transaction in two steps, so credits are
+// never taken for something that wasn't delivered and never spent twice:
+//
+//   hold     as the work begins, the credits are set aside: they leave the
+//            balance at once (nothing else can spend them) and the ledger
+//            says "hold".
+//   settle   the work was done: the hold becomes the spend. The balance
+//            doesn't change again; the ledger says "spend".
+//   release  the work failed or was stopped: the credits go back and the
+//            ledger says "release". The same piece of work can then be
+//            tried, and held for, again.
+//
+// A hold nobody settled or released (the server stopped mid-work) is
+// released once it is older than any piece of work can take.
+
+const holdsKey = (id: string) => `bill:holds:${id}`;
+/** No request runs longer than five minutes; well past that, a hold is stale. */
+const HOLD_STALE_MS = 20 * 60_000;
+
+// KEYS: balance, holds, ledger, ref-of-the-work. ARGV: ref, amount, entry, now, ledger kept.
+const HOLD = `
+if redis.call('HEXISTS', KEYS[2], ARGV[1]) == 1 or redis.call('EXISTS', KEYS[4]) == 1 then return {2, tonumber(redis.call('GET', KEYS[1]) or '0')} end
+local bal = tonumber(redis.call('GET', KEYS[1]) or '0')
+local amount = tonumber(ARGV[2])
+if bal < amount then return {0, bal} end
+local nb = redis.call('DECRBY', KEYS[1], amount)
+redis.call('HSET', KEYS[2], ARGV[1], amount .. ':' .. ARGV[4])
+local entry = string.gsub(ARGV[3], '"balance":%-?%d+', '"balance":' .. nb, 1)
+redis.call('LPUSH', KEYS[3], entry)
+redis.call('LTRIM', KEYS[3], 0, tonumber(ARGV[5]) - 1)
+return {1, nb}`;
+// KEYS: as above. ARGV: ref, 'spend' | 'release', entry, ref kept (s), ledger kept.
+const SETTLE = `
+local h = redis.call('HGET', KEYS[2], ARGV[1])
+if not h then return {2, tonumber(redis.call('GET', KEYS[1]) or '0'), 0} end
+local amount = tonumber(string.match(h, '^(%d+)'))
+redis.call('HDEL', KEYS[2], ARGV[1])
+local nb
+local delta = 0
+if ARGV[2] == 'release' then
+  nb = redis.call('INCRBY', KEYS[1], amount)
+  delta = amount
+else
+  nb = tonumber(redis.call('GET', KEYS[1]) or '0')
+  redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[4]))
+end
+local entry = string.gsub(ARGV[3], '"balance":%-?%d+', '"balance":' .. nb, 1)
+entry = string.gsub(entry, '"delta":%-?%d+', '"delta":' .. delta, 1)
+entry = string.gsub(entry, '"amount":%-?%d+', '"amount":' .. amount, 1)
+redis.call('LPUSH', KEYS[3], entry)
+redis.call('LTRIM', KEYS[3], 0, tonumber(ARGV[5]) - 1)
+return {1, nb, amount}`;
+
+/** Sets `amount` credits aside for the piece of work `ref`, if the account
+ *  has them. `applied: false`: this work is already held for, or already
+ *  paid for - nothing more is taken. */
+export async function holdCredits(userId: string, amount: number, ref: string, note?: string): Promise<CreditResult> {
+  if (!safe(userId) || !safe(ref) || !Number.isInteger(amount) || amount <= 0 || amount > 1_000_000) throw new Error("Not a valid hold.");
+  const now = Date.now();
+  const entry: CreditEntry = { ref, at: now, delta: -amount, reason: "hold", note: note?.slice(0, 200), balance: 0 };
+  if (!metricsEnabled()) {
+    if (onVercel) return { ok: false, balance: 0, reason: "unavailable" };
+    return localInTurn(async (): Promise<CreditResult> => {
+      const rec = await localOf(userId);
+      rec.holds ??= {};
+      if (rec.holds[ref] || rec.refs[ref]) return { ok: true, balance: rec.balance, applied: false };
+      if (rec.balance < amount) return { ok: false, balance: rec.balance, reason: "insufficient" };
+      rec.balance -= amount;
+      rec.holds[ref] = { amount, at: now };
+      rec.ledger.unshift({ ...entry, balance: rec.balance });
+      rec.ledger.length = Math.min(rec.ledger.length, LEDGER_KEPT);
+      await localSave(userId, rec);
+      return { ok: true, balance: rec.balance, applied: true };
+    });
+  }
+  try {
+    const [out] = await pipeline([["EVAL", HOLD, 4, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), ref, amount, JSON.stringify(entry), now, LEDGER_KEPT]]);
+    const [state, balance] = (Array.isArray(out) ? out : [0, 0]).map(Number);
+    if (state === 0) return { ok: false, balance, reason: "insufficient" };
+    return { ok: true, balance, applied: state === 1 };
+  } catch (e) {
+    console.error("[billing] couldn't hold credits", e);
+    return { ok: false, balance: 0, reason: "unavailable" };
+  }
+}
+
+/** Ends the hold for `ref`: "spend" (the work was done) or "release" (it
+ *  wasn't: the credits go back). Asked twice, or with no such hold, it
+ *  changes nothing. Returns whether it did, and the credits concerned. */
+async function endHold(userId: string, ref: string, how: "spend" | "release", note?: string): Promise<{ done: boolean; amount: number }> {
+  if (!safe(userId) || !safe(ref)) return { done: false, amount: 0 };
+  // (the amount and the change to the balance are filled in from the hold itself)
+  const entry = { ref: `${how === "spend" ? "settled" : "released"}:${ref}`, at: Date.now(), delta: 0, reason: how, note: note?.slice(0, 200), balance: 0, amount: 0 };
+  if (!metricsEnabled()) {
+    if (onVercel) return { done: false, amount: 0 };
+    return localInTurn(async () => {
+      const rec = await localOf(userId);
+      const held = rec.holds?.[ref];
+      if (!held) return { done: false, amount: 0 };
+      delete rec.holds![ref];
+      if (how === "release") rec.balance += held.amount;
+      else rec.refs[ref] = 1;
+      rec.ledger.unshift({ ...entry, delta: how === "release" ? held.amount : 0, amount: held.amount, balance: rec.balance } as CreditEntry);
+      rec.ledger.length = Math.min(rec.ledger.length, LEDGER_KEPT);
+      await localSave(userId, rec);
+      return { done: true, amount: held.amount };
+    });
+  }
+  try {
+    const [out] = await pipeline([["EVAL", SETTLE, 4, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), ref, how, JSON.stringify(entry), REF_KEPT_S, LEDGER_KEPT]]);
+    const [state, , amount] = (Array.isArray(out) ? out : [0, 0, 0]).map(Number);
+    return { done: state === 1, amount: amount || 0 };
+  } catch (e) {
+    console.error(`[billing] couldn't ${how === "spend" ? "settle" : "release"} a hold`, e);
+    return { done: false, amount: 0 };
+  }
+}
+/** The work was done: the hold becomes the spend. */
+export const settleHold = (userId: string, ref: string, note?: string) => endHold(userId, ref, "spend", note);
+/** The work failed or was stopped: the held credits go back. */
+export const releaseHold = (userId: string, ref: string, note?: string) => endHold(userId, ref, "release", note);
+
+/** What's set aside right now for work in progress - after releasing any
+ *  hold left behind by work that never finished. Null if it can't be read. */
+export async function heldCredits(userId: string): Promise<number | null> {
+  if (!safe(userId)) return null;
+  const now = Date.now();
+  let holds: [string, { amount: number; at: number }][];
+  if (!metricsEnabled()) {
+    if (onVercel) return null;
+    holds = Object.entries((await localOf(userId)).holds ?? {});
+  } else {
+    try {
+      const [raw] = await pipeline([["HGETALL", holdsKey(userId)]]);
+      const flat = Array.isArray(raw) ? raw.map(String) : raw && typeof raw === "object" ? Object.entries(raw as Record<string, unknown>).flat().map(String) : [];
+      holds = [];
+      for (let i = 0; i + 1 < flat.length; i += 2) {
+        const [amount, at] = flat[i + 1].split(":").map(Number);
+        holds.push([flat[i], { amount: amount || 0, at: at || 0 }]);
+      }
+    } catch (e) {
+      console.error("[billing] couldn't read the holds", e);
+      return null;
+    }
+  }
+  let held = 0;
+  for (const [ref, h] of holds) {
+    if (now - h.at > HOLD_STALE_MS) await releaseHold(userId, ref, "The work never finished: credits returned");
+    else held += h.amount;
+  }
+  return held;
 }

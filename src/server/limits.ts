@@ -4,7 +4,7 @@ import { auth } from "./auth";
 import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { applyCredits, billingAvailable, refundCredits, spendCredits } from "./billing";
+import { applyCredits, billingAvailable, heldCredits, holdCredits, releaseHold, settleHold } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
@@ -247,7 +247,17 @@ const LIMIT_MESSAGES: Record<Bucket, (wait: string, plan: TierInfo) => string> =
 export const limitMessage = (user: Who, bucket: Bucket, retryAfterSec: number) => LIMIT_MESSAGES[bucket](minutesText(retryAfterSec), tierFor(user));
 
 export type Guard =
-  | { ok: true; session: Session; release: () => Promise<void>; /** credits this request was paid with, if the plan's own allowance was used up */ credits?: number }
+  | {
+      ok: true;
+      session: Session;
+      /** The work failed or was stopped: what was counted or held for it goes back. */
+      release: () => Promise<void>;
+      /** The work was done: credits held for it become the spend. (Nothing
+       *  to do where no credits were held.) */
+      settle: () => Promise<void>;
+      /** credits held for this request, if the plan's own allowance was used up */
+      credits?: number;
+    }
   | { ok: false; response: NextResponse };
 
 /** What an account must hold, or was charged. */
@@ -357,13 +367,21 @@ export async function guard(
       if (balance === null) return { ok: false, offer: { item, price, balance: 0 }, down: true };
       return balance >= price ? { ok: true, spent: 0 } : { ok: false, offer: { item, price, balance } };
     }
-    const paid = await spendCredits(userId, price, ref, item === "story" ? `A ${price}-minute story` : "A character");
+    // (set aside as the work begins - gone from the balance at once - and
+    // settled or released when it's known how the work went)
+    await heldCredits(userId).catch(() => null); // (first, anything left by work that never finished goes back)
+    const paid = await holdCredits(userId, price, ref, what);
     if (paid.ok) return { ok: true, spent: paid.applied ? price : 0 };
     return { ok: false, offer: { item, price, balance: paid.balance }, down: paid.reason === "unavailable" };
   };
+  const what = item === "story" ? `A ${price}-minute story` : "A character";
   const giveBack = (spent: number) => async () => {
-    if (spent) await refundCredits(userId, spent, ref, "The work failed: credits returned");
+    if (spent) await releaseHold(userId, ref, `${what}: it didn't work out, credits returned`);
   };
+  const keep = (spent: number) => async () => {
+    if (spent) await settleHold(userId, ref, what);
+  };
+  const nothing = async () => {};
 
   // A plan where everything costs credits (the admin's test account):
   // nothing is counted against an allowance - the credits are the limit.
@@ -372,7 +390,7 @@ export async function guard(
   // of making things by the credit store being away.)
   if (mode === "always" && item && price && !me.stale && billingAvailable()) {
     const paid = await pay();
-    if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
+    if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
     if (!paid.down) return { ok: false, response: notEnough(paid.offer) };
     console.error("[limits] credits unavailable: the plan's own allowance stands");
   }
@@ -388,7 +406,7 @@ export async function guard(
     // progress.
     console.error("[limits] couldn't check usage", e);
     if (stored(b)) return unavailable;
-    return { ok: true, session, release: async () => {} };
+    return { ok: true, session, release: nothing, settle: nothing };
   }
   if (!took.ok) {
     // The plan's allowance is used up: credits pay for more, if the person
@@ -404,7 +422,7 @@ export async function guard(
       // credits without asking each time)
       if (offer && (opts.useCredits || mode === "auto")) {
         const paid = await pay();
-        if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
+        if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
       }
     }
     return {
@@ -417,5 +435,5 @@ export async function guard(
     };
   }
   const used = took.limited;
-  return { ok: true, session, release: () => refund(userId, used, took.at) };
+  return { ok: true, session, release: () => refund(userId, used, took.at), settle: nothing };
 }

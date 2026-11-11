@@ -50,7 +50,7 @@ const COMING: Card = {
   button: "",
   current: false,
   intro: "Everything in Free, and more of:",
-  features: ["More new stories each day", "More custom characters to keep", "Longer stories and new features first"],
+  features: ["More new stories each week", "More custom character slots", "Longer stories and new features first"],
 };
 
 /** Account tier on Manage account: a short summary of your plan - its

@@ -179,7 +179,7 @@ export const tierRows = (t: TierInfo): TierRow[] => [
   { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
-  { label: "Characters kept", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved` },
+  { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },
   { label: "Reading the Public Library", value: "Unlimited" },
   ...(t.extras ?? []),
 ];
