@@ -14294,3 +14294,88 @@ html[data-night] .txn-amount.in {
 .night-stars.scrolling i {
   animation-play-state: paused;
 }
+
+/* ---------- The night sky, on every screen ---------- */
+/* The indigo sky and its stars are for phones and tablets too, not only
+   wide screens - and a hint lighter than first drawn. (These follow the
+   wide-screen rules above and take their place at every width.) */
+html[data-night] {
+  background-color: #15141f;
+}
+html[data-night] body {
+  background-color: #15141f;
+  background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(33, 34, 60, 0.66), transparent 72%),
+    radial-gradient(ellipse 80% 60% at 10% 115%, rgba(84, 70, 132, 0.3), transparent 70%);
+}
+.theme-fade.from-night {
+  background-color: #15141f;
+  background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(33, 34, 60, 0.66), transparent 72%),
+    radial-gradient(ellipse 80% 60% at 10% 115%, rgba(84, 70, 132, 0.3), transparent 70%);
+}
+html[data-night] .topbar {
+  background: linear-gradient(to bottom, #1c1b28, #181723);
+  background-color: #1a1925;
+  border-bottom-color: #2f2d3f;
+}
+.night-stars {
+  display: block;
+  position: fixed;
+  inset: var(--topbar-h, 64px) 0 0 0;
+  z-index: -1;
+  pointer-events: none;
+  animation: lightOn 2.4s ease 0.8s both;
+}
+.night-stars.leaving {
+  animation: lightOff 0.4s ease both;
+}
+.night-stars i {
+  position: absolute;
+  background: #f4ecd6;
+  clip-path: polygon(50% 0, 59% 41%, 100% 50%, 59% 59%, 50% 100%, 41% 59%, 0 50%, 41% 41%);
+  opacity: 0.3;
+  will-change: opacity, transform;
+  animation: starGlimmer 7s ease-in-out infinite;
+}
+/* A smaller screen has a smaller sky: seven stars on a tablet, and on a
+   phone five - smaller, and kept to the narrow margins at the two edges
+   of the screen, where the page leaves the sky open. */
+@media (max-width: 899px) {
+  .night-stars i:nth-child(even) {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .night-stars i:nth-child(even),
+  .night-stars i:nth-child(5),
+  .night-stars i:nth-child(11) {
+    display: none;
+  }
+  .night-stars i {
+    scale: 0.8;
+  }
+  .night-stars i:nth-child(1) {
+    left: 1.2% !important;
+    top: 9% !important;
+  }
+  .night-stars i:nth-child(3) {
+    left: 1.5% !important;
+    top: 58% !important;
+  }
+  .night-stars i:nth-child(7) {
+    left: 96.5% !important;
+    top: 30% !important;
+  }
+  .night-stars i:nth-child(9) {
+    left: 96% !important;
+    top: 76% !important;
+  }
+  .night-stars i:nth-child(13) {
+    left: 2% !important;
+    top: 88% !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .night-stars i {
+    animation: none;
+  }
+}
