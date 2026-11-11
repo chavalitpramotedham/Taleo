@@ -7,8 +7,22 @@
     <meta name="robots" content="noindex" />
     <title>You're offline · Taleo</title>
     <script>
+      // Day from 9am to 5pm by this device's clock, night otherwise; the
+      // menu's switch overrides that until the next change-over.
+      // (the same rule as src/lib/night-clock.ts)
       try {
-        if (localStorage.getItem("taleo.night") === "1") {
+        var d = new Date(), h = d.getHours(), day = h >= 9 && h < 17, s = new Date(d), on = !day;
+        s.setMinutes(0, 0, 0);
+        if (day) s.setHours(9);
+        else {
+          if (h < 17) s.setDate(s.getDate() - 1);
+          s.setHours(17);
+        }
+        try {
+          var v = localStorage.getItem("taleo.night"), at = +localStorage.getItem("taleo.night.at") || 0;
+          if ((v === "1" || v === "0") && at >= s.getTime()) on = v === "1";
+        } catch (e) {}
+        if (on) {
           document.documentElement.dataset.night = "1";
           document.querySelector('meta[name="theme-color"]').content = "#131017";
         }

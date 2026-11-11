@@ -17,6 +17,7 @@ import { ToastHost } from "@/components/Toast";
 import { ServiceWorker } from "@/components/AddShortcut";
 import { INSTALL_CATCH } from "@/lib/install";
 import { EARLY_FETCH } from "@/lib/early";
+import { NIGHT_INIT } from "@/lib/night-clock";
 
 export const metadata: Metadata = {
   // The site's home: link previews (story images in WhatsApp, iMessage...)
@@ -122,10 +123,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${garamond.variable} ${fell.variable} ${fellSC.variable} ${garamondItalic.variable} ${fellItalic.variable}`} suppressHydrationWarning>
       <head>
-        {/* Apply night mode before the first paint (no flash of the light theme). */}
+        {/* Day or night, by the reader's clock (or their own recent choice),
+            before the first paint: no flash of the other theme. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("taleo.night")==="1"){document.documentElement.dataset.night="1";var m=document.querySelector('meta[name="theme-color"]');if(m)m.content="#131017"}}catch(e){}${INSTALL_CATCH}${EARLY_FETCH}`,
+            __html: `${NIGHT_INIT}${INSTALL_CATCH}${EARLY_FETCH}`,
           }}
         />
       </head>

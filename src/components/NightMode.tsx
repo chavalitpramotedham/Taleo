@@ -1,15 +1,17 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LanternArt, MoonIcon } from "./NightLamp";
+import { NIGHT_AT_KEY, NIGHT_KEY } from "@/lib/night-clock";
 
 /**
  * Night mode for the whole site: a cosy, dim bedtime theme with a little
  * storybook lantern hanging from the menu bar (next to its switch), its
  * warm light falling across the page, and fireflies drifting about.
  *
- * Remembered on this device ("taleo.night"); an inline script in the root
- * layout applies it before first paint, so there's never a flash of the
- * light theme.
+ * A page opens by the clock: daylight from 9am to 5pm, night otherwise
+ * (lib/night-clock). The switch overrides that until day next turns to
+ * night or night to day. An inline script in the root layout applies it
+ * before first paint, so there's never a flash of the other theme.
  *
  * Switching never blanks the screen: the menu bar stays, its colours
  * blending into the new theme's; below it the page's contents fade out,
@@ -19,7 +21,6 @@ import { LanternArt, MoonIcon } from "./NightLamp";
  * The lantern and fireflies only start once the switch is done.
  */
 
-const KEY = "taleo.night";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** The next painted frame (or shortly after, in a tab that isn't painting). */
 const nextFrame = () =>
@@ -89,7 +90,8 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     // The browser's own bar and the iPhone's status-bar area follow too.
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = on ? "#131017" : "#F3ECDC"));
     try {
-      localStorage.setItem(KEY, on ? "1" : "0");
+      localStorage.setItem(NIGHT_KEY, on ? "1" : "0");
+      localStorage.setItem(NIGHT_AT_KEY, String(Date.now()));
     } catch {}
   };
 
