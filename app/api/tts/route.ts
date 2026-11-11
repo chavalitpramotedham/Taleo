@@ -92,6 +92,10 @@ export async function GET(req: Request) {
       return audio(existing);
     }
 
+    // "Only if it's already made" (o=1): a page being got ready before
+    // anyone has asked to hear it. Nothing is made, nothing is counted.
+    if (url.searchParams.get("o") === "1") return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+
     const session = await auth();
     if (session?.user?.id) {
       const g = await guard("tts");

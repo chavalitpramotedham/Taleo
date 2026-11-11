@@ -91,33 +91,69 @@ const voiceParam = () => {
 };
 const clipKey = (text: string, kind: SpeechKind) => `${voiceParam() ?? ""}\n${kind}\n${text}`;
 
-function loadClip(text: string, kind: SpeechKind, ahead = false): Promise<AudioBuffer | null> {
+/** Clips asked for only "if already made": a miss there says nothing about
+ *  whether the clip can be had - a real request must still ask. */
+const soft = new Set<string>();
+function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = false): Promise<AudioBuffer | null> {
   const key = clipKey(text, kind);
   const have = clips.get(key);
-  if (have) return have;
   const v = voiceParam();
-  const p = fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined)
-    .then((r) => (r.ok ? r.arrayBuffer() : null))
-    .then((buf) => {
-      const c = getAudioContext();
-      return buf && c ? c.decodeAudioData(buf) : null;
-    })
-    .catch(() => null);
+  // (`onlyIfMade`: fetch the clip if it already exists, but don't have one
+  // made - for getting a page ready that may never be read aloud)
+  const ask = (only: boolean) =>
+    fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}${only ? "&o=1" : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined)
+      .then((r) => (r.ok && r.status !== 204 ? r.arrayBuffer() : null))
+      .then((buf) => {
+        const c = getAudioContext();
+        return buf && c ? c.decodeAudioData(buf) : null;
+      })
+      .catch(() => null);
+  let p: Promise<AudioBuffer | null>;
+  if (have && (onlyIfMade || !soft.has(key))) return have;
+  if (have) {
+    // (it was only looked for: wait for that answer, and if it wasn't
+    // there, have it made now)
+    soft.delete(key);
+    p = have.then((b) => b ?? ask(false));
+  } else {
+    if (onlyIfMade) soft.add(key);
+    p = ask(onlyIfMade);
+  }
   clips.set(key, p);
   // A failed clip shouldn't stay cached; keep the memory cache small.
-  void p.then((b) => b || clips.delete(key));
+  void p.then((b) => {
+    if (b || clips.get(key) !== p) return;
+    clips.delete(key);
+    soft.delete(key);
+  });
   if (clips.size > 80) clips.delete(clips.keys().next().value!);
   return p;
 }
 
 /** Start fetching a phrase's clip early (e.g. the page that's about to be
  *  read, or a word as it's tapped) so it plays without a pause. */
-export function prefetchSpeech(text: string, kind: SpeechKind = "page", ahead = false) {
+export function prefetchSpeech(text: string, kind: SpeechKind = "page", ahead = false, onlyIfMade = false) {
   const t = clean(text);
   if (!t || typeof window === "undefined") return;
   void neuralEnabled().then((on) => {
-    if (on) void loadClip(t, kind, ahead);
+    if (on) void loadClip(t, kind, ahead, onlyIfMade);
   });
+}
+
+const USED_KEY = "taleo.readAloudUsed";
+/** Whether read-aloud has been used on this device before (someone who
+ *  has is likely to again, so their pages are made ready in full). */
+export function readAloudUsed(): boolean {
+  try {
+    return localStorage.getItem(USED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+export function noteReadAloudUsed() {
+  try {
+    localStorage.setItem(USED_KEY, "1");
+  } catch {}
 }
 
 // ---------------------------------------------------------------- browser voice

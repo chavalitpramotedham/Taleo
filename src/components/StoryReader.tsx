@@ -10,7 +10,7 @@ import { publishToGallery } from "@/lib/gallery-client";
 import { useMarkMaking } from "@/lib/making";
 import { usePaintings } from "@/lib/usePaintings";
 import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
-import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
+import { cancelSpeech, noteReadAloudUsed, onSpeechProgress, prefetchSpeech, readAloudUsed, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -657,6 +657,26 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     return spoken.at - (page.aside ? page.aside.length + 1 : 0);
   };
 
+  /** What's read aloud for what's showing. */
+  const wordsOf = useCallback(
+    (v: typeof view): string => {
+      if (!v) return "";
+      if (v.kind === "page") return [v.page.aside, v.page.text].filter(Boolean).join(" ");
+      if (v.kind === "choice") {
+        const c = story.segments[v.seg].choice;
+        return c ? `${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?` : "";
+      }
+      if (v.kind === "end") return "The end.";
+      // waiting on the next part after a choice: the choice, echoed back
+      if (v.kind === "loading") {
+        const last = story.segments[(holdSeg ?? story.segments.length) - 1];
+        return last?.chosen ? `Great choice! ${last.chosen.custom ? "Your idea" : "You said"}: ${last.chosen.text}.` : "";
+      }
+      return "";
+    },
+    [story.segments, holdSeg],
+  );
+
   // A new page waits for the page turn to settle, plus a breath, before
   // the reading starts (the previous page's reading stops at once);
   // switching read-aloud on starts almost straight away.
@@ -669,18 +689,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       window.clearTimeout(readTimer.current);
       return;
     }
-    let text = "";
-    if (view.kind === "page") text = [view.page.aside, view.page.text].filter(Boolean).join(" ");
-    if (view.kind === "choice") {
-      const c = story.segments[view.seg].choice;
-      if (c) text = `${c.prompt} ${c.options.map((o) => o.label).join("? Or ")}?`;
-    }
-    if (view.kind === "end") text = "The end.";
-    // waiting on the next part after a choice: the choice, echoed back
-    if (view.kind === "loading") {
-      const last = story.segments[(holdSeg ?? story.segments.length) - 1];
-      if (last?.chosen) text = `Great choice! ${last.chosen.custom ? "Your idea" : "You said"}: ${last.chosen.text}.`;
-    }
+    const text = wordsOf(view);
     // Only when the words to read change (the page re-renders for other
     // reasons too, e.g. a painting arriving - that mustn't restart it).
     if (!text || text === readFor.current) return;
@@ -689,17 +698,28 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (turned) cancelSpeech();
     window.clearTimeout(readTimer.current);
     // After a turn, a calm pause (the page settles and you look at the picture)
-    // before the voice begins; turning read-aloud on starts almost at once.
-    readTimer.current = window.setTimeout(() => speak(text), turned ? 2000 : 250);
-  }, [readAloud, view, speak, story.segments, cover, voiceTick]);
+    // before the voice begins; turning read-aloud on starts at once - the
+    // page's voice was made ready as the page opened (see below).
+    if (turned) readTimer.current = window.setTimeout(() => speak(text), 2000);
+    else speak(text);
+  }, [readAloud, view, speak, wordsOf, cover, voiceTick]);
 
   // Have the voice ready before it's needed: this page's tappable word, and
   // (when reading aloud) the next page's text.
+  // And this page's own words, before the read-aloud button is ever
+  // pressed, so pressing it starts the voice with no wait: fetched if the
+  // recording already exists (most do: a story is voiced once, for
+  // everyone), and made ready in full on a device that has used read-aloud
+  // before - where it's likely to be wanted again.
   useEffect(() => {
+    if (!readAloud && view && cover === "open" && (view.kind === "page" || view.kind === "choice")) {
+      const words = wordsOf(view);
+      if (words) prefetchSpeech(words, "page", true, !readAloudUsed());
+    }
     if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
     const nextView = views[index + 1];
     if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "), "page", true);
-  }, [view, views, index, readAloud]);
+  }, [view, views, index, readAloud, cover, wordsOf]);
 
   useEffect(() => {
     setSpeechStory(story.id);
@@ -1058,6 +1078,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               else {
                 unlockSpeech();
                 wakeAudio();
+                noteReadAloudUsed();
               }
               setReadAloud((r) => !r);
             }}
