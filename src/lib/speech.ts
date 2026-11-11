@@ -168,22 +168,6 @@ export function prefetchSpeech(text: string, kind: SpeechKind = "page", ahead = 
   });
 }
 
-const USED_KEY = "taleo.readAloudUsed";
-/** Whether read-aloud has been used on this device before (someone who
- *  has is likely to again, so their pages are made ready in full). */
-export function readAloudUsed(): boolean {
-  try {
-    return localStorage.getItem(USED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-export function noteReadAloudUsed() {
-  try {
-    localStorage.setItem(USED_KEY, "1");
-  } catch {}
-}
-
 // ---------------------------------------------------------------- browser voice
 
 let voices: SpeechSynthesisVoice[] = [];

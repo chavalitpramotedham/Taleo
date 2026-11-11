@@ -10,7 +10,7 @@ import { publishToGallery } from "@/lib/gallery-client";
 import { useMarkMaking } from "@/lib/making";
 import { usePaintings } from "@/lib/usePaintings";
 import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
-import { cancelSpeech, noteReadAloudUsed, onSpeechProgress, prefetchSpeech, readAloudUsed, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
+import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
@@ -714,12 +714,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // And this page's own words, before the read-aloud button is ever
   // pressed, so pressing it starts the voice with no wait: fetched if the
   // recording already exists (most do: a story is voiced once, for
-  // everyone), and made ready in full on a device that has used read-aloud
-  // before - where it's likely to be wanted again.
+  // everyone). A recording is never made before it's asked for: the first
+  // time ever a page is read aloud, there is a short wait while it's made.
   useEffect(() => {
     if (!readAloud && view && cover === "open" && (view.kind === "page" || view.kind === "choice")) {
       const words = wordsOf(view);
-      if (words) prefetchSpeech(words, "page", true, !readAloudUsed());
+      if (words) prefetchSpeech(words, "page", true, true);
     }
     if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
     const nextView = views[index + 1];
@@ -1086,7 +1086,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               else {
                 unlockSpeech();
                 wakeAudio();
-                noteReadAloudUsed();
               }
               setReadAloud((r) => !r);
             }}
