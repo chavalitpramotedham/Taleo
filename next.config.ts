@@ -10,6 +10,36 @@ import pkg from "./package.json";
  * last ten commits), else from what Vercel says about the one commit.
  * Only the admin-only route reads it, so it is in no page's scripts.
  */
+/**
+ * The version, worked out from the calendar and the pushes - nobody has to
+ * remember to change it:
+ *
+ *   1 . days since launch . pushes that day
+ *
+ * The middle number goes up by one at each midnight in GMT+8 (whether or
+ * not anything was pushed that day); the last goes up by one with each
+ * push and starts again at 0 with the day's first. The release that
+ * introduced this is 1.0.0. It is read from the commit being built (its
+ * own date, not the time of building), so building the same commit again
+ * gives the same version.
+ */
+const LAUNCH = Date.parse("2026-11-11T14:55:00Z"); // (the first 1.0.0: commits from here on count)
+const ZONE_MS = 8 * 3600_000; // GMT+8
+const DAY_MS = 86_400_000;
+const dayOf = (t: number) => Math.floor((t + ZONE_MS) / DAY_MS);
+function versionOf(git: (...args: string[]) => string, headAt?: string): string | null {
+  const at = Date.parse(headAt || git("log", "-1", "--format=%cI"));
+  if (!Number.isFinite(at) || at < LAUNCH) return null;
+  const minor = dayOf(at) - dayOf(LAUNCH);
+  // The day's pushes: commits since its midnight (or, on launch day, since
+  // the launch). A build may have only the last few commits - ask for the
+  // rest of the day's first, and count what's there if that can't be had.
+  const since = new Date(Math.max(LAUNCH, dayOf(at) * DAY_MS - ZONE_MS)).toISOString();
+  if (git("rev-parse", "--is-shallow-repository") === "true") git("fetch", "--quiet", `--shallow-since=${since}`, "origin", "HEAD");
+  const pushes = Number(git("rev-list", "--count", `--since=${since}`, "HEAD")) || 1;
+  return `1.${minor}.${Math.max(0, pushes - 1)}`;
+}
+
 function buildInfo() {
   const git = (...args: string[]) => {
     try {
@@ -32,7 +62,7 @@ function buildInfo() {
     commits = [{ sha, at: "", subject: clip(subject, 300), body: clip(rest.join("\n").trim(), 6000) }];
   }
   return {
-    version: pkg.version,
+    version: versionOf(git, commits[0]?.at) ?? pkg.version,
     sha,
     branch: process.env.VERCEL_GIT_COMMIT_REF || git("rev-parse", "--abbrev-ref", "HEAD"),
     // (the commit the deployment before this one was built from, where
