@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { auth } from "@/server/auth";
+import { underDailyCap } from "@/server/caps";
 import { CONTACT_FILE_TYPES, CONTACT_MAX_FILE_MB, isMediaType } from "@/lib/contact";
 
 export const runtime = "nodejs";
@@ -28,6 +29,8 @@ export async function POST(req: Request) {
         request: req,
         onBeforeGenerateToken: async (pathname) => {
           if (!pathname.startsWith("contact/")) throw new Error("Bad upload path.");
+          // (a day's ceiling on attachments per account: each can be a large video)
+          if (!(await underDailyCap(session.user.id, "upload"))) throw new Error("That's a lot of attachments for one day. Please try again tomorrow.");
           return {
             allowedContentTypes: CONTACT_FILE_TYPES,
             maximumSizeInBytes: CONTACT_MAX_FILE_MB * 1024 * 1024,

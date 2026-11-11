@@ -91,6 +91,25 @@ export async function POST(req: Request) {
       }
     }
   }
+  // Everything the library shows that isn't a signed page is the reader's
+  // own to send (the title, names, the asides and choices): it's kept to
+  // the lengths the storyteller itself writes, so nothing overlong goes on
+  // a public shelf - or onto the voice bill, which reads these aloud.
+  const short = (v: unknown, n: number) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, n) : v);
+  story.title = short(story.title, 120) as string;
+  for (const c of [story.hero, ...(Array.isArray(story.companions) ? story.companions : []), ...(Array.isArray(story.cast) ? story.cast : [])]) {
+    if (c && typeof c === "object") (c as { name?: unknown }).name = short((c as { name?: unknown }).name, 40);
+  }
+  for (const seg of story.segments) {
+    for (const p of Array.isArray(seg?.pages) ? seg.pages : []) {
+      if (p && typeof p === "object" && "aside" in p) (p as { aside?: unknown }).aside = short((p as { aside?: unknown }).aside, 240);
+    }
+    const ch = seg?.choice as { prompt?: unknown; options?: { label?: unknown }[] } | null | undefined;
+    if (ch && typeof ch === "object") {
+      ch.prompt = short(ch.prompt, 240);
+      for (const o of Array.isArray(ch.options) ? ch.options : []) if (o && typeof o === "object") o.label = short(o.label, 160);
+    }
+  }
   try {
     // (only the admin may publish over someone else's story - by the
     // records, not the cookie's copy of the flag; and an account that no
