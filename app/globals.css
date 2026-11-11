@@ -7050,8 +7050,21 @@ html[data-night] .admin-spark.bad {
   margin-right: 0;
 }
 /* (one record's own page is all detail: the whole window, throughout) */
-.container.admin-full {
+/* (the dashboard's frame is the container; a page that wants the whole
+   window says so from inside it) */
+.container.admin:has(.admin-full) {
   max-width: none;
+}
+/* What this page of the dashboard is, under the frame's title and pill:
+   a smaller heading (one account, one record) and a line about it. */
+.admin-lede {
+  text-align: center;
+  margin: 4px 0 18px;
+}
+.admin-lede h2 {
+  font-size: clamp(1.35rem, 3vw, 1.7rem);
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
 }
 html:has(.admin-wide) body {
   overflow-x: clip;

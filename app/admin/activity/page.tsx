@@ -9,7 +9,6 @@ import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type Ge
 import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, FilteredList, ToggleChip, When } from "./Live";
 import { Segmented } from "@/components/Segmented";
-import { AdminPages } from "../AdminPages";
 import { FindUser } from "./FindUser";
 import { ZoomList, ZoomPicture, type ZoomItem } from "./Zoom";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -160,18 +159,15 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const keep = { user: subjectId, kind, issues: issues && "1" };
 
   return (
-    <div className="container admin">
-      <header className="wizard-head">
-        <p className="eyebrow">Only you can see this</p>
-        <h1>{subjectId ? `Activity: ${who(subject, subjectId)}` : "Activity"}</h1>
+    <>
+      <div className="admin-lede">
+        {subjectId && <h2>Activity: {who(subject, subjectId)}</h2>}
         <p className="sub">
           {subjectId
             ? `Everything made for this account, newest first${subject?.username ? ` (${subject.email})` : ""}.`
             : "Every story, painting, character and voice clip the app has been asked for, newest first."}
         </p>
-      </header>
-
-      <AdminPages on="users" />
+      </div>
 
       {!metricsEnabled() && (
         <p className="admin-note">
@@ -268,7 +264,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           </FilteredList>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -443,15 +439,13 @@ async function Detail({ id, now }: { id: string; now: number }) {
     ["Record", r.id],
   ];
   return (
-    <div className="container admin admin-full">
-      <header className="wizard-head">
-        <p className="eyebrow">Only you can see this</p>
-        <h1>
+    <div className="admin-full">
+      <div className="admin-lede">
+        <h2>
           {KIND_ONE[r.kind]}: {r.sub}
-        </h1>
+        </h2>
         {r.what && <p className="sub">{r.what}</p>}
-      </header>
-      <AdminPages on="users" />
+      </div>
       {r.userId && (
         <p className="meta admin-crumbs">
           <Link href={href({ user: r.userId })}>{who(user, r.userId)}</Link>

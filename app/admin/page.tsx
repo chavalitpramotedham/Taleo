@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/server/auth";
-import { AdminPages } from "./AdminPages";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
@@ -93,14 +92,10 @@ export default async function AdminPage() {
   const maxStories = Math.max(1, ...perDay.map((d) => d.stories));
 
   return (
-    <div className="container admin">
-      <header className="wizard-head">
-        <p className="eyebrow">Only you can see this</p>
-        <h1>Admin dashboard</h1>
+    <>
+      <div className="admin-lede">
         <p className="sub">The last {DAYS} days, unless it says otherwise. Updated each time you open it.</p>
-      </header>
-
-      <AdminPages on="overall" />
+      </div>
 
       {!metricsEnabled() && (
         <p className="admin-note">
@@ -265,7 +260,7 @@ export default async function AdminPage() {
           </ul>
         </section>
       </div>
-    </div>
+    </>
   );
 }
 
