@@ -14,12 +14,12 @@ export interface LimitNotice {
 }
 
 /**
- * "That's today's story": shown when the plan's allowance for new stories
+ * "That's this week's story": shown when the plan's allowance for new stories
  * is used up. Says so kindly, and offers what can still be done - carry on
  * with the story under way, read from the library, or look at the plans.
  */
 export function LimitDialog({ notice, onClose, children }: { notice: LimitNotice; onClose: () => void; children?: ReactNode }) {
-  const title = notice.limited === "start" ? "Let's finish one first" : "That's today's story!";
+  const title = notice.limited === "start" ? "Let's finish one first" : "That's this week's story!";
   useEscape(onClose);
   return (
     <div className="modal-backdrop" onClick={onClose}>

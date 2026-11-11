@@ -9,6 +9,7 @@ import { MAX_CREDITS_ADDED } from "@/lib/tiers";
 const n = (v: number) => v.toLocaleString("en-GB");
 const wait = (sec: number) => {
   const m = Math.ceil(sec / 60);
+  if (m >= 36 * 60) return `${Math.round(m / 1440)} days`;
   return m >= 90 ? `about ${Math.round(m / 60)} hours` : `about ${Math.max(1, m)} minute${m === 1 ? "" : "s"}`;
 };
 
@@ -100,7 +101,7 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
         <>
           {!always && (
             <section className="panel credits-panel" aria-label="What your plan allows right now">
-              <h4 className="menu-title">Free on your plan{s.windowHours === 24 ? " today" : ""}</h4>
+              <h4 className="menu-title">Free on your plan{s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}</h4>
               <ul className="menu-list">
                 <Line what="Free stories left" value={s.left === null ? "Unlimited" : n(s.left)} />
                 {/* (where credits pay for more, a count of free beginnings would only confuse) */}

@@ -74,6 +74,10 @@ export function useStoryAllowance(): StoryAllowance | null {
 /** "5 hours", "20 minutes" - worded as the server words its own limits. */
 export function waitText(seconds: number) {
   const m = Math.max(1, Math.ceil(seconds / 60));
+  if (m >= 36 * 60) {
+    const d = Math.round(m / 1440);
+    return `${d} day${d === 1 ? "" : "s"}`;
+  }
   if (m >= 90) {
     const h = Math.round(m / 60);
     return `${h} hour${h === 1 ? "" : "s"}`;

@@ -48,7 +48,7 @@ export async function GET() {
     startsLeft: left,
     windowHours: tierFor(user).limits.stories?.hours,
     plan: tierFor(user).name,
-    error: ok ? undefined : credits ? `Today's free story is used, and a story needs at least ${STORY_CREDITS_RANGE[0]} credits - there ${credits.balance === 1 ? "is" : "are"} ${credits.balance}.` : limitMessage(user, limited, retryAfterSec),
+    error: ok ? undefined : credits ? `This week's free story is used, and a story needs at least ${STORY_CREDITS_RANGE[0]} credits - there ${credits.balance === 1 ? "is" : "are"} ${credits.balance}.` : limitMessage(user, limited, retryAfterSec),
   });
 }
 

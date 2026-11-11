@@ -33,6 +33,8 @@ export interface Rights {
     startsLeft: number | null;
     /** The stretch the plan counts over, and when the next opens up. */
     windowHours: number | null;
+    /** Counted by the calendar week (else over the last `windowHours`). */
+    weekly: boolean;
     nextInSec: number;
   };
   characters: {
@@ -70,6 +72,7 @@ export async function rightsOf(account: Account): Promise<Rights> {
       left: limits.stories ? (story.left ?? 0) : null,
       startsLeft: limits.stories ? (start.ok ? (start.left ?? 0) : 0) : null,
       windowHours: limits.stories?.hours ?? null,
+      weekly: Boolean(limits.stories?.week),
       nextInSec: story.ok ? 0 : story.retryAfterSec,
     },
     characters: { saved, limit: limits.characters, designsLeft: limits.designs ? (design.left ?? 0) : null },

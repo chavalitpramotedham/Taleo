@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readJson, writeJson } from "./store";
-import { allowancePhrase, tierFor, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
+import { allowancePhrase, tierFor, weekOf, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
 import { applyCredits, billingAvailable, refundCredits, spendCredits } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
@@ -49,15 +49,27 @@ type Usage = Partial<Record<Bucket, number[]>> & { counted?: Record<string, numb
 const path = (userId: string) => `ratelimits/${userId}.json`;
 
 /** What a plan allows in a bucket (null: no limit). */
-function allowance(plan: TierInfo, bucket: Bucket): { count: number; windowMs: number } | null {
+type Window = { count: number; windowMs: number; week?: boolean };
+function allowance(plan: TierInfo, bucket: Bucket): Window | null {
   const l = plan.limits;
-  if (bucket === "story") return l.stories && { count: l.stories.count, windowMs: l.stories.hours * 3600_000 };
-  if (bucket === "start") return l.stories && { count: l.stories.count + l.changesOfMind, windowMs: l.stories.hours * 3600_000 };
-  if (bucket === "character") return l.designs && { count: l.designs.count, windowMs: l.designs.hours * 3600_000 };
+  if (bucket === "story") return l.stories && { count: l.stories.count, windowMs: l.stories.hours * 3600_000, week: l.stories.week };
+  if (bucket === "start") return l.stories && { count: l.stories.count + l.changesOfMind, windowMs: l.stories.hours * 3600_000, week: l.stories.week };
+  if (bucket === "character") return l.designs && { count: l.designs.count, windowMs: l.designs.hours * 3600_000, week: l.designs.week };
   return l.burst && { count: l.burst[bucket as "segment" | "illustrate" | "tts"], windowMs: l.burst.minutes * 60_000 };
 }
+/** Which uses still count now: those of the last so-many hours - or, for
+ *  an allowance counted by the calendar week, those since this week began. */
+const counted = (a: Window, uses: number[] | undefined, now: number) => {
+  const from = a.week ? weekOf(now).start : now - a.windowMs;
+  return (uses ?? []).filter((t) => t >= from && t <= now + 1000);
+};
+/** Seconds until there's room again, given the uses that count (all of
+ *  the allowance used): when the week turns, or when the oldest of them
+ *  falls out of the stretch. */
+const waitFor = (a: Window, recent: number[], now: number) =>
+  Math.max(1, Math.ceil(((a.week ? weekOf(now).end : recent[recent.length - a.count] + a.windowMs) - now) / 1000));
 // (the longest any stored entry can matter, whichever plan asks)
-const KEEP_MS = 7 * 24 * 3600_000;
+const KEEP_MS = 8 * 24 * 3600_000;
 
 // In-memory counts: the burst buckets live here, and so does a copy of this
 // instance's own recent stored uses - a read made a moment after a write
@@ -105,6 +117,10 @@ function inTurn<T>(userId: string, bucket: Bucket, work: () => Promise<T>): Prom
 
 function minutesText(seconds: number) {
   const m = Math.max(1, Math.ceil(seconds / 60));
+  if (m >= 36 * 60) {
+    const d = Math.round(m / 1440);
+    return `${d} day${d === 1 ? "" : "s"}`;
+  }
   if (m >= 90) {
     const h = Math.round(m / 60);
     return `${h} hour${h === 1 ? "" : "s"}`;
@@ -120,9 +136,9 @@ export async function peekLimit(user: Who, bucket: Bucket): Promise<{ ok: boolea
   if (!a) return { ok: true, retryAfterSec: 0 };
   const now = Date.now();
   const usage = await load(user.id, bucket);
-  const recent = (usage[bucket] ?? []).filter((t) => now - t < a.windowMs);
+  const recent = counted(a, usage[bucket], now);
   if (recent.length < a.count) return { ok: true, retryAfterSec: 0, left: a.count - recent.length };
-  return { ok: false, retryAfterSec: Math.ceil((recent[recent.length - a.count] + a.windowMs - now) / 1000), left: 0 };
+  return { ok: false, retryAfterSec: waitFor(a, recent, now), left: 0 };
 }
 
 /** What a request uses: one from a bucket - optionally only if another
@@ -139,8 +155,8 @@ export interface Cost {
 type Took = { ok: boolean; retryAfterSec: number; at: number; limited: Bucket; already?: boolean };
 
 const room = (usage: Usage, a: NonNullable<ReturnType<typeof allowance>>, bucket: Bucket, now: number) => {
-  const recent = (usage[bucket] ?? []).filter((t) => now - t < a.windowMs);
-  return recent.length < a.count ? 0 : Math.ceil((recent[recent.length - a.count] + a.windowMs - now) / 1000);
+  const recent = counted(a, usage[bucket], now);
+  return recent.length < a.count ? 0 : waitFor(a, recent, now);
 };
 
 /** Can this account begin a story now? Not once its stories are used up,
@@ -171,7 +187,7 @@ function take(user: Who, { bucket, needs, key }: Cost): Promise<Took> {
       // A use nobody has claimed (a story begun when stories were counted
       // at their beginning) is this one's: it was paid for then.
       const claimed = new Set(Object.values(usage.counted ?? {}));
-      const unclaimed = all.find((t) => now - t < a.windowMs && !claimed.has(t));
+      const unclaimed = counted(a, all, now).find((t) => !claimed.has(t));
       if (unclaimed) {
         usage.counted = { ...usage.counted, [key]: unclaimed };
         await save(user.id, bucket, usage);
@@ -212,12 +228,15 @@ export async function refund(userId: string, bucket: Bucket, at: number) {
 
 const LIMIT_MESSAGES: Record<Bucket, (wait: string, plan: TierInfo) => string> = {
   story: (w, plan) =>
-    `Today's story has been made! The ${plan.name} plan comes with ${plan.limits.stories ? allowancePhrase(plan.limits.stories, "new story", "new stories") : "any number of stories"}, and the next can start in about ${w}. Every story in the library is free to read in the meantime.`,
+    `${plan.limits.stories?.week ? "This week's" : "Today's"} story has been made! The ${plan.name} plan comes with ${plan.limits.stories ? allowancePhrase(plan.limits.stories, "new story", "new stories") : "any number of stories"}, and the next can start in about ${w}. Every story in the library is free to read in the meantime.`,
   start: (w) =>
     `A few stories have been begun and set aside before their first choice. A fresh one can start in about ${w} - every story in the library is free to read in the meantime.`,
   segment: (w) => `That's a lot of story for one sitting! Please try again in about ${w}.`,
   illustrate: (w) => `The painter needs a little rest. The pictures will carry on in about ${w}.`,
-  character: (w) => `You've dreamt up lots of characters! Try again in about ${w}.`,
+  character: (w, plan) =>
+    plan.limits.designs?.week
+      ? `This week's free character has been dreamt up! The ${plan.name} plan comes with ${allowancePhrase(plan.limits.designs, "new character", "new characters")}, and the next can be made in about ${w}.`
+      : `You've dreamt up lots of characters! Try again in about ${w}.`,
   tts: (w) => `The storyteller's voice needs a rest. Try again in about ${w}.`,
 };
 export const limitMessage = (user: Who, bucket: Bucket, retryAfterSec: number) => LIMIT_MESSAGES[bucket](minutesText(retryAfterSec), tierFor(user));

@@ -127,7 +127,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // (how many more stories the plan lets this account begin; unknown or
   // unlimited: null)
   const [startsLeft, setStartsLeft] = useState<number | null>(null);
-  const [daily, setDaily] = useState(false);
+  const [daily, setDaily] = useState("for now");
   // Credits a minute this story will cost (null: it's on the plan, free).
   const [perMinute, setPerMinute] = useState<number | null>(null);
   const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
@@ -135,7 +135,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
     try {
       const res = await fetch("/api/story", { cache: "no-store" });
       const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number } };
-      setDaily(data.windowHours === 24);
+      setDaily(data.windowHours === 168 ? "this week" : data.windowHours === 24 ? "today" : "for now");
       // (the plan's free story is used: this one will be paid for with credits)
       setPerMinute(data.credits ? data.credits.perMinute : null);
       setStartsLeft(typeof data.startsLeft === "number" ? data.startsLeft : null);
@@ -524,8 +524,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               {startsLeft !== null && startsLeft <= 2 && (
                 <p className="meta starts-left">
                   {startsLeft === 1
-                    ? `This is the last new story you can start ${daily ? "today" : "for now"}.`
-                    : `You can start ${startsLeft} more new stories ${daily ? "today" : "for now"}.`}
+                    ? `This is the last new story you can start ${daily}.`
+                    : `You can start ${startsLeft} more new stories ${daily}.`}
                 </p>
               )}
             </div>

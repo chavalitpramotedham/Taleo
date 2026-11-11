@@ -8,10 +8,26 @@
 
 export type TierId = "free" | "admin";
 
-/** "So many, per so many hours." */
+/** "So many, per so many hours" - or, with `week`, so many in each
+ *  calendar week (Monday to Sunday: everything is counted afresh as the
+ *  week begins, whenever in the week it was used). */
 export interface Allowance {
   count: number;
   hours: number;
+  week?: boolean;
+}
+/** One a week, by the calendar. */
+const WEEKLY = (count: number): Allowance => ({ count, hours: 168, week: true });
+/** The weeks are counted in this one clock for everyone (hours ahead of
+ *  UTC): a week begins at Monday's midnight there. */
+export const WEEK_UTC_OFFSET_HOURS = 0;
+/** When the calendar week containing `at` began, and when the next does (ms). */
+export function weekOf(at: number): { start: number; end: number } {
+  const shift = WEEK_UTC_OFFSET_HOURS * 3600_000;
+  const d = new Date(at + shift);
+  const sinceMonday = (d.getUTCDay() + 6) % 7;
+  const start = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - sinceMonday) - shift;
+  return { start, end: start + 7 * 86_400_000 };
 }
 
 export interface TierLimits {
@@ -61,10 +77,11 @@ export const PLANS: Record<TierId, TierInfo> = {
     blurb: "Everything you need for a story at bedtime.",
     credits: "beyond",
     limits: {
-      stories: { count: 1, hours: 24 },
+      // (one free story and one free character each calendar week)
+      stories: WEEKLY(1),
       changesOfMind: 3,
       characters: 3,
-      designs: { count: 12, hours: 24 },
+      designs: WEEKLY(1),
       quickPages: 2,
       burst: { minutes: 30, segment: 16, illustrate: 80, tts: 400 },
       verified: true,
@@ -73,12 +90,12 @@ export const PLANS: Record<TierId, TierInfo> = {
   admin: {
     id: "admin",
     name: "Admin",
-    blurb: "The test account: a free story a day like everyone, then credits - and the keys to the admin dashboard.",
+    blurb: "The test account: a free story and a free character each week like everyone, then credits - and the keys to the admin dashboard.",
     credits: "auto",
-    // (the same free story a day as the Free plan, and two free characters,
-    // so both flows can be tried: free first, then credits. Plenty of
+    // (the same free story and free character a week as the Free plan, so
+    // both flows can be tried: free first, then credits. Plenty of
     // beginnings; no other caps.)
-    limits: { stories: { count: 1, hours: 24 }, changesOfMind: 50, characters: null, designs: { count: 2, hours: 24 }, quickPages: 1, burst: null, verified: false },
+    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: null, designs: WEEKLY(1), quickPages: 1, burst: null, verified: false },
     extras: [
       { label: "After the free ones", value: "Credits", note: "One a minute of story, one a character" },
       { label: "Adding credits", value: "Any time" },
@@ -139,18 +156,17 @@ export const characterLimit = (who: Parameters<typeof tierIdFor>[0]) => limitsFo
 
 // ---- how a plan reads on the Account pages ----
 
-const per = (hours: number) => (hours === 24 ? "day" : hours === 1 ? "hour" : hours % 24 === 0 ? `${hours / 24} days` : `${hours} hours`);
+const per = (hours: number) => (hours === 24 ? "day" : hours === 168 ? "week" : hours === 1 ? "hour" : hours % 24 === 0 ? `${hours / 24} days` : `${hours} hours`);
 /** "one new story a day", "3 new stories every 2 days" */
 export const allowancePhrase = (a: Allowance, one: string, many: string) =>
-  `${a.count === 1 ? "one" : a.count} ${a.count === 1 ? one : many} ${a.hours === 24 ? "a day" : `every ${per(a.hours)}`}`;
+  `${a.count === 1 ? "one" : a.count} ${a.count === 1 ? one : many} ${a.hours === 24 ? "a day" : a.hours === 168 ? "a week" : `every ${per(a.hours)}`}`;
 export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per(a.hours)}` : "Unlimited");
 
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
   { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
-  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved`, note: t.limits.designs && t.credits === "auto" ? `${allowanceText(t.limits.designs)} designed free` : undefined },
+  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved`, note: t.limits.designs ? `${allowanceText(t.limits.designs)} designed free` : undefined },
   { label: "Reading the Public Library", value: "Unlimited" },
-  { label: "Saving others' stories", value: "Unlimited" },
   ...(t.extras ?? []),
 ];
 
