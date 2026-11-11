@@ -54,7 +54,7 @@ export const ORGANIZATION = {
   // (what people search for - the site's own domain name)
   alternateName: ["Taleo Stories", "taleo-stories.app"],
   url: SITE_URL,
-  logo: absoluteUrl("/icon-512.png"),
+  logo: absoluteUrl("/icon-512.png?v=2"),
   slogan: "By parents, for parents",
 };
 

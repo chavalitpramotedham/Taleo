@@ -6,7 +6,7 @@ import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
 import { guard, limitMessage, peekStart, whoIs } from "@/server/limits";
-import { limitsFor, tierFor } from "@/lib/tiers";
+import { limitsFor, tierFor, storyCredits } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
@@ -57,19 +57,26 @@ export async function POST(req: Request) {
   // (for the activity log: what it was counted as)
   let countedAs: string | null = null;
   const g = await guard((session) => {
-    if (parsed.kind === "start") return { bucket: "start", needs: "story" };
+    // (in credits: one a minute of the length chosen - see lib/tiers)
+    if (parsed.kind === "start") return { bucket: "start", needs: "story", credits: storyCredits(parsed.minutes) };
     const user = session.user;
+    // (a plan where every story costs credits - the admin's test account -
+    // is charged at the story's first choice like any other, though its
+    // requests aren't otherwise checked)
+    if (tierFor(user).credits === "always" && parsed.story.segments.length === 1) {
+      return { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) };
+    }
     if (!limitsFor(user).verified) return "segment";
     // (for a short while, stories begun before tickets existed carry on)
     const ticketed = storyTicketIsValid(user.id, parsed.story, raw?.ticket);
     const genuine = ticketed || inLegacyGrace();
     if (!genuine) {
       countedAs = "no ticket: counted as a new story";
-      return "story";
+      return { bucket: "story", credits: storyCredits(parsed.story.minutes) };
     }
     if (!ticketed) countedAs = "no ticket (grace period)";
-    return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story) } : "segment";
-  });
+    return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) } : "segment";
+  }, { useCredits: (raw as { useCredits?: unknown } | null)?.useCredits === true });
   // (for the activity log: what was asked)
   const chosen = parsed.kind === "start" ? null : parsed.story.segments[parsed.story.segments.length - 1]?.chosen;
   const logged = (user: { id: string } | undefined, tier?: string) => ({

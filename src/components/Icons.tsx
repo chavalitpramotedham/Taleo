@@ -353,6 +353,15 @@ export const AddTileIcon = () => (
 );
 
 /** Sign out: an open door, and the way out of it. */
+/** A credit: a coin with a small star struck on it. */
+export const CreditIcon = ({ size = 18 }: { size?: number }) => (
+  <svg className="credit-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden focusable="false">
+    <circle cx="12" cy="12" r="9.2" fill="#E2AE4A" stroke="#7A5420" strokeWidth="1.4" />
+    <circle cx="12" cy="12" r="6.4" fill="none" stroke="#7A5420" strokeWidth="0.8" opacity="0.55" />
+    <path d="M12 7.6l1.25 3.15 3.15 1.25-3.15 1.25L12 16.4l-1.25-3.15L7.6 12l3.15-1.25z" fill="#FFF6DC" stroke="#7A5420" strokeWidth="0.7" strokeLinejoin="round" />
+  </svg>
+);
+
 export const InfoIcon = () => (
   <svg {...menu}>
     <circle cx="12" cy="12" r="8.5" />

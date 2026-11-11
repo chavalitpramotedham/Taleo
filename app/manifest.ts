@@ -17,14 +17,14 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#f3ecdc",
     theme_color: "#f3ecdc",
     icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icon-192.png?v=2", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png?v=2", sizes: "512x512", type: "image/png" },
+      { src: "/icon-512.png?v=2", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     // Press and hold the icon: straight to a new story, or the library.
     shortcuts: [
-      { name: "Begin a story", short_name: "New story", url: "/create", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
-      { name: "Library", url: "/store", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
+      { name: "Begin a story", short_name: "New story", url: "/create", icons: [{ src: "/icon-192.png?v=2", sizes: "192x192", type: "image/png" }] },
+      { name: "Library", url: "/store", icons: [{ src: "/icon-192.png?v=2", sizes: "192x192", type: "image/png" }] },
     ],
   };
 }

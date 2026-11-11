@@ -8,6 +8,7 @@ import { AccountIcon, AddTileIcon, CharacterIcon, ChartIcon, CogIcon, ShelfIcon,
 import { Avatar } from "./Avatar";
 import { AddShortcutDialog, canAddShortcut } from "./AddShortcut";
 import { DeploymentDialog, DeploymentMarker } from "./DeploymentMarker";
+import { AllowanceSummary } from "./AllowanceSummary";
 import type { Deployment } from "@/lib/deployment";
 
 export function AccountNav() {
@@ -54,6 +55,8 @@ export function AccountNav() {
       {open && (
         <div className="account-dropdown" role="menu">
           <p className="account-dropdown-name">@{session.user.username}</p>
+          {/* what's left at a glance: stories on the plan, credits held */}
+          <AllowanceSummary onGo={() => setOpen(false)} />
           <Link href="/my-stories" className={item("/my-stories")} aria-current={path.startsWith("/my-stories") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
             <ShelfIcon />
             My bookshelf

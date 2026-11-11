@@ -1,34 +1,20 @@
 import { NextResponse } from "next/server";
 import { currentAccount } from "@/server/entitlements";
-import { billingAvailable } from "@/server/billing";
-import { CREDIT_PRICES } from "@/lib/tiers";
+import { rightsOf } from "@/server/rights";
 
 export const dynamic = "force-dynamic";
 
-/** What the signed-in account may do right now, from the server's own
- *  records: its plan, its on-demand credits and what they buy. (For the
- *  Account pages and anything that offers to spend a credit - the server
- *  checks again when it's actually spent.) */
+/** What the signed-in account can do right now, from the server's own
+ *  records: stories and characters left on its plan, its credits and what
+ *  they buy (see server/rights). For the account menu and the details
+ *  page - the server checks again when anything is actually made. */
 export async function GET() {
-  let account;
   try {
-    account = await currentAccount();
-  } catch {
+    const account = await currentAccount();
+    if (!account) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
+    return NextResponse.json(await rightsOf(account), { headers: { "cache-control": "private, no-store" } });
+  } catch (e) {
+    console.error("[entitlements]", e);
     return NextResponse.json({ error: "Couldn't read your account just now. Please try again." }, { status: 503 });
   }
-  if (!account) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
-  const sub = account.subscription;
-  return NextResponse.json(
-    {
-      tier: account.tier,
-      plan: account.plan.name,
-      suspended: account.suspended,
-      credits: await account.credits(),
-      creditsAvailable: billingAvailable(),
-      prices: CREDIT_PRICES,
-      // (nothing of the payment provider's is sent to the browser)
-      subscription: sub ? { plan: sub.plan, status: sub.status, periodEnd: sub.periodEnd } : null,
-    },
-    { headers: { "cache-control": "private, no-store" } },
-  );
 }

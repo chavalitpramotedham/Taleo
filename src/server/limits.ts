@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readJson, writeJson } from "./store";
-import { allowancePhrase, tierFor, CREDIT_PRICES, type CreditItem, type TierInfo } from "@/lib/tiers";
+import { allowancePhrase, tierFor, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { refundCredits, spendCredits } from "./billing";
+import { applyCredits, refundCredits, spendCredits } from "./billing";
+import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
  * Who may use the paid AI endpoints, and how often.
@@ -131,6 +132,9 @@ export interface Cost {
   bucket: Bucket;
   needs?: StoredBucket;
   key?: string;
+  /** What it costs in credits, where credits pay for it (a story: its
+   *  length in minutes; a character's is worked out here). */
+  credits?: number;
 }
 type Took = { ok: boolean; retryAfterSec: number; at: number; limited: Bucket; already?: boolean };
 
@@ -222,12 +226,35 @@ export type Guard =
   | { ok: true; session: Session; release: () => Promise<void>; /** credits this request was paid with, if the plan's own allowance was used up */ credits?: number }
   | { ok: false; response: NextResponse };
 
-/** What on-demand credits can pay for once the plan's allowance for it is
- *  used up. (A story isn't here yet: it is counted over two requests - its
- *  beginning and its first choice - and the credit has to follow it across
- *  both. Until that's wired in, a story beyond the plan's waits for the
- *  plan, credits or no.) */
-const PAID_BY_CREDITS: Partial<Record<Bucket, CreditItem>> = { character: "character" };
+/** What an account must hold, or was charged. */
+export interface CreditOffer {
+  item: "story" | "character";
+  price: number;
+  balance: number;
+}
+
+/** The admin's test account starts with some credits - given once, ever
+ *  (the store remembers the reference), and looked at once per server. */
+const started = new Set<string>();
+export async function starterCredits(account: Account | null) {
+  if (!account?.isAdmin || started.has(account.id)) return;
+  started.add(account.id);
+  const given = await applyCredits(account.id, STARTER_CREDITS, "grant", "starter", "To begin with (the test account)").catch(() => null);
+  if (!given?.ok) started.delete(account.id);
+}
+
+const notEnough = (o: CreditOffer) =>
+  NextResponse.json(
+    {
+      error:
+        o.item === "story"
+          ? `This story needs ${o.price} credit${o.price === 1 ? "" : "s"} (one for each minute), and there ${o.balance === 1 ? "is" : "are"} ${o.balance} left.`
+          : `A character needs ${o.price} credit${o.price === 1 ? "" : "s"}, and there ${o.balance === 1 ? "is" : "are"} ${o.balance} left.`,
+      limited: "credits",
+      credits: o,
+    },
+    { status: 402 },
+  );
 
 /**
  * The signed-in account as the records have it now, in the shape the plan
@@ -283,6 +310,42 @@ export async function guard(
   const unavailable = { ok: false as const, response: NextResponse.json({ error: "Couldn't start that just now. Please try again." }, { status: 503 }) };
   // (the plan couldn't be read: nothing the plan counts is begun on a guess)
   if (me.stale && (stored(b) || (cost.needs && stored(cost.needs)))) return unavailable;
+  // ---- credits (see lib/tiers: one a minute of story, one a character)
+  const userId = session.user.id;
+  const account = me.account;
+  const mode = account?.plan.credits ?? "beyond";
+  await starterCredits(account);
+  // What this request is, in credits: a character; a story at its first
+  // choice (charged then, once, under the story's own reference - asked
+  // again, it's recognised); a story's beginning (nothing is charged, but
+  // there must be enough for the story it begins).
+  const item: CreditOffer["item"] | null = b === "character" ? "character" : (b === "story" && cost.key) || b === "start" ? "story" : null;
+  const price = item === "character" ? CHARACTER_CREDITS : item ? Math.max(0, Math.round(cost.credits ?? 0)) : 0;
+  const charges = b !== "start"; // (a beginning only has to be affordable)
+  const ref = item === "story" && cost.key ? `story:${cost.key}`.replace(/[^\w.:-]/g, "").slice(0, 110) : `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+  /** Take the credits (or, for a beginning, see that they're there). */
+  const pay = async (): Promise<{ ok: true; spent: number } | { ok: false; offer: CreditOffer }> => {
+    if (!account || !item || !price) return { ok: true, spent: 0 };
+    if (!charges) {
+      const balance = await account.credits();
+      return balance !== null && balance >= price ? { ok: true, spent: 0 } : { ok: false, offer: { item, price, balance: balance ?? 0 } };
+    }
+    const paid = await spendCredits(userId, price, ref, item === "story" ? `A ${price}-minute story` : "A character");
+    if (paid.ok) return { ok: true, spent: paid.applied ? price : 0 };
+    return { ok: false, offer: { item, price, balance: paid.balance } };
+  };
+  const giveBack = (spent: number) => async () => {
+    if (spent) await refundCredits(userId, spent, ref, "The work failed: credits returned");
+  };
+
+  // A plan where everything costs credits (the admin's test account):
+  // nothing is counted against an allowance - the credits are the limit.
+  if (mode === "always" && item && price && !me.stale) {
+    const paid = await pay();
+    if (!paid.ok) return { ok: false, response: notEnough(paid.offer) };
+    return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
+  }
+
   let took: Took;
   try {
     took = await take(session.user, cost);
@@ -297,23 +360,18 @@ export async function guard(
     return { ok: true, session, release: async () => {} };
   }
   if (!took.ok) {
-    // The plan's allowance is used up: on-demand credits pay for it, if
-    // the account has them. Taken in one step on the store (two requests
-    // can't spend the same credit), under a reference of its own, and
-    // given back if the work then fails.
-    const item = took.limited === b ? PAID_BY_CREDITS[b] : undefined;
-    let offer: { item: CreditItem; price: number; balance: number } | undefined;
-    if (item && me.account) {
-      const price = CREDIT_PRICES[item];
-      const have = await me.account.credits();
-      if (have !== null && have >= price) offer = { item, price, balance: have };
+    // The plan's allowance is used up: credits pay for more, if the person
+    // has said yes and has them. (Only what the plan's own count of the
+    // thing stopped - a story when its stories are used up, a character
+    // when its designs are; not the cap on beginnings dropped unread.)
+    const coverable = item && price && account && (took.limited === "story" || took.limited === "character") && took.limited === item;
+    let offer: CreditOffer | undefined;
+    if (coverable) {
+      const balance = await account.credits();
+      if (balance !== null && balance >= price) offer = { item, price, balance };
       if (offer && opts.useCredits) {
-        const ref = `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
-        const paid = await spendCredits(session.user.id, price, ref, `One ${item} beyond the ${me.account.plan.name} plan's allowance`);
-        if (paid.ok) {
-          const userId = session.user.id;
-          return { ok: true, session, credits: price, release: async () => void (await refundCredits(userId, price, ref, "The work failed: credits returned")) };
-        }
+        const paid = await pay();
+        if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
       }
     }
     return {
@@ -325,7 +383,6 @@ export async function guard(
       ),
     };
   }
-  const userId = session.user.id;
   const used = took.limited;
   return { ok: true, session, release: () => refund(userId, used, took.at) };
 }

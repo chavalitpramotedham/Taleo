@@ -48,6 +48,8 @@ export interface TierInfo {
   name: string;
   blurb: string;
   limits: TierLimits;
+  /** How this plan uses credits (see CreditsMode). */
+  credits: CreditsMode;
   /** Extra headline rows beyond those worked out from the limits. */
   extras?: TierRow[];
 }
@@ -57,6 +59,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "free",
     name: "Free",
     blurb: "Everything you need for a story at bedtime.",
+    credits: "beyond",
     limits: {
       stories: { count: 1, hours: 24 },
       changesOfMind: 3,
@@ -71,27 +74,41 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "admin",
     name: "Admin",
     blurb: "Unlimited everything, and the keys to the admin dashboard.",
+    credits: "always",
     limits: { stories: null, changesOfMind: 0, characters: null, designs: null, quickPages: 1, burst: null, verified: false },
     extras: [{ label: "Admin dashboard", value: "Full access" }],
   },
 };
 
 /**
- * On-demand credits: what an account can buy on top of its plan, spent only
- * once the plan's own allowance for the thing is used up - a story or a
- * character beyond the day's (the plan's allowance always goes first, and
- * what it covers costs no credits).
+ * Credits: what an account can hold on top of its plan.
  *
- * What each thing costs, in credits. (Placeholders until real costs are
- * measured: see the admin dashboard's cost per story.)
+ * One credit is one minute of story. A story costs as many credits as the
+ * length chosen for it (3 to 8); a character, new or painted again, costs
+ * one. Reading anything already made is always free.
+ *
+ * How a plan uses them (`credits` on the plan - the one place to change
+ * it):
+ *   "beyond"  the plan's own allowance goes first and costs nothing; once
+ *             it is used up, credits pay for more (the Free plan)
+ *   "always"  every story and character costs credits (the admin's test
+ *             account, so the whole flow can be tried)
+ * (These prices follow what a story costs to make - its paintings, one a
+ * page, and pages go with minutes - not yet measured spend.)
  */
-export const CREDIT_PRICES = {
-  /** One new story, start to finish (its paintings and voice included). */
-  story: 10,
-  /** One character designed or painted again. */
-  character: 2,
-} as const;
-export type CreditItem = keyof typeof CREDIT_PRICES;
+export type CreditsMode = "beyond" | "always";
+export const CREDITS_PER_STORY_MINUTE = 1;
+export const CHARACTER_CREDITS = 1;
+/** The shortest and longest story (lib/ages), kept here so prices need no
+ *  other file: a story costs between these. */
+const STORY_MINUTES: [number, number] = [3, 8];
+export const storyCredits = (minutes: number) =>
+  Math.min(STORY_MINUTES[1], Math.max(STORY_MINUTES[0], Math.round(Number(minutes) || STORY_MINUTES[0]))) * CREDITS_PER_STORY_MINUTE;
+export const STORY_CREDITS_RANGE: [number, number] = [storyCredits(STORY_MINUTES[0]), storyCredits(STORY_MINUTES[1])];
+/** What the admin's test account is given once, to begin with. */
+export const STARTER_CREDITS = 250;
+/** The most that can be added by hand in one go. */
+export const MAX_CREDITS_ADDED = 1000;
 
 const isTier = (v: unknown): v is TierId => typeof v === "string" && Object.prototype.hasOwnProperty.call(PLANS, v);
 

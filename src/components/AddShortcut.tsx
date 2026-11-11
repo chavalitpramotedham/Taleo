@@ -144,7 +144,7 @@ export function AddShortcutDialog({ onClose }: { onClose: () => void }) {
             ✕
           </button>
         </div>
-        <img className="shortcut-icon" src="/icon-192.png" alt="" width={72} height={72} />
+        <img className="shortcut-icon" src="/icon-192.png?v=2" alt="" width={72} height={72} />
         <p className="draft-title">Taleo on your {where}</p>
         <p className="meta">{phone ? "One tap on its icon" : "One click on its icon"} opens Taleo {phone ? "full screen" : "in its own window"}, like an app. Nothing to download, and it takes no room.</p>
         {offer ? (

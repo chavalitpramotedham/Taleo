@@ -12643,3 +12643,96 @@ html[data-night] .hero-lesson b {
 .admin-zoom-panel .admin-zoom-picture {
   max-height: calc(100dvh - 250px);
 }
+
+/* ---------- what's left: the account menu's summary, and the details ---------- */
+.credit-icon {
+  flex: none;
+  vertical-align: -0.2em;
+}
+/* Under the name in the account menu: stories left and credits held, each
+   with its icon, right-aligned like the menu's items. A tap opens the
+   details. */
+.allowance-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 9px 18px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  min-height: 3.4em;
+}
+.allowance-item {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 8px;
+}
+.allowance-item b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.allowance-item svg:not(.credit-icon) {
+  flex: none;
+  color: var(--ink-soft);
+}
+.allowance-wait {
+  font-style: italic;
+  color: var(--ink-faint);
+}
+@media (hover: hover) {
+  .allowance-summary:hover {
+    background: var(--sage-soft);
+  }
+}
+/* The details: four figures, each with a line about it. */
+.allowance {
+  margin-bottom: clamp(18px, 3vw, 28px);
+}
+.allowance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px 22px;
+  margin: 14px 0 0;
+}
+.allowance-grid > div {
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+.allowance-grid dt {
+  font-family: var(--font-caps);
+  font-size: 0.86rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+.allowance-grid dd {
+  margin: 2px 0 2px;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: var(--ink);
+  font-variant-numeric: lining-nums;
+}
+.allowance-grid .meta {
+  margin: 0;
+  font-size: 0.9rem;
+}
+/* Add credits: a few quick amounts over the number itself. */
+.add-credits .modal-head h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.add-credits-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.add-credits .input {
+  font-size: 1.3rem;
+  text-align: center;
+  font-variant-numeric: lining-nums;
+}

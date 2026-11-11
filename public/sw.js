@@ -15,7 +15,7 @@
  * always fetched fresh, so nobody is ever shown someone else's or an
  * out-of-date bookshelf.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = "taleo-shell-" + VERSION; // the offline page and its icon
 const ASSETS = "taleo-assets-" + VERSION; // files that never change, or rarely
 const OFFLINE = "/offline.html";
@@ -25,7 +25,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(SHELL)
-      .then((c) => c.addAll([new Request(OFFLINE, { cache: "reload" }), "/icon-192.png"]))
+      .then((c) => c.addAll([new Request(OFFLINE, { cache: "reload" }), "/icon-192.png?v=2"]))
       .then(() => self.skipWaiting()),
   );
 });
