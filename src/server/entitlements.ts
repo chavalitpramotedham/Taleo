@@ -44,11 +44,13 @@ export function forgetAccount(userId: string) {
 }
 
 async function read(userId: string): Promise<Account | null> {
-  const profile = await getUser(userId, { fresh: true });
+  // (the profile and the subscription are asked for together; an admin's
+  // subscription, if there were one, is simply not used)
+  const [profile, sub] = await Promise.all([getUser(userId, { fresh: true }), getSubscription(userId).catch(() => null)]);
   // (signed in, but the account is gone - deleted since the cookie was
   // made: not an account)
   if (!profile) return null;
-  const subscription = profile.isAdmin ? null : await getSubscription(userId);
+  const subscription = profile.isAdmin ? null : sub;
   const tier: TierId = profile.isAdmin ? "admin" : (() => {
     const paid = planOf(subscription);
     // (nobody is made an admin by a plan name alone)

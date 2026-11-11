@@ -121,15 +121,23 @@ function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = fa
       // When each word is spoken: the server's own timings for this clip
       // (it listened to it once), or - if there are none - an estimate
       // from the clip's pauses.
-      let starts: number[] | null = null;
-      if (kind === "page") {
-        starts = await fetch(`${address}&m=1`)
-          .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
-          .then((m) => (Array.isArray(m?.starts) && m.starts.length === wordCount(text) ? m.starts : null))
-          .catch(() => null);
-      }
       const heard = soundOf(buf);
-      return { buf, starts: starts ?? (kind === "page" ? estimatedStarts(text, buf, heard) : []), lead: heard.first };
+      const clip: Clip = { buf, starts: kind === "page" ? estimatedStarts(text, buf, heard) : [], lead: heard.first };
+      if (kind === "page") {
+        // (for a page that's been read before they're there at once, and
+        // are waited for - a moment at most. For a page never read before
+        // the server has to listen to the new recording first, which takes
+        // a second or two: the reading starts without them, following its
+        // estimate, and falls in step with them when they arrive.)
+        const exact = fetch(`${address}&m=1`)
+          .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
+          .then((m) => {
+            if (Array.isArray(m?.starts) && m.starts.length === wordCount(text)) clip.starts = m.starts;
+          })
+          .catch(() => {});
+        await Promise.race([exact, new Promise((r) => setTimeout(r, 350))]);
+      }
+      return clip;
     } catch {
       return null;
     }
@@ -442,7 +450,7 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
         let raf = 0;
         if (kind === "page" && clip.starts.length) {
           const places = [...t.matchAll(/\S+/g)].map((m) => m.index ?? 0);
-          const starts = clip.starts;
+          let starts = clip.starts;
           const t0 = c.currentTime;
           // (what's heard trails what's been handed to the speaker - by a
           // little on a phone, by a lot through wireless earphones)
@@ -451,6 +459,11 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
           const tick = () => {
             if (!isCurrent()) return;
             const el = c.currentTime - t0 + skip - behind();
+            // (the exact timings have just arrived: fall in step with them)
+            if (clip.starts !== starts) {
+              starts = clip.starts;
+              i = -1;
+            }
             // (only ever forwards, a word at a time or more)
             while (i + 1 < starts.length && starts[i + 1] <= el) i++;
             emit({ text: t, at: i < 0 ? -1 : (places[i] ?? 0), word: i });

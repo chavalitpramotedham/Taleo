@@ -3,17 +3,21 @@ import { auth } from "@/server/auth";
 import { AccountForm } from "./AccountForm";
 import { getUser, privateProfilesAvailable } from "@/server/users";
 import { currentAccount } from "@/server/entitlements";
-import { billingAvailable } from "@/server/billing";
+import { billingAvailable, creditBalance } from "@/server/billing";
 
 export default async function AccountPage() {
   const session = await auth();
   if (!session?.user) redirect("/sign-in?next=/account");
   if (!session.user.username) redirect("/welcome?next=/account");
-  const profile = await getUser(session.user.id).catch(() => null);
   // (the plan and credits as the server's records have them now - the
-  // cookie's copy of the plan only stands in if they can't be read)
-  const account = await currentAccount().catch(() => null);
-  const credits = account && billingAvailable() ? await account.credits() : null;
+  // cookie's copy of the plan only stands in if they can't be read. All
+  // three are asked for together.)
+  const [profile, account, balance] = await Promise.all([
+    getUser(session.user.id).catch(() => null),
+    currentAccount().catch(() => null),
+    billingAvailable() ? creditBalance(session.user.id).catch(() => null) : Promise.resolve(null),
+  ]);
+  const credits = account ? balance : null;
 
   return (
     <div className="container wizard">

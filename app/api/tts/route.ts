@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { cachedClip, chosenVoice, clipMarks, speechClip, ttsEnabled, voiceChoices, type TtsKind } from "@/server/tts";
 import { auth } from "@/server/auth";
 import { guard } from "@/server/limits";
@@ -83,9 +83,10 @@ export async function GET(req: Request) {
       request: { text, kind, voice: picked },
     });
     try {
-      const clip = await speechClip(text, kind, picked);
+      const clip = await speechClip(text, kind, picked, { notMade: true });
       gen.sent(clip.length);
-      await gen.end("ok", { summary: `${text.length} characters spoken, ${Math.round(clip.length / 1024)} KB of sound` });
+      // (the log's line is written once the sound is on its way)
+      after(() => gen.end("ok", { summary: `${text.length} characters spoken, ${Math.round(clip.length / 1024)} KB of sound` }));
       return clip;
     } catch (e) {
       await gen.end("error", { error: e });
