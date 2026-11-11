@@ -309,7 +309,7 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
   const pictures = records.some((r) => makesPicture(r.kind));
   // (the list's pictures in order, for stepping through them full size)
   const shownPictures = records.filter((r) => makesPicture(r.kind) && r.hasResult);
-  const gallery: ZoomItem[] = shownPictures.map((r) => ({ src: `${HERE}/picture/${r.id}`, label: pictureLabel(r), record: href({ id: r.id }) }));
+  const gallery: ZoomItem[] = shownPictures.map((r) => ({ src: `${HERE}/picture/${r.id}`, label: pictureLabel(r), title: pictureKind(r), caption: r.what || undefined, record: href({ id: r.id }) }));
   const place = new Map(shownPictures.map((r, i) => [r.id, i]));
   return (
     <ZoomList items={gallery}>
@@ -348,6 +348,8 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
                       lazy
                       record={href({ id: r.id })}
                       label={pictureLabel(r)}
+                      title={pictureKind(r)}
+                      caption={r.what || undefined}
                       index={place.get(r.id)}
                     />
                   )}
@@ -387,8 +389,9 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
   );
 }
 
+const pictureKind = (r: GenRecord) => (r.kind === "character" ? "Character" : "Painting");
 const pictureLabel = (r: GenRecord) => {
-  const kind = r.kind === "character" ? "Character" : "Painting";
+  const kind = pictureKind(r);
   return r.what ? `${kind}: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : kind;
 };
 

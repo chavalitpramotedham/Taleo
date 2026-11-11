@@ -12583,3 +12583,29 @@ html[data-night] .hero-lesson b {
     animation: none;
   }
 }
+
+/* ---------- the log's full-size picture: heading and caption ---------- */
+/* The heading is short ("Painting"); what was asked for is a caption under
+   the picture, in ordinary text. The close button keeps its shape whatever
+   the heading's length. */
+.admin-zoom-panel .modal-head {
+  gap: 12px;
+}
+.admin-zoom-panel .modal-head h3 {
+  min-width: 0;
+}
+.admin-zoom-panel .modal-head .icon-btn {
+  flex: none;
+}
+.admin-zoom-caption {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+/* (room under the picture for a caption of a few lines) */
+.admin-zoom-panel .admin-zoom-picture {
+  max-height: calc(100dvh - 250px);
+}

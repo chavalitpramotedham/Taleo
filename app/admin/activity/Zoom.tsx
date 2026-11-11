@@ -4,7 +4,12 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** One painting the dialog can show. */
-export type ZoomItem = { src: string; label: string; record?: string };
+/** A picture to show full size. `label` names it for screen readers (and
+ *  is its heading when it has no `title`); `title` is a short heading
+ *  ("Painting", "Character"); `caption` is what was asked for, set under
+ *  the picture in ordinary text - a long one would crowd the heading and
+ *  squeeze the close button. */
+export type ZoomItem = { src: string; label: string; record?: string; title?: string; caption?: string };
 
 /** The paintings of one list, in order: a tap on any of them opens the
  *  dialog there, and ‹ › (or the arrow keys, or a sideways swipe) step
@@ -24,7 +29,7 @@ export function ZoomList({ items, children }: { items: ZoomItem[]; children: Rea
 /** A painting in the activity log, small: a tap opens it full size over
  *  the page (✕, Esc or a tap outside closes it). Inside a ZoomList it
  *  opens at its place in that list (`index`); on its own, just itself. */
-export function ZoomPicture({ src, className, width, height, lazy = false, record, label, index }: ZoomItem & {
+export function ZoomPicture({ src, className, width, height, lazy = false, record, label, title, caption, index }: ZoomItem & {
   className: string;
   width?: number;
   height?: number;
@@ -40,7 +45,7 @@ export function ZoomPicture({ src, className, width, height, lazy = false, recor
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={className} src={src} alt="" loading={lazy ? "lazy" : undefined} decoding="async" width={width} height={height} />
       </button>
-      {alone && <ZoomDialog items={[{ src, label, record }]} at={0} onStep={() => {}} onClose={() => setAlone(false)} />}
+      {alone && <ZoomDialog items={[{ src, label, record, title, caption }]} at={0} onStep={() => {}} onClose={() => setAlone(false)} />}
     </>
   );
 }
@@ -99,13 +104,14 @@ function ZoomDialog({ items, at, onStep, onClose }: { items: ZoomItem[]; at: num
           onTouchEnd={stepping ? onTouchEnd : undefined}
         >
           <div className="modal-head">
-            <h3>{item.label}</h3>
+            <h3>{item.title ?? item.label}</h3>
             <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
               ✕
             </button>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img key={item.src} className="admin-zoom-picture" src={item.src} alt={item.label} />
+          {item.caption && <p className="admin-zoom-caption">{item.caption}</p>}
           <p className="meta admin-zoom-more">
             {stepping && (
               <span className="admin-zoom-count">
