@@ -160,11 +160,27 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
 /** The light switch in the menu bar (the lantern hangs just below it at night). */
 export function NightToggle() {
   const { night, toggle } = useNightMode();
+  // As a finger or the pointer comes down on the switch (a moment before
+  // the tap itself), the page is got ready to fade: given its own layer,
+  // which is the one slow step of starting the switch. By the tap, it's
+  // done, and the fade begins on the very next frame. (Let go of again a
+  // moment later if no tap follows.)
+  const ready = useRef(0);
+  const prepare = () => {
+    const root = document.documentElement;
+    root.classList.add("theme-ready");
+    window.clearTimeout(ready.current);
+    ready.current = window.setTimeout(() => root.classList.remove("theme-ready"), 1500);
+  };
+  useEffect(() => () => window.clearTimeout(ready.current), []);
   return (
     <span className="night-switch">
       <button
         type="button"
         className={`icon-btn night-toggle ${night ? "on" : ""}`}
+        onPointerDown={prepare}
+        onPointerEnter={prepare}
+        onFocus={prepare}
         onClick={toggle}
         aria-pressed={night}
         aria-label={night ? "Turn off night mode" : "Turn on night mode"}

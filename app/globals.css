@@ -4985,6 +4985,10 @@ html.theme-switching main {
   transition: opacity 0.12s ease-out;
   will-change: opacity;
 }
+/* (got ready as the pointer comes down on the switch: see NightToggle) */
+html.theme-ready main {
+  will-change: opacity;
+}
 html.theme-hidden main {
   opacity: 0;
 }
@@ -5233,19 +5237,25 @@ html[data-night] .topbar {
      lantern's measured position is set (don't redefine them here, or the
      glow stops following the lantern). */
 }
-/* Each part of the light is a square only as big as the light it draws,
-   centred on the lantern (--r: how far it reaches) - not a sheet the size
-   of the whole screen. They pulse without rest, and the browser blends
-   every pixel of each on every frame: as three whole-screen sheets that
-   took enough of a large screen's frames to make a long page stutter as
-   it scrolled. Most of each square is off the screen's corner anyway. */
+/* Each part of the light is a box only as big as the light it draws that
+   is on the screen: the square the light reaches (--r from the lantern),
+   cut off at the screen's edges - never a sheet the size of the whole
+   screen where the light is small (a wide desktop), nor one bigger than
+   the screen where the light is large (a phone). They pulse without rest,
+   and the browser blends every pixel of each on every frame: this keeps
+   that to the pixels the light actually falls on.
+   (--l/--t: the box's corner; --cx/--cy: the lantern, measured from it.) */
 .night-glow > * {
+  --l: max(0px, calc(var(--lamp-x) - var(--r)));
+  --t: max(0px, calc(var(--lamp-y) - var(--r)));
+  --cx: calc(var(--lamp-x) - var(--l));
+  --cy: calc(var(--lamp-y) - var(--t));
   position: absolute;
-  left: calc(var(--lamp-x) - var(--r));
-  top: calc(var(--lamp-y) - var(--r));
-  width: calc(var(--r) * 2);
-  height: calc(var(--r) * 2);
-  transform-origin: 50% 50%;
+  left: var(--l);
+  top: var(--t);
+  right: max(0px, calc(100% - var(--lamp-x) - var(--r)));
+  bottom: max(0px, calc(100% - var(--lamp-y) - var(--r)));
+  transform-origin: var(--cx) var(--cy);
   will-change: transform, opacity;
 }
 /* (and while the page is being scrolled the light holds still - see
@@ -5253,13 +5263,20 @@ html[data-night] .topbar {
 .night-ambience.scrolling .night-glow > *,
 .night-ambience.scrolling .fireflies *,
 .night-ambience.scrolling .lantern-firefly,
-.night-ambience.scrolling .lantern-firefly * {
+.night-ambience.scrolling .lantern-firefly *,
+/* (and while night is being switched off: the light and the fireflies
+   only have to fade away with the room, not keep moving as they go -
+   every frame of the switch goes to the switch) */
+.night-ambience.leaving .night-glow > *,
+.night-ambience.leaving .fireflies *,
+.night-ambience.leaving .lantern-firefly,
+.night-ambience.leaving .lantern-firefly * {
   animation-play-state: paused;
 }
 .night-glow-halo {
   --r: 660px;
   background: radial-gradient(
-    circle at 50% 50%,
+    circle at var(--cx) var(--cy),
     rgba(255, 190, 110, 0.095) 0,
     rgba(255, 172, 92, 0.045) 200px,
     rgba(255, 160, 82, 0.016) 420px,
@@ -5270,7 +5287,7 @@ html[data-night] .topbar {
 .night-glow-core {
   --r: 230px;
   background: radial-gradient(
-    circle at 50% 50%,
+    circle at var(--cx) var(--cy),
     rgba(255, 224, 150, 0.234) 0,
     rgba(255, 204, 124, 0.153) 40px,
     rgba(255, 188, 104, 0.072) 110px,
@@ -5281,7 +5298,7 @@ html[data-night] .topbar {
 .night-glow-shimmer {
   --r: 170px;
   background: radial-gradient(
-    circle at 50% 50%,
+    circle at var(--cx) var(--cy),
     rgba(255, 232, 170, 0.108) 0,
     rgba(255, 210, 132, 0.045) 60px,
     rgba(255, 200, 120, 0) 170px
@@ -9420,7 +9437,7 @@ html[data-night] .home-stat {
   .night-glow-halo {
     --r: 1000px;
     background: radial-gradient(
-      circle at 50% 50%,
+      circle at var(--cx) var(--cy),
       rgba(255, 190, 110, 0.115) 0,
       rgba(255, 172, 92, 0.058) 300px,
       rgba(255, 160, 82, 0.024) 640px,
