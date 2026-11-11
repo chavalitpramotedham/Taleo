@@ -69,20 +69,23 @@ export function CreditCost({ credits }: { credits: number | null | undefined }) 
 }
 
 /**
- * The words on a button that makes something: its mark and words on one
- * line - with what it costs in credits after them, if it costs any - and,
- * when it will be one of the plan's free ones, a small line beneath saying
- * how many are left.
+ * The words on a button that makes something. Laid out as one row,
+ * centred in the button: the mark on the left, and on its right a small
+ * stack - the words (with what it costs in credits after them, if it costs
+ * any) and, when it will be one of the plan's free ones, a small line
+ * beneath saying how many are left.
  */
 export function MakeLabel({ icon, children, credits, free }: { icon?: React.ReactNode; children: React.ReactNode; credits?: number | null; free?: string | null }) {
   return (
     <span className={`make-label${free ? " has-sub" : ""}`}>
-      <span className="make-label-main">
-        {icon}
-        {children}
-        <CreditCost credits={credits} />
+      {icon && <span className="make-label-icon">{icon}</span>}
+      <span className="make-label-stack">
+        <span className="make-label-main">
+          {children}
+          <CreditCost credits={credits} />
+        </span>
+        {free && <span className="make-label-sub">{free}</span>}
       </span>
-      {free && <span className="make-label-sub">{free}</span>}
     </span>
   );
 }

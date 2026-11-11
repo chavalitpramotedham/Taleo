@@ -13768,21 +13768,33 @@ html[data-night] .policy-card {
 }
 
 /* ---------- A making button's words, and the small line under them ---------- */
-/* One line as on any button: the mark, the words, what it costs. When it
-   will be one of the plan's free ones, a small line sits beneath, centred,
-   saying how many are left - the two lines together stay in the button's
-   middle, and the button grows a little to hold them. */
+/* One row, centred in the button: the mark on the left; on its right a
+   stack - the words (and what it costs), and when it will be one of the
+   plan's free ones a small line beneath saying how many are left. The mark
+   stands in the middle of the stack's height. */
 .make-label {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+.make-label-icon {
+  display: inline-flex;
+  flex: none;
+}
+.make-label-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 1px;
   min-width: 0;
+  text-align: left;
 }
 .make-label-main {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
 }
 .make-label-sub {
@@ -13794,6 +13806,10 @@ html[data-night] .policy-card {
   line-height: 1.15;
   opacity: 0.88;
   white-space: nowrap;
+}
+.make-label.has-sub .make-label-icon svg {
+  width: 26px;
+  height: 26px;
 }
 .btn:has(.make-label.has-sub) {
   padding-top: 7px;
