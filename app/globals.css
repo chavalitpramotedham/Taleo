@@ -12599,14 +12599,16 @@ p.deploy-marker {
    stamp. */
 .hero-lesson-pill {
   display: inline-flex;
+  /* (the three sit on one centre line: each is a single line as tall as
+     its own letters, so "centre" means the letters' centre) */
   align-items: center;
   gap: 8px;
-  padding: 6px 18px 7px 13px;
+  height: 34px;
+  padding: 0 16px 0 12px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ochre) 50%, transparent);
   background: color-mix(in srgb, var(--ochre) 15%, var(--page));
   color: var(--ink);
-  line-height: 1.2;
   white-space: nowrap;
 }
 .hero-lesson.on .hero-lesson-pill {
@@ -12621,20 +12623,30 @@ p.deploy-marker {
   }
 }
 .hero-art .hero-lesson svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex: none;
+  color: var(--ochre);
 }
 .hero-lesson-label {
   font-family: var(--font-caps);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
+  line-height: 1;
   letter-spacing: 0.06em;
   color: var(--ink-soft);
+  /* (this face's small capitals sit high in their line: measured, they
+     are dropped onto the pill's centre line) */
+  position: relative;
+  top: var(--lesson-label-drop, 1.5px);
 }
 .hero-lesson b {
-  font-size: 1.12rem;
+  font-size: 1.04rem;
+  line-height: 1;
   font-weight: 600;
   color: var(--russet-dark);
+  /* (and this one's lower-case middle sits a touch low beside capitals) */
+  position: relative;
+  top: var(--lesson-word-drop, -0.5px);
 }
 html[data-night] .hero-lesson b {
   color: var(--russet);
@@ -12674,7 +12686,7 @@ html[data-night] .hero-lesson b {
     font-size: 0.92rem;
   }
   .hero-lesson-pill {
-    padding: 5px 16px 6px 12px;
+    height: 32px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -12895,4 +12907,33 @@ html[data-night] .hero-lesson b {
   font-size: 1.3rem;
   text-align: center;
   font-variant-numeric: lining-nums;
+}
+
+/* "Add" beside the credit amount: a small pill, the size of a filter chip -
+   it sits next to a number, it isn't the page's main action. */
+.btn.credits-add {
+  flex: none;
+  min-height: 0;
+  height: 32px;
+  padding: 0 14px 0 11px;
+  gap: 5px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 0 var(--russet-dark);
+}
+.btn.credits-add > span[aria-hidden] {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1;
+  margin-top: -2px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

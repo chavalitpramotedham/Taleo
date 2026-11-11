@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { preload } from "react-dom";
 import { HOME_LAYERS, type HomeLayer } from "@/lib/art/homeLayers";
-import { MapleMark } from "./Icons";
+import { MoonIcon } from "./NightLamp";
 
 const TITLE =
   "A little fox leaps across a stream from a stepping stone, into the open arms of Papa fox waiting on the far bank, while a frog cheers from a lily pad";
@@ -346,7 +346,8 @@ export function HeroPainting() {
           </div>
           <p className={`hero-lesson ${turn === "lesson" ? "on" : ""}`}>
             <span className="hero-lesson-pill">
-              <MapleMark />
+              {/* (the bedtime moon, not the brand's leaf) */}
+              <MoonIcon on />
               <span className="hero-lesson-label">Tonight’s lesson</span>
               <b>{LESSON}</b>
             </span>

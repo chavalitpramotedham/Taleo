@@ -83,8 +83,9 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
               <span>{credits === 1 ? "credit" : "credits"}</span>
             </p>
             {rights.canAddCredits && (
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => setAdding(true)}>
-                Add credits
+              <button type="button" className="btn btn-primary credits-add" onClick={() => setAdding(true)}>
+                <span aria-hidden>+</span> Add
+                <span className="sr-only"> credits</span>
               </button>
             )}
           </div>
