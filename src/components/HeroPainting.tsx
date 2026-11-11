@@ -23,7 +23,7 @@ const LESSON = "Courage";
  *  then, once the choice is made, Kit in the air. Each part begins before
  *  the last has finished, so the picture builds in one calm, overlapping
  *  flow. */
-const SCHEDULE: Record<string, { start: number; dur: number; stage: string }> = {
+const SCHEDULE: Record<string, { start: number; dur: number; stage: string | null }> = {
   "sky-land": { start: 0, dur: 2400, stage: "Washing in the sky…" },
   "stream-trees": { start: 800, dur: 2400, stage: "Washing in the stream…" },
   props: { start: 2400, dur: 1800, stage: "An old maple, stepping stones…" },
@@ -36,13 +36,18 @@ const SCHEDULE: Record<string, { start: number; dur: number; stage: string }> = 
   "kit-waits": { start: 7600, dur: 1500, stage: "Painting little Kit…" },
   "kit-waits-ink": { start: 8400, dur: 1400, stage: "Painting little Kit…" },
   "kit-waits-detail": { start: 9100, dur: 500, stage: "Painting little Kit…" },
-  // (the choice is asked and made here: see CHOICE_AT, PICK_AT)
-  "kit-leaps": { start: 12500, dur: 1600, stage: "Kit takes the leap…" },
-  "kit-leaps-ink": { start: 13300, dur: 1500, stage: "Kit takes the leap…" },
-  "kit-leaps-detail": { start: 14000, dur: 600, stage: "A splash on the stone…" },
-  extras: { start: 14300, dur: 1200, stage: "Leaves on the wind…" },
-  "finish-ink": { start: 14900, dur: 1400, stage: "Finishing touches…" },
+  // (the choice is asked and made here: see CHOICE_AT, PICK_AT. From then
+  // on nothing is "painted": the painter's work is done, and the story
+  // takes over - Kit simply jumps (see JUMP_AT), and the last leaves and
+  // touches arrive quietly, with no brush and no label.)
+  "kit-leaps": { start: 14500, dur: 140, stage: null },
+  "kit-leaps-ink": { start: 14500, dur: 140, stage: null },
+  "kit-leaps-detail": { start: 15300, dur: 400, stage: null },
+  extras: { start: 15500, dur: 1200, stage: null },
+  "finish-ink": { start: 15700, dur: 1200, stage: null },
 };
+/** Kit in the air: these parts aren't painted - they jump, as one. */
+const LEAPS = (name: string) => name.startsWith("kit-leaps");
 /** The parts of the first beat that are taken away for the second: Kit on
  *  the bank, once Kit is in the air. */
 const WAITS = (name: string) => name.startsWith("kit-waits");
@@ -57,9 +62,18 @@ const CHAR_MS = 52;
 const LINE_1_AT = 7400; // as little Kit is painted
 const CHOICE_AT = 10000; // the two choices are offered...
 const PICK_AT = 11600; // ...and one is tapped
-const WAIT_OUT_AT = 12300; // Kit leaves the bank
 const LINE_2_AT = 12500;
-const LESSON_AT = 15800;
+const JUMP_AT = 14500; // Kit jumps (as the line reaches "and flew")
+const JUMP_MS = 900;
+const WAIT_OUT_AT = JUMP_AT; // Kit leaves the bank
+/** The line's key word: underlined like a story's tappable word, and - as
+ *  Kit lands - popped up over the picture, the way a word does in a story
+ *  when it's tapped. */
+const WORD = "flew";
+const WORD_FROM = LINE_2.lastIndexOf(WORD);
+const POP_AT = Math.max(JUMP_AT + JUMP_MS - 200, LINE_2_AT + (WORD_FROM + WORD.length) * CHAR_MS);
+const POP_MS = 1900;
+const LESSON_AT = 16700;
 
 /** What the strip under the story line shows. */
 type Turn = "none" | "ask" | "picked" | "lesson";
@@ -113,6 +127,7 @@ export function HeroPainting() {
   const [typed, setTyped] = useState(LINE_2.length);
   const [turn, setTurn] = useState<Turn>("lesson");
   const [stage, setStage] = useState<string | null>(null);
+  const [pop, setPop] = useState(false);
   // (the label keeps its words while it fades away, rather than emptying)
   const said = useRef("");
   if (stage) said.current = stage;
@@ -211,6 +226,7 @@ export function HeroPainting() {
       let lastLine = 0;
       let lastTyped = -1;
       let lastTurn: Turn | null = null;
+      let lastPop = false;
       const frame = () => {
         // (nothing to keep in step while it's paused: no work at all)
         if (pausedAt !== null) {
@@ -220,7 +236,9 @@ export function HeroPainting() {
         const now = performance.now();
         const elapsed = now - cycleStart - pausedTotal;
 
-        const st = elapsed < PAINT_MS ? (STAGES.find((s) => s.start <= elapsed)?.stage ?? null) : null;
+        // (once the choice is made there's nothing more to say about the
+        // painting: the movement and the word have the stage)
+        const st = elapsed < CHOICE_AT ? (STAGES.find((s) => s.start <= elapsed)?.stage ?? null) : null;
         // (while the choice is being made the painter waits too: the label
         // asks the question instead - on a narrow screen, where there's no
         // room for it beside the two answers)
@@ -235,6 +253,8 @@ export function HeroPainting() {
 
         const tn: Turn = elapsed < CHOICE_AT ? "none" : elapsed < PICK_AT ? "ask" : elapsed < LINE_2_AT + 900 ? "picked" : elapsed < LESSON_AT ? "none" : "lesson";
         if (tn !== lastTurn) setTurn((lastTurn = tn));
+        const pp = elapsed >= POP_AT && elapsed < POP_AT + POP_MS;
+        if (pp !== lastPop) setPop((lastPop = pp));
 
         if (elapsed >= PAINT_MS + HOLD_MS && !root.classList.contains("hero-paint-fade")) root.classList.add("hero-paint-fade");
         if (elapsed >= PAINT_MS + HOLD_MS + FADE_MS) {
@@ -286,11 +306,24 @@ export function HeroPainting() {
     );
   };
   const firstWait = HOME_LAYERS.findIndex((l) => WAITS(l.name));
+  const firstLeap = HOME_LAYERS.findIndex((l) => LEAPS(l.name));
   const text = line === 1 ? LINE_1 : LINE_2;
+  // (the line as written so far, its key word picked out once reached)
+  const shown = live ? text.slice(0, typed) : text;
+  const written =
+    line === 2 && shown.length > WORD_FROM ? (
+      <>
+        {shown.slice(0, WORD_FROM)}
+        <span className={`hero-word ${pop ? "lit" : ""}`}>{shown.slice(WORD_FROM, WORD_FROM + WORD.length)}</span>
+        {shown.slice(WORD_FROM + WORD.length)}
+      </>
+    ) : (
+      shown
+    );
 
   return (
     <figure className="hero-art hero-paint">
-      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" style={{ "--wait-out": `${WAIT_OUT_AT}ms` } as React.CSSProperties}>
+      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms` } as React.CSSProperties}>
         {/* The scene as a stack of layers, one per part, in paint order. */}
         <div className="hero-layers painted-edge" role="img" aria-label={TITLE}>
           <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
@@ -305,6 +338,14 @@ export function HeroPainting() {
                   {HOME_LAYERS.map((w, j) => WAITS(w.name) && part(w, j))}
                 </div>
               )
+            ) : LEAPS(l.name) ? (
+              // (Kit in the air: not painted - the whole of Kit jumps
+              // from the bank, in one arc)
+              i === firstLeap && (
+                <div key="kit-leaps" className="hero-layer hero-leap">
+                  {HOME_LAYERS.map((w, j) => LEAPS(w.name) && part(w, j))}
+                </div>
+              )
             ) : (
               part(l, i)
             ),
@@ -317,6 +358,10 @@ export function HeroPainting() {
         <p className={`hero-stage ${stage ? "on" : ""} ${(stage ?? said.current) === QUESTION ? "ask" : ""}`} aria-hidden>
           {stage ?? said.current}
         </p>
+        {/* the line's key word, popped up over Kit as in a story */}
+        <span className={`hero-word-bubble ${pop ? "on" : ""}`} aria-hidden>
+          {WORD}
+        </span>
         <div className="hero-brush" aria-hidden>
           {/* its shadow on the paper, offset down and to the right, so the
               brush reads as held just above the painting */}
@@ -328,7 +373,7 @@ export function HeroPainting() {
       </div>
       <figcaption aria-label={`${LINE_1} ${QUESTION} ${OPTIONS[PICKED]}. ${LINE_2} Tonight’s lesson: ${LESSON.toLowerCase()}.`}>
         <p className="hero-line" aria-hidden>
-          <span>{live ? text.slice(0, typed) : text}</span>
+          <span>{written}</span>
           <span className={`hero-quill ${live && typed < text.length ? "on" : ""}`} />
         </p>
         {/* Under the line, in one strip of fixed height (nothing on the

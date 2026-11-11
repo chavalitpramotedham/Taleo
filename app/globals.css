@@ -4077,10 +4077,10 @@ html[data-night] .modal-backdrop {
     transform: translate(50%, 50%); opacity: 0;
   }
   79.57% {
-    opacity: 1;
+    opacity: 0;
   }
   85.61% {
-    opacity: 1;
+    opacity: 0;
   }
   87.8% {
     transform: translate(55%, 52%); opacity: 0;
@@ -4092,10 +4092,10 @@ html[data-night] .modal-backdrop {
     transform: translate(34%, 22%); opacity: 0;
   }
   91.31% {
-    opacity: 1;
+    opacity: 0;
   }
   96.34% {
-    opacity: 1;
+    opacity: 0;
   }
   98.17% {
     transform: translate(39%, 24%); opacity: 0;
@@ -13557,4 +13557,90 @@ html {
   /* (measured: at rest the figure's ink sits 0.8px below the button's
      middle line; this puts it on it) */
   top: -0.8px;
+}
+
+/* ---------- homepage picture: after the choice, Kit jumps ---------- */
+/* Nothing is painted once the choice is made (the brush stays away: its
+   last two visits in brushDrift are invisible). Kit in the air is not
+   faded in as paint: the whole of Kit springs from the bank in one arc,
+   to where the picture has Kit caught mid-leap. Then the line's key word
+   is popped up over Kit, the way a tapped word is in a story. */
+.hero-leap {
+  will-change: transform, opacity;
+}
+.hero-paint-canvas.playing .hero-leap {
+  transform-origin: 46% 70%;
+  animation: hpLeap var(--jump-ms, 900ms) cubic-bezier(0.3, 0.1, 0.3, 1) var(--jump-at, 14.5s) both;
+}
+@keyframes hpLeap {
+  /* (from over the stepping stone on the near bank; up, across, and into
+     place with the smallest overshoot) */
+  0% {
+    transform: translate(-19%, 6%) scale(0.86) rotate(-9deg);
+  }
+  45% {
+    transform: translate(-9%, -9%) scale(0.97) rotate(-3deg);
+  }
+  82% {
+    transform: translate(0.6%, -1.2%) scale(1.02) rotate(1deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* (Kit on the bank is gone in an instant as Kit takes off - the same Kit) */
+.hero-paint-canvas.playing .hero-wait {
+  animation-duration: 160ms;
+}
+/* The key word in the line: as a story's tappable word looks... */
+.hero-word {
+  color: var(--russet);
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+  border-radius: 0.3em;
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+/* ...and lit for a moment while it's popped up. */
+.hero-word.lit {
+  background-color: color-mix(in srgb, var(--ochre) 34%, transparent);
+  box-shadow: 0 0 0 0.16em color-mix(in srgb, var(--ochre) 34%, transparent);
+}
+/* The word itself, over the picture (the story reader's word bubble, sized
+   with the picture). Only ever moved and faded. */
+.hero-word-bubble {
+  position: absolute;
+  left: 47%;
+  top: 33%;
+  z-index: 3;
+  transform: translate(-50%, -110%);
+  font-family: var(--font-title);
+  font-style: italic;
+  font-size: clamp(1.5rem, 9cqw, 2.8rem);
+  line-height: 1;
+  color: var(--russet);
+  background: rgba(251, 247, 238, 0.94);
+  border: 1px solid var(--rule);
+  padding: 0.14em 0.5em 0.24em;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.hero-word-bubble.on {
+  animation: word-pop 1.9s ease both;
+}
+html[data-night] .hero-word-bubble {
+  background: rgba(40, 33, 44, 0.94);
+  border-color: #4a3f4c;
+}
+.hero-paint-pending .hero-word-bubble,
+.hero-paint-fade .hero-word-bubble {
+  animation: none;
+  opacity: 0;
 }
