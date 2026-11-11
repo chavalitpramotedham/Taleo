@@ -113,6 +113,9 @@ const fellSC = IM_Fell_English_SC({
   variable: "--font-fell-sc",
 });
 
+/** Runs right after the menu bar's markup: notes its height as --topbar-h. */
+const TOPBAR_HEIGHT = `try{(function(){var b=document.querySelector(".topbar");if(b)document.documentElement.style.setProperty("--topbar-h",Math.round(b.getBoundingClientRect().height)+"px")})()}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // The torn-paper edge every painting is shown through (covers, pages,
   // the landing picture): small, and nothing of a painting can be drawn
@@ -154,6 +157,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
           </header>
+          {/* The menu bar's height, measured the moment the bar exists
+              (before anything below it is drawn), for layouts that sit just
+              under it - the story reader fills exactly the screen below.
+              Left until the app had started, a book that came with the
+              page was drawn at a guessed size first and resized a second
+              or two later. (The app keeps it up to date from there: see
+              NightMode.) */}
+          <script dangerouslySetInnerHTML={{ __html: TOPBAR_HEIGHT }} />
           <main>
             {/* opens at the top of the page content, below the fixed bar */}
             <PullToRefresh />
