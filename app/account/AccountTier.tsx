@@ -91,11 +91,12 @@ export function AccountTier({ isAdmin, tier: tierId, credits }: { isAdmin: boole
   );
 }
 
-/** The plans page: the plans as cards in a sideways row - dots below show
- *  how many there are, the one in view drawn as a long bar. A family on
- *  Free sees Free, then what's coming; the admin sees their own plan
- *  first, then (below a line) the others, to look at but not switch to.
- *  Each card's safety limits sit in a fold at its foot. */
+/** The plans page: every plan as a card in one sideways row, your own
+ *  first and in the middle of the page; the others are a swipe away. Dots
+ *  below show how many there are, the one in the middle drawn as a long
+ *  bar. A family on Free sees Free, then what's coming; the admin sees
+ *  their own plan, then the others, to look at but not switch to. Each
+ *  card's safety limits sit in a fold at its foot. */
 export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier?: TierId }) {
   const mine = tierFor({ isAdmin, tier: tierId });
   // The other plans can be switched to from here: for the admin every other
@@ -104,18 +105,10 @@ export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier
   const others = (c: Card, label: string): Card => ({ ...c, button: label });
   const noCaps = (c: Card): Card => ({ ...c, caps: undefined });
   const cards: Card[] = isAdmin
-    ? [others(fromTier(PLANS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
+    ? [fromTier(PLANS.admin, true), others(fromTier(PLANS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
     : [noCaps(fromTier(mine, true)), others(COMING, "Upgrade - coming soon")];
   return (
     <div className="account-plans">
-      {isAdmin && (
-        <>
-          <PlanCard card={fromTier(PLANS.admin, true)} />
-          <p className="tier-other-plans">
-            <span>Other plans</span>
-          </p>
-        </>
-      )}
       <PlanRow cards={cards} />
     </div>
   );
@@ -128,11 +121,23 @@ function PlanRow({ cards }: { cards: Card[] }) {
     const el = row.current;
     if (!el) return;
     let raf = 0;
+    // The card in view is the one nearest the middle of the row.
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const w = el.firstElementChild?.getBoundingClientRect().width || el.clientWidth;
-        setActive(Math.max(0, Math.min(cards.length - 1, Math.round(el.scrollLeft / (w + 14)))));
+        const box = el.getBoundingClientRect();
+        const mid = box.left + box.width / 2;
+        let best = 0;
+        let near = Infinity;
+        [...el.children].forEach((c, i) => {
+          const r = c.getBoundingClientRect();
+          const d = Math.abs(r.left + r.width / 2 - mid);
+          if (d < near) {
+            near = d;
+            best = i;
+          }
+        });
+        setActive(best);
       });
     };
     el.addEventListener("scroll", onScroll, { passive: true });
@@ -144,7 +149,10 @@ function PlanRow({ cards }: { cards: Card[] }) {
   const go = (i: number) => {
     const el = row.current;
     const card = el?.children[i] as HTMLElement | undefined;
-    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: "smooth" });
+    if (!el || !card) return;
+    const box = el.getBoundingClientRect();
+    const r = card.getBoundingClientRect();
+    el.scrollTo({ left: el.scrollLeft + (r.left + r.width / 2) - (box.left + box.width / 2), behavior: "smooth" });
   };
   return (
     <>

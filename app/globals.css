@@ -13224,3 +13224,23 @@ html {
     animation: none;
   }
 }
+
+/* ---------- The plans row: your plan in the middle ---------- */
+/* Each card comes to rest in the middle of the row. The first and last
+   cards are given whatever room it takes at their outer side to reach the
+   middle too - so the row opens centred on the first card (your own plan),
+   on any width of screen, with the next one showing at the side. */
+.account-plans .plan-row {
+  --gutter: clamp(16px, 4vw, 44px);
+  scroll-padding: 0;
+}
+.account-plans .plan-row > .plan-card {
+  flex: 0 0 min(100%, 340px);
+  scroll-snap-align: center;
+}
+.account-plans .plan-row > .plan-card:first-child {
+  margin-left: max(0px, calc(50% - 170px));
+}
+.account-plans .plan-row > .plan-card:last-child {
+  margin-right: max(0px, calc(50% - 170px));
+}
