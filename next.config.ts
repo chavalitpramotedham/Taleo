@@ -43,9 +43,14 @@ function buildInfo() {
   };
 }
 
+const built = buildInfo();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  env: { TALEO_BUILD_INFO: JSON.stringify(buildInfo()) },
+  // (the log is read only by the admin-only route; the short commit id is
+  // in the page itself, so an open page can tell when a newer version has
+  // gone live)
+  env: { TALEO_BUILD_INFO: JSON.stringify(built), TALEO_BUILD_SHA: built.sha.slice(0, 12) },
   // The library's old address: a real permanent redirect (308), answered
   // before any page is rendered, so search engines move the address over.
   async redirects() {

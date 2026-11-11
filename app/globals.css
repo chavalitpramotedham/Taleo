@@ -12246,14 +12246,65 @@ p.deploy-marker {
   }
 }
 /* (live: a small green light) */
+/* The light: green and pulsing while the site answers and this page is
+   the version that's live; amber, pulsing quicker, when a newer version
+   has gone live; grey and still when the site can't be reached. (The
+   pulse is a ring that grows and fades - transform and opacity only.) */
 .deploy-dot {
+  --dot: var(--sage);
+  position: relative;
   flex: none;
   display: inline-block;
   width: 7px;
   height: 7px;
+  margin: 0 3px;
   border-radius: 50%;
-  background: var(--sage);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sage) 28%, transparent);
+  background: var(--dot);
+}
+.deploy-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--dot);
+  opacity: 0;
+}
+.deploy-dot.live::after {
+  animation: deployPulse 2s ease-out infinite;
+}
+.deploy-dot.update {
+  --dot: var(--ochre);
+}
+.deploy-dot.update::after {
+  animation: deployPulse 1.1s ease-out infinite;
+}
+.deploy-dot.offline {
+  --dot: var(--ink-faint);
+}
+/* (not heard from yet: the last answer, held dim until this one is in) */
+.deploy-dot.checking {
+  opacity: 0.55;
+}
+.deploy-dot.checking::after {
+  animation: none;
+}
+@keyframes deployPulse {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deploy-dot::after {
+    animation: none !important;
+  }
+}
+.deploy-marker-quiet .deploy-dot {
+  margin-right: 8px;
 }
 .deploy-dialog {
   max-width: 680px;

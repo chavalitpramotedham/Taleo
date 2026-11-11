@@ -1,19 +1,31 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { DeployedCommit, Deployment } from "@/lib/deployment";
+import type { DeployedCommit, Deployment, LiveStatus } from "@/lib/deployment";
 import { useEscape } from "@/lib/useEscape";
 import { InfoIcon } from "./Icons";
 
-/** Asked for once per visit, the first time the admin's menu opens. */
-let asked: Promise<Deployment | null> | null = null;
-const whatsLive = () =>
-  (asked ??= fetch("/api/admin/deployment", { cache: "no-store" })
-    .then((r) => (r.ok ? (r.json() as Promise<Deployment>) : null))
-    .catch(() => null)
-    .then((d) => {
-      if (!d) asked = null; // (try again next time the menu opens)
-      return d;
-    }));
+/** The version this page was built from (a short commit id). */
+const PAGE_SHA = process.env.TALEO_BUILD_SHA || "";
+const CHECK_MS = 20_000;
+/** What was last heard (shown at once when the menu opens again). */
+let known: Deployment | null = null;
+
+/** Asks the site what's live, and so whether it can be reached at all. */
+async function check(): Promise<{ live: Deployment | null; status: LiveStatus }> {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return { live: known, status: "offline" };
+  try {
+    const r = await fetch("/api/admin/deployment", { cache: "no-store" });
+    if (!r.ok) return { live: known, status: "offline" };
+    const d = (await r.json()) as Deployment;
+    known = d;
+    // (a different commit from the one this page was built from: a newer
+    // version has gone live while the page stayed open)
+    return { live: d, status: PAGE_SHA && d.sha && !d.sha.startsWith(PAGE_SHA) ? "update" : "live" };
+  } catch {
+    return { live: known, status: "offline" };
+  }
+}
+const STATUS_WORDS: Record<LiveStatus, string> = { live: "Live", update: "A newer version is live - reload to get it", offline: "Can't reach the site just now" };
 
 const short = (sha: string) => sha.slice(0, 7);
 const when = (iso: string, opts: Intl.DateTimeFormatOptions) => {
@@ -44,32 +56,57 @@ function ago(iso: string) {
  * from an admin-only address - nothing of it is in anyone else's page.
  */
 export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => void }) {
-  const [live, setLive] = useState<Deployment | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [live, setLive] = useState<Deployment | null>(known);
+  const [status, setStatus] = useState<LiveStatus | null>(null);
+  // Asked as the menu opens, every twenty seconds while it stays open, and
+  // the moment the device goes on or off line - so the light means what
+  // it shows: green and pulsing while the site answers and this page is
+  // the version that's live.
   useEffect(() => {
     let here = true;
-    whatsLive().then((d) => here && (d ? setLive(d) : setFailed(true)));
+    const ask = () =>
+      void check().then((c) => {
+        if (!here) return;
+        setLive(c.live);
+        setStatus(c.status);
+      });
+    ask();
+    const every = window.setInterval(ask, CHECK_MS);
+    window.addEventListener("online", ask);
+    window.addEventListener("offline", ask);
     return () => {
       here = false;
+      window.clearInterval(every);
+      window.removeEventListener("online", ask);
+      window.removeEventListener("offline", ask);
     };
   }, []);
-  if (failed) return <p className="deploy-marker deploy-marker-quiet">What&apos;s live couldn&apos;t be read</p>;
-  if (!live) return <p className="deploy-marker deploy-marker-quiet">Reading what&apos;s live…</p>;
+  if (!live) {
+    return (
+      <p className="deploy-marker deploy-marker-quiet">
+        {status === "offline" && <span className="deploy-dot offline" aria-hidden />}
+        {status === "offline" ? "Can't reach the site just now" : "Reading what's live…"}
+      </p>
+    );
+  }
+  const state = status ?? "live";
   return (
     <>
       <button
         type="button"
         className="deploy-marker"
         role="menuitem"
-        aria-label={`What's live: version ${live.version}, ${short(live.sha)}, deployed ${when(live.builtAt, BRIEF)}. Show the details`}
-        onClick={() => onShow(live)}
+        aria-label={`${STATUS_WORDS[state]}. Version ${live.version}, ${short(live.sha)}, ${when(live.builtAt, BRIEF)}. Show the details`}
+        onClick={() => onShow({ ...live, status: state })}
       >
         <span className="deploy-marker-text">
           <span className="deploy-marker-version">
-            <span className="deploy-dot" aria-hidden />v{live.version}
+            <span className={`deploy-dot ${state}${status ? "" : " checking"}`} aria-hidden />v{live.version}
             {live.sha && <code>{short(live.sha)}</code>}
           </span>
-          <span className="deploy-marker-when">Deployed {when(live.builtAt, BRIEF) || "at an unknown time"}</span>
+          <span className="deploy-marker-when">
+            {state === "update" ? "Newer version live · reload" : state === "offline" ? "Offline" : when(live.builtAt, BRIEF) || "Live"}
+          </span>
         </span>
         <InfoIcon />
       </button>
@@ -81,7 +118,9 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
  *  changed: each commit's message as it was written. */
 export function DeploymentDialog({ live, onClose }: { live: Deployment; onClose: () => void }) {
   useEscape(onClose);
+  const state = live.status ?? "live";
   const facts: [string, React.ReactNode][] = [
+    ["Status", STATUS_WORDS[state]],
     ["Version", `v${live.version}`],
     ["Commit", live.sha ? <code key="c">{live.sha}</code> : "-"],
     ["Branch", live.branch || "-"],
@@ -99,7 +138,7 @@ export function DeploymentDialog({ live, onClose }: { live: Deployment; onClose:
       <div className="modal-panel deploy-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="What's live">
         <div className="modal-head">
           <h3>
-            <span className="deploy-dot" aria-hidden />
+            <span className={`deploy-dot ${state}`} aria-hidden />
             What&apos;s live
           </h3>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">

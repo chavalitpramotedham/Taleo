@@ -8,7 +8,15 @@ export interface DeployedCommit {
   /** The rest of the commit message: what changed, as it was logged. */
   body: string;
 }
+/** How the open page stands to what's live: "live" (reachable, and this
+ *  page is the version that's live), "update" (a newer version has gone
+ *  live since this page was opened), "offline" (the site can't be reached
+ *  from here just now). */
+export type LiveStatus = "live" | "update" | "offline";
+
 export interface Deployment {
+  /** (set in the browser: see DeploymentMarker) */
+  status?: LiveStatus;
   /** package.json's version. */
   version: string;
   /** The commit the live site was built from. */
