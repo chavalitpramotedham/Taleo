@@ -13180,3 +13180,12 @@ main:has(.reader) + .site-footer {
 body {
   padding-top: var(--topbar-h, 64px);
 }
+
+/* ---------- No zoom from a double tap ---------- */
+/* A double tap on a paragraph makes a phone zoom in to fit it - by a
+   little, on a page of text - after which the page slides sideways and
+   the menu bar wobbles as it scrolls. Tapping twice does nothing now;
+   pinching to zoom still works for anyone who needs larger text. */
+html {
+  touch-action: manipulation;
+}
