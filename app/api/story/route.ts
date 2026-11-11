@@ -28,8 +28,9 @@ export async function GET(req: Request) {
   if (me.account?.suspended) return NextResponse.json({ canStart: false, error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 });
   const user = me.user;
   // (one story at a time, on one device at a time)
-  if (await busyElsewhere(user.id, deviceOf(req))) return NextResponse.json({ canStart: false, limited: "busy", error: BUSY_ELSEWHERE, plan: tierFor(user).name });
-  const peek = await peekStart(user);
+  // (...asked for alongside what the plan has left)
+  const [busy, peek] = await Promise.all([busyElsewhere(user.id, deviceOf(req)), peekStart(user)]);
+  if (busy) return NextResponse.json({ canStart: false, limited: "busy", error: BUSY_ELSEWHERE, plan: tierFor(user).name });
   const { retryAfterSec, limited, left } = peek;
   let ok = peek.ok;
   // The plan's free stories are used up, on a plan that then pays with

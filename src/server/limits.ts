@@ -180,10 +180,11 @@ const room = (usage: Usage, a: NonNullable<ReturnType<typeof allowance>>, bucket
 /** Can this account begin a story now? Not once its stories are used up,
  *  nor after too many changes of mind. */
 export async function peekStart(user: Who): Promise<{ ok: boolean; retryAfterSec: number; limited: Bucket; left?: number }> {
-  const story = await peekLimit(user, "story");
+  // (asked together: the two share one read of the account's counts)
+  const [story, start] = await Promise.all([peekLimit(user, "story"), peekLimit(user, "start")]);
   if (!story.ok) return { ...story, left: 0, limited: "story" };
   // (`left`: how many more stories can be begun - absent when unlimited)
-  return { ...(await peekLimit(user, "start")), limited: "start" };
+  return { ...start, limited: "start" };
 }
 
 /** Uses one from a bucket if there's room. */

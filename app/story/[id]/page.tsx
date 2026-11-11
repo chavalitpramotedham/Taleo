@@ -3,7 +3,7 @@ import { QuotaNote } from "@/components/QuotaNote";
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import type { Story } from "@/lib/types";
-import { getStory, saveStory } from "@/lib/storage";
+import { flushStories, getStory, saveStory, saveStorySoon } from "@/lib/storage";
 import { fetchDraft, flushDraft, saveDraftSoon } from "@/lib/drafts-client";
 import { useSession } from "next-auth/react";
 import { StoryReader } from "@/components/StoryReader";
@@ -53,7 +53,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
       setStory((prev) => {
         if (!prev) return prev;
         const next = fn(prev);
-        saveStory(next);
+        saveStorySoon(next);
         // Unfinished stories are also kept on the account (batched), so
         // they can be resumed later or elsewhere; finishing clears it.
         if (signedIn) saveDraftSoon(next);
@@ -78,6 +78,7 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
     document.addEventListener("visibilitychange", onHide);
     return () => {
       document.removeEventListener("visibilitychange", onHide);
+      flushStories();
       flushDraft();
     };
   }, []);

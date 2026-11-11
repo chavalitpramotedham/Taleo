@@ -7,12 +7,11 @@ import { getGalleryStory, listRatings, myRating } from "@/server/gallery";
  *  own creator (or the admin) can see this; everyone else just gets their
  *  own rating, so they can see what they previously rated. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
   const { id } = await params;
-  const story = await getGalleryStory(id);
+  // (who's asking, the story and its ratings: asked for together)
+  const [session, story, ratings] = await Promise.all([auth(), getGalleryStory(id), listRatings(id)]);
   if (!story) return NextResponse.json({ error: "Not found." }, { status: 404 });
 
-  const ratings = await listRatings(id);
   // How many gave each number of stars (1-5) - for everyone, no names.
   const counts = [1, 2, 3, 4, 5].map((n) => ratings.filter((r) => r.rating === n).length);
   // (who rated what is the author's to see, and the admin's - the admin by

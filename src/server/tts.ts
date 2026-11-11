@@ -144,10 +144,11 @@ export async function cachedClip(text: string, kind: TtsKind, picked: string | n
 
 /** MP3 audio for a phrase, from the cache or freshly synthesised. Callers
  *  must check the requester may create new clips (see /api/tts). */
-export async function speechClip(text: string, kind: TtsKind, picked: string | null = null): Promise<Buffer> {
+export async function speechClip(text: string, kind: TtsKind, picked: string | null = null, opts: { notMade?: boolean } = {}): Promise<Buffer> {
   if (!provider) throw new Error("No text-to-speech provider configured.");
   const key = cacheKey(text, kind, picked);
-  const cached = await readCache(key);
+  // (`notMade`: the caller has just looked, and it isn't there)
+  const cached = opts.notMade ? null : await readCache(key);
   if (cached) return cached;
   const audio = await synthesise(text, kind, picked);
   await writeCache(key, audio);

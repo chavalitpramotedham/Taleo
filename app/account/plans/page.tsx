@@ -14,9 +14,10 @@ export default async function PlansPage() {
   if (!session?.user) redirect("/sign-in?next=/account/plans");
   // (what's left, and the plan itself, as the server's records have them)
   const account = await currentAccount().catch(() => null);
-  const rights = account ? await rightsOf(account).catch(() => null) : null;
-  // (what its credits were spent on, and when more arrived)
-  const history = account && rights ? transactionsOf(await creditLedger(account.id, 200).catch(() => [])) : [];
+  // (what's left, and what its credits were spent on and when more
+  // arrived: asked for together)
+  const [rights, ledger] = account ? await Promise.all([rightsOf(account).catch(() => null), creditLedger(account.id, 200).catch(() => [])]) : [null, []];
+  const history = rights ? transactionsOf(ledger) : [];
   return (
     <div className="container wizard">
       <header className="wizard-head">
