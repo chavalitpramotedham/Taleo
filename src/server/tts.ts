@@ -121,11 +121,11 @@ async function readCache(key: string): Promise<Buffer | null> {
   }
 }
 
-async function writeCache(key: string, audio: Buffer) {
+async function writeCache(key: string, audio: Buffer, contentType = "audio/mpeg") {
   try {
     if (BLOB_TOKEN) {
       const { put } = await import("@vercel/blob");
-      await put(key, audio, { access: "public", contentType: "audio/mpeg", addRandomSuffix: false, allowOverwrite: true, token: BLOB_TOKEN });
+      await put(key, audio, { access: "public", contentType, addRandomSuffix: false, allowOverwrite: true, token: BLOB_TOKEN });
       return;
     }
     const file = path.join(process.cwd(), ".data", key);
@@ -151,5 +151,133 @@ export async function speechClip(text: string, kind: TtsKind, picked: string | n
   if (cached) return cached;
   const audio = await synthesise(text, kind, picked);
   await writeCache(key, audio);
+  // (and its word timings, worked out now so they're there when it's first
+  // played - without holding up the clip itself)
+  if (kind === "page") void clipMarks(text, kind, picked).catch(() => null);
   return audio;
+}
+
+// ---------------------------------------------------------------- word timings
+//
+// When each word of a page is spoken in its clip, so the reader can light
+// the words as they're read. The voice service doesn't say; the clip is
+// listened to once (OpenAI's speech-to-text, with a time for every word),
+// what was heard is lined up with the page's own words, and the answer is
+// kept beside the clip - made once, like the clip, and free ever after.
+// (Without an OpenAI key, or if listening fails, there are none: the
+// reader then estimates from the clip's pauses, as it always did.)
+
+const marksKey = (clipKey: string) => clipKey.replace(/\.mp3$/, ".marks.json");
+const plain = (w: string) =>
+  w
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]/g, "");
+
+/** Lines up the words heard (each with its start time) with the words of
+ *  the text (split at spaces, as the reader splits them): a start time for
+ *  every word of the text, or null if too little matched to trust. */
+export function alignWords(text: string, heard: { word: string; start: number }[], length: number): number[] | null {
+  const words = [...text.matchAll(/\S+/g)].map((m) => plain(m[0]));
+  const said = heard.map((h) => ({ w: plain(h.word), start: h.start })).filter((h) => h.w);
+  if (!words.length || !said.length) return null;
+  const at: (number | null)[] = words.map(() => null);
+  let j = 0;
+  let matched = 0;
+  const same = (a: string, b: string) => a === b || (a.length > 3 && b.length > 3 && (a.startsWith(b) || b.startsWith(a)));
+  for (let i = 0; i < words.length; i++) {
+    if (!words[i]) continue; // (a dash, a lone quote mark: nothing is said)
+    // (the listener may have dropped or added a word or two: look a little ahead)
+    for (let k = j; k < Math.min(said.length, j + 5); k++) {
+      if (same(words[i], said[k].w)) {
+        at[i] = said[k].start;
+        j = k + 1;
+        matched++;
+        break;
+      }
+    }
+  }
+  const spoken = words.filter(Boolean).length;
+  if (matched < Math.max(1, Math.ceil(spoken * 0.6))) return null;
+  // Words that weren't matched (a number read as a word, a name spelt
+  // another way) are placed between their neighbours, by length.
+  const out: number[] = [];
+  let i = 0;
+  while (i < words.length) {
+    if (at[i] !== null) {
+      out[i] = at[i]!;
+      i++;
+      continue;
+    }
+    let e = i;
+    while (e < words.length && at[e] === null) e++;
+    const from = i > 0 ? out[i - 1] : 0;
+    const to = e < words.length ? at[e]! : length;
+    const weight = (n: number) => words[n].length + 1.5;
+    // (the gap starts after the word before it has been said)
+    const lead = i > 0 ? weight(i - 1) : 0;
+    let total = lead;
+    for (let n = i; n < e; n++) total += weight(n);
+    let run = lead;
+    for (let n = i; n < e; n++) {
+      out[n] = from + ((to - from) * run) / (total || 1);
+      run += weight(n);
+    }
+    i = e;
+  }
+  // (never backwards)
+  for (let n = 1; n < out.length; n++) if (out[n] < out[n - 1]) out[n] = out[n - 1];
+  return out.map((t) => Math.round(t * 1000) / 1000);
+}
+
+async function listen(audio: Buffer): Promise<{ words: { word: string; start: number }[]; duration: number } | null> {
+  if (!OPENAI_KEY) return null;
+  const form = new FormData();
+  form.append("file", new Blob([new Uint8Array(audio)], { type: "audio/mpeg" }), "clip.mp3");
+  form.append("model", "whisper-1");
+  form.append("language", "en");
+  form.append("response_format", "verbose_json");
+  form.append("timestamp_granularities[]", "word");
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", { method: "POST", headers: { Authorization: `Bearer ${OPENAI_KEY}` }, body: form });
+  if (!res.ok) throw new Error(`OpenAI listening ${res.status}: ${await res.text().catch(() => "")}`);
+  const data = (await res.json()) as { duration?: number; words?: { word?: string; start?: number }[] };
+  const words = (data.words ?? []).filter((w): w is { word: string; start: number } => typeof w.word === "string" && typeof w.start === "number");
+  return words.length ? { words, duration: typeof data.duration === "number" ? data.duration : (words[words.length - 1].start + 0.5) } : null;
+}
+
+const making = new Map<string, Promise<number[] | null>>();
+/** When each word of a page starts in its clip (seconds), one per word of
+ *  the text - from the cache, or worked out now from a clip that exists.
+ *  Null where they can't be had (no clip yet, no listener, it failed). */
+export async function clipMarks(text: string, kind: TtsKind, picked: string | null = null): Promise<number[] | null> {
+  if (!provider || kind !== "page") return null;
+  const key = cacheKey(text, kind, picked);
+  const kept = await readCache(marksKey(key));
+  if (kept) {
+    try {
+      const m = JSON.parse(kept.toString("utf8")) as { v?: number; starts?: number[] | null };
+      // (a "couldn't" is kept too, so a clip isn't listened to over and over)
+      if (m.v === 1) return Array.isArray(m.starts) ? m.starts : null;
+    } catch {}
+  }
+  if (!OPENAI_KEY) return null;
+  let p = making.get(key);
+  if (!p) {
+    p = (async () => {
+      const audio = await readCache(key);
+      if (!audio) return null;
+      let starts: number[] | null = null;
+      try {
+        const heard = await listen(audio);
+        starts = heard ? alignWords(text, heard.words, heard.duration) : null;
+      } catch (e) {
+        console.error("[tts] couldn't work out word timings", e);
+        return null; // (not kept: tried again another time)
+      }
+      await writeCache(marksKey(key), Buffer.from(JSON.stringify({ v: 1, starts })), "application/json");
+      return starts;
+    })().finally(() => making.delete(key));
+    making.set(key, p);
+  }
+  return p;
 }

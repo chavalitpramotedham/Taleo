@@ -81,7 +81,18 @@ export function setSpeechStory(id: string | null) {
   storyId = id;
 }
 
-const clips = new Map<string, Promise<AudioBuffer | null>>();
+/** A phrase's recording, ready to play: the sound, when each word starts
+ *  in it, and where the voice actually begins (recordings open with a
+ *  moment of silence, which is skipped). All worked out when the clip is
+ *  loaded - nothing is left to do when it's time to speak. */
+interface Clip {
+  buf: AudioBuffer;
+  /** One per word of the text (split at spaces), in order: seconds in. */
+  starts: number[];
+  /** Seconds of silence before the first sound. */
+  lead: number;
+}
+const clips = new Map<string, Promise<Clip | null>>();
 /** The chosen voice, if it's one the server offers. */
 const voiceParam = () => {
   // the reader's pick, else the first on the list (the default, so what's
@@ -94,21 +105,38 @@ const clipKey = (text: string, kind: SpeechKind) => `${voiceParam() ?? ""}\n${ki
 /** Clips asked for only "if already made": a miss there says nothing about
  *  whether the clip can be had - a real request must still ask. */
 const soft = new Set<string>();
-function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = false): Promise<AudioBuffer | null> {
+function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = false): Promise<Clip | null> {
   const key = clipKey(text, kind);
   const have = clips.get(key);
   const v = voiceParam();
+  const address = `/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}`;
   // (`onlyIfMade`: fetch the clip if it already exists, but don't have one
   // made - for getting a page ready that may never be read aloud)
-  const ask = (only: boolean) =>
-    fetch(`/api/tts?k=${kind}&t=${encodeURIComponent(text)}${storyId ? `&s=${encodeURIComponent(storyId)}` : ""}${v ? `&v=${v}` : ""}${only ? "&o=1" : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined)
-      .then((r) => (r.ok && r.status !== 204 ? r.arrayBuffer() : null))
-      .then((buf) => {
-        const c = getAudioContext();
-        return buf && c ? c.decodeAudioData(buf) : null;
-      })
-      .catch(() => null);
-  let p: Promise<AudioBuffer | null>;
+  const ask = async (only: boolean): Promise<Clip | null> => {
+    try {
+      const r = await fetch(`${address}${only ? "&o=1" : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined);
+      if (!r.ok || r.status === 204) return null;
+      const bytes = await r.arrayBuffer();
+      const c = getAudioContext();
+      if (!c) return null;
+      const buf = await c.decodeAudioData(bytes);
+      // When each word is spoken: the server's own timings for this clip
+      // (it listened to it once), or - if there are none - an estimate
+      // from the clip's pauses.
+      let starts: number[] | null = null;
+      if (kind === "page") {
+        starts = await fetch(`${address}&m=1`)
+          .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
+          .then((m) => (Array.isArray(m?.starts) && m.starts.length === wordCount(text) ? m.starts : null))
+          .catch(() => null);
+      }
+      const heard = soundOf(buf);
+      return { buf, starts: starts ?? (kind === "page" ? estimatedStarts(text, buf, heard) : []), lead: heard.first };
+    } catch {
+      return null;
+    }
+  };
+  let p: Promise<Clip | null>;
   if (have && (onlyIfMade || !soft.has(key))) return have;
   if (have) {
     // (it was only looked for: wait for that answer, and if it wasn't
@@ -231,7 +259,14 @@ function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, 
   u.rate = kind === "word" ? 0.7 : 0.7;
   if (kind === "page") {
     u.onboundary = (e) => {
-      if (isCurrent() && e.name === "word") emit({ text, at: e.charIndex });
+      if (!isCurrent() || e.name !== "word") return;
+      // (which word that is: the last one beginning at or before it)
+      let n = -1;
+      for (const m of text.matchAll(/\S+/g)) {
+        if ((m.index ?? 0) > e.charIndex) break;
+        n++;
+      }
+      emit({ text, at: e.charIndex, word: n });
     };
   }
   u.onend = done;
@@ -253,11 +288,14 @@ function browserSpeak(text: string, kind: SpeechKind, isCurrent: () => boolean, 
 // Which word is being read right now (for highlighting it, karaoke-style):
 // the text being spoken and the character index of the current word, or
 // null when nothing is being read.
-export type SpeechProgress = { text: string; at: number } | null;
+/** `word`: which word of the text (0 for the first, counting words split
+ *  at spaces; -1 before the first is reached). `at`: where that word
+ *  begins in the text as spoken. */
+export type SpeechProgress = { text: string; at: number; word: number } | null;
 const listeners = new Set<(p: SpeechProgress) => void>();
 let progress: SpeechProgress = null;
 function emit(p: SpeechProgress) {
-  if (p?.at === progress?.at && p?.text === progress?.text) return;
+  if (p?.word === progress?.word && p?.text === progress?.text) return;
   progress = p;
   listeners.forEach((l) => l(p));
 }
@@ -278,15 +316,12 @@ export function onSpeechProgress(fn: (p: SpeechProgress) => void): () => void {
  * the clip's whole length evenly, since the reading is slow with long
  * pauses between sentences.
  */
-function wordTimings(text: string, buf: AudioBuffer) {
-  const words = [...text.matchAll(/\S+/g)].map((m) => {
-    const w = m[0];
-    const strength = /[.!?]["')\]]*$/.test(w) ? 2 : /[,;:\u2014-]["')\]]*$/.test(w) ? 1 : 0;
-    return { at: m.index ?? 0, weight: w.replace(/[^\p{L}\p{N}]/gu, "").length + 1.5, strength, start: 0 };
-  });
-  if (!words.length) return [];
+const wordCount = (text: string) => text.match(/\S+/g)?.length ?? 0;
 
-  // Loudness in 20ms frames.
+/** Where the voice is in a clip, from its loudness in 20ms frames: the
+ *  frames themselves, how loud "quiet" is, and when the first and the last
+ *  sound are (seconds). */
+function soundOf(buf: AudioBuffer) {
   const data = buf.getChannelData(0);
   const hop = Math.max(1, Math.round(buf.sampleRate * 0.02));
   const rms: number[] = [];
@@ -299,13 +334,28 @@ function wordTimings(text: string, buf: AudioBuffer) {
   const sorted = [...rms].sort((a, b) => a - b);
   const loud = sorted[Math.floor(sorted.length * 0.9)] || 0;
   const quiet = loud * 0.12;
-  const frame = (t: number) => t * 0.02;
-  let first = rms.findIndex((r) => r > quiet);
-  let last = rms.length - 1 - [...rms].reverse().findIndex((r) => r > quiet);
-  if (first < 0 || loud === 0) {
-    first = 0;
-    last = rms.length - 1;
+  let firstFrame = rms.findIndex((r) => r > quiet);
+  let lastFrame = rms.length - 1 - [...rms].reverse().findIndex((r) => r > quiet);
+  if (firstFrame < 0 || loud === 0) {
+    firstFrame = 0;
+    lastFrame = rms.length - 1;
   }
+  const sec = (hop / buf.sampleRate) || 0.02;
+  return { rms, quiet, firstFrame, lastFrame, sec, first: firstFrame * sec };
+}
+
+function estimatedStarts(text: string, buf: AudioBuffer, heard: ReturnType<typeof soundOf>): number[] {
+  const words = [...text.matchAll(/\S+/g)].map((m) => {
+    const w = m[0];
+    const strength = /[.!?]["')\]]*$/.test(w) ? 2 : /[,;:\u2014-]["')\]]*$/.test(w) ? 1 : 0;
+    return { at: m.index ?? 0, weight: w.replace(/[^\p{L}\p{N}]/gu, "").length + 1.5, strength, start: 0 };
+  });
+  if (!words.length) return [];
+
+  const { rms, quiet, sec } = heard;
+  const first = heard.firstFrame;
+  const last = heard.lastFrame;
+  const frame = (t: number) => t * sec;
 
   // Pauses inside the speech: runs of quiet frames at least 140ms long.
   const gaps: { from: number; to: number }[] = [];
@@ -347,7 +397,7 @@ function wordTimings(text: string, buf: AudioBuffer) {
       t += ((sp.t1 - sp.t0) * w.weight) / total;
     }
   }
-  return words.map((w) => ({ at: w.at, start: w.start }));
+  return words.map((w) => w.start);
 }
 
 /** The highlight follows just behind the voice, never ahead of it. */
@@ -380,7 +430,7 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
   duckMusic("speech", true);
   // A page being read: say so straight away (the speaker icon pulses), with
   // no word lit until the voice reaches the first one.
-  if (kind === "page") emit({ text: t, at: -1 });
+  if (kind === "page") emit({ text: t, at: -1, word: -1 });
   // Safety net in case an end event never arrives.
   safety = window.setTimeout(done, Math.min(90000, 4000 + t.length * 110));
 
@@ -393,27 +443,35 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
 
   void (async () => {
     if (await neuralEnabled()) {
-      const buf = await loadClip(t, kind);
+      const clip = await loadClip(t, kind);
       if (!isCurrent()) return;
       const c = getAudioContext();
-      if (buf && c) {
-        if (c.state === "suspended") await c.resume().catch(() => {});
+      if (clip && c) {
+        if (c.state !== "running") await c.resume().catch(() => {});
+        if (!isCurrent()) return;
         const src = c.createBufferSource();
-        src.buffer = buf;
+        src.buffer = clip.buf;
         src.connect(c.destination);
         src.onended = done;
-        src.start();
-        // Follow along word by word (estimated from the clip's length).
+        // (straight to the voice: the silence a recording opens with is skipped)
+        const skip = Math.max(0, Math.min(clip.lead - 0.04, clip.buf.duration - 0.1));
+        src.start(0, skip);
+        // Follow along word by word.
         let raf = 0;
-        if (kind === "page") {
-          const marks = wordTimings(t, buf);
+        if (kind === "page" && clip.starts.length) {
+          const places = [...t.matchAll(/\S+/g)].map((m) => m.index ?? 0);
+          const starts = clip.starts;
           const t0 = c.currentTime;
+          // (what's heard trails what's been handed to the speaker - by a
+          // little on a phone, by a lot through wireless earphones)
+          const behind = () => HIGHLIGHT_LAG_S + ((c as AudioContext & { outputLatency?: number }).outputLatency || c.baseLatency || 0);
+          let i = -1;
           const tick = () => {
             if (!isCurrent()) return;
-            const el = c.currentTime - t0 - HIGHLIGHT_LAG_S;
-            let i = 0;
-            while (i + 1 < marks.length && marks[i + 1].start <= el) i++;
-            emit({ text: t, at: el < (marks[0]?.start ?? 0) ? -1 : (marks[i]?.at ?? 0) });
+            const el = c.currentTime - t0 + skip - behind();
+            // (only ever forwards, a word at a time or more)
+            while (i + 1 < starts.length && starts[i + 1] <= el) i++;
+            emit({ text: t, at: i < 0 ? -1 : (places[i] ?? 0), word: i });
             raf = requestAnimationFrame(tick);
           };
           raf = requestAnimationFrame(tick);

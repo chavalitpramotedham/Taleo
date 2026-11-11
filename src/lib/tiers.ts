@@ -24,7 +24,7 @@ const MONTHLY = (count: number): Allowance => ({ count, hours: 720, month: true 
 const WEEKLY = (count: number): Allowance => ({ count, hours: 168, week: true });
 /** The weeks are counted in this one clock for everyone (hours ahead of
  *  UTC): a week begins at Monday's midnight there. */
-export const WEEK_UTC_OFFSET_HOURS = 0;
+export const WEEK_UTC_OFFSET_HOURS = 8;
 /** When the calendar month containing `at` began, and when the next does
  *  (ms; by the same clock as the weeks). */
 export function monthOf(at: number): { start: number; end: number } {
@@ -86,7 +86,9 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "free",
     name: "Free",
     blurb: "A free story every week and a free character every month: everything you need for a story at bedtime.",
-    credits: "beyond",
+    // (credits an account holds are used, without asking each time, once
+    // the week's free story or the month's free character is gone)
+    credits: "auto",
     limits: {
       // (one free story each calendar week, one free character each
       // calendar month)
@@ -109,7 +111,6 @@ export const PLANS: Record<TierId, TierInfo> = {
     // saved characters where Free has three, and plenty of beginnings.)
     limits: { stories: WEEKLY(1), changesOfMind: 50, characters: 10, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
     extras: [
-      { label: "After the free ones", value: "Credits", note: "One a minute of story, three a character" },
       { label: "Adding credits", value: "Any time" },
       { label: "Admin dashboard", value: "Full access" },
     ],
@@ -181,6 +182,7 @@ export const tierRows = (t: TierInfo): TierRow[] => [
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
   { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },
   { label: "Reading the Public Library", value: "Unlimited" },
+  ...(t.credits === "beyond" ? [] : [{ label: "After the free ones", value: "Credits", note: "One a minute of story, three a character" }]),
   ...(t.extras ?? []),
 ];
 

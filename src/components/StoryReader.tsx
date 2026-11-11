@@ -650,11 +650,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // The word being read right now, to light it up as the voice goes.
   const [spoken, setSpoken] = useState<SpeechProgress>(null);
   useEffect(() => onSpeechProgress(setSpoken), []);
+  /** Which word of the page's own text is being read (0 for the first;
+   *  -1 for none): counted in words, not letters, so it can't drift. */
   const readingAt = (page: Page) => {
-    if (!spoken) return -1;
+    if (!spoken || spoken.word < 0) return -1;
+    const squash = (t: string) => t.replace(/\s+/g, " ").trim();
     const full = [page.aside, page.text].filter(Boolean).join(" ");
-    if (spoken.text.replace(/\s+/g, " ").trim() !== full.replace(/\s+/g, " ").trim()) return -1;
-    return spoken.at - (page.aside ? page.aside.length + 1 : 0);
+    if (squash(spoken.text) !== squash(full)) return -1;
+    // (an aside is read first; its words aren't shown here)
+    const before = page.aside ? (page.aside.match(/\S+/g)?.length ?? 0) : 0;
+    return spoken.word - before;
   };
 
   /** What's read aloud for what's showing. */
@@ -1073,6 +1078,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           <ReadAloudControl
             on={readAloud}
             speaking={readAloud && spoken !== null}
+            onArm={() => {
+              if (!readAloud) wakeAudio();
+            }}
             onToggle={() => {
               if (readAloud) cancelSpeech();
               else {
@@ -1291,7 +1299,7 @@ function tapTarget(page: Page, cast: CharacterDef[], age: string): TapTarget | n
 
 /** Render page text with the key word (and its endings: hop → hopped) as a
  *  tappable button, and - while it's being read aloud - the word being
- *  read softly lit, karaoke-style (`reading` = its character index). */
+ *  read softly lit, karaoke-style (`reading` = which word, counting from 0). */
 function withTappableWord(text: string, word: string | undefined, onTap: () => void, reading = -1): React.ReactNode {
   let tapStart = -1;
   let found = "";
@@ -1306,12 +1314,14 @@ function withTappableWord(text: string, word: string | undefined, onTap: () => v
   const tapEnd = tapStart + found.length;
   const out: React.ReactNode[] = [];
   let pos = 0;
+  let n = -1;
   for (const m of text.matchAll(/\S+/g)) {
+    n++;
     const start = m.index ?? 0;
     const end = start + m[0].length;
     if (end <= pos) continue;
     out.push(text.slice(pos, start));
-    const lit = reading >= start && reading < end;
+    const lit = reading === n;
     if (tapStart >= 0 && start <= tapStart && tapStart < end) {
       // the word containing the tappable word (keep its punctuation around it)
       out.push(

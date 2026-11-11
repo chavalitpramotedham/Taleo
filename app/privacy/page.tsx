@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BrandMark } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: { absolute: "Privacy at Taleo" },
@@ -27,7 +28,7 @@ export default function PrivacyPage() {
 
       <article className="policy-body">
         <p>
-          Taleo is a small, independent project made by a parent, for families. This page says plainly what we keep, who can see it, and how to remove it. If anything here is unclear, <Link href="/about#contact">write to us</Link>.
+          Taleo is a small, independent project made by a parent, for families, and run by Chavalit Pramotedham. This page says plainly what we keep, who can see it, and how to remove it. If anything here is unclear, <Link href="/about#contact">write to us</Link>.
         </p>
 
         <h2>The short version</h2>
@@ -135,9 +136,24 @@ export default function PrivacyPage() {
 
         <h2>Changes to this page</h2>
         <p>
-          If what we keep or who helps us changes, we&apos;ll update this page and the date at the top. For anything else, <Link href="/about#contact">contact us</Link>.
+          If what we keep or who helps us changes, we&apos;ll update this page and the date at the top. For anything else, <Link href="/about#contact">contact us</Link> or write to <a href="mailto:taleostories.dev@gmail.com">taleostories.dev@gmail.com</a>.
         </p>
       </article>
+
+      {/* who runs Taleo, as a calling card */}
+      <address className="policy-card" aria-label="Who runs Taleo">
+        <span className="policy-card-brand">
+          <BrandMark />
+          <span>Taleo</span>
+        </span>
+        <span className="policy-card-rule" aria-hidden />
+        <span className="policy-card-who">
+          <b>Chavalit Pramotedham</b>
+          <span className="policy-card-role">Founder</span>
+          <a href="mailto:taleostories.dev@gmail.com">taleostories.dev@gmail.com</a>
+          <span className="policy-card-site">taleo-stories.app</span>
+        </span>
+      </address>
     </div>
   );
 }

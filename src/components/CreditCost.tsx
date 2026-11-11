@@ -18,7 +18,7 @@ const read = (): Promise<Rights | null> =>
 export function useCharacterCredits(): { credits: number | null; again: () => void } {
   const [credits, setCredits] = useState<number | null>(null);
   const again = useCallback(() => {
-    void read().then((r) => setCredits(r && r.creditsMode !== "beyond" && r.credits !== null && r.characters.designsLeft === 0 ? r.prices.character : null));
+    void read().then((r) => setCredits(r && r.creditsMode !== "beyond" && r.credits !== null && r.credits >= r.prices.character && r.characters.designsLeft === 0 ? r.prices.character : null));
   }, []);
   useEffect(() => again(), [again]);
   return { credits, again };

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cachedClip, chosenVoice, speechClip, ttsEnabled, voiceChoices, type TtsKind } from "@/server/tts";
+import { cachedClip, chosenVoice, clipMarks, speechClip, ttsEnabled, voiceChoices, type TtsKind } from "@/server/tts";
 import { auth } from "@/server/auth";
 import { guard } from "@/server/limits";
 import { count } from "@/server/metrics";
@@ -59,6 +59,14 @@ export async function GET(req: Request) {
   // made ready before anyone asked to hear it (the page's tappable word as
   // the page opens, the next page while this one is read aloud)
   const ahead = req.headers.get("x-taleo-ahead") === "1";
+
+  // When each word is spoken in the clip (m=1), for lighting the words as
+  // they're read: only ever for a clip that exists, kept once worked out.
+  if (url.searchParams.get("m") === "1") {
+    const starts = await clipMarks(text, kind, picked).catch(() => null);
+    if (!starts) return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ starts }, { headers: { "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable" } });
+  }
 
   // A new clip, made and logged (clips served from the cache aren't: they
   // cost nothing and there'd be one line for every page turned).

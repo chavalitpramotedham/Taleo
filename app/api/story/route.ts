@@ -48,7 +48,8 @@ export async function GET() {
     startsLeft: left,
     windowHours: tierFor(user).limits.stories?.hours,
     plan: tierFor(user).name,
-    error: ok ? undefined : credits ? `This week's free story is used, and a story needs at least ${STORY_CREDITS_RANGE[0]} credits - there ${credits.balance === 1 ? "is" : "are"} ${credits.balance}.` : limitMessage(user, limited, retryAfterSec),
+    // (with no credits at all, it's simply the plan's own limit that's said)
+    error: ok ? undefined : credits && credits.balance > 0 ? `This week's free story is used, and a story needs at least ${STORY_CREDITS_RANGE[0]} credits - there ${credits.balance === 1 ? "is" : "are"} ${credits.balance}.` : limitMessage(user, limited, retryAfterSec),
   });
 }
 
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
     // (a plan where every story costs credits - the admin's test account -
     // is charged at the story's first choice like any other, though its
     // requests aren't otherwise checked)
-    if (tierFor(user).credits !== "beyond" && parsed.story.segments.length === 1) {
+    if (!limitsFor(user).verified && tierFor(user).credits !== "beyond" && parsed.story.segments.length === 1) {
       return { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) };
     }
     if (!limitsFor(user).verified) return "segment";

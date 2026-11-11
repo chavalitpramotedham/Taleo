@@ -11,11 +11,14 @@ export function ReadAloudControl({
   on,
   speaking,
   onToggle,
+  onArm,
   onVoiceChange,
 }: {
   on: boolean;
   speaking: boolean;
   onToggle: () => void;
+  /** the button has been touched (the press isn't complete yet) */
+  onArm?: () => void;
   /** a new voice was picked (the page is read again in it) */
   onVoiceChange: () => void;
 }) {
@@ -40,6 +43,9 @@ export function ReadAloudControl({
       type="button"
       className={voices.length ? "music-control-half read-control-toggle" : `icon-btn ${on ? "on" : ""}`}
       onClick={onToggle}
+      // (the speaker is woken as the finger lands, a moment before the
+      // press completes, so the voice has nothing to wait for)
+      onPointerDown={onArm}
       aria-pressed={on}
       aria-label={on ? "Stop reading aloud" : "Read aloud"}
       title={on ? "Stop reading aloud" : "Read to me"}
