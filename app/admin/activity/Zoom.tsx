@@ -112,7 +112,7 @@ function ZoomDialog({ items, at, onStep, onClose }: { items: ZoomItem[]; at: num
                 {at + 1} of {items.length}
               </span>
             )}
-            {item.record && <Link href={item.record}>Open this painting&apos;s record</Link>}
+            {item.record && <Link href={item.record}>Open this picture&apos;s record</Link>}
           </p>
         </div>
       </div>
