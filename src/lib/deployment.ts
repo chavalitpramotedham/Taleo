@@ -30,6 +30,11 @@ export interface Deployment {
   deploymentId: string | null;
   url: string | null;
   region: string | null;
+  /** How account records are locked: "shared" (with the sign-in secret,
+   *  which must then never change), "moving" (a data secret of its own is
+   *  set, and records are being moved onto it), "own" (all moved: the
+   *  sign-in secret can be changed freely). */
+  dataKey?: "shared" | "moving" | "own";
   /** How many of `commits` (from the top) arrived with this deployment;
    *  null where that isn't known. */
   fresh: number | null;

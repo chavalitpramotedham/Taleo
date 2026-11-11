@@ -1,5 +1,5 @@
 import { NextResponse, after } from "next/server";
-import { sweepPlainFiles } from "@/server/account-data";
+import { dataKeyStatus, rekeyPrivateFiles, sweepPlainFiles } from "@/server/account-data";
 import { currentAdmin } from "@/server/entitlements";
 import type { DeployedCommit, Deployment } from "@/lib/deployment";
 
@@ -11,8 +11,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   if (!(await currentAdmin())) return new NextResponse(null, { status: 404 });
   // (a one-off chore, started by the admin simply being about: files from
-  // before private storage are moved into it - nothing to do once done)
-  after(() => sweepPlainFiles());
+  // before private storage are moved into it - nothing to do once done;
+  // then, if the data secret has been given its own value, onto that)
+  after(() => sweepPlainFiles().then(() => rekeyPrivateFiles()));
   let built: { version?: string; sha?: string; branch?: string; previousSha?: string; builtAt?: string; commits?: DeployedCommit[] } = {};
   try {
     built = JSON.parse(process.env.TALEO_BUILD_INFO || "{}");
@@ -28,6 +29,7 @@ export async function GET() {
     deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
     url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
     region: process.env.VERCEL_REGION || null,
+    dataKey: await dataKeyStatus().catch(() => undefined),
     fresh: before > 0 ? before : null,
     commits,
   };

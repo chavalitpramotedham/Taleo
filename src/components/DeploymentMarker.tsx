@@ -129,6 +129,9 @@ export function DeploymentDialog({ live, onClose }: { live: Deployment; onClose:
     ...(live.url ? ([["Address", <a key="u" href={live.url} target="_blank" rel="noreferrer">{live.url.replace(/^https:\/\//, "")}</a>]] as [string, React.ReactNode][]) : []),
     ...(live.deploymentId ? ([["Deployment", <code key="d">{live.deploymentId}</code>]] as [string, React.ReactNode][]) : []),
     ...(live.region ? ([["Server region", live.region]] as [string, React.ReactNode][]) : []),
+    ...(live.dataKey
+      ? ([["Data key", live.dataKey === "own" ? "Its own - all records moved" : live.dataKey === "moving" ? "Its own - moving records (look again in a minute)" : "Shared with the sign-in secret"]] as [string, React.ReactNode][])
+      : []),
   ];
   const fresh = live.fresh ?? 0;
   const first = live.commits.slice(0, fresh || 1);

@@ -119,13 +119,35 @@ export const deleteJson = async (pathname: string) => {
 // by name, so the name alone is not protection enough for these: even
 // with the address, what comes back can't be read.
 //
-// The key and the names come from TALEO_DATA_SECRET (or, without it,
-// AUTH_SECRET). CHANGING THAT SECRET MAKES EVERY PRIVATE FILE UNREADABLE -
-// set TALEO_DATA_SECRET first if AUTH_SECRET ever has to change.
+// The key and the names come from TALEO_DATA_SECRET - or, without it,
+// AUTH_SECRET. Once TALEO_DATA_SECRET is set (to any long random value of
+// its own), files kept under the AUTH_SECRET key are read with that key
+// one last time and saved again under the new one; when they have all
+// been moved (rekeyPrivateFiles, see account-data.ts), AUTH_SECRET can be
+// changed freely. TALEO_DATA_SECRET itself must then never change or be
+// lost: without it nothing private can be read.
 
-const DATA_SECRET = process.env.TALEO_DATA_SECRET || process.env.AUTH_SECRET || "taleo-dev";
-const DATA_KEY = createHash("sha256").update(`${DATA_SECRET}:taleo-private-key`).digest();
-const privateName = (pathname: string) => `private/${createHash("sha256").update(`${DATA_SECRET}:taleo-private-name:${pathname}`).digest("hex").slice(0, 48)}.json`;
+interface Keys {
+  key: Buffer;
+  name: (pathname: string) => string;
+  /** A name nobody can work out, for a file of another kind (a draft). */
+  hidden: (what: string) => string;
+}
+const keysFrom = (secret: string): Keys => ({
+  key: createHash("sha256").update(`${secret}:taleo-private-key`).digest(),
+  name: (pathname) => `private/${createHash("sha256").update(`${secret}:taleo-private-name:${pathname}`).digest("hex").slice(0, 48)}.json`,
+  hidden: (what) => createHash("sha256").update(`${secret}:${what}`).digest("hex").slice(0, 40),
+});
+const AUTH = process.env.AUTH_SECRET || "taleo-dev";
+const OWN = process.env.TALEO_DATA_SECRET || "";
+const NOW = keysFrom(OWN || AUTH);
+/** The keys from before TALEO_DATA_SECRET was set, while files may still be under them. */
+const BEFORE: Keys | null = OWN && OWN !== AUTH ? keysFrom(AUTH) : null;
+/** Whether private files have a secret of their own (not AUTH_SECRET's). */
+export const hasOwnDataSecret = Boolean(BEFORE);
+/** Unguessable names for a file kept unencrypted (an unfinished story):
+ *  the one to use, and the one it may still be under from before. */
+export const hiddenName = (what: string) => ({ now: NOW.hidden(what), before: BEFORE ? BEFORE.hidden(what) : null });
 
 interface Sealed {
   v: 1;
@@ -133,72 +155,103 @@ interface Sealed {
   tag: string;
   data: string;
 }
-function seal(data: unknown): Sealed {
+function seal(data: unknown, k: Keys = NOW): Sealed {
   const iv = randomBytes(12);
-  const c = createCipheriv("aes-256-gcm", DATA_KEY, iv);
+  const c = createCipheriv("aes-256-gcm", k.key, iv);
   const body = Buffer.concat([c.update(JSON.stringify(data), "utf8"), c.final()]);
   return { v: 1, iv: iv.toString("base64"), tag: c.getAuthTag().toString("base64"), data: body.toString("base64") };
 }
-function unseal<T>(s: Sealed): T {
-  const d = createDecipheriv("aes-256-gcm", DATA_KEY, Buffer.from(s.iv, "base64"));
+function unseal<T>(s: Sealed, k: Keys = NOW): T {
+  const d = createDecipheriv("aes-256-gcm", k.key, Buffer.from(s.iv, "base64"));
   d.setAuthTag(Buffer.from(s.tag, "base64"));
   return JSON.parse(Buffer.concat([d.update(Buffer.from(s.data, "base64")), d.final()]).toString("utf8")) as T;
 }
 
-// Files written before this existed sit in the open under their plain
-// names. They're moved the first time they're read (and all at once by
-// sweepPlainFiles) - but only by the real site: a preview deployment with
-// a different secret must never take them away from it.
+// Files are moved (from the open, or from the old key) only by the real
+// site: a preview deployment with different secrets must never take them
+// away from it.
 const mayMove = !onVercel || process.env.VERCEL_ENV === "production";
 
-/** Once every plain file has been moved (sweepPlainFiles leaves a note
- *  saying so), there's no need to look for one. Asked once per server. */
+/** Notes left (as private files) once a one-off move is complete, so
+ *  nothing need be looked for in the old place. Asked once per server. */
 const SWEPT = "migrations/plain-files-moved";
-let swept: Promise<boolean> | null = null;
-const plainFilesGone = () =>
-  (swept ??= readJson<Sealed>(privateName(SWEPT), { fresh: true })
-    .then(Boolean)
-    .catch(() => false));
-export async function notePlainFilesMoved(note: unknown) {
-  await writePrivate(SWEPT, note);
-  swept = Promise.resolve(true);
+const REKEYED = "migrations/rekeyed";
+const done = new Map<string, Promise<boolean>>();
+const isDone = (note: string) => {
+  let p = done.get(note);
+  if (!p) {
+    p = readJson<Sealed>(NOW.name(note), { fresh: true })
+      .then(Boolean)
+      .catch(() => false);
+    // (not yet: ask again next time, it may be done by then)
+    void p.then((yes) => !yes && done.delete(note));
+    done.set(note, p);
+  }
+  return p;
+};
+async function noteDone(note: string, about: unknown) {
+  await writeJson(NOW.name(note), seal(about));
+  done.set(note, Promise.resolve(true));
+}
+export const notePlainFilesMoved = (about: unknown) => noteDone(SWEPT, about);
+export const noteRekeyed = (about: unknown) => noteDone(REKEYED, about);
+export const plainFilesMoved = () => isDone(SWEPT);
+/** Nothing is left under the old key (or there never was one). */
+export const rekeyed = async () => !BEFORE || (await isDone(REKEYED));
+
+/** Writes the private copy, makes sure it reads back, and only then takes
+ *  the old one (given by its stored name) away. */
+async function moveIn(pathname: string, data: unknown, oldName: string) {
+  const name = NOW.name(pathname);
+  await writeJson(name, seal(data));
+  const back = await readJson<Sealed>(name, { fresh: true });
+  if (!back || JSON.stringify(unseal(back)) !== JSON.stringify(data)) throw new Error(`The private copy of ${pathname} didn't read back: the old one was left alone.`);
+  await deleteJson(oldName).catch((e) => console.error(`[store] couldn't remove the old copy of ${pathname}`, e));
+}
+
+/** A private file as kept under the old key, if it's still there. */
+async function readBefore<T>(pathname: string): Promise<{ data: T } | null> {
+  if (!BEFORE || (await isDone(REKEYED))) return null;
+  const old = await readJson<Sealed>(BEFORE.name(pathname), { fresh: true });
+  return old ? { data: unseal<T>(old, BEFORE) } : null;
 }
 
 export async function readPrivate<T>(pathname: string, opts: { cacheSeconds?: number; fresh?: boolean } = {}): Promise<T | null> {
-  const name = privateName(pathname);
+  const name = NOW.name(pathname);
   let sealed = await readJson<Sealed>(name, opts);
   // (not there, says a cached answer: make sure before believing it)
   if (!sealed && !opts.fresh && useBlob) sealed = await readJson<Sealed>(name, { fresh: true });
   if (sealed) return unseal<T>(sealed);
-  if (await plainFilesGone()) return null;
+  const old = await readBefore<T>(pathname);
+  if (old) {
+    if (mayMove) await moveIn(pathname, old.data, BEFORE!.name(pathname));
+    return old.data;
+  }
+  if (await isDone(SWEPT)) return null;
+  // (the note that plain files were moved may itself be under the old key)
+  if (BEFORE && !(await isDone(REKEYED)) && (await readJson<Sealed>(BEFORE.name(SWEPT), { fresh: true }).catch(() => null))) return null;
   const plain = await readJson<T>(pathname, { fresh: true });
   if (plain === null) return null;
-  if (mayMove) await moveIn(pathname, plain);
+  if (mayMove) await moveIn(pathname, plain, pathname);
   return plain;
-}
-/** Writes the private copy, makes sure it reads back, and only then takes
- *  the plain one away. */
-async function moveIn(pathname: string, plain: unknown) {
-  const name = privateName(pathname);
-  await writeJson(name, seal(plain));
-  const back = await readJson<Sealed>(name, { fresh: true });
-  if (!back || JSON.stringify(unseal(back)) !== JSON.stringify(plain)) throw new Error(`The private copy of ${pathname} didn't read back: the plain one was left alone.`);
-  await deleteJson(pathname).catch((e) => console.error(`[store] couldn't remove the plain copy of ${pathname}`, e));
 }
 /** Moves one plain file into private storage - or, if its private copy is
  *  already there (the newer of the two), just removes the plain one. */
 export async function movePlain(pathname: string) {
   if (!mayMove) return;
-  if (await readJson<Sealed>(privateName(pathname), { fresh: true })) return deleteJson(pathname);
+  if ((await readJson<Sealed>(NOW.name(pathname), { fresh: true })) || (await readBefore(pathname))) return deleteJson(pathname);
   const plain = await readJson<unknown>(pathname, { fresh: true });
-  if (plain !== null) await moveIn(pathname, plain);
+  if (plain !== null) await moveIn(pathname, plain, pathname);
 }
 export async function writePrivate(pathname: string, data: unknown) {
-  await writeJson(privateName(pathname), seal(data));
+  await writeJson(NOW.name(pathname), seal(data));
+  // (a copy under the old key would now be out of date: never read again,
+  // since the new one is found first - but there's no reason to keep it)
+  if (BEFORE && mayMove && !(await isDone(REKEYED))) await deleteJson(BEFORE.name(pathname)).catch(() => {});
 }
-/** Removes a private file (and any plain copy from before). */
+/** Removes a private file (and any older copy of it). */
 export async function deletePrivate(pathname: string) {
-  await Promise.all([deleteJson(privateName(pathname)), deleteJson(pathname).catch(() => {})]);
+  await Promise.all([deleteJson(NOW.name(pathname)), BEFORE ? deleteJson(BEFORE.name(pathname)).catch(() => {}) : null, deleteJson(pathname).catch(() => {})]);
 }
 
 /** Every plain file under a folder, and when it was last written (for

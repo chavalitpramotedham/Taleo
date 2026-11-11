@@ -3,7 +3,7 @@ import { forgetBilling } from "./billing";
 import { parkedPath } from "./character-jobs";
 import { charactersPath } from "./characters";
 import { CONTACT_INDEX, forgetContactMessages } from "./contact";
-import { clearDraft, draftPath } from "./drafts";
+import { clearDraft, draftPath, moveDraft, oldDraftPath } from "./drafts";
 import { forgetAccount } from "./entitlements";
 import { deleteMyStories } from "./gallery";
 import { forgetGens } from "./genlog";
@@ -11,7 +11,7 @@ import { forgetUsage, usagePath } from "./limits";
 import { forgetMetricsUser } from "./metrics";
 import { diaryPath } from "./reading";
 import { savedPath } from "./saved";
-import { canMovePlainFiles, deleteJson, deletePrivate, listPlain, movePlain, notePlainFilesMoved, readPrivate } from "./store";
+import { canMovePlainFiles, deleteJson, deletePrivate, hasOwnDataSecret, listPlain, movePlain, notePlainFilesMoved, noteRekeyed, plainFilesMoved, readPrivate, rekeyed } from "./store";
 import { ADMIN_USER_ID, deleteUser, listUsers } from "./users";
 
 /**
@@ -62,6 +62,7 @@ export async function deleteAccountData(userId: string): Promise<{ stories: numb
 const PLAIN_FOLDERS = ["users/saved/", "users/reading/", "characters/", "ratelimits/", "pending/character/"];
 const DAY = 86_400_000;
 
+const PLAIN_MOVED = "migrations/plain-files-moved";
 let moving: Promise<unknown> | null = null;
 /**
  * Moves every file written before private storage existed into it, and
@@ -72,7 +73,7 @@ let moving: Promise<unknown> | null = null;
 export function sweepPlainFiles(): Promise<unknown> {
   return (moving ??= (async () => {
     if (!canMovePlainFiles) return;
-    if (await readPrivate("migrations/plain-files-moved", { fresh: true }).catch(() => true)) return;
+    if (await readPrivate(PLAIN_MOVED, { fresh: true }).catch(() => true)) return;
     const users = await listUsers({ fresh: true }); // (moves the account list itself)
     // (an empty list is far likelier a mistake than the truth: touch nothing)
     if (!users.length) return;
@@ -94,7 +95,7 @@ export function sweepPlainFiles(): Promise<unknown> {
     }
     // Unfinished stories were always under names nobody can work out;
     // what's left of deleted accounts' is found by elimination.
-    const drafts = new Set([...known].map(draftPath));
+    const drafts = new Set([...known].flatMap((id) => [draftPath(id), oldDraftPath(id) ?? ""]));
     for (const f of await listPlain("drafts/")) {
       if (drafts.has(f.pathname) || f.at >= old) continue;
       await deleteJson(f.pathname);
@@ -113,4 +114,46 @@ export function sweepPlainFiles(): Promise<unknown> {
     console.error("[store] moving plain files failed", e);
     await reportError("storage", e).catch(() => {});
   }));
+}
+
+// ------------------------------------------------------- a new data secret
+
+let rekeying: Promise<unknown> | null = null;
+/**
+ * Once TALEO_DATA_SECRET has a value of its own: reads every private file
+ * (and unfinished story) still kept under the AUTH_SECRET key, which saves
+ * each again under the new one, and leaves a note when none are left.
+ * From then on AUTH_SECRET can be changed without losing anything. Run by
+ * the real site only, after the plain files have been moved; safe to run
+ * again.
+ */
+export function rekeyPrivateFiles(): Promise<unknown> {
+  return (rekeying ??= (async () => {
+    if (!hasOwnDataSecret || !canMovePlainFiles || (await rekeyed())) return;
+    await sweepPlainFiles();
+    await readPrivate(PLAIN_MOVED, { fresh: true }); // (the note itself moves first)
+    if (!(await plainFilesMoved())) throw new Error("The plain files haven't all been moved yet.");
+    const users = await listUsers({ fresh: true });
+    if (!users.length) return;
+    let accounts = 0;
+    for (const id of [ADMIN_USER_ID, ...users.map((u) => u.id)]) {
+      for (const path of [charactersPath, savedPath, diaryPath, usagePath, parkedPath]) await readPrivate(path(id), { fresh: true });
+      await moveDraft(id);
+      accounts++;
+    }
+    const messages = (await readPrivate<{ id: string }[]>(CONTACT_INDEX, { fresh: true })) ?? [];
+    for (const m of messages) await readPrivate(`contact/messages/${m.id}.json`, { fresh: true });
+    await noteRekeyed({ at: Date.now(), accounts, messages: messages.length });
+    console.info(`[store] private files moved to the new data secret: ${accounts} accounts, ${messages.length} messages.`);
+  })().catch(async (e) => {
+    rekeying = null;
+    console.error("[store] moving private files to the new data secret failed", e);
+    await reportError("storage", e).catch(() => {});
+  }));
+}
+
+/** Where the private files stand, for the admin's "what's live" dialog. */
+export async function dataKeyStatus(): Promise<"shared" | "moving" | "own"> {
+  if (!hasOwnDataSecret) return "shared";
+  return (await rekeyed()) ? "own" : "moving";
 }
