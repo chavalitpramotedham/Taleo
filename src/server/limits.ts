@@ -4,7 +4,7 @@ import { auth } from "./auth";
 import { readJson, writeJson } from "./store";
 import { allowancePhrase, tierFor, CHARACTER_CREDITS, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { applyCredits, refundCredits, spendCredits } from "./billing";
+import { applyCredits, billingAvailable, refundCredits, spendCredits } from "./billing";
 import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
@@ -324,15 +324,18 @@ export async function guard(
   const charges = b !== "start"; // (a beginning only has to be affordable)
   const ref = item === "story" && cost.key ? `story:${cost.key}`.replace(/[^\w.:-]/g, "").slice(0, 110) : `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
   /** Take the credits (or, for a beginning, see that they're there). */
-  const pay = async (): Promise<{ ok: true; spent: number } | { ok: false; offer: CreditOffer }> => {
+  // (`down`: the credits themselves couldn't be read or changed just now -
+  // which is never reported as "you have none")
+  const pay = async (): Promise<{ ok: true; spent: number } | { ok: false; offer: CreditOffer; down?: boolean }> => {
     if (!account || !item || !price) return { ok: true, spent: 0 };
     if (!charges) {
       const balance = await account.credits();
-      return balance !== null && balance >= price ? { ok: true, spent: 0 } : { ok: false, offer: { item, price, balance: balance ?? 0 } };
+      if (balance === null) return { ok: false, offer: { item, price, balance: 0 }, down: true };
+      return balance >= price ? { ok: true, spent: 0 } : { ok: false, offer: { item, price, balance } };
     }
     const paid = await spendCredits(userId, price, ref, item === "story" ? `A ${price}-minute story` : "A character");
     if (paid.ok) return { ok: true, spent: paid.applied ? price : 0 };
-    return { ok: false, offer: { item, price, balance: paid.balance } };
+    return { ok: false, offer: { item, price, balance: paid.balance }, down: paid.reason === "unavailable" };
   };
   const giveBack = (spent: number) => async () => {
     if (spent) await refundCredits(userId, spent, ref, "The work failed: credits returned");
@@ -340,10 +343,14 @@ export async function guard(
 
   // A plan where everything costs credits (the admin's test account):
   // nothing is counted against an allowance - the credits are the limit.
-  if (mode === "always" && item && price && !me.stale) {
+  // (Where credits can't be kept at all, or can't be reached just now, the
+  // plan's own allowance stands instead: the account is never locked out
+  // of making things by the credit store being away.)
+  if (mode === "always" && item && price && !me.stale && billingAvailable()) {
     const paid = await pay();
-    if (!paid.ok) return { ok: false, response: notEnough(paid.offer) };
-    return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
+    if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
+    if (!paid.down) return { ok: false, response: notEnough(paid.offer) };
+    console.error("[limits] credits unavailable: the plan's own allowance stands");
   }
 
   let took: Took;
