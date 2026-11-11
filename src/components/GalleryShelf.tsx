@@ -49,6 +49,7 @@ export function GalleryShelf({
   author,
   heading,
   headClass,
+  expect,
 }: {
   limit?: number;
   /** Only this author's stories (their bookshelf page). */
@@ -56,6 +57,11 @@ export function GalleryShelf({
   /** Shown above the shelf, with the sort pills underneath. */
   heading: React.ReactNode;
   headClass: string;
+  /** How many books the page already knows this shelf will hold (the
+   *  server's list at the foot of the page): while the shelf is on its
+   *  way, the placeholder keeps room for that many - and for the sort
+   *  pills - so a small library doesn't jump up when the books arrive. */
+  expect?: number;
 }) {
   const [sort, setSort] = useState<GallerySort>("rating");
   // Category filter (the homepage asks the server for the top few of the
@@ -134,7 +140,7 @@ export function GalleryShelf({
 
   const categories = useMemo(() => (limit ? homeCategories : stories ? categoriesOf(stories) : []), [stories, limit, homeCategories]);
   const pills =
-    stories && (stories.length > 1 || category) ? (
+    (stories ? stories.length > 1 || category : !error && (expect ?? 0) > 1) ? (
       <SortPills sort={sort} onChange={setSort}>
         {categories.length > 1 && <CategoryFilter options={categories} value={category} onChange={setCategory} />}
       </SortPills>
@@ -147,7 +153,7 @@ export function GalleryShelf({
         {pills}
       </header>
       {stories === null && !error ? (
-        <ShelfSkeleton count={limit ?? 6} />
+        <ShelfSkeleton count={expect === undefined ? limit ?? 6 : Math.min(expect, limit ?? 12)} />
       ) : error ? (
         <div className="empty">
           <h2>The Public Library couldn&apos;t open just now</h2>

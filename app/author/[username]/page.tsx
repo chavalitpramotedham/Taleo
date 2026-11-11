@@ -79,6 +79,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
       {profile && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(structured)} />}
       <GalleryShelf
         author={shown}
+        expect={stories.length}
         headClass="wizard-head"
         heading={
           <>

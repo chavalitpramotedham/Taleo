@@ -47,6 +47,7 @@ export default async function StorePage() {
     <div className="container">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(STRUCTURED)} />
       <GalleryShelf
+        expect={stories.length}
         headClass="wizard-head"
         heading={
           <>
