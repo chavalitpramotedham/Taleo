@@ -14379,3 +14379,7 @@ html[data-night] .topbar {
     animation: none;
   }
 }
+/* (the line under the streak is a subtitle: in the quieter grey) */
+.reading-chart-sub {
+  color: var(--ink-faint);
+}
