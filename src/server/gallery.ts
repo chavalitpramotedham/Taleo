@@ -21,8 +21,12 @@ function cardDetails(story: Story): Pick<GalleryEntry, "keyword" | "starring" | 
   };
 }
 
-/** `cacheSeconds`: only for pages that are themselves cached (the sitemap). */
-export async function listGallery(opts: { cacheSeconds?: number } = {}): Promise<GalleryEntry[]> {
+/** `cacheSeconds`: only for pages that are themselves cached (the sitemap).
+ *  `fresh`: the index exactly as it is this moment, past any cached copy -
+ *  for everything that is about to change it and write it back (a copy a
+ *  minute old would silently undo whatever was published, rated or
+ *  deleted in that minute). */
+export async function listGallery(opts: { cacheSeconds?: number; fresh?: boolean } = {}): Promise<GalleryEntry[]> {
   let entries = (await readJson<GalleryEntry[]>(INDEX_PATH, opts)) ?? [];
   // One-off back-fill of card details for entries published before they
   // were stored: read those stories once, then save the index.
@@ -68,12 +72,12 @@ export async function listMyStories(authorId: string): Promise<GalleryEntry[]> {
 
 /** Publish (or re-publish) a finished story to the public store. */
 export async function publishStory(story: Story, author: { id: string; username: string; isAdmin?: boolean }): Promise<GalleryEntry> {
-  const index = await listGallery();
+  const index = await listGallery({ fresh: true });
   const existing = index.find((e) => e.id === story.id);
   // A book already in the library can only be re-published by its author
   // (or the admin) - never overwritten by another account using its id.
   if (existing && existing.authorId !== author.id && !author.isAdmin) throw new NotYourStoryError();
-  const ratings = await listRatings(story.id);
+  const ratings = await listRatings(story.id, { fresh: true });
   const ratingSum = ratings.reduce((n, r) => n + r.rating, 0);
   const ratingCount = ratings.length;
   // Keep the original author even on re-publish (repainting shouldn't change ownership).
@@ -108,14 +112,14 @@ export async function publishStory(story: Story, author: { id: string; username:
   return entry;
 }
 
-export async function listRatings(storyId: string): Promise<RatingRecord[]> {
-  return (await readJson<RatingRecord[]>(ratingsPath(storyId))) ?? [];
+export async function listRatings(storyId: string, opts: { fresh?: boolean } = {}): Promise<RatingRecord[]> {
+  return (await readJson<RatingRecord[]>(ratingsPath(storyId), opts)) ?? [];
 }
 
 async function syncAggregate(storyId: string, ratings: RatingRecord[]) {
   const ratingSum = ratings.reduce((n, r) => n + r.rating, 0);
   const ratingCount = ratings.length;
-  const [index, full] = await Promise.all([listGallery(), getGalleryStory(storyId)]);
+  const [index, full] = await Promise.all([listGallery({ fresh: true }), getGalleryStory(storyId)]);
   const i = index.findIndex((e) => e.id === storyId);
   const writes: Promise<void>[] = [];
   if (i >= 0) {
@@ -139,7 +143,7 @@ export async function addRating(
 ): Promise<{ record: RatingRecord; alreadyRated: boolean; ratingSum: number; ratingCount: number } | null> {
   const full = await getGalleryStory(storyId);
   if (!full) return null;
-  const ratings = await listRatings(storyId);
+  const ratings = await listRatings(storyId, { fresh: true });
   const existing = ratings.find((r) => r.userId === user.id);
   if (existing) {
     const agg = await syncAggregate(storyId, ratings);
@@ -165,7 +169,7 @@ export class NotYourStoryError extends Error {}
  *  with the story itself and its ratings. Returns the author's username,
  *  for refreshing their bookshelf page. */
 export async function deleteStory(storyId: string, authorId: string): Promise<{ authorUsername: string } | null> {
-  const index = await listGallery();
+  const index = await listGallery({ fresh: true });
   const entry = index.find((e) => e.id === storyId);
   if (!entry) return null;
   if (entry.authorId !== authorId) throw new NotYourStoryError("Only the story's author can delete it.");
@@ -178,7 +182,7 @@ export async function deleteStory(storyId: string, authorId: string): Promise<{ 
 }
 
 export async function deleteMyStories(authorId: string): Promise<number> {
-  const index = await listGallery();
+  const index = await listGallery({ fresh: true });
   const mine = index.filter((e) => e.authorId === authorId);
   if (mine.length === 0) return 0;
   const keep = index.filter((e) => e.authorId !== authorId);
