@@ -85,7 +85,7 @@ export const PLANS: Record<TierId, TierInfo> = {
   free: {
     id: "free",
     name: "Free",
-    blurb: "Everything you need for a story at bedtime.",
+    blurb: "A free story every week and a free character every month: everything you need for a story at bedtime.",
     credits: "beyond",
     limits: {
       // (one free story each calendar week, one free character each
@@ -177,7 +177,9 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
   { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
-  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved`, note: t.limits.designs ? `${allowanceText(t.limits.designs)} designed free` : undefined },
+  // (what's free to make, then how many can be kept)
+  ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
+  { label: "Characters kept", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved` },
   { label: "Reading the Public Library", value: "Unlimited" },
   ...(t.extras ?? []),
 ];
