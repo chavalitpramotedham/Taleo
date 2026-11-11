@@ -10,9 +10,11 @@ import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
 import { shortDate } from "@/lib/dates";
+import Link from "next/link";
+import { TransactionList } from "@/components/TransactionList";
 import type { Transaction } from "@/lib/transactions";
 
-/** How many lines of the history show before "Show all". */
+/** How many transactions the Credits panel lists (all of them are on their own page). */
 const HISTORY_SHOWN = 10;
 
 const n = (v: number) => v.toLocaleString("en-GB");
@@ -30,14 +32,14 @@ type Tab = "plan" | "credits";
 
 /** One line of a menu: the thing on the left, a row of dots, what it is
  *  (or costs) on the right. */
-function Line({ what, value, sub }: { what: React.ReactNode; value: React.ReactNode; sub?: React.ReactNode }) {
+function Line({ what, value, sub, note }: { what: React.ReactNode; value: React.ReactNode; /** a sub-point of the line above: indented, smaller */ sub?: boolean; /** a small grey line beneath the words */ note?: React.ReactNode }) {
   return (
-    <li className={`menu-line${sub ? " has-sub" : ""}`}>
+    <li className={`menu-line${note ? " has-sub" : ""}${sub ? " sub-point" : ""}`}>
       <span>
         {what}
-        {sub && (
+        {note && (
           <small className="menu-sub" suppressHydrationWarning>
-            {sub}
+            {note}
           </small>
         )}
       </span>
@@ -56,7 +58,6 @@ function Line({ what, value, sub }: { what: React.ReactNode; value: React.ReactN
  * menu. All as the server's records have it.
  */
 export function PlansView({ rights: first, history = [], children }: { rights: Rights; history?: Transaction[]; children: React.ReactNode }) {
-  const [allHistory, setAllHistory] = useState(false);
   const [rights, setRights] = useState(first);
   const always = rights.creditsMode === "always";
   const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
@@ -113,47 +114,36 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
               {always ? "Every story and character on this account uses credits." : "Your plan's free stories and characters go first. Credits pay for more once they're used up."}
             </p>
           )}
-          <h4 className="menu-title">What things cost</h4>
-          <ul className="menu-list">
-            <Line what="A story, for each minute" value={1} />
-            <Line what={`The shortest story (${lo} minutes)`} value={lo} />
-            <Line what={`The longest story (${hi} minutes)`} value={hi} />
-            <Line what="A character, new or repainted" value={rights.prices.character} />
-            <Line what="Reading, and the whole library" value="Free" />
-          </ul>
-          <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
+          {/* the price list, set apart in its own dotted frame: it's what
+              things cost, not what this account has spent */}
+          <div className="price-card">
+            <h4 className="menu-title">What things cost</h4>
+            <ul className="menu-list">
+              <Line what="Reading, and the whole library" value="Free" />
+              <Line what="A character, new or repainted" value={rights.prices.character} />
+              <Line what="A new story, for each minute" value={1} />
+              {/* (what that comes to, at either end) */}
+              <Line sub what={`The shortest story (${lo} minutes)`} value={lo} />
+              <Line sub what={`The longest story (${hi} minutes)`} value={hi} />
+            </ul>
+            <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
+          </div>
 
           {/* what the credits were spent on, and when more arrived */}
           <hr className="menu-rule" />
-          <h4 className="menu-title">Transaction history</h4>
+          <div className="txn-head">
+            <h4 className="menu-title">Transaction history</h4>
+            {history.length > 0 && (
+              <Link className="txn-all" href="/account/transactions">
+                See all transactions
+              </Link>
+            )}
+          </div>
           {history.length === 0 ? (
             <p className="meta menu-note">Nothing yet. Credits you receive and spend will be listed here.</p>
           ) : (
-            <>
-              <ul className="menu-list history-list">
-                {(allHistory ? history : history.slice(0, HISTORY_SHOWN)).map((t) => (
-                  <li key={t.id} className="menu-line">
-                    <span>
-                      {t.label}
-                      <small className="history-when" suppressHydrationWarning>
-                        {shortDate(t.at)}
-                        {t.pending ? " · being made" : ""}
-                      </small>
-                    </span>
-                    <span className="menu-dots" aria-hidden />
-                    <b className={t.amount > 0 ? "history-in" : undefined}>
-                      {t.amount > 0 ? "+" : "−"}
-                      {n(Math.abs(t.amount))}
-                    </b>
-                  </li>
-                ))}
-              </ul>
-              {!allHistory && history.length > HISTORY_SHOWN && (
-                <button type="button" className="link-btn history-more" onClick={() => setAllHistory(true)}>
-                  Show all {n(history.length)}
-                </button>
-              )}
-            </>
+            // (the ten newest; the rest are on their own page)
+            <TransactionList items={history.slice(0, HISTORY_SHOWN)} />
           )}
         </section>
       ) : (
@@ -162,11 +152,11 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <section className="panel credits-panel" aria-label="What your plan allows right now">
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} sub={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
                 <Line
                   what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
                   value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)}
-                  sub={c.designsLeft !== null && c.designsPer ? resets((c.designsPer === "month" ? monthOf : weekOf)(Date.now()).end) : undefined}
+                  note={c.designsLeft !== null && c.designsPer ? resets((c.designsPer === "month" ? monthOf : weekOf)(Date.now()).end) : undefined}
                 />
                 <Line what="Custom character slots used" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
               </ul>
