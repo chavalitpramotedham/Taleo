@@ -14452,110 +14452,143 @@ html[data-night] .topbar {
   border-bottom-color: #2d2b3a;
 }
 
-/* ---------- Daylight: light from a skylight, and motes of dust ---------- */
-/* Behind the whole page, pinned to the screen. The light comes in from
-   high above the page (over the leaf in the menu: --sun-x), so by the
-   time it passes the bottom edge of the menu bar it already spans the
-   whole width: three broad, soft shafts leaning gently apart, over a
-   faint wash of brightness, all thinning out down the page. Each shaft
-   brightens and dims slowly in its own time, and specks of dust drift in
-   them. Each layer is painted once and after that only its opacity
-   changes (the specks are nudged too) - the compositor's work alone.
-   They hold still while the page is scrolled. */
-.day-light {
+/* ---------- Daylight: sunshine through a skylight, and motes of dust ---------- */
+/* The day's answer to the night's lantern. The light comes in through a
+   skylight over the middle of the menu bar: a soft bloom where it enters,
+   and broad shafts spreading from it down and out across the page in
+   every direction below, thinning with distance - while the far corners
+   of the page sit a breath dimmer, as a room does away from its window.
+   Specks of dust drift in the shafts.
+
+   Two parts. Behind the page (.day-light): the room's shading, the bloom
+   and the shafts - words and cards stay crisp on top of them. Over the
+   page (.day-shine): only a faint wash of the same bloom, so cards near
+   the top catch a little of the light, as they catch the lantern's.
+
+   Cost: each layer is painted once, small (a third of its size, then
+   stretched - light this soft loses nothing by it), and after that only
+   its opacity changes, which is the compositor's work alone. Everything
+   holds still while the page is scrolled. */
+.day-light,
+.day-shine {
   position: fixed;
   inset: 0;
-  z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  /* how far above the menu bar's bottom edge the light starts: the
-     further, the more nearly side by side the shafts fall */
-  --sun-h: 46vw;
-  /* where each shaft points (clockwise from straight up: 180 is straight
-     down), and how wide it is to either side */
-  --a1: 189deg;
-  --a2: 166deg;
-  --a3: 144deg;
-  --a4: 125deg;
-  --w: 7.5deg;
+  /* where the light enters: across (the middle), and how far above the
+     menu bar's bottom edge the shafts would meet */
+  --sun-x: 50vw;
+  --sun-h: 9vmax;
+  /* how far the light reaches */
+  --reach: 92vmax;
   animation: dayLightIn 1.6s ease 0.3s both;
+}
+.day-light {
+  z-index: -1;
+}
+.day-shine {
+  z-index: 30;
 }
 @keyframes dayLightIn {
   from {
     opacity: 0;
   }
 }
-/* (everything of the light but the specks sits in one small box, painted
-   at a third of the size and stretched - light this soft loses nothing by
-   it, and there's a ninth as much to blend each frame - and thinned out
-   down the page by a single fade) */
+/* The room: brightest under the skylight, a breath warmer and dimmer
+   toward the far corners. It doesn't move. */
+.day-room {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 80% at var(--sun-x) var(--topbar-h, 64px), rgba(150, 108, 46, 0) 0, rgba(150, 108, 46, 0.03) 45%, rgba(150, 108, 46, 0.1) 100%);
+}
 .day-beams {
   position: absolute;
   left: 0;
   top: var(--topbar-h, 64px);
   width: 33.34%;
-  height: 26vh;
+  height: 34vh;
   transform: scale(3);
   transform-origin: 0 0;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.62) 30%, rgba(0, 0, 0, 0.24) 62%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0, rgba(0, 0, 0, 0.62) 30%, rgba(0, 0, 0, 0.24) 62%, transparent 100%);
+  /* the light thins out with distance from where it enters */
+  --at: calc(var(--sun-x) / 3) calc(var(--sun-h) / -3);
+  -webkit-mask-image: radial-gradient(circle at var(--at), #000 0, rgba(0, 0, 0, 0.7) calc(var(--reach) * 0.1), rgba(0, 0, 0, 0.3) calc(var(--reach) * 0.2), transparent calc(var(--reach) / 3));
+  mask-image: radial-gradient(circle at var(--at), #000 0, rgba(0, 0, 0, 0.7) calc(var(--reach) * 0.1), rgba(0, 0, 0, 0.3) calc(var(--reach) * 0.2), transparent calc(var(--reach) / 3));
 }
 .day-ray,
 .day-glow {
   position: absolute;
   inset: 0;
 }
+/* The shafts: each layer holds two, one to either side, so they open out
+   all the way round below the skylight (angles are clockwise from
+   straight up: 180 is straight down). Each layer brightens and dims in
+   its own time. */
 .day-ray {
-  --at: calc(var(--sun-x, 60px) / 3) calc(var(--sun-h) / -3);
   background: conic-gradient(
     from 0deg at var(--at),
     transparent calc(var(--a) - var(--w) * 1.5),
-    rgba(255, 255, 255, 0.35) calc(var(--a) - var(--w) * 0.75),
-    rgba(255, 255, 255, 1) var(--a),
-    rgba(255, 255, 255, 0.35) calc(var(--a) + var(--w) * 0.75),
+    rgba(255, 255, 255, 0.4) calc(var(--a) - var(--w) * 0.7),
+    #fff var(--a),
+    rgba(255, 255, 255, 0.4) calc(var(--a) + var(--w) * 0.7),
     transparent calc(var(--a) + var(--w) * 1.5),
+    transparent calc(var(--b) - var(--v) * 1.5),
+    rgba(255, 255, 255, 0.4) calc(var(--b) - var(--v) * 0.7),
+    #fff var(--b),
+    rgba(255, 255, 255, 0.4) calc(var(--b) + var(--v) * 0.7),
+    transparent calc(var(--b) + var(--v) * 1.5),
     transparent
   );
   opacity: 0.6;
   will-change: opacity;
   animation: dayRay 9s ease-in-out infinite;
 }
-/* (the furthest-leaning layer carries two shafts, so the light reaches
-   the far side of a wide screen without another layer) */
-.day-ray.r3 {
-  background: conic-gradient(
-    from 0deg at var(--at),
-    transparent calc(var(--a4) - var(--w) * 1.5),
-    rgba(255, 255, 255, 0.3) calc(var(--a4) - var(--w) * 0.75),
-    rgba(255, 255, 255, 0.85) var(--a4),
-    rgba(255, 255, 255, 0.3) calc(var(--a4) + var(--w) * 0.75),
-    transparent calc(var(--a4) + var(--w) * 1.5),
-    transparent calc(var(--a) - var(--w) * 1.5),
-    rgba(255, 255, 255, 0.35) calc(var(--a) - var(--w) * 0.75),
-    rgba(255, 255, 255, 1) var(--a),
-    rgba(255, 255, 255, 0.35) calc(var(--a) + var(--w) * 0.75),
-    transparent calc(var(--a) + var(--w) * 1.5),
-    transparent
-  );
-}
 .day-ray.r1 {
-  --a: var(--a1);
+  --a: 160deg;
+  --w: 8deg;
+  --b: 205deg;
+  --v: 6deg;
 }
 .day-ray.r2 {
-  --a: var(--a2);
+  --a: 133deg;
+  --w: 6deg;
+  --b: 184deg;
+  --v: 5deg;
   animation-duration: 11.5s;
   animation-delay: -3s;
 }
 .day-ray.r3 {
-  --a: var(--a3);
+  --a: 108deg;
+  --w: 7deg;
+  --b: 232deg;
+  --v: 8deg;
   animation-duration: 13s;
   animation-delay: -7s;
 }
-/* What the shafts are seen against: the page is nearly white already, so
-   light alone wouldn't show. The air between the shafts is a breath
-   warmer and dimmer, as a room is beside a sunbeam; it doesn't move. */
+.day-ray.r4 {
+  --a: 120deg;
+  --w: 3deg;
+  --b: 254deg;
+  --v: 6deg;
+  animation-duration: 10s;
+  animation-delay: -5s;
+}
+/* The bloom where the light comes in. */
 .day-glow {
-  background: rgba(150, 108, 46, 0.1);
+  background: radial-gradient(circle at var(--at), #fff 0, rgba(255, 255, 255, 0.75) calc(var(--reach) * 0.03), rgba(255, 255, 255, 0.3) calc(var(--reach) * 0.09), transparent calc(var(--reach) * 0.19));
+  opacity: 0.8;
+  will-change: opacity;
+  animation: dayRay 8s ease-in-out -2s infinite;
+}
+/* (over the page: only a faint wash of it, in a box no bigger than it reaches) */
+.day-shine i {
+  position: absolute;
+  left: calc(var(--sun-x) - 30vmax);
+  top: calc(var(--topbar-h, 64px) - 30vmax);
+  width: 60vmax;
+  height: 60vmax;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0.09) 35%, transparent 70%);
+  will-change: opacity;
+  animation: dayRay 8s ease-in-out -2s infinite;
 }
 @keyframes dayRay {
   0%,
@@ -14601,26 +14634,21 @@ html[data-night] .topbar {
   }
 }
 .day-light.scrolling .day-ray,
-.day-light.scrolling b {
+.day-light.scrolling .day-glow,
+.day-light.scrolling b,
+.day-shine.scrolling i {
   animation-play-state: paused;
 }
-/* (a phone: the light starts higher for its width, so the shafts still
-   reach right across; fewer specks) */
+/* (a phone: fewer specks) */
 @media (max-width: 640px) {
-  .day-light {
-    --sun-h: 105vw;
-    --a1: 178deg;
-    --a2: 162deg;
-    --a3: 146deg;
-    --a4: 131deg;
-    --w: 6.5deg;
-  }
   .day-light b:nth-child(even) {
     display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .day-light,
+  .day-shine,
+  .day-shine i,
   .day-ray,
   .day-glow,
   .day-light b {

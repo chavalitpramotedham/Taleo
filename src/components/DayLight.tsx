@@ -3,69 +3,72 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** The specks of dust afloat in the light: where each is (across and
- *  down the screen, in hundredths of it - all in the upper part, where the
- *  light is), how big (px), and how its drifting is timed (seconds: delay,
- *  length - all different, so no two keep time). */
+ *  down the screen, in hundredths of it - gathered under the skylight,
+ *  where the light is), how big (px), and how its drifting is timed
+ *  (seconds: delay, length - all different, so no two keep time). */
 const MOTES: [number, number, number, number, number][] = [
-  [8, 16, 3, 0, 9], [19, 27, 2, 1.4, 11], [31, 14, 2, 2.6, 12.5], [43, 33, 3, 0.7, 10],
-  [55, 19, 2, 3.3, 13], [66, 40, 2, 1.9, 9.5], [77, 24, 3, 4.1, 11.5], [89, 36, 2, 2.2, 12],
-  [13, 45, 2, 5, 10.5], [37, 52, 2, 3.8, 13.5], [60, 55, 2, 0.4, 12], [83, 13, 2, 2.9, 10],
-  [25, 38, 3, 4.6, 11], [49, 12, 2, 1.1, 13],
+  [38, 16, 3, 0, 9], [57, 24, 2, 1.4, 11], [47, 13, 2, 2.6, 12.5], [29, 31, 3, 0.7, 10],
+  [66, 19, 2, 3.3, 13], [52, 38, 2, 1.9, 9.5], [21, 22, 3, 4.1, 11.5], [74, 33, 2, 2.2, 12],
+  [43, 46, 2, 5, 10.5], [61, 50, 2, 3.8, 13.5], [34, 55, 2, 0.4, 12], [83, 21, 2, 2.9, 10],
+  [14, 36, 3, 4.6, 11], [55, 12, 2, 1.1, 13],
 ];
 
 /**
- * Daylight: light falling in as if from a skylight - broad, soft shafts
- * that already span the page as they pass under the menu bar, with specks
- * of dust afloat in them. The light is centred over the "Begin a story"
- * leaf in the menu on a phone, and over the Taleo leaves on wider screens.
+ * Daylight: the day's answer to the night's lantern - sunshine coming in
+ * through a skylight over the middle of the menu bar, spreading in soft
+ * shafts down and out across the page, with specks of dust afloat in it.
  *
- * Behind the page (cards and words cover it), and built to cost next to
- * nothing: a handful of layers that are only ever faded (and the specks
- * nudged), which the browser's compositor does on its own; they hold
- * still while the page is scrolled; with reduced motion they don't move at
- * all. Shown by day only (see NightMode).
+ * Most of it is behind the page (words and cards stay crisp on top); a
+ * faint wash of the same light lies over the page, so cards near the top
+ * catch a little of it. Built to cost next to nothing: a handful of small
+ * layers that are only ever faded (and the specks nudged), which the
+ * browser's compositor does on its own; they hold still while the page is
+ * scrolled; with reduced motion they don't move at all. Shown by day only
+ * (see NightMode).
  */
 export function DayLight() {
-  const [at, setAt] = useState<{ x: number } | null>(null);
-  const box = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  const back = useRef<HTMLDivElement>(null);
+  const front = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const place = () => {
-      const narrow = window.matchMedia("(max-width: 640px)").matches;
-      const from = document.querySelector(narrow ? ".nav-begin-pill" : ".brand-mark") ?? document.querySelector(".brand-mark");
-      const r = from?.getBoundingClientRect();
-      if (!r || !r.width) return setAt(null);
-      setAt({ x: Math.round(r.left + r.width / 2) });
-    };
-    place();
-    window.addEventListener("resize", place);
+    setReady(true);
     // (still while the page is scrolled, like the night's lantern light)
     let rest = 0;
+    const set = (on: boolean) => {
+      back.current?.classList.toggle("scrolling", on);
+      front.current?.classList.toggle("scrolling", on);
+    };
     const onScroll = () => {
-      box.current?.classList.add("scrolling");
+      set(true);
       window.clearTimeout(rest);
-      rest = window.setTimeout(() => box.current?.classList.remove("scrolling"), 220);
+      rest = window.setTimeout(() => set(false), 220);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("resize", place);
       window.removeEventListener("scroll", onScroll);
       window.clearTimeout(rest);
     };
   }, []);
-  if (!at) return null;
+  if (!ready) return null;
   return createPortal(
-    <div className="day-light" ref={box} aria-hidden style={{ "--sun-x": `${at.x}px` } as React.CSSProperties}>
-      {/* the wash of brightness under the menu bar, then the shafts */}
-      <div className="day-beams">
-        <i className="day-glow" />
-        <i className="day-ray r1" />
-        <i className="day-ray r2" />
-        <i className="day-ray r3" />
+    <>
+      <div className="day-light" ref={back} aria-hidden>
+        <i className="day-room" />
+        <div className="day-beams">
+          <i className="day-glow" />
+          <i className="day-ray r1" />
+          <i className="day-ray r2" />
+          <i className="day-ray r3" />
+          <i className="day-ray r4" />
+        </div>
+        {MOTES.map(([x, y, size, delay, dur], i) => (
+          <b key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, animationDelay: `-${delay}s`, animationDuration: `${dur}s` }} />
+        ))}
       </div>
-      {MOTES.map(([x, y, size, delay, dur], i) => (
-        <b key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, animationDelay: `-${delay}s`, animationDuration: `${dur}s` }} />
-      ))}
-    </div>,
+      <div className="day-shine" ref={front} aria-hidden>
+        <i />
+      </div>
+    </>,
     document.body,
   );
 }
