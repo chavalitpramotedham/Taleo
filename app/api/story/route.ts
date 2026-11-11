@@ -106,7 +106,9 @@ export async function POST(req: Request) {
     const genuine = ticketed || inLegacyGrace();
     if (!genuine) {
       countedAs = "no ticket: counted as a new story";
-      return { bucket: "story", credits: storyCredits(parsed.story.minutes) };
+      // (a story in its own right: with its own name to be counted and
+      // paid under, and its length's price)
+      return { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) };
     }
     if (!ticketed) countedAs = "no ticket (grace period)";
     return parsed.story.segments.length === 1 ? { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) } : "segment";
@@ -163,10 +165,13 @@ export async function POST(req: Request) {
       stop.abort();
     },
     async start(controller) {
-      const made: { v: { summary: string; result: string; cases: string[] } | null } = { v: null };
+      const made: { v: { summary: string; result: string; cases: string[] } | null; ticket?: string | null } = { v: null };
       const send = (event: SegmentEvent | { type: "error"; error: string }) => {
         if (stop.signal.aborted) return;
-        const line = JSON.stringify(event.type === "error" ? event : stamp(event)) + "\n";
+        const out = event.type === "error" ? event : stamp(event);
+        // (a beginning's ticket names the story it began: what's held for it is kept under that name)
+        if (out.type === "done" && parsed.kind === "start") made.ticket = (out.response as { ticket?: string }).ticket ?? null;
+        const line = JSON.stringify(out) + "\n";
         controller.enqueue(encoder.encode(line));
         // (the title alone isn't the story: "first seen" is the first page)
         if (event.type !== "title") gen.sent(line.length);
@@ -208,12 +213,14 @@ export async function POST(req: Request) {
         if (stop.signal.aborted) await gen.end("left", { error: "The reader left before it was written." });
         else if (made.v) {
           // (written and sent: credits held for it are now spent)
-          await g.settle();
+          await g.settle({ storyKey: made.ticket ?? undefined });
           await gen.end("ok", made.v);
         }
       } catch (err) {
         if (!stop.signal.aborted && !(err instanceof StoryRefusal)) await reportError("story writing", err, { kind: parsed.kind });
-        await g.release(); // a story that failed to write doesn't count
+        // (a story that failed to write doesn't count; one the reader
+        // walked away from gets its credits back but stays counted)
+        await g.release({ left: stop.signal.aborted });
         const data = (await errorResponse(err).json().catch(() => ({}))) as { error?: string };
         const left = stop.signal.aborted;
         send({ type: "error", error: data.error || "The story got stuck. Let's try again!" });

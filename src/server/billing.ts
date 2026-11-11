@@ -375,6 +375,42 @@ export const settleHold = (userId: string, ref: string, note?: string) => endHol
 /** The work failed or was stopped: the held credits go back. */
 export const releaseHold = (userId: string, ref: string, note?: string) => endHold(userId, ref, "release", note);
 
+// KEYS: holds. ARGV: from, to, now.
+const MOVE = `
+local h = redis.call('HGET', KEYS[1], ARGV[1])
+if not h then return 0 end
+if redis.call('HEXISTS', KEYS[1], ARGV[2]) == 1 then return 0 end
+redis.call('HDEL', KEYS[1], ARGV[1])
+redis.call('HSET', KEYS[1], ARGV[2], string.match(h, '^(%d+)') .. ':' .. ARGV[3])
+return 1`;
+/** Renames a hold (the same credits, now set aside under another piece of
+ *  work's name), all at once - so nothing can settle or release it in
+ *  between. False if there's no such hold, or one already has that name.
+ *  The hold counts as fresh from now. */
+export async function moveHold(userId: string, from: string, to: string): Promise<boolean> {
+  if (!safe(userId) || !safe(from) || !safe(to) || from === to) return false;
+  const now = Date.now();
+  if (!metricsEnabled()) {
+    if (onVercel) return false;
+    return localInTurn(async () => {
+      const rec = await localOf(userId);
+      const held = rec.holds?.[from];
+      if (!held || rec.holds![to]) return false;
+      delete rec.holds![from];
+      rec.holds![to] = { amount: held.amount, at: now };
+      await localSave(userId, rec);
+      return true;
+    });
+  }
+  try {
+    const [out] = await pipeline([["EVAL", MOVE, 1, holdsKey(userId), from, to, now]]);
+    return Number(out) === 1;
+  } catch (e) {
+    console.error("[billing] couldn't move a hold", e);
+    return false;
+  }
+}
+
 /** A story's credits are held from the moment it's begun until its first
  *  choice - which may be a good while later (a parent reading the opening
  *  pages aloud) - so that hold is given a day before it counts as left

@@ -23,7 +23,8 @@ import type { Page } from "@/lib/types";
  * calculation, not a read).
  */
 
-const secret = process.env.AUTH_SECRET || "taleo-dev";
+const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "taleo-dev";
+if (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET && process.env.VERCEL_ENV === "production") console.error("[tickets] no AUTH_SECRET is set: tickets and signatures can be forged");
 const mac = (label: string, parts: unknown) =>
   createHmac("sha256", `${secret}:${label}`).update(JSON.stringify(parts)).digest("base64url").slice(0, 22);
 const same = (a: string, b: unknown) => typeof b === "string" && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -31,7 +32,7 @@ const same = (a: string, b: unknown) => typeof b === "string" && a.length === b.
 /** Until this date, pages and stories made before signing existed (drafts
  *  in progress, older clients still open in a tab) are let through, under
  *  the usual safety caps. After it, only signed work is accepted. */
-export const LEGACY_GRACE_UNTIL = Date.parse(process.env.TALEO_LEGACY_GRACE_UNTIL || "2026-11-25T00:00:00Z");
+export const LEGACY_GRACE_UNTIL = Date.parse(process.env.TALEO_LEGACY_GRACE_UNTIL || "2026-11-11T00:00:00Z");
 export const inLegacyGrace = () => Date.now() < LEGACY_GRACE_UNTIL;
 
 // ---- pages ----
