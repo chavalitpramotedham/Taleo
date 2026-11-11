@@ -73,10 +73,17 @@ export const PLANS: Record<TierId, TierInfo> = {
   admin: {
     id: "admin",
     name: "Admin",
-    blurb: "Unlimited everything, and the keys to the admin dashboard.",
-    credits: "always",
-    limits: { stories: null, changesOfMind: 0, characters: null, designs: null, quickPages: 1, burst: null, verified: false },
-    extras: [{ label: "Admin dashboard", value: "Full access" }],
+    blurb: "The test account: a free story a day like everyone, then credits - and the keys to the admin dashboard.",
+    credits: "auto",
+    // (the same free story a day as the Free plan, and two free characters,
+    // so both flows can be tried: free first, then credits. Plenty of
+    // beginnings; no other caps.)
+    limits: { stories: { count: 1, hours: 24 }, changesOfMind: 50, characters: null, designs: { count: 2, hours: 24 }, quickPages: 1, burst: null, verified: false },
+    extras: [
+      { label: "After the free ones", value: "Credits", note: "One a minute of story, one a character" },
+      { label: "Adding credits", value: "Any time" },
+      { label: "Admin dashboard", value: "Full access" },
+    ],
   },
 };
 
@@ -91,12 +98,16 @@ export const PLANS: Record<TierId, TierInfo> = {
  * it):
  *   "beyond"  the plan's own allowance goes first and costs nothing; once
  *             it is used up, credits pay for more (the Free plan)
- *   "always"  every story and character costs credits (the admin's test
- *             account, so the whole flow can be tried)
+ *   "auto"    the same - the plan's free ones first, then credits - but
+ *             without being asked each time: the page says what the next
+ *             one will cost, and making it is the yes (the admin's test
+ *             account, so both the free and the credit flow can be tried)
+ *   "always"  every story and character costs credits (no plan uses this
+ *             now; kept so a credits-only plan needs no new code)
  * (These prices follow what a story costs to make - its paintings, one a
  * page, and pages go with minutes - not yet measured spend.)
  */
-export type CreditsMode = "beyond" | "always";
+export type CreditsMode = "beyond" | "auto" | "always";
 export const CREDITS_PER_STORY_MINUTE = 1;
 export const CHARACTER_CREDITS = 1;
 /** The shortest and longest story (lib/ages), kept here so prices need no
@@ -137,7 +148,7 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
   { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? "A story counts once you make its first choice" : undefined },
-  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved` },
+  { label: "Custom characters", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters} saved`, note: t.limits.designs && t.credits === "auto" ? `${allowanceText(t.limits.designs)} designed free` : undefined },
   { label: "Reading the Public Library", value: "Unlimited" },
   { label: "Saving others' stories", value: "Unlimited" },
   ...(t.extras ?? []),

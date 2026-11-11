@@ -6,7 +6,7 @@ import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
 import { guard, limitMessage, peekStart, whoIs } from "@/server/limits";
-import { limitsFor, tierFor, storyCredits } from "@/lib/tiers";
+import { limitsFor, tierFor, storyCredits, CREDITS_PER_STORY_MINUTE, STORY_CREDITS_RANGE } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
@@ -26,15 +26,29 @@ export async function GET() {
   if (!me) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
   if (me.account?.suspended) return NextResponse.json({ canStart: false, error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 });
   const user = me.user;
-  const { ok, retryAfterSec, limited, left } = await peekStart(user);
+  const peek = await peekStart(user);
+  const { retryAfterSec, limited, left } = peek;
+  let ok = peek.ok;
+  // The plan's free stories are used up, on a plan that then pays with
+  // credits: a story can begin if there are credits for the shortest one -
+  // and the page is told, so it can say what this one will cost.
+  let credits: { perMinute: number; balance: number } | undefined;
+  if (!ok && limited === "story" && tierFor(user).credits === "auto" && me.account) {
+    const balance = await me.account.credits();
+    if (balance !== null) {
+      credits = { perMinute: CREDITS_PER_STORY_MINUTE, balance };
+      ok = balance >= STORY_CREDITS_RANGE[0];
+    }
+  }
   return NextResponse.json({
     canStart: ok,
+    credits,
     retryAfterSec,
     limited: ok ? undefined : limited,
     startsLeft: left,
     windowHours: tierFor(user).limits.stories?.hours,
     plan: tierFor(user).name,
-    error: ok ? undefined : limitMessage(user, limited, retryAfterSec),
+    error: ok ? undefined : credits ? `Today's free story is used, and a story needs at least ${STORY_CREDITS_RANGE[0]} credits - there ${credits.balance === 1 ? "is" : "are"} ${credits.balance}.` : limitMessage(user, limited, retryAfterSec),
   });
 }
 
@@ -63,7 +77,7 @@ export async function POST(req: Request) {
     // (a plan where every story costs credits - the admin's test account -
     // is charged at the story's first choice like any other, though its
     // requests aren't otherwise checked)
-    if (tierFor(user).credits === "always" && parsed.story.segments.length === 1) {
+    if (tierFor(user).credits !== "beyond" && parsed.story.segments.length === 1) {
       return { bucket: "story", key: storyTicket(user.id, parsed.story), credits: storyCredits(parsed.story.minutes) };
     }
     if (!limitsFor(user).verified) return "segment";

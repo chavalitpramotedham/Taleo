@@ -376,7 +376,9 @@ export async function guard(
     if (coverable) {
       const balance = await account.credits();
       if (balance !== null && balance >= price) offer = { item, price, balance };
-      if (offer && opts.useCredits) {
+      // (said yes: in so many words, or by being on a plan that pays with
+      // credits without asking each time)
+      if (offer && (opts.useCredits || mode === "auto")) {
         const paid = await pay();
         if (paid.ok) return { ok: true, session, credits: paid.spent, release: giveBack(paid.spent) };
       }

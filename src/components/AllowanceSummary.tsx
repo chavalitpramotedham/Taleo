@@ -11,13 +11,20 @@ const read = (): Promise<Rights | null> =>
     .then((r) => (r.ok ? (r.json() as Promise<Rights>) : null))
     .catch(() => null);
 
-/** "1 story left", "No stories left today", "Stories: unlimited" */
-export function storiesLeftText(r: Rights): string {
-  if (r.creditsMode === "always") return "Stories use credits";
+const backIn = (sec: number) => {
+  const m = Math.max(1, Math.ceil(sec / 60));
+  return m >= 90 ? `${Math.round(m / 60)} hours` : `${m} minute${m === 1 ? "" : "s"}`;
+};
+
+/** The plan's free stories: "1 free story left", or once they're used,
+ *  when the next one comes back - "Free story back in 5 hours". (Null: the
+ *  plan has no free stories to count.) */
+export function storiesLeftText(r: Rights): string | null {
+  if (r.creditsMode === "always") return null;
   const n = r.stories.left;
-  if (n === null) return "Unlimited stories";
-  if (n === 0) return r.stories.windowHours === 24 ? "No stories left today" : "No stories left for now";
-  return `${n} ${n === 1 ? "story" : "stories"} left${r.stories.windowHours === 24 ? " today" : ""}`;
+  if (n === null) return null;
+  if (n === 0) return r.stories.nextInSec > 0 ? `Free story back in ${backIn(r.stories.nextInSec)}` : "No free stories left";
+  return `${n} free ${n === 1 ? "story" : "stories"} left`;
 }
 
 /**
@@ -43,8 +50,9 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
     <Link href="/account/plans" className="allowance-summary" role="menuitem" onClick={onGo} aria-label="What's left on your plan: see the details">
       {rights ? (
         <>
-          {/* (where every story uses credits, the credits say it all) */}
-          {rights.creditsMode !== "always" && (
+          {/* the plan's free stories first (how many are left, or when the
+              next comes back), then the credits that pay for more */}
+          {storiesLeftText(rights) && (
             <span className="allowance-item">
               <ShelfIcon />
               <span>{storiesLeftText(rights)}</span>

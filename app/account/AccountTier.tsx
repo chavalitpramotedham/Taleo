@@ -36,7 +36,7 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   // (only the admin sees the safety limits)
   button: current ? "Current plan" : "",
   current,
-  intro: t.id === "admin" ? "Everything, without limits:" : "Every family gets:",
+  intro: t.id === "admin" ? "The test account gets:" : "Every family gets:",
   features: tierRows(t).map((r) => `${r.label}: ${r.value}`),
   caps: tierCaps(t),
 });

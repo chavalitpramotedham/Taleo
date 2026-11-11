@@ -94,7 +94,7 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
             <p className="meta">Credits aren&apos;t available here yet.</p>
           ) : (
             <p className="meta">
-              {always ? "Every story and character on this account uses credits." : `Credits pay for more once your plan's own stories and characters are used up.`}
+              {always ? "Every story and character on this account uses credits." : "Your plan's free stories and characters go first. Credits pay for more once they're used up."}
             </p>
           )}
           <h4 className="menu-title">What things cost</h4>
@@ -111,14 +111,19 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
         <>
           {!always && (
             <section className="panel credits-panel" aria-label="What your plan allows right now">
-              <h4 className="menu-title">Left on your plan{s.windowHours === 24 ? " today" : ""}</h4>
+              <h4 className="menu-title">Free on your plan{s.windowHours === 24 ? " today" : ""}</h4>
               <ul className="menu-list">
-                <Line what="New stories" value={s.left === null ? "Unlimited" : n(s.left)} />
-                <Line what="Stories you can begin" value={s.startsLeft === null ? "Unlimited" : n(s.startsLeft)} />
+                <Line what="Free stories left" value={s.left === null ? "Unlimited" : n(s.left)} />
+                {/* (where credits pay for more, a count of free beginnings would only confuse) */}
+                {rights.creditsMode === "beyond" && <Line what="Stories you can begin" value={s.startsLeft === null ? "Unlimited" : n(s.startsLeft)} />}
                 <Line what="Characters kept" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
-                <Line what="Character designs and repaints" value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
+                <Line what="Free character designs left" value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
               </ul>
-              {s.left === 0 && s.nextInSec > 0 && <p className="meta menu-note">The next story opens up in {wait(s.nextInSec)}.</p>}
+              {s.left === 0 && s.nextInSec > 0 && (
+                <p className="meta menu-note">
+                  The next free story comes back in {wait(s.nextInSec)}.{credits ? " Until then, stories use credits." : ""}
+                </p>
+              )}
             </section>
           )}
           {children}

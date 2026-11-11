@@ -128,12 +128,16 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // unlimited: null)
   const [startsLeft, setStartsLeft] = useState<number | null>(null);
   const [daily, setDaily] = useState(false);
+  // Credits a minute this story will cost (null: it's on the plan, free).
+  const [perMinute, setPerMinute] = useState<number | null>(null);
   const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
     try {
       const res = await fetch("/api/story", { cache: "no-store" });
-      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number };
+      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number } };
       setDaily(data.windowHours === 24);
+      // (the plan's free story is used: this one will be paid for with credits)
+      setPerMinute(data.credits ? data.credits.perMinute : null);
       setStartsLeft(typeof data.startsLeft === "number" ? data.startsLeft : null);
       if (data.canStart) return null;
       return { limited: data.limited, plan: data.plan, message: data.error || "A new story can't begin just now." };
@@ -543,7 +547,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
           ) : (
             <>
               <MapleMark />
-              {step === 2 ? "Begin the story" : "Next ›"}
+              {step === 2 ? (perMinute && minutes ? `Begin the story · ${minutes * perMinute} credits` : "Begin the story") : "Next ›"}
             </>
           )}
         </button>
