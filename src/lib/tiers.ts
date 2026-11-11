@@ -84,8 +84,9 @@ export interface TierInfo {
 export const PLANS: Record<TierId, TierInfo> = {
   free: {
     id: "free",
-    name: "Free",
-    blurb: "A free story every week and a free character every month: everything you need for a story at bedtime.",
+    // (the plan everyone has, and what it's called; it costs nothing)
+    name: "Basic",
+    blurb: "Your starter pack for bedtime",
     // (credits an account holds are used, without asking each time, once
     // the week's free story or the month's free character is gone)
     credits: "auto",
@@ -104,7 +105,7 @@ export const PLANS: Record<TierId, TierInfo> = {
   admin: {
     id: "admin",
     name: "Admin",
-    blurb: "The test account: a free story each week and a free character each month like everyone, then credits - and the keys to the admin dashboard.",
+    blurb: "Unlimited bedtime goodness",
     credits: "auto",
     // (the same free story a week and free character a month as the Free plan, so
     // both flows can be tried: free first, then credits. Room for ten

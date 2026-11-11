@@ -110,10 +110,10 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
         <>
           {!always && (
             <section className="panel credits-panel" aria-label="What your plan allows right now">
-              <h4 className="menu-title">Free on your plan</h4>
+              <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`Free stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} />
-                <Line what={`Free characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`} value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
+                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} />
+                <Line what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`} value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)} />
                 <Line what="Custom character slots used" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
               </ul>
               {s.left === 0 && s.nextInSec > 0 && (

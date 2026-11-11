@@ -29,15 +29,6 @@ export function AccountNav() {
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // The menu's figures (free stories, credits), asked for once the page
-  // has settled - not when the menu opens - so they're there when it does.
-  const signedIn = Boolean(session?.user);
-  useEffect(() => {
-    if (!signedIn) return;
-    const t = window.setTimeout(() => void preloadAllowance(), 1500);
-    return () => window.clearTimeout(t);
-  }, [signedIn]);
-
   // While sign-in status is still being checked, hold the button's exact
   // place (same size and shape) so the menu never shifts when it resolves.
   if (status === "loading") {
@@ -105,6 +96,10 @@ export function AccountNav() {
             role="menuitem"
             onClick={() => {
               setOpen(false);
+              // (the next person to sign in here mustn't see this account's figures)
+              try {
+                sessionStorage.removeItem("taleo.allowance");
+              } catch {}
               signOut({ callbackUrl: "/" });
             }}
           >

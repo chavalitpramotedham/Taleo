@@ -32,7 +32,8 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   icon: t.id === "admin" ? <CrownMark /> : <MapleMark />,
   name: t.name,
   tagline: t.blurb,
-  price: t.limits.stories ? t.name : "Unlimited",
+  // (the plan everyone has costs nothing, whatever it's called)
+  price: t.id === "free" ? "Free" : t.limits.stories ? t.name : "Unlimited",
   // (only the admin sees the safety limits)
   button: current ? "Current plan" : "",
   current,
@@ -45,11 +46,11 @@ const COMING: Card = {
   key: "coming",
   icon: <SeedlingMark />,
   name: "More plans",
-  tagline: "Growing soon, for families who read together every day.",
+  tagline: "Growing soon",
   price: "Coming soon",
   button: "",
   current: false,
-  intro: "Everything in Free, and more of:",
+  intro: "Everything in Basic, and more of:",
   features: ["More new stories each week", "More custom character slots", "Longer stories and new features first"],
 };
 
@@ -105,10 +106,14 @@ export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier
   const others = (c: Card, label: string): Card => ({ ...c, button: label });
   const noCaps = (c: Card): Card => ({ ...c, caps: undefined });
   const cards: Card[] = isAdmin
-    ? [fromTier(PLANS.admin, true), others(fromTier(PLANS.free, false), "Downgrade to Free"), others(COMING, "Downgrade")]
+    ? [fromTier(PLANS.admin, true), others(fromTier(PLANS.free, false), "Downgrade to Basic"), others(COMING, "Downgrade")]
     : [noCaps(fromTier(mine, true)), others(COMING, "Upgrade - coming soon")];
   return (
     <div className="account-plans">
+      {/* a line across, with what follows named on it */}
+      <h3 className="tier-other-plans plans-divider">
+        <span>Manage plan</span>
+      </h3>
       {/* (the admin's own plan is set apart from the plans families have) */}
       <PlanRow cards={cards} divideAfter={isAdmin ? 0 : undefined} />
     </div>

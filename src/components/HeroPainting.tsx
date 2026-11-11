@@ -75,6 +75,17 @@ const POP_AT = Math.max(JUMP_AT + JUMP_MS - 200, LINE_2_AT + (WORD_FROM + WORD.l
 const POP_MS = 1900;
 const LESSON_AT = 16700;
 
+/**
+ * Begins the painting as soon as its first two washes have arrived - as
+ * the page itself arrives, without waiting for the app's scripts (on a
+ * slow phone those take seconds more, and the picture is the largest thing
+ * on the page). It only sets the painting going - the CSS does the rest -
+ * and notes when; the app, once there, falls in step with it (the story
+ * line, the choice, the labels). Not with reduced motion, and not when the
+ * picture is put on the page by the app itself (then the app starts it).
+ */
+const EARLY_START = `(function(){try{var s=document.currentScript,f=s&&s.previousElementSibling,r=f&&f.querySelector(".hero-paint-canvas");if(!r||matchMedia("(prefers-reduced-motion: reduce)").matches)return;var im=r.querySelectorAll("img"),n=0,done=false;function go(){if(done)return;done=true;for(var i=0;i<im.length;i++){var d=im[i].getAttribute("data-src");if(d&&!im[i].getAttribute("src"))im[i].src=d}r.classList.remove("hero-paint-pending");r.classList.add("playing");f.classList.add("hero-early");r.dataset.started=String(performance.now())}function one(){if(++n>=Math.min(${EAGER},im.length))go()}for(var i=0;i<${EAGER}&&i<im.length;i++){(function(g){if(g.decode)g.decode().then(one,one);else if(g.complete)one();else{g.addEventListener("load",one);g.addEventListener("error",one)}})(im[i])}setTimeout(go,4000)}catch(e){}})()`;
+
 /** What the strip under the story line shows. */
 type Turn = "none" | "ask" | "picked" | "lesson";
 
@@ -141,7 +152,6 @@ export function HeroPainting() {
       return;
     }
     root.style.setProperty("--paint-ms", `${PAINT_MS}ms`);
-
     // Start (or restart) the painting.
     const play = () => {
       root.classList.remove("playing");
@@ -155,6 +165,14 @@ export function HeroPainting() {
     let stop: (() => void) | null = null;
     let cancelled = false;
     const start = async () => {
+      // Already begun, before the app itself had arrived (see EARLY_START):
+      // nothing to start - only fall in step with it.
+      const early = Number(root.dataset.started) || 0;
+      if (early) {
+        setRest(true);
+        stop = run(early);
+        return;
+      }
       // Start once the base wash (painted first) is ready - the later
       // layers are already on their way and arrive long before their turn
       // in the painting, so the picture begins seconds sooner on a slow
@@ -177,9 +195,13 @@ export function HeroPainting() {
     setLive(true);
     const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300));
     let wait = 0;
-    const idle = ric(() => (wait = window.setTimeout(() => void start(), 120)), { timeout: 900 }) as number;
+    // (a short wait at most: on a slow phone the page is never "idle" for
+    // long while it arrives, and the picture is the largest thing on it)
+    // (already painting - see EARLY_START: fall in step at once)
+    // (a moment later, not on the spot: what it runs is set up just below)
+    const idle = Number(root.dataset.started) ? (void Promise.resolve().then(start), 0) : (ric(() => (wait = window.setTimeout(() => void start(), 0)), { timeout: 350 }) as number);
 
-    const run = () => {
+    const run = (startedAt?: number) => {
       // A light clock that only advances while the picture is on screen,
       // keeping the story line, the choice and the labels in step with the
       // (paused-alongside) CSS. Time is measured on the real clock minus
@@ -187,7 +209,7 @@ export function HeroPainting() {
       // the CSS animations even when frames are slow or dropped.
       let visible = true;
       let pageVisible = !document.hidden;
-      let cycleStart = performance.now();
+      let cycleStart = startedAt ?? performance.now();
       let pausedAt: number | null = document.hidden ? performance.now() : null;
       let pausedTotal = 0;
       const syncPause = () => {
@@ -296,6 +318,8 @@ export function HeroPainting() {
       <img
         key={l.name}
         src={i < EAGER || rest ? l.src : undefined}
+        // (for the early start, which fills these in itself)
+        data-src={l.src}
         alt=""
         className={`hero-layer hp-cut hp-g hp-g-${l.kind}`}
         style={{ ...timing, left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
@@ -322,8 +346,9 @@ export function HeroPainting() {
     );
 
   return (
+    <>
     <figure className="hero-art hero-paint">
-      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms` } as React.CSSProperties}>
+      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms`, "--paint-ms": `${PAINT_MS}ms` } as React.CSSProperties}>
         {/* The scene as a stack of layers, one per part, in paint order. */}
         <div className="hero-layers painted-edge" role="img" aria-label={TITLE}>
           <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
@@ -371,7 +396,7 @@ export function HeroPainting() {
           <BrushArt />
         </div>
       </div>
-      <figcaption aria-label={`${LINE_1} ${QUESTION} ${OPTIONS[PICKED]}. ${LINE_2} Tonight’s lesson: ${LESSON.toLowerCase()}.`}>
+      <figcaption className={live ? "live" : undefined} aria-label={`${LINE_1} ${QUESTION} ${OPTIONS[PICKED]}. ${LINE_2} Tonight’s lesson: ${LESSON.toLowerCase()}.`}>
         <p className="hero-line" aria-hidden>
           <span>{written}</span>
           <span className={`hero-quill ${live && typed < text.length ? "on" : ""}`} />
@@ -404,6 +429,9 @@ export function HeroPainting() {
         </div>
       </figcaption>
     </figure>
+    {/* Runs as the page arrives, long before the app: see EARLY_START. */}
+    <script dangerouslySetInnerHTML={{ __html: EARLY_START }} />
+    </>
   );
 }
 

@@ -83,10 +83,23 @@ const KEEP_MS = 32 * 24 * 3600_000;
 const memory = new Map<string, Usage>();
 const merged = (a: number[] = [], b: number[] = []) => [...new Set([...a, ...b])].sort((x, y) => x - y);
 
+// Checks that arrive together (a page asking what's left of stories,
+// beginnings and characters at once) share one read of the account's
+// counts instead of fetching the same file several times over.
+const reading = new Map<string, Promise<Usage | null>>();
+function readStored(userId: string): Promise<Usage | null> {
+  let p = reading.get(userId);
+  if (!p) {
+    p = readJson<Usage>(path(userId), { fresh: true }).finally(() => reading.delete(userId));
+    reading.set(userId, p);
+  }
+  return p;
+}
+
 async function load(userId: string, bucket: Bucket): Promise<Usage> {
   const mine = memory.get(userId) ?? {};
   if (!stored(bucket)) return mine;
-  const saved = (await readJson<Usage>(path(userId), { fresh: true })) ?? {};
+  const saved = (await readStored(userId)) ?? {};
   const usage: Usage = {};
   for (const b of STORED) usage[b] = merged(saved[b] as number[] | undefined, mine[b] as number[] | undefined);
   usage.counted = { ...saved.counted, ...mine.counted };

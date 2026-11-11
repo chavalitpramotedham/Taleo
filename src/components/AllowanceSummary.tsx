@@ -27,21 +27,36 @@ export function storiesLeftText(r: Rights): string | null {
  * at once while a fresh one is fetched, so the menu never opens empty
  * twice.
  */
+const KEPT = "taleo.allowance";
+/** The last answer, kept for this visit (this tab): a page opened afresh
+ *  shows it at once, while a new answer is fetched. */
+const kept = (): Rights | null => {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(KEPT) || "null") as { at: number; rights: Rights } | null;
+    return v && Date.now() - v.at < 30 * 60_000 ? v.rights : null;
+  } catch {
+    return null;
+  }
+};
+const keep = (rights: Rights) => {
+  try {
+    sessionStorage.setItem(KEPT, JSON.stringify({ at: Date.now(), rights }));
+  } catch {}
+};
 let last: Rights | null = null;
-/** Asks ahead of time (once the account is known, and as a finger or
- *  pointer nears the menu button), so the menu nearly always opens with
- *  the figures already there. */
+/** Asks ahead of time (as a finger or pointer reaches the menu button), so
+ *  the menu nearly always opens with the figures already there. */
 let asking: Promise<Rights | null> | null = null;
 export function preloadAllowance() {
   asking ??= read().then((r) => {
-    if (r) last = r;
+    if (r) keep((last = r));
     asking = null;
     return r;
   });
   return asking;
 }
 export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
-  const [rights, setRights] = useState<Rights | null>(last);
+  const [rights, setRights] = useState<Rights | null>(() => last ?? (last = kept()));
   useEffect(() => {
     let here = true;
     preloadAllowance().then((r) => {

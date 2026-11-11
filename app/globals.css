@@ -13800,3 +13800,28 @@ html[data-night] .policy-card {
   padding-bottom: 8px;
   min-height: 60px;
 }
+
+/* ---------- Nothing jumps as a page fills in ---------- */
+/* A page is at least as tall as the screen, so the footer waits below the
+   fold: when a shelf of stories arrives and the page grows, the footer
+   isn't seen being pushed down (and on a short page it sits at the foot
+   of the screen, not halfway up it). */
+main:has(+ .site-footer) {
+  min-height: calc(100svh - var(--topbar-h, 64px));
+}
+
+/* The line across the plan page, above the plans: "Manage plan". */
+.plans-divider {
+  margin: 26px 0 14px;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* The landing picture, begun before the app arrived: the strip under it
+   stays empty (its place kept) until the app is there to write the story
+   line in step - rather than showing the story's last line and its lesson
+   under a picture that has only just begun. */
+.hero-early figcaption:not(.live) .hero-line,
+.hero-early figcaption:not(.live) .hero-turn {
+  visibility: hidden;
+}

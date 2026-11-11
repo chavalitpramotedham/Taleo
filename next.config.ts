@@ -91,7 +91,20 @@ const nextConfig: NextConfig = {
     // for a week (and shown from its copy while a newer one is fetched), so
     // a returning reader's page doesn't ask about each of them again.
     const kept = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }];
+    // Every page and answer: not to be shown inside another site's frame
+    // (a page dressed up around ours to trick a tap), files taken for
+    // what they say they are, the address of a private page not passed on
+    // to other sites, and no use of the camera or location - nothing here
+    // needs them (the microphone is used, for saying a story idea aloud).
+    const safe = [
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), geolocation=(), payment=(), usb=(), microphone=(self)" },
+    ];
     return [
+      { source: "/:path*", headers: safe },
       { source: "/art/:path*", headers: kept },
       { source: "/steps/:path*", headers: kept },
       { source: "/about/:path*", headers: kept },
