@@ -7,16 +7,16 @@
     <meta name="robots" content="noindex" />
     <title>You're offline · Taleo</title>
     <script>
-      // Day from 9am to 5pm by this device's clock, night otherwise; the
+      // Day from 9am to 7pm by this device's clock, night otherwise; the
       // menu's switch overrides that until the next change-over.
       // (the same rule as src/lib/night-clock.ts)
       try {
-        var d = new Date(), h = d.getHours(), day = h >= 9 && h < 17, s = new Date(d), on = !day;
+        var d = new Date(), h = d.getHours(), day = h >= 9 && h < 19, s = new Date(d), on = !day;
         s.setMinutes(0, 0, 0);
         if (day) s.setHours(9);
         else {
-          if (h < 17) s.setDate(s.getDate() - 1);
-          s.setHours(17);
+          if (h < 19) s.setDate(s.getDate() - 1);
+          s.setHours(19);
         }
         try {
           var v = localStorage.getItem("taleo.night"), at = +localStorage.getItem("taleo.night.at") || 0;

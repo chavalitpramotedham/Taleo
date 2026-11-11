@@ -15,7 +15,7 @@
  * always fetched fresh, so nobody is ever shown someone else's or an
  * out-of-date bookshelf.
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = "taleo-shell-" + VERSION; // the offline page and its icon
 const ASSETS = "taleo-assets-" + VERSION; // files that never change, or rarely
 const OFFLINE = "/offline.html";

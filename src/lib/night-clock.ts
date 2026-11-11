@@ -1,7 +1,7 @@
 /**
  * How a page decides between day and night as it opens: by the clock on
- * the reader's own device. Daylight from 9 in the morning until 5 in the
- * afternoon; night the rest of the time.
+ * the reader's own device. Daylight from 9 in the morning until 7 in the
+ * evening; night the rest of the time.
  *
  * The switch in the menu bar still has the last word, but only for the
  * stretch of day or night it was pressed in: a parent who turns the lights
@@ -9,7 +9,7 @@
  * them on in the evening gets night back the following evening.
  */
 export const DAY_STARTS = 9; // 9:00
-export const DAY_ENDS = 17; // 17:00 (5 in the afternoon)
+export const DAY_ENDS = 19; // 19:00 (7 in the evening)
 
 export const NIGHT_KEY = "taleo.night";
 /** When the switch was last pressed (ms), so a choice can lapse. */

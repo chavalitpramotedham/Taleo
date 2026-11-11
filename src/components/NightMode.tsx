@@ -8,7 +8,7 @@ import { NIGHT_AT_KEY, NIGHT_KEY } from "@/lib/night-clock";
  * storybook lantern hanging from the menu bar (next to its switch), its
  * warm light falling across the page, and fireflies drifting about.
  *
- * A page opens by the clock: daylight from 9am to 5pm, night otherwise
+ * A page opens by the clock: daylight from 9am to 7pm, night otherwise
  * (lib/night-clock). The switch overrides that until day next turns to
  * night or night to day. An inline script in the root layout applies it
  * before first paint, so there's never a flash of the other theme.
