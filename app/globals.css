@@ -13766,3 +13766,37 @@ html[data-night] .policy-card {
 .policy-card-role {
   margin-bottom: 4px;
 }
+
+/* ---------- A making button's words, and the small line under them ---------- */
+/* One line as on any button: the mark, the words, what it costs. When it
+   will be one of the plan's free ones, a small line sits beneath, centred,
+   saying how many are left - the two lines together stay in the button's
+   middle, and the button grows a little to hold them. */
+.make-label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+.make-label-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.make-label-sub {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  line-height: 1.15;
+  opacity: 0.88;
+  white-space: nowrap;
+}
+.btn:has(.make-label.has-sub) {
+  padding-top: 7px;
+  padding-bottom: 8px;
+  min-height: 60px;
+}

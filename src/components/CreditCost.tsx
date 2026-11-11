@@ -8,20 +8,45 @@ const read = (): Promise<Rights | null> =>
     .then((r) => (r.ok ? (r.json() as Promise<Rights>) : null))
     .catch(() => null);
 
+/** What making the next one will take from this account. */
+export interface MakingCost {
+  /** Credits it will use (a character's price; for a story, a credit for
+   *  each minute - see `perMinute`) - null when it won't use any. */
+  credits: number | null;
+  /** For a story paid with credits: how many for each minute of it. */
+  perMinute: number | null;
+  /** When it will be one of the plan's free ones: how many are left
+   *  (counting this one), said in a few words - "1 free story left this
+   *  week". Null when it isn't free, or the plan has no count of them. */
+  free: string | null;
+  /** Ask again (after making one: the free one may just have been used). */
+  again: () => void;
+}
+
+const freeLine = (left: number, one: string, many: string, per: string | null) => `${left.toLocaleString("en-GB")} free ${left === 1 ? one : many} left${per ? ` this ${per}` : ""}`;
+
 /**
- * What the next character will cost this account in credits - or null
- * when it won't cost any: the plan's free one is still there, or this
- * plan never pays with credits without being asked. Asked afresh when the
- * button appears, and again (`again`) after each painting, since the free
- * one may just have been used.
+ * What the next character, or the next story, will take: one of the
+ * plan's free ones (and how many are left), or credits (and how many).
+ * Asked afresh when the button appears, and again (`again`) after each.
  */
-export function useCharacterCredits(): { credits: number | null; again: () => void } {
-  const [credits, setCredits] = useState<number | null>(null);
-  const again = useCallback(() => {
-    void read().then((r) => setCredits(r && r.creditsMode !== "beyond" && r.credits !== null && r.credits >= r.prices.character && r.characters.designsLeft === 0 ? r.prices.character : null));
-  }, []);
+export function useMakingCost(what: "character" | "story"): MakingCost {
+  const [rights, setRights] = useState<Rights | null>(null);
+  const again = useCallback(() => void read().then((r) => r && setRights(r)), []);
   useEffect(() => again(), [again]);
-  return { credits, again };
+  const none = { credits: null, perMinute: null, free: null, again };
+  if (!rights) return none;
+  const pays = rights.creditsMode !== "beyond" && rights.credits !== null;
+  if (what === "character") {
+    const left = rights.characters.designsLeft;
+    if (left === null) return none; // (no count: nothing to say)
+    if (left > 0) return { ...none, free: freeLine(left, "character", "characters", rights.characters.designsPer) };
+    return { ...none, credits: pays && rights.credits! >= rights.prices.character ? rights.prices.character : null };
+  }
+  const left = rights.stories.left;
+  if (left === null) return none;
+  if (left > 0) return { ...none, free: freeLine(left, "story", "stories", rights.stories.weekly ? "week" : rights.stories.windowHours === 24 ? "day" : null).replace("this day", "today") };
+  return { ...none, perMinute: pays ? 1 : null };
 }
 
 /** On a button that starts something paid for with credits, after its
@@ -39,6 +64,25 @@ export function CreditCost({ credits }: { credits: number | null | undefined }) 
         {credits.toLocaleString("en-GB")}
         <span className="sr-only"> {credits === 1 ? "credit" : "credits"}</span>
       </span>
+    </span>
+  );
+}
+
+/**
+ * The words on a button that makes something: its mark and words on one
+ * line - with what it costs in credits after them, if it costs any - and,
+ * when it will be one of the plan's free ones, a small line beneath saying
+ * how many are left.
+ */
+export function MakeLabel({ icon, children, credits, free }: { icon?: React.ReactNode; children: React.ReactNode; credits?: number | null; free?: string | null }) {
+  return (
+    <span className={`make-label${free ? " has-sub" : ""}`}>
+      <span className="make-label-main">
+        {icon}
+        {children}
+        <CreditCost credits={credits} />
+      </span>
+      {free && <span className="make-label-sub">{free}</span>}
     </span>
   );
 }

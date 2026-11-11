@@ -9,7 +9,7 @@ import { GrowingInput } from "@/components/GrowingInput";
 import { LeafLoader, MapleMark } from "@/components/Icons";
 import { NOTES_MAX } from "@/lib/characters";
 import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
-import { CreditCost, useCharacterCredits } from "@/components/CreditCost";
+import { CreditCost, MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 import { PhotoProblem, preparePhoto, type CharacterPhoto } from "@/lib/character-photo";
@@ -80,7 +80,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   }, []);
 
   // (what the next painting costs in credits, if anything)
-  const cost = useCharacterCredits();
+  const cost = useMakingCost("character");
   const draw = async (opts: { withoutPhoto?: boolean } = {}) => {
     if (!description.trim() || drawing) return;
     const sending = opts.withoutPhoto ? null : photo;
@@ -196,11 +196,9 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
                     <LeafLoader size={18} /> Painting…
                   </>
                 ) : (
-                  <>
-                    <MapleMark />
+                  <MakeLabel icon={<MapleMark />} credits={cost.credits} free={cost.free}>
                     Paint them
-                    <CreditCost credits={cost.credits} />
-                  </>
+                  </MakeLabel>
                 )}
               </button>
             </div>

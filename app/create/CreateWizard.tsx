@@ -1,5 +1,5 @@
 "use client";
-import { CreditCost } from "@/components/CreditCost";
+import { MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { useEscape } from "@/lib/useEscape";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -131,6 +131,9 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   const [daily, setDaily] = useState("for now");
   // Credits a minute this story will cost (null: it's on the plan, free).
   const [perMinute, setPerMinute] = useState<number | null>(null);
+  const storyCost = useMakingCost("story");
+  // (from the check made as the wizard opens, or - until that answers - from the account's own figures)
+  const creditsPerMinute = perMinute ?? storyCost.perMinute;
   const [replacing, setReplacing] = useState<"ask" | "busy" | "done">("ask");
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
     try {
@@ -546,11 +549,17 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               <LeafLoader size={18} /> Getting ready…
             </>
           ) : (
-            <>
-              <MapleMark />
-              {step === 2 ? "Begin the story" : "Next ›"}
-              {step === 2 && <CreditCost credits={perMinute && minutes ? minutes * perMinute : null} />}
-            </>
+            step === 2 ? (
+              // (what it takes: credits for its minutes, or one of the plan's free stories)
+              <MakeLabel icon={<MapleMark />} credits={creditsPerMinute ? effectiveMinutes * creditsPerMinute : null} free={creditsPerMinute ? null : storyCost.free}>
+                Create story
+              </MakeLabel>
+            ) : (
+              <>
+                <MapleMark />
+                Next ›
+              </>
+            )
           )}
         </button>
       </nav>

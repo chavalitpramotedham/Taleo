@@ -1,5 +1,5 @@
 "use client";
-import { CreditCost, useCharacterCredits } from "@/components/CreditCost";
+import { MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/lib/character-client";
 import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
@@ -409,7 +409,7 @@ function CharacterEditModal({
     }
   };
   // (what a redraw costs in credits, if anything)
-  const cost = useCharacterCredits();
+  const cost = useMakingCost("character");
   const redraw = async () => {
     if (!change.trim() || stage === "drawing") return;
     setStage("drawing");
@@ -683,11 +683,9 @@ function CharacterEditModal({
                       <LeafLoader size={18} /> Painting…
                     </>
                   ) : (
-                    <>
-                      <MapleMark />
+                    <MakeLabel icon={<MapleMark />} credits={cost.credits} free={cost.free}>
                       Redraw
-                      <CreditCost credits={cost.credits} />
-                    </>
+                    </MakeLabel>
                   )}
                 </button>
                 {stage === "drawing" && <CharacterProgressBar progress={progress} name={character.name} />}
