@@ -6,3 +6,6 @@ next-env.d.ts
 *.tsbuildinfo
 .env*.local
 .env
+
+# working copies made by helpers alongside the main one
+.claude/worktrees/
