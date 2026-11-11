@@ -12808,7 +12808,6 @@ html[data-night] .allowance-summary::after {
   flex: none;
   color: var(--ink-soft);
 }
-.allowance-wait,
 .allowance-none {
   font-style: italic;
   color: var(--ink-faint);
@@ -13196,4 +13195,32 @@ html {
    and bottom) instead of the list scrolling. Rows keep their own height. */
 .music-dropdown > * {
   flex-shrink: 0;
+}
+
+/* ---------- The account menu's figures, while they're fetched ---------- */
+/* The two lines as they will be - the book, the coin - with a soft bar in
+   place of each figure, the height of a line of text. */
+.allowance-bar {
+  display: inline-block;
+  height: 0.62em;
+  margin: 0.34em 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink-soft) 26%, transparent);
+  animation: allowancePending 1.3s ease-in-out infinite alternate;
+}
+.allowance-pending svg {
+  opacity: 0.55;
+}
+@keyframes allowancePending {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .allowance-bar {
+    animation: none;
+  }
 }

@@ -8,7 +8,7 @@ import { AccountIcon, AddTileIcon, CharacterIcon, ChartIcon, CogIcon, ShelfIcon,
 import { Avatar } from "./Avatar";
 import { AddShortcutDialog, canAddShortcut } from "./AddShortcut";
 import { DeploymentDialog, DeploymentMarker } from "./DeploymentMarker";
-import { AllowanceSummary } from "./AllowanceSummary";
+import { AllowanceSummary, preloadAllowance } from "./AllowanceSummary";
 import type { Deployment } from "@/lib/deployment";
 
 export function AccountNav() {
@@ -28,6 +28,15 @@ export function AccountNav() {
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
+
+  // The menu's figures (free stories, credits), asked for once the page
+  // has settled - not when the menu opens - so they're there when it does.
+  const signedIn = Boolean(session?.user);
+  useEffect(() => {
+    if (!signedIn) return;
+    const t = window.setTimeout(() => void preloadAllowance(), 1500);
+    return () => window.clearTimeout(t);
+  }, [signedIn]);
 
   // While sign-in status is still being checked, hold the button's exact
   // place (same size and shape) so the menu never shifts when it resolves.
@@ -49,7 +58,7 @@ export function AccountNav() {
 
   return (
     <div className="account-menu" ref={ref}>
-      <button type="button" className={`icon-btn account-trigger ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
+      <button type="button" className={`icon-btn account-trigger ${open ? "on" : ""}`} onClick={() => setOpen((o) => !o)} onPointerEnter={() => void preloadAllowance()} onPointerDown={() => void preloadAllowance()} aria-haspopup="menu" aria-expanded={open} aria-label="My account">
         {session.user.avatarKey ? <Avatar avatarKey={session.user.avatarKey} /> : <AccountIcon />}
       </button>
       {open && (

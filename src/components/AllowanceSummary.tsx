@@ -28,12 +28,23 @@ export function storiesLeftText(r: Rights): string | null {
  * twice.
  */
 let last: Rights | null = null;
+/** Asks ahead of time (once the account is known, and as a finger or
+ *  pointer nears the menu button), so the menu nearly always opens with
+ *  the figures already there. */
+let asking: Promise<Rights | null> | null = null;
+export function preloadAllowance() {
+  asking ??= read().then((r) => {
+    if (r) last = r;
+    asking = null;
+    return r;
+  });
+  return asking;
+}
 export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
   const [rights, setRights] = useState<Rights | null>(last);
   useEffect(() => {
     let here = true;
-    read().then((r) => {
-      if (r) last = r;
+    preloadAllowance().then((r) => {
       if (here && r) setRights(r);
     });
     return () => {
@@ -66,7 +77,20 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
           )}
         </>
       ) : (
-        <span className="allowance-item allowance-wait">Reading what&apos;s left…</span>
+        // Not known yet: the same two lines, each with its picture and a
+        // soft bar where the figure will be - what's coming is plain to
+        // see, and nothing moves when it arrives.
+        <>
+          <span className="allowance-item allowance-pending" aria-hidden>
+            <OpenBookIcon />
+            <span className="allowance-bar" style={{ width: "7.2em" }} />
+          </span>
+          <span className="allowance-item allowance-pending" aria-hidden>
+            <CreditIcon />
+            <span className="allowance-bar" style={{ width: "5.2em" }} />
+          </span>
+          <span className="sr-only">Loading your free stories and credits</span>
+        </>
       )}
     </Link>
   );
