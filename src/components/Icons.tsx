@@ -318,17 +318,17 @@ export const ShelfIcon = () => (
   </svg>
 );
 
-/** My characters: a little bear's face - round ears, two bright eyes, and
- *  a muzzle with its nose. */
+/** My characters: a little rabbit's face - one ear up, the other flopped
+ *  over - with two bright eyes, a nose and a smile. */
 export const CharacterIcon = () => (
   <svg {...menu}>
-    <circle cx="6.3" cy="6.7" r="2.7" />
-    <circle cx="17.7" cy="6.7" r="2.7" />
-    <circle cx="12" cy="13.2" r="7.6" fill="var(--page)" />
-    <circle cx="9.2" cy="11.9" r="1" fill="currentColor" stroke="none" />
-    <circle cx="14.8" cy="11.9" r="1" fill="currentColor" stroke="none" />
-    <ellipse cx="12" cy="15.7" rx="2.9" ry="2.2" strokeWidth="1.3" />
-    <path d="M11 14.7h2l-1 1.1z" fill="currentColor" strokeWidth="1" />
+    <path d="M9.6 10.2C8.2 7.6 7.9 4.6 9 3.2c1.3-1.4 3 .6 3.4 3.4.2 1.3.1 2.5-.1 3.4" />
+    <path d="M13.6 9.9c.2-2.3 1.2-4.3 2.7-4.9 1.3-.5 2.7.2 3.6 1.5 1 1.4 1.3 3.1.9 4.3-1.8-.2-3.3-1.1-4.2-2.6" />
+    <circle cx="12" cy="15.3" r="6.2" fill="var(--page)" />
+    <circle cx="9.7" cy="14.4" r="0.95" fill="currentColor" stroke="none" />
+    <circle cx="14.3" cy="14.4" r="0.95" fill="currentColor" stroke="none" />
+    <path d="M11.3 16.7h1.4l-.7.8z" fill="currentColor" strokeWidth="1" />
+    <path d="M12 17.5c-.5.9-1.5 1-2.1.4M12 17.5c.5.9 1.5 1 2.1.4" strokeWidth="1.3" />
   </svg>
 );
 

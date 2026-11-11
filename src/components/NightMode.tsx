@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { LanternArt, MoonIcon } from "./NightLamp";
 import { NIGHT_AT_KEY, NIGHT_KEY } from "@/lib/night-clock";
 
@@ -200,6 +201,18 @@ const FIREFLIES = 16;
  *  beside the switch, its warm light, a soft dimming toward the edges, and
  *  fireflies drifting across the screen. Decorative only - never catches a
  *  tap. */
+/** The stars: where each is on the screen (percent across, percent down),
+ *  how big (px, tip to tip), and how its glimmer is timed (seconds:
+ *  delay, length - each different, so no two keep time).
+ *  A dozen or so, mostly at the sides and the top, where the page's own
+ *  column leaves the sky open. */
+const STARS: [number, number, number, number, number][] = [
+  [4, 16, 9, 0, 5.5], [9, 42, 7, 1.8, 7], [6, 71, 9, 3.1, 6.2], [13, 88, 7, 0.6, 8.3],
+  [17, 27, 7, 2.4, 6.6], [23, 9, 10, 4, 7.4], [38, 5, 7, 1.2, 9.1], [58, 7, 7, 3.5, 6],
+  [72, 12, 9, 0.9, 8], [83, 55, 7, 2.9, 7.2], [88, 78, 9, 1.5, 6.4], [93, 33, 10, 4.4, 5.7],
+  [96, 64, 7, 0.3, 9.3], [79, 90, 7, 3.8, 7.7],
+];
+
 function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolean }) {
   const root = useRef<HTMLDivElement>(null);
 
@@ -316,11 +329,13 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       if (!held) {
         held = true;
         root.current?.classList.add("scrolling");
+        document.querySelector(".night-stars")?.classList.add("scrolling");
       }
       window.clearTimeout(rest);
       rest = window.setTimeout(() => {
         held = false;
         root.current?.classList.remove("scrolling");
+        document.querySelector(".night-stars")?.classList.remove("scrolling");
       }, 220);
     };
     // (the page itself, and anything inside it that scrolls)
@@ -332,6 +347,18 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   }, []);
 
   return (
+    <>
+    {/* a few stars in the night sky behind the page (wide screens only:
+        see the styles) - put on the page itself, behind everything. They
+        come out with the fireflies, once the lights are down. */}
+    {lit && createPortal(
+      <div className={`night-stars ${leaving ? "leaving" : ""}`} aria-hidden>
+        {STARS.map(([x, y, size, delay, dur], i) => (
+          <i key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />
+        ))}
+      </div>,
+      document.body,
+    )}
     <div className={`night-ambience ${leaving ? "leaving" : ""}`} ref={root} aria-hidden>
       <div className="night-room" />
       {lit && (
@@ -368,6 +395,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
         </div>
       )}
     </div>
+    </>
   );
 }
 

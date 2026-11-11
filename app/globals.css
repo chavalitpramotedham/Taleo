@@ -14209,3 +14209,88 @@ html[data-night] .txn-amount.in {
   opacity: 1;
   box-shadow: 0 0 0 2px var(--russet);
 }
+
+/* ---------- Night on a wide screen: a night sky, not pitch black ---------- */
+/* On a phone the lantern's glow fills much of the screen. On a desktop it
+   is one small pool of light in a very large dark, which read as black.
+   From laptop width up the dark is lifted a little and tinted indigo - the
+   deep blue of a clear night, lighter towards the top - while staying well
+   below the page's own cards and the lantern's light. (Same two-layer
+   build as before, so it scrolls as cheaply.) */
+@media (min-width: 900px) {
+  html[data-night] {
+    background-color: #12111b;
+  }
+  html[data-night] body {
+    background-color: #12111b;
+    background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(27, 28, 50, 0.6), transparent 72%),
+      radial-gradient(ellipse 80% 60% at 10% 115%, rgba(84, 70, 132, 0.3), transparent 70%);
+  }
+  /* (the menu bar over it, a shade lighter than the sky, not darker) */
+  html[data-night] .topbar {
+    background: linear-gradient(to bottom, #1a1925, #161520);
+    background-color: #181722;
+    border-bottom-color: #2f2d3f;
+  }
+  .theme-fade.from-night {
+    background-color: #12111b;
+    background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(27, 28, 50, 0.6), transparent 72%),
+      radial-gradient(ellipse 80% 60% at 10% 115%, rgba(84, 70, 132, 0.3), transparent 70%);
+  }
+}
+
+/* ---------- A few stars in the night sky ---------- */
+/* Wide screens only, where there is open sky at the sides of the page.
+   Fourteen small four-pointed stars pinned to the screen behind
+   everything - the page's cards and words cover them, unlike the
+   fireflies, which drift in front. They come out with the fireflies once
+   the lights are down, and each glimmers a little in its own time. Each
+   is its own small layer and only its opacity and size change, so they
+   cost nothing to keep glimmering. */
+.night-stars {
+  display: none;
+}
+@media (min-width: 900px) {
+  .night-stars {
+    display: block;
+    position: fixed;
+    inset: var(--topbar-h, 64px) 0 0 0;
+    z-index: -1;
+    pointer-events: none;
+    /* (the fireflies' own entrance) */
+    animation: lightOn 2.4s ease 0.8s both;
+  }
+  .night-stars.leaving {
+    animation: lightOff 0.4s ease both;
+  }
+  .night-stars i {
+    position: absolute;
+    background: #f4ecd6;
+    /* four points: up, right, down, left, drawn in to a narrow waist */
+    clip-path: polygon(50% 0, 59% 41%, 100% 50%, 59% 59%, 50% 100%, 41% 59%, 0 50%, 41% 41%);
+    opacity: 0.3;
+    will-change: opacity, transform;
+    animation: starGlimmer 7s ease-in-out infinite;
+  }
+}
+@keyframes starGlimmer {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 0.62;
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .night-stars i {
+    animation: none;
+  }
+}
+/* (like the lantern's light and the fireflies, the stars hold still while
+   the page is being scrolled: nothing animates during a scroll) */
+.night-stars.scrolling i {
+  animation-play-state: paused;
+}
