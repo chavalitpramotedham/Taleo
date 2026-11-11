@@ -21,6 +21,15 @@ import { LanternArt, MoonIcon } from "./NightLamp";
 
 const KEY = "taleo.night";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** The next painted frame (or shortly after, in a tab that isn't painting). */
+const nextFrame = () =>
+  new Promise<void>((r) => {
+    const t = window.setTimeout(r, 60);
+    requestAnimationFrame(() => {
+      window.clearTimeout(t);
+      r();
+    });
+  });
 
 interface NightState {
   night: boolean;
@@ -113,6 +122,11 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     apply(next);
     root.classList.add("theme-melting");
     if (next) {
+      // Restyling the whole page for the new theme is the one heavy step
+      // of the switch. It gets a frame to itself: the night's own pieces
+      // (the room, and measuring where the lantern hangs) are set up in
+      // the next one, so no single frame carries both.
+      await nextFrame();
       setSettled(false);
       setNight(true);
     }
@@ -172,8 +186,8 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   const root = useRef<HTMLDivElement>(null);
 
   // Arrive in stages so the switch itself stays smooth: first only the
-  // theme's colours (behind the veil); once the veil has gone, the lantern
-  // drops in with its light; a little later the fireflies come out. On a
+  // theme's colours (behind the veil); as the page's contents return, the
+  // lantern drops in with its light; a little later the fireflies come out. On a
   // page that opens at night, wait for the page to settle first.
   const [lit, setLit] = useState(false);
   const [alive, setAlive] = useState(false);
@@ -189,7 +203,10 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
       const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 200));
       idle = ric(() => later(begin, 150), { timeout: 900 }) as number;
     } else {
-      later(begin, 700); // just after the veil has faded away
+      // as the page's contents come back (the backgrounds have melted by
+      // then): the lantern slides out from under the bar while they
+      // settle, rather than after a pause
+      later(begin, 520);
     }
     return () => {
       timers.forEach(clearTimeout);

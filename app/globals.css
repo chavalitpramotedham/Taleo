@@ -5004,6 +5004,16 @@ html.theme-switching .topbar {
   background-color: #0f0c12;
   background-image: radial-gradient(ellipse 80% 60% at 10% 115%, rgba(70, 58, 110, 0.22), transparent 70%);
 }
+/* The page's old background has to show *over* the body's new one. The
+   body paints its own background (the root has a colour of its own, for
+   Safari's bars), and a layer behind everything would sit behind that
+   too - the page then snapped from one theme to the other in a single
+   frame while the menu bar blended. With the body as its own stacking
+   group, "behind everything" is behind its contents but over its
+   background. */
+body {
+  isolation: isolate;
+}
 html.theme-switching .topbar::before {
   content: "";
   position: absolute;
