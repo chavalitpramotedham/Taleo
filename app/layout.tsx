@@ -114,6 +114,11 @@ const fellSC = IM_Fell_English_SC({
   variable: "--font-fell-sc",
 });
 
+/** After a pull-to-refresh, whose loader borrowed the title's leaves: the
+ *  new page opens with the title alone, and once it has loaded the leaves
+ *  come back to it (see PullToRefresh, and .leaves-taken in the styles). */
+const LEAVES_BACK = `try{if(sessionStorage.getItem("taleo.pulled")){sessionStorage.removeItem("taleo.pulled");var d=document.documentElement;d.classList.add("leaves-taken");var b=function(){setTimeout(function(){d.classList.remove("leaves-taken")},450)};if(document.readyState==="complete")b();else addEventListener("load",b)}}catch(e){}`;
+
 /** Runs right after the menu bar's markup: notes its height as --topbar-h. */
 const TOPBAR_HEIGHT = `try{(function(){var b=document.querySelector(".topbar");if(b)document.documentElement.style.setProperty("--topbar-h",Math.round(b.getBoundingClientRect().height)+"px")})()}catch(e){}`;
 
@@ -131,7 +136,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             before the first paint: no flash of the other theme. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `${NIGHT_INIT}${INSTALL_CATCH}${EARLY_FETCH}`,
+            __html: `${NIGHT_INIT}${INSTALL_CATCH}${EARLY_FETCH}${LEAVES_BACK}`,
           }}
         />
       </head>

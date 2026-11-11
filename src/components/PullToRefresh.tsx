@@ -74,6 +74,12 @@ export function PullToRefresh() {
         spin.style.transform = `translate3d(-50%, ${p / 2 - 24}px, 0) scale(${p >= THRESHOLD ? 1.15 : 0.7 + (0.3 * p) / THRESHOLD})`;
         const ready = p >= THRESHOLD;
         if (spin.classList.contains("ready") !== ready) spin.classList.toggle("ready", ready);
+        // The loader's leaves are the title's own: as the pull begins they
+        // leave the title (which closes up, alone), and they go back to it
+        // if the pull is let go.
+        const taken = p > 10;
+        const root = document.documentElement;
+        if (root.classList.contains("leaves-taken") !== taken) root.classList.toggle("leaves-taken", taken);
       }
     };
     const schedule = () => {
@@ -150,6 +156,11 @@ export function PullToRefresh() {
         spin.classList.add("spinning");
         window.setTimeout(() => {
           document.documentElement.classList.add("pull-reloading");
+          // (the page that arrives opens without them too, and puts them
+          // back in the title once it has loaded: see LEAVES_BACK)
+          try {
+            sessionStorage.setItem("taleo.pulled", "1");
+          } catch {}
           window.setTimeout(() => window.location.reload(), FADE_MS);
         }, HOLD_MS);
       } else {

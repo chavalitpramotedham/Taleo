@@ -13942,3 +13942,39 @@ html[data-night] .flip-leaf .story-text .reading {
     display: none;
   }
 }
+
+/* ---------- Pull to refresh borrows the title's leaves ---------- */
+/* While the page is pulled down to reload, the leaves beside "Taleo" are
+   away - they are the loader's leaves - and the title closes up and sits
+   alone in the middle. They come back, and the title makes room again, when
+   the pull is let go, or once the reloaded page has arrived. */
+.brand-mark {
+  transition:
+    width 0.38s cubic-bezier(0.3, 0.1, 0.3, 1),
+    margin 0.38s cubic-bezier(0.3, 0.1, 0.3, 1),
+    opacity 0.28s ease;
+}
+html.leaves-taken .brand-mark {
+  width: 0;
+  /* (takes back the gap between the leaves and the word) */
+  margin-right: -8px;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark {
+    transition: none;
+  }
+}
+/* (the words and the small line beneath sit closer together) */
+.make-label.has-sub .make-label-main {
+  line-height: 1.05;
+}
+.make-label.has-sub .make-label-stack {
+  gap: 0;
+}
+.make-label.has-sub .make-label-sub {
+  margin-top: -3px;
+}
+.btn:has(.make-label.has-sub) {
+  min-height: 56px;
+}
