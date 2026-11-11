@@ -100,7 +100,9 @@ const RECORD_TTL = 30 * 86_400;
 const RESULT_TTL = 14 * 86_400;
 const KEEP_ALL = 3000;
 const KEEP_USER = 1000;
-const MAX_RESULT = 120_000;
+// (room for a character with its picture inside it, whole: cut short, the
+// picture couldn't be shown on the activity page)
+const MAX_RESULT = 400_000;
 /** A record still "running" after this long was cut off: no request may
  *  run longer than five minutes. */
 export const NEVER_FINISHED_MS = 6 * 60_000;
@@ -322,4 +324,68 @@ export async function logDenied(
   } catch {}
   const gen = beginGen(init);
   await gen.end("denied", { error: message || `HTTP ${response.status}`, http: response.status });
+}
+
+/** Does this kind of request make a picture? (A page's painting; a
+ *  character, new or painted again.) */
+export const makesPicture = (kind: GenKind) => kind === "painting" || kind === "character";
+
+/**
+ * The picture a record made, as one whole drawing that can be shown on its
+ * own - or null where it made none, or what was kept isn't one.
+ *  - a page's painting is kept as it was sent: the shapes alone, on the
+ *    book's 400 by 300 sheet (one cut short at the log's limit loses its
+ *    tail note, so what was painted still draws);
+ *  - a character is kept as it was sent too: its name, its model sheet and
+ *    its picture (its shapes, on the portraits' 200 by 200 sheet)
+ *    together; the picture is taken out of that (and from one cut short
+ *    at the limit, as much of it as was kept).
+ */
+export function pictureOf(record: Pick<GenRecord, "kind">, result: string | null | undefined): string | null {
+  if (!result) return null;
+  let svg: string | null = null;
+  if (record.kind === "character") {
+    try {
+      const made = JSON.parse(result) as { character?: { svg?: unknown } };
+      if (typeof made.character?.svg === "string") svg = made.character.svg;
+    } catch {
+      // (cut short: the picture is the text after "svg": up to the cut)
+      const from = result.search(/"svg":\s*"/);
+      if (from >= 0) {
+        const text = result.slice(result.indexOf('"', from + 5) + 1).replace(/\n… \(cut: \d+ characters in all\)$/, "");
+        const end = text.search(/(?<!\\)"/);
+        const kept = (end >= 0 ? text.slice(0, end) : text).replace(/\\[^"\\/bfnrtu]?$/, "");
+        try {
+          const whole = JSON.parse(`"${kept}"`) as string;
+          svg = whole;
+        } catch {}
+      }
+    }
+  } else if (record.kind === "painting") {
+    const shapes = result.replace(/\n… \(cut: \d+ characters in all\)$/, "");
+    if (/^\s*<svg[\s>]/.test(shapes)) svg = shapes;
+    else if (/^\s*</.test(shapes)) svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">${shapes.slice(0, shapes.lastIndexOf(">") + 1)}`;
+  }
+  // (a character's picture is its shapes alone too, on the 200 by 200
+  // sheet every portrait is drawn on)
+  if (svg && record.kind === "character" && !/^\s*<svg[\s>]/.test(svg) && /^\s*</.test(svg)) {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">${svg.slice(0, svg.lastIndexOf(">") + 1)}`;
+  }
+  if (!svg || !/^\s*<svg[\s>]/.test(svg)) return null;
+  // (shown as an image of its own, a drawing must say what it is, and
+  // every group it opens must be closed)
+  return closed(/^\s*<svg[^>]*\sxmlns=/.test(svg) ? svg : svg.replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"'));
+}
+
+/** A drawing cut short may end inside a group: back to the last whole
+ *  tag, with whatever is still open closed, so it draws as far as it got. */
+function closed(svg: string): string {
+  const open: string[] = [];
+  const whole = svg.slice(0, svg.lastIndexOf(">") + 1);
+  for (const [, end, tag, self] of whole.matchAll(/<(\/)?([A-Za-z][\w:.-]*)(?:"[^"]*"|'[^']*'|[^>"'])*?(\/)?>/g)) {
+    if (end) {
+      if (open.lastIndexOf(tag) >= 0) open.length = open.lastIndexOf(tag);
+    } else if (!self) open.push(tag);
+  }
+  return open.length ? whole + open.reverse().map((t) => `</${t}>`).join("") : svg;
 }

@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
-import { GEN_KINDS, NEVER_FINISHED_MS, getGen, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
+import { GEN_KINDS, NEVER_FINISHED_MS, getGen, makesPicture, pictureOf, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, FilteredList, ToggleChip, When } from "./Live";
 import { Segmented } from "@/components/Segmented";
@@ -304,11 +304,12 @@ function Status({ record, now }: { record: GenRecord; now: number }) {
 function Records({ records, now, users, kinds = false }: { records: GenRecord[]; now: number; users: Map<string, UserProfile> | null; kinds?: boolean }) {
   if (!records.length) return <p className="meta">Nothing yet.</p>;
   const twice = paintedTwice(records);
-  // (paintings are shown as themselves, small, at the front of their row)
-  const pictures = records.some((r) => r.kind === "painting");
-  // (the list's paintings in order, for stepping through them full size)
-  const shownPictures = records.filter((r) => r.kind === "painting" && r.hasResult);
-  const gallery: ZoomItem[] = shownPictures.map((r) => ({ src: `${HERE}/picture/${r.id}`, label: paintingLabel(r), record: href({ id: r.id }) }));
+  // (what was painted - a page's painting, a character - is shown as
+  // itself, small, at the front of its row)
+  const pictures = records.some((r) => makesPicture(r.kind));
+  // (the list's pictures in order, for stepping through them full size)
+  const shownPictures = records.filter((r) => makesPicture(r.kind) && r.hasResult);
+  const gallery: ZoomItem[] = shownPictures.map((r) => ({ src: `${HERE}/picture/${r.id}`, label: pictureLabel(r), record: href({ id: r.id }) }));
   const place = new Map(shownPictures.map((r, i) => [r.id, i]));
   return (
     <ZoomList items={gallery}>
@@ -338,7 +339,7 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
               </th>
               {pictures && (
                 <td className="admin-left admin-thumb-cell">
-                  {r.kind === "painting" && r.hasResult && (
+                  {makesPicture(r.kind) && r.hasResult && (
                     <ZoomPicture
                       src={`${HERE}/picture/${r.id}`}
                       className="admin-thumb"
@@ -346,7 +347,7 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
                       height={90}
                       lazy
                       record={href({ id: r.id })}
-                      label={paintingLabel(r)}
+                      label={pictureLabel(r)}
                       index={place.get(r.id)}
                     />
                   )}
@@ -386,7 +387,10 @@ function Records({ records, now, users, kinds = false }: { records: GenRecord[];
   );
 }
 
-const paintingLabel = (r: GenRecord) => (r.what ? `Painting: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : "Painting");
+const pictureLabel = (r: GenRecord) => {
+  const kind = r.kind === "character" ? "Character" : "Painting";
+  return r.what ? `${kind}: ${r.what.length > 80 ? `${r.what.slice(0, 80)}…` : r.what}` : kind;
+};
 
 /** One request, in full. */
 async function Detail({ id, now }: { id: string; now: number }) {
@@ -394,15 +398,7 @@ async function Detail({ id, now }: { id: string; now: number }) {
   if (!found) notFound();
   const { record: r, result } = found;
   const user = r.userId ? await getUser(r.userId).catch(() => null) : null;
-  // (a page's painting is kept as it was sent: the shapes alone, drawn on
-  // the book's 400 by 300 sheet)
-  const picture = !result
-    ? null
-    : /^\s*<svg[\s>]/.test(result)
-      ? result
-      : r.kind === "painting" && /^\s*</.test(result)
-        ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">${result}</svg>`
-        : null;
+  const picture = pictureOf(r, result);
   const rows: [string, ReactNode][] = [
     ["When", <When key="w" at={r.at} full />],
     [
@@ -532,7 +528,7 @@ async function Detail({ id, now }: { id: string; now: number }) {
         {result ? (
           <>
             {picture && (
-              <ZoomPicture className="admin-picture" label="The painting as it was sent" src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(picture)}`} />
+              <ZoomPicture className="admin-picture" label={r.kind === "character" ? "The character as it was sent" : "The painting as it was sent"} src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(picture)}`} />
             )}
             <pre className="admin-pre">{pretty(result)}</pre>
           </>
