@@ -1,5 +1,5 @@
+import { currentAdmin } from "@/server/entitlements";
 import { redirect } from "next/navigation";
-import { auth } from "@/server/auth";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
@@ -17,8 +17,7 @@ const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? 
  *  and how the library is doing. Only the admin account can open it;
  *  everyone else is sent to the front page. Always computed fresh. */
 export default async function AdminPage() {
-  const session = await auth();
-  if (!session?.user?.isAdmin) redirect("/");
+  if (!(await currentAdmin())) redirect("/");
 
   const [users, gallery, metrics, active7, active30, costs] = await Promise.all([
     listUsers().catch(() => []),

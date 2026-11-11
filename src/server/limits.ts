@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { auth } from "./auth";
 import { readJson, writeJson } from "./store";
-import { allowancePhrase, tierFor, type TierInfo } from "@/lib/tiers";
+import { allowancePhrase, tierFor, CREDIT_PRICES, type CreditItem, type TierInfo } from "@/lib/tiers";
+import { accountOf, type Account } from "./entitlements";
+import { refundCredits, spendCredits } from "./billing";
 
 /**
  * Who may use the paid AI endpoints, and how often.
@@ -217,8 +219,35 @@ const LIMIT_MESSAGES: Record<Bucket, (wait: string, plan: TierInfo) => string> =
 export const limitMessage = (user: Who, bucket: Bucket, retryAfterSec: number) => LIMIT_MESSAGES[bucket](minutesText(retryAfterSec), tierFor(user));
 
 export type Guard =
-  | { ok: true; session: Session; release: () => Promise<void> }
+  | { ok: true; session: Session; release: () => Promise<void>; /** credits this request was paid with, if the plan's own allowance was used up */ credits?: number }
   | { ok: false; response: NextResponse };
+
+/** What on-demand credits can pay for once the plan's allowance for it is
+ *  used up. (A story isn't here yet: it is counted over two requests - its
+ *  beginning and its first choice - and the credit has to follow it across
+ *  both. Until that's wired in, a story beyond the plan's waits for the
+ *  plan, credits or no.) */
+const PAID_BY_CREDITS: Partial<Record<Bucket, CreditItem>> = { character: "character" };
+
+/**
+ * The signed-in account as the records have it now, in the shape the plan
+ * checks use: who they are from the cookie, what they may do from the
+ * server (see server/entitlements). `null`: no such account any more.
+ * If the records can't be read, `stale` is true and the cookie's own copy
+ * of the plan stands in - good enough to carry on a story being read, never
+ * to begin something the plan counts.
+ */
+export async function whoIs(session: Session): Promise<{ user: Who; account: Account | null; stale: boolean } | null> {
+  try {
+    const account = await accountOf(session.user.id);
+    if (!account) return null;
+    return { user: { ...session.user, isAdmin: account.isAdmin, tier: account.tier }, account, stale: false };
+  } catch (e) {
+    console.error("[limits] couldn't read the account", e);
+    // (never the admin on the cookie's word alone)
+    return { user: { ...session.user, isAdmin: false, tier: session.user.isAdmin ? "free" : session.user.tier }, account: null, stale: true };
+  }
+}
 
 /**
  * Requires a signed-in user and takes one from `bucket` (plans without a
@@ -227,14 +256,26 @@ export type Guard =
  * `release()` if the work then fails, to refund it.
  */
 export async function guard(bucket: Bucket | ((session: Session) => Bucket | Cost | NextResponse | Promise<Bucket | Cost | NextResponse>)): Promise<Guard> {
-  const session = await auth();
+  let session = await auth();
   if (!session?.user?.id) {
     return { ok: false, response: NextResponse.json({ error: "Please sign in to make stories." }, { status: 401 }) };
   }
+  // What they may do is read from the records, not the cookie: the plan
+  // as it is now, and whether the account still stands.
+  const me = await whoIs(session);
+  if (!me) return { ok: false, response: NextResponse.json({ error: "Please sign in to make stories." }, { status: 401 }) };
+  if (me.account?.suspended) {
+    return { ok: false, response: NextResponse.json({ error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 }) };
+  }
+  // (everything downstream sees the account as it is now)
+  session = { ...session, user: me.user };
   const chosen = typeof bucket === "function" ? await bucket(session) : bucket;
   if (chosen instanceof NextResponse) return { ok: false, response: chosen };
   const cost: Cost = typeof chosen === "string" ? { bucket: chosen } : chosen;
   const b = cost.bucket;
+  const unavailable = { ok: false as const, response: NextResponse.json({ error: "Couldn't start that just now. Please try again." }, { status: 503 }) };
+  // (the plan couldn't be read: nothing the plan counts is begun on a guess)
+  if (me.stale && (stored(b) || (cost.needs && stored(cost.needs)))) return unavailable;
   let took: Took;
   try {
     took = await take(session.user, cost);
@@ -245,12 +286,27 @@ export async function guard(bucket: Bucket | ((session: Session) => Bucket | Cos
     // product limits (the costly actions) but don't block reading in
     // progress.
     console.error("[limits] couldn't check usage", e);
-    if (stored(b)) {
-      return { ok: false, response: NextResponse.json({ error: "Couldn't start that just now. Please try again." }, { status: 503 }) };
-    }
+    if (stored(b)) return unavailable;
     return { ok: true, session, release: async () => {} };
   }
   if (!took.ok) {
+    // The plan's allowance is used up: on-demand credits pay for it, if
+    // the account has them. Taken in one step on the store (two requests
+    // can't spend the same credit), under a reference of its own, and
+    // given back if the work then fails.
+    const item = took.limited === b ? PAID_BY_CREDITS[b] : undefined;
+    if (item && me.account) {
+      const price = CREDIT_PRICES[item];
+      const have = await me.account.credits();
+      if (have !== null && have >= price) {
+        const ref = `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
+        const paid = await spendCredits(session.user.id, price, ref, `One ${item} beyond the ${me.account.plan.name} plan's allowance`);
+        if (paid.ok) {
+          const userId = session.user.id;
+          return { ok: true, session, credits: price, release: async () => void (await refundCredits(userId, price, ref, "The work failed: credits returned")) };
+        }
+      }
+    }
     return {
       ok: false,
       response: NextResponse.json(

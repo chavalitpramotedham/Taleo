@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/server/auth";
+import { currentAdmin } from "@/server/entitlements";
 import type { DeployedCommit, Deployment } from "@/lib/deployment";
 
 export const dynamic = "force-dynamic";
@@ -8,8 +8,7 @@ export const dynamic = "force-dynamic";
  *  built from, when, and the log of what changed - for the marker at the
  *  foot of the admin's account menu. Anyone else: a plain "not found". */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.isAdmin) return new NextResponse(null, { status: 404 });
+  if (!(await currentAdmin())) return new NextResponse(null, { status: 404 });
   let built: { version?: string; sha?: string; branch?: string; previousSha?: string; builtAt?: string; commits?: DeployedCommit[] } = {};
   try {
     built = JSON.parse(process.env.TALEO_BUILD_INFO || "{}");

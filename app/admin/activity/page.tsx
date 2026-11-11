@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { currentAdmin } from "@/server/entitlements";
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/server/auth";
 import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
 import { GEN_KINDS, NEVER_FINISHED_MS, getGen, makesPicture, pictureOf, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
@@ -116,8 +116,7 @@ const href = (params: Record<string, string | undefined | false>) => {
  *  what, which models answered, how long the reader waited, and how it
  *  ended. Only the admin account can open it. Always computed fresh. */
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const session = await auth();
-  if (!session?.user?.isAdmin) redirect("/");
+  if (!(await currentAdmin())) redirect("/");
   const sp = await searchParams;
   const one = (k: string) => {
     const v = sp[k];

@@ -5,7 +5,7 @@ import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
-import { guard, limitMessage, peekStart } from "@/server/limits";
+import { guard, limitMessage, peekStart, whoIs } from "@/server/limits";
 import { limitsFor, tierFor } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
@@ -21,15 +21,20 @@ export const maxDuration = 120;
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
-  const { ok, retryAfterSec, limited, left } = await peekStart(session.user);
+  // (the plan as the records have it now, not the cookie's copy)
+  const me = await whoIs(session);
+  if (!me) return NextResponse.json({ canStart: false, error: "Please sign in to make stories." }, { status: 401 });
+  if (me.account?.suspended) return NextResponse.json({ canStart: false, error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 });
+  const user = me.user;
+  const { ok, retryAfterSec, limited, left } = await peekStart(user);
   return NextResponse.json({
     canStart: ok,
     retryAfterSec,
     limited: ok ? undefined : limited,
     startsLeft: left,
-    windowHours: tierFor(session.user).limits.stories?.hours,
-    plan: tierFor(session.user).name,
-    error: ok ? undefined : limitMessage(session.user, limited, retryAfterSec),
+    windowHours: tierFor(user).limits.stories?.hours,
+    plan: tierFor(user).name,
+    error: ok ? undefined : limitMessage(user, limited, retryAfterSec),
   });
 }
 

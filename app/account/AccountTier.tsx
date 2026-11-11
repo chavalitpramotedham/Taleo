@@ -55,7 +55,7 @@ const COMING: Card = {
 
 /** Account tier on Manage account: a short summary of your plan - its
  *  icon, name and key points - and Manage, which opens the plans page. */
-export function AccountTier({ isAdmin, tier: tierId }: { isAdmin: boolean; tier?: TierId }) {
+export function AccountTier({ isAdmin, tier: tierId, credits }: { isAdmin: boolean; tier?: TierId; credits?: number | null }) {
   const tier = tierFor({ isAdmin, tier: tierId });
   return (
     <section className="panel account-tier">
@@ -77,6 +77,13 @@ export function AccountTier({ isAdmin, tier: tierId }: { isAdmin: boolean; tier?
                 {r.label}: <b>{r.value}</b>
               </li>
             ))}
+            {/* (only once an account holds some: there's nowhere to buy
+                them yet, so "0 credits" would only puzzle) */}
+            {!isAdmin && typeof credits === "number" && credits > 0 && (
+              <li>
+                On-demand credits: <b>{credits.toLocaleString("en-GB")}</b>
+              </li>
+            )}
           </ul>
         </div>
       </div>

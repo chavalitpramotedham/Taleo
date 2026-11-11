@@ -169,6 +169,21 @@ export async function setVisibility(id: string, visibility: ContentVisibility): 
   return profile;
 }
 
+/** Bars an account from making anything new, or lifts that (admin only:
+ *  see app/api/admin/credits). The admin account can't be barred. */
+export async function setSuspended(id: string, suspended: boolean): Promise<UserProfile> {
+  if (id === ADMIN_USER_ID) throw new Error("The admin account can't be suspended.");
+  const users = await currentUsers();
+  const i = users.findIndex((u) => u.id === id);
+  if (i < 0) throw new Error("No such account.");
+  if (users[i].isAdmin) throw new Error("The admin account can't be suspended.");
+  const profile: UserProfile = { ...users[i], suspended: suspended || undefined };
+  const next = [...users];
+  next[i] = profile;
+  await writeUsers(next);
+  return profile;
+}
+
 /** Ids of people whose stories are hidden from others (private profiles). */
 export async function privateUserIds(opts: { cacheSeconds?: number } = {}): Promise<Set<string>> {
   const users = await listUsers(opts);

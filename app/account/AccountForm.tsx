@@ -15,6 +15,7 @@ export function AccountForm({
   avatarKey,
   isAdmin,
   tier,
+  credits,
   visibility: initialVisibility,
   canGoPrivate,
 }: {
@@ -22,6 +23,8 @@ export function AccountForm({
   avatarKey: string;
   isAdmin: boolean;
   tier?: import("@/lib/tiers").TierId;
+  /** On-demand credits (null: not on offer here, or unreadable just now). */
+  credits?: number | null;
   visibility: ContentVisibility;
   /** Private bookshelves are built but not offered yet. */
   canGoPrivate: boolean;
@@ -231,7 +234,7 @@ export function AccountForm({
         </div>
       )}
 
-      <AccountTier isAdmin={isAdmin} tier={tier} />
+      <AccountTier isAdmin={isAdmin} tier={tier} credits={credits} />
 
       <section className="panel">
         <h3>Who can see your stories</h3>

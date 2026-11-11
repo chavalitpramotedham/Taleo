@@ -1,4 +1,4 @@
-import { auth } from "@/server/auth";
+import { currentAdmin } from "@/server/entitlements";
 import { getGen, pictureOf } from "@/server/genlog";
 
 /** A picture from the activity log - a page's painting, or a character -
@@ -6,8 +6,7 @@ import { getGen, pictureOf } from "@/server/genlog";
  *  as its row comes into view. A
  *  finished record never changes, so the browser keeps it. */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session?.user?.isAdmin) return new Response(null, { status: 404 });
+  if (!(await currentAdmin())) return new Response(null, { status: 404 });
   const { id } = await ctx.params;
   const found = await getGen(id).catch(() => null);
   const svg = found && pictureOf(found.record, found.result);

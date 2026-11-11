@@ -150,6 +150,9 @@ export interface UserProfile {
   /** The plan this account is on (see lib/tiers); missing means Free. Set
    *  only by the server - never from anything the browser sends. */
   tier?: string;
+  /** Barred from making anything new (a payment taken back, abuse). Set
+   *  only by the server. */
+  suspended?: boolean;
   createdAt: number;
   /** Who can find this person's stories in the library and on their
    *  bookshelf page. Missing means "public" (the default for everyone). */

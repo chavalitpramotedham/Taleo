@@ -76,6 +76,23 @@ export const PLANS: Record<TierId, TierInfo> = {
   },
 };
 
+/**
+ * On-demand credits: what an account can buy on top of its plan, spent only
+ * once the plan's own allowance for the thing is used up - a story or a
+ * character beyond the day's (the plan's allowance always goes first, and
+ * what it covers costs no credits).
+ *
+ * What each thing costs, in credits. (Placeholders until real costs are
+ * measured: see the admin dashboard's cost per story.)
+ */
+export const CREDIT_PRICES = {
+  /** One new story, start to finish (its paintings and voice included). */
+  story: 10,
+  /** One character designed or painted again. */
+  character: 2,
+} as const;
+export type CreditItem = keyof typeof CREDIT_PRICES;
+
 const isTier = (v: unknown): v is TierId => typeof v === "string" && Object.prototype.hasOwnProperty.call(PLANS, v);
 
 /** The plan an account is on: the one recorded on its profile, else Admin
