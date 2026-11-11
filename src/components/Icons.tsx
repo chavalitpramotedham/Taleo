@@ -318,22 +318,26 @@ export const ShelfIcon = () => (
   </svg>
 );
 
-/** My characters: a little bear's face. */
+/** My characters: a little bear's face - round ears, two bright eyes, and
+ *  a muzzle with its nose. */
 export const CharacterIcon = () => (
   <svg {...menu}>
-    <circle cx="6.6" cy="6.6" r="2.6" />
-    <circle cx="17.4" cy="6.6" r="2.6" />
-    <circle cx="12" cy="13" r="7.5" fill="var(--page)" />
-    <path d="M9.4 11.6v.4M14.6 11.6v.4" strokeWidth="2" />
-    <path d="M10.2 15.4c.9 1 2.7 1 3.6 0" />
+    <circle cx="6.3" cy="6.7" r="2.7" />
+    <circle cx="17.7" cy="6.7" r="2.7" />
+    <circle cx="12" cy="13.2" r="7.6" fill="var(--page)" />
+    <circle cx="9.2" cy="11.9" r="1" fill="currentColor" stroke="none" />
+    <circle cx="14.8" cy="11.9" r="1" fill="currentColor" stroke="none" />
+    <ellipse cx="12" cy="15.7" rx="2.9" ry="2.2" strokeWidth="1.3" />
+    <path d="M11 14.7h2l-1 1.1z" fill="currentColor" strokeWidth="1" />
   </svg>
 );
 
-/** Manage account: a cog. */
+/** Manage (an account, a story): a cog - eight even teeth, drawn by rule
+ *  rather than by hand, so it's the same all the way round. */
 export const CogIcon = () => (
   <svg {...menu}>
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 2.8l1.6 2.6 2.9-.8.7 3 3 .7-.8 2.9 2.6 1.6-2.6 1.6.8 2.9-3 .7-.7 3-2.9-.8L12 21.2l-1.6-2.6-2.9.8-.7-3-3-.7.8-2.9L2 12.8l2.6-1.6-.8-2.9 3-.7.7-3 2.9.8z" transform="translate(0 -0.8)" />
+    <circle cx="12" cy="12" r="2.9" />
+    <path d="M10.32 5.72L10.71 2.79L13.29 2.79L13.68 5.72L15.25 6.37L17.60 4.57L19.43 6.40L17.63 8.75L18.28 10.32L21.21 10.71L21.21 13.29L18.28 13.68L17.63 15.25L19.43 17.60L17.60 19.43L15.25 17.63L13.68 18.28L13.29 21.21L10.71 21.21L10.32 18.28L8.75 17.63L6.40 19.43L4.57 17.60L6.37 15.25L5.72 13.68L2.79 13.29L2.79 10.71L5.72 10.32L6.37 8.75L4.57 6.40L6.40 4.57L8.75 6.37Z" />
   </svg>
 );
 

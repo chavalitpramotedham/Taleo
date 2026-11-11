@@ -14170,3 +14170,42 @@ html[data-night] .txn-amount.in {
     transform: translateY(-1px);
   }
 }
+
+/* ---------- The story's gear: a neat highlight ---------- */
+/* The button keeps its generous area for a finger, but what lights up
+   under a pointer is a small circle drawn close around the cog - not the
+   whole area, which spilled over the name beside it. */
+.story-manage-gear {
+  position: relative;
+}
+.story-manage-gear::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--russet) 14%, transparent);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.story-manage-gear svg {
+  position: relative;
+}
+@media (hover: hover) {
+  .story-manage-gear:hover {
+    background: none;
+  }
+  .story-manage-gear:hover::before {
+    opacity: 1;
+  }
+}
+.story-manage-gear:focus-visible {
+  outline: none;
+}
+.story-manage-gear:focus-visible::before {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--russet);
+}
