@@ -348,8 +348,12 @@ export function HeroPainting() {
             <span className="hero-lesson-pill">
               {/* (the bedtime moon, not the brand's leaf) */}
               <MoonIcon on />
-              <span className="hero-lesson-label">Tonight’s lesson</span>
-              <b>{LESSON}</b>
+              {/* (the words share one baseline, whatever the browser) */}
+              <span className="hero-lesson-text">
+                <span className="hero-lesson-label">Tonight’s lesson</span>
+                <span className="hero-lesson-dash">–</span>
+                <b>{LESSON}</b>
+              </span>
             </span>
           </p>
         </div>

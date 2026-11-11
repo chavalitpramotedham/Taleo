@@ -12628,25 +12628,30 @@ p.deploy-marker {
   flex: none;
   color: var(--ochre);
 }
+/* The label, the dash and the word stand on one baseline - set by the
+   browser itself (baseline alignment), not by nudging each into place, so
+   it holds in every browser and at every size. The row as a whole sits
+   on the ribbon's centre line (measured: as much space over the capitals
+   as under the baseline). */
+.hero-lesson-text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  line-height: 1;
+}
 .hero-lesson-label {
   font-family: var(--font-caps);
   font-size: 0.84rem;
-  line-height: 1;
   letter-spacing: 0.06em;
   color: var(--ink-soft);
-  /* (this face's small capitals sit high in their line: measured, they
-     are dropped onto the pill's centre line) */
-  position: relative;
-  top: var(--lesson-label-drop, 1.5px);
+}
+.hero-lesson-dash {
+  color: var(--ink-faint);
 }
 .hero-lesson b {
   font-size: 1.04rem;
-  line-height: 1;
   font-weight: 600;
   color: var(--russet-dark);
-  /* (and this one's lower-case middle sits a touch low beside capitals) */
-  position: relative;
-  top: var(--lesson-word-drop, -0.5px);
 }
 html[data-night] .hero-lesson b {
   color: var(--russet);
@@ -12909,25 +12914,22 @@ html[data-night] .hero-lesson b {
   font-variant-numeric: lining-nums;
 }
 
-/* "Add" beside the credit amount: a small pill, the size of a filter chip -
-   it sits next to a number, it isn't the page's main action. */
+/* Adding credits, beside the amount: a small round button with a bold
+   plus - it sits next to a number, it isn't the page's main action. */
 .btn.credits-add {
   flex: none;
   min-height: 0;
-  height: 32px;
-  padding: 0 14px 0 11px;
-  gap: 5px;
-  border-radius: 999px;
-  font-size: 0.86rem;
-  line-height: 1;
-  letter-spacing: 0.05em;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 2px 0 var(--russet-dark);
 }
-.btn.credits-add > span[aria-hidden] {
-  font-family: var(--font-body);
-  font-size: 1.15rem;
-  line-height: 1;
-  margin-top: -2px;
+.btn.credits-add svg {
+  display: block;
 }
 .sr-only {
   position: absolute;
