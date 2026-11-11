@@ -14116,3 +14116,57 @@ html[data-night] .txn-amount.in {
 .menu-line.sub-point b {
   font-weight: 400;
 }
+
+/* ---------- Home: the chart's heading, and boxes of one width ---------- */
+/* The heading is two lines, always: the count, then one short line beneath
+   it (never wrapped: it is cut with an ellipsis if a screen is narrower
+   than its words). */
+.reading-chart-head {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 3px;
+}
+.reading-chart-sub {
+  max-width: 100%;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(0.78rem, 3.2vw, 0.95rem);
+}
+/* The three figures above the chart span the same width as the chart. */
+.home-stats {
+  max-width: 900px;
+}
+/* (stacked now: the line under the count takes its own height, no more) */
+.reading-chart-sub {
+  flex: none;
+}
+/* The making buttons' two lines sit close: the small line is drawn up
+   under the words (the capitals' own line leaves room below them). */
+.make-label.has-sub .make-label-main {
+  line-height: 1;
+}
+.make-label.has-sub .make-label-sub {
+  margin-top: -0.42em;
+  line-height: 1.1;
+}
+/* The card's icon is a button (it opens "add to your home screen"). */
+.policy-card-icon-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 22%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.policy-card-icon-btn:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .policy-card-icon-btn:hover {
+    transform: translateY(-1px);
+  }
+}

@@ -108,18 +108,23 @@ export function ReadingChart() {
   const primary = streak
     ? { num: streak, label: streak === 1 ? "bedtime together, and counting" : "bedtimes together in a row" }
     : { num: total, label: total === 1 ? "bedtime spent together" : "bedtimes spent together" };
-  const tonight = readToday ? "" : " · tonight's story keeps it going";
+  // (the line under the heading is kept to one short line: it must fit a
+  // phone's width without wrapping)
+  const tonight = readToday ? "" : " · keep it going tonight";
+  const together = `${total.toLocaleString()} ${total === 1 ? "bedtime" : "bedtimes"} together`;
   const secondary = !days
     ? "\u00a0"
     : fresh
-      ? "Finish a story together and today's square turns green - the first of many bedtimes they'll remember."
+      ? "Finish a story together and today turns green."
       : streak
         ? // (every bedtime so far is in the run: saying the same number twice
           // says nothing, so say what it's becoming)
           streak >= total
-          ? `A bedtime ritual they'll look forward to is taking shape${tonight}`
-          : `${daysRead} ${span}${tonight}`
-        : `${total ? `${span[0].toUpperCase()}${span.slice(1)}. ` : ""}Tonight's story starts a new run of bedtimes together.`;
+          ? `A bedtime ritual is taking shape${tonight}`
+          : readToday
+            ? `${together} ${span}`
+            : `${together}${tonight}`
+        : "Tonight's story starts a new run.";
 
   return (
     <section className="reading-chart" aria-label="Your bedtimes together">
