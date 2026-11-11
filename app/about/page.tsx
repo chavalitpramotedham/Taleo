@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
+import { FounderCard } from "@/components/FounderCard";
 import { OG_IMAGE } from "@/lib/seo";
 import { OrnamentRule } from "@/components/Icons";
 import { preload } from "react-dom";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   },
 };
 
-/** About Taleo: the founder's story, and the "Say hello" form. */
+/** About Taleo: the founder's story, the "Contact us" form, and who runs it. */
 export default function AboutPage() {
   // The picture at the top and the painted edge it shows through, asked for
   // with the page itself (neither is found until the styles have arrived).
@@ -88,6 +89,10 @@ export default function AboutPage() {
       <OrnamentRule className="about-divider" />
 
       <ContactForm />
+
+      <OrnamentRule className="about-divider" />
+
+      <FounderCard />
     </div>
   );
 }

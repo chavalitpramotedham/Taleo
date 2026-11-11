@@ -13825,3 +13825,30 @@ main:has(+ .site-footer) {
 .hero-early figcaption:not(.live) .hero-turn {
   visibility: hidden;
 }
+
+/* ---------- Credits: transaction history ---------- */
+.menu-rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 18px 0 2px;
+}
+.history-when {
+  margin-left: 8px;
+  font-size: 0.82em;
+  font-style: italic;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.history-list b {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.history-in {
+  color: #5f7a3f;
+}
+html[data-night] .history-in {
+  color: #a9c183;
+}
+.history-more {
+  display: block;
+  margin: 8px auto 0;
+}

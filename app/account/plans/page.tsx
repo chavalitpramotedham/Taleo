@@ -5,6 +5,8 @@ import { AccountPlans } from "../AccountTier";
 import { PlansView } from "../Allowance";
 import { currentAccount } from "@/server/entitlements";
 import { rightsOf } from "@/server/rights";
+import { creditLedger } from "@/server/billing";
+import { transactionsOf } from "@/lib/transactions";
 
 /** Manage account > Account tier > Manage: every plan, side by side. */
 export default async function PlansPage() {
@@ -13,6 +15,8 @@ export default async function PlansPage() {
   // (what's left, and the plan itself, as the server's records have them)
   const account = await currentAccount().catch(() => null);
   const rights = account ? await rightsOf(account).catch(() => null) : null;
+  // (what its credits were spent on, and when more arrived)
+  const history = account && rights ? transactionsOf(await creditLedger(account.id, 200).catch(() => [])) : [];
   return (
     <div className="container wizard">
       <header className="wizard-head">
@@ -22,7 +26,7 @@ export default async function PlansPage() {
         <h1>Plan and credits</h1>
       </header>
       {rights ? (
-        <PlansView rights={rights}>
+        <PlansView rights={rights} history={history}>
           <AccountPlans isAdmin={rights.isAdmin} tier={rights.tier} />
         </PlansView>
       ) : (

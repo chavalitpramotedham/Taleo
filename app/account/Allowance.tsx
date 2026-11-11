@@ -9,6 +9,11 @@ import { MAX_CREDITS_ADDED } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
+import { shortDate } from "@/lib/dates";
+import type { Transaction } from "@/lib/transactions";
+
+/** How many lines of the history show before "Show all". */
+const HISTORY_SHOWN = 10;
 
 const n = (v: number) => v.toLocaleString("en-GB");
 const wait = (sec: number) => {
@@ -39,7 +44,8 @@ function Line({ what, value }: { what: React.ReactNode; value: React.ReactNode }
  * to it (the test account only) and what things cost, set out like a
  * menu. All as the server's records have it.
  */
-export function PlansView({ rights: first, children }: { rights: Rights; children: React.ReactNode }) {
+export function PlansView({ rights: first, history = [], children }: { rights: Rights; history?: Transaction[]; children: React.ReactNode }) {
+  const [allHistory, setAllHistory] = useState(false);
   const [rights, setRights] = useState(first);
   const always = rights.creditsMode === "always";
   const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
@@ -105,6 +111,39 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
             <Line what="Reading, and the whole library" value="Free" />
           </ul>
           <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
+
+          {/* what the credits were spent on, and when more arrived */}
+          <hr className="menu-rule" />
+          <h4 className="menu-title">Transaction history</h4>
+          {history.length === 0 ? (
+            <p className="meta menu-note">Nothing yet. Credits you receive and spend will be listed here.</p>
+          ) : (
+            <>
+              <ul className="menu-list history-list">
+                {(allHistory ? history : history.slice(0, HISTORY_SHOWN)).map((t) => (
+                  <li key={t.id} className="menu-line">
+                    <span>
+                      {t.label}
+                      <small className="history-when" suppressHydrationWarning>
+                        {shortDate(t.at)}
+                        {t.pending ? " · being made" : ""}
+                      </small>
+                    </span>
+                    <span className="menu-dots" aria-hidden />
+                    <b className={t.amount > 0 ? "history-in" : undefined}>
+                      {t.amount > 0 ? "+" : "−"}
+                      {n(Math.abs(t.amount))}
+                    </b>
+                  </li>
+                ))}
+              </ul>
+              {!allHistory && history.length > HISTORY_SHOWN && (
+                <button type="button" className="link-btn history-more" onClick={() => setAllHistory(true)}>
+                  Show all {n(history.length)}
+                </button>
+              )}
+            </>
+          )}
         </section>
       ) : (
         <>

@@ -20,7 +20,7 @@ interface Picked {
   progress: number;
 }
 
-/** The "Say hello" form on the About page: a request or an issue report,
+/** The "Contact us" form on the About page: a request or an issue report,
  *  with optional photos or videos, sent to the Taleo inbox. Signed-out
  *  visitors are invited to sign in (they stay on the page). */
 export function ContactForm() {
@@ -48,7 +48,7 @@ export function ContactForm() {
 
   const heading = (
     <header className="contact-head">
-      <h2>Say hello</h2>
+      <h2>Contact us</h2>
       <p className="sub">Ideas, requests, or something that isn&apos;t working? We read every message.</p>
     </header>
   );
