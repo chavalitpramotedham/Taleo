@@ -92,7 +92,7 @@ export default function PrivacyPage() {
             <b>Anthropic</b> writes the stories and paints the pictures. It receives what you ask for: the story idea, the characters&apos; names and descriptions, and a photo if you chose one.
           </li>
           <li>
-            <b>ElevenLabs or OpenAI</b> provides the read-aloud voice. It receives the words of the page being read.
+            <b>OpenAI</b> provides the read-aloud voice. It receives the words of the page being read.
           </li>
           <li>
             <b>Google</b> handles signing in.

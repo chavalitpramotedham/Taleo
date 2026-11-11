@@ -39,7 +39,7 @@ Status: ✅ done · 🟡 partly done · ⬜ not started. Last updated 9 Nov 2026
 | 17 | **Child profiles.** | ⬜ | Several children per account, each with their age, their own bookshelf and the words they've learnt. | L |
 | 18 | **Parent view.** | ⬜ | Stories read, words learnt and reading streaks. | M |
 | 19 | **Print or download the book.** | ⬜ | A finished story as a PDF, or later as a printed hardback. | M–L |
-| 20 | **Narration in a parent's own voice.** | ⬜ | Record a voice once and have stories read in it (ElevenLabs voice cloning). | L |
+| 20 | **Narration in a parent's own voice.** | ⬜ | Record a voice once and have stories read in it (voice cloning). | L |
 | 21 | **Bilingual stories.** | ⬜ | The word to learn shown in a second language. | M |
 | 22 | **Offline reading.** | ⬜ | Saved stories readable without a connection, through the app's existing web-app setup. | M |
 | 23 | **Notifications.** | ⬜ | An email when someone rates your story, and an optional weekly round-up. | S |

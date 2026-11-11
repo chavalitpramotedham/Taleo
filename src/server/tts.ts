@@ -10,9 +10,6 @@ import { blobUrl } from "./store";
  *
  * Works with whichever provider has a key set (checked in this order):
  *
- *   ELEVENLABS_API_KEY  ElevenLabs - the most natural storytelling voices.
- *                       Default voice "Lily" (warm, velvety British).
- *                       TTS_VOICE = another voice id to change it.
  *   OPENAI_API_KEY      OpenAI gpt-4o-mini-tts - the cheapest; the tone and
  *                       British accent are set by a written instruction.
  *                       TTS_VOICE = one of OpenAI's voices (default "sage").
@@ -24,19 +21,17 @@ import { blobUrl } from "./store";
  * replay - for anyone. Without any key, the browser's own voice is used.
  */
 
-type Provider = "elevenlabs" | "openai" | "azure";
+type Provider = "openai" | "azure";
 export type TtsKind = "page" | "word";
 
-const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY;
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
 const AZURE_KEY = process.env.AZURE_SPEECH_KEY;
 const AZURE_REGION = process.env.AZURE_SPEECH_REGION || "uksouth";
 const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
-const provider: Provider | null = ELEVEN_KEY ? "elevenlabs" : OPENAI_KEY ? "openai" : AZURE_KEY ? "azure" : null;
+const provider: Provider | null = OPENAI_KEY ? "openai" : AZURE_KEY ? "azure" : null;
 
 const DEFAULT_VOICE: Record<Provider, string> = {
-  elevenlabs: "pFZP5JQG7iQjIQuC4Bku", // "Lily": warm British narration
   openai: "sage",
   azure: "en-GB-SoniaNeural",
 };
@@ -79,21 +74,6 @@ const OPENAI_TONE: Record<TtsKind, string> = {
 
 async function synthesise(text: string, kind: TtsKind, picked: string | null): Promise<Buffer> {
   if (picked) return openaiSpeech(text, kind, picked);
-  if (provider === "elevenlabs") {
-    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_96`, {
-      method: "POST",
-      headers: { "xi-api-key": ELEVEN_KEY!, "Content-Type": "application/json", Accept: "audio/mpeg" },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_multilingual_v2",
-        // Steady and soothing rather than theatrical; single words a touch slower.
-        voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0.15, use_speaker_boost: true, speed: kind === "word" ? 0.78 : 0.74 },
-      }),
-    });
-    if (!res.ok) throw new Error(`ElevenLabs ${res.status}: ${await res.text().catch(() => "")}`);
-    return Buffer.from(await res.arrayBuffer());
-  }
-
   if (provider === "openai") return openaiSpeech(text, kind, voice);
 
   // Azure
