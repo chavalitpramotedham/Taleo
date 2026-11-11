@@ -13189,3 +13189,11 @@ body {
 html {
   touch-action: manipulation;
 }
+
+/* ---------- Menus scroll, their rows never squash ---------- */
+/* A menu is a column that may not grow past the screen: with more rows
+   than fit, each row used to be pressed thinner (their letters cut off top
+   and bottom) instead of the list scrolling. Rows keep their own height. */
+.music-dropdown > * {
+  flex-shrink: 0;
+}
