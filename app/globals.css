@@ -13861,3 +13861,68 @@ html[data-night] .flip-leaf .story-text .reading {
   box-shadow: none;
   transition: none;
 }
+
+/* ---------- The bedtime note is written out, then the switch glints ---------- */
+/* The note is wiped in from left to right, as if pencilled: the words
+   first, then the arrow's loops, its head (at the far right) last. Then a
+   sheen crosses the night-mode switch it points at, and comes back now and
+   then while the note is up. */
+.bedtime-hint {
+  animation: bedtimeHintWipe 1.25s 0.35s cubic-bezier(0.45, 0.05, 0.4, 1) both;
+}
+@keyframes bedtimeHintWipe {
+  from {
+    clip-path: inset(-30% 100% -30% -10%);
+  }
+  to {
+    clip-path: inset(-30% -10% -30% -10%);
+  }
+}
+.night-toggle.hinted {
+  position: relative;
+}
+.night-toggle.hinted::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 38%, rgba(255, 236, 190, 0.95) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  /* (after the note has been written: 0.35s + 1.25s) */
+  animation: nightSwitchSheen 3.6s 1.7s ease-in-out infinite;
+}
+@keyframes nightSwitchSheen {
+  0% {
+    background-position: 130% 0;
+  }
+  26%,
+  100% {
+    background-position: -30% 0;
+  }
+}
+/* (and a soft ring that swells with each glint, so the eye lands on it) */
+.night-toggle.hinted {
+  animation: nightSwitchRing 3.6s 1.7s ease-in-out infinite;
+}
+@keyframes nightSwitchRing {
+  0%,
+  40%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(226, 174, 74, 0);
+  }
+  14% {
+    box-shadow: 0 0 0 5px rgba(226, 174, 74, 0.28);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bedtime-hint,
+  .night-toggle.hinted,
+  .night-toggle.hinted::before {
+    animation: none;
+  }
+  .night-toggle.hinted::before {
+    display: none;
+  }
+}

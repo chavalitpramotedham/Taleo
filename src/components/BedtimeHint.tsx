@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Schoolbell } from "next/font/google";
 import { useNightMode } from "./NightMode";
@@ -33,6 +33,15 @@ export function BedtimeHint() {
     window.addEventListener("resize", place);
     return () => window.removeEventListener("resize", place);
   }, [night]);
+  // While the note is up, the switch it points at catches the light (a
+  // sheen crosses it once the note has been written out).
+  const shown = !night && at !== null;
+  useEffect(() => {
+    if (!shown) return;
+    const sw = document.querySelector(".night-toggle");
+    sw?.classList.add("hinted");
+    return () => sw?.classList.remove("hinted");
+  }, [shown]);
   if (night || !at) return null;
   return createPortal(
     <p className={`bedtime-hint ${pencil.className}`} style={{ top: at.top, right: at.right }}>
