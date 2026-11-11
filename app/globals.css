@@ -12271,3 +12271,60 @@ p.deploy-marker {
 .deploy-log details > .deploy-log-meta {
   margin: -4px 0 10px;
 }
+
+/* ---------- my characters: the floating Rearrange / Done ---------- */
+/* Phones and tablets: the buttons that start and finish rearranging float
+   at the foot of the screen (the in-page ones are for a desktop). */
+.char-inline-only {
+  display: none !important;
+}
+/* (room under the last card, so the floating bar never covers it) */
+.chars-page:has(.char-float) {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+.char-float > * {
+  pointer-events: auto;
+}
+/* Rearrange: a quiet paper button, no wider than its words. */
+.char-float-arrange {
+  gap: 7px;
+  min-height: 48px;
+  padding-left: 22px;
+  padding-right: 24px;
+  border-radius: 999px;
+}
+/* Cancel, and Done taking the rest of the row. */
+.char-float-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+.char-float-row .btn {
+  min-height: 52px;
+  border-radius: 999px;
+}
+.char-float-done {
+  flex: 1;
+  gap: 8px;
+}
+.char-float-error {
+  max-width: 420px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+/* A desktop (wide screen and a mouse): they sit in the page instead, as
+   the site's other floating controls do. (After the rules above, so it
+   has the last word.) */
+@media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+  /* (My characters: Rearrange / Cancel / Done sit in the page here) */
+  .char-inline-only {
+    display: inline-flex !important;
+  }
+  div.char-inline-only {
+    display: flex !important;
+  }
+  .chars-page:has(.char-float) {
+    padding-bottom: clamp(18px, 4vw, 44px);
+  }
+}

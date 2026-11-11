@@ -80,7 +80,7 @@ export function MyCharacters({ initial, initialLimit }: { initial: SavedCharacte
   if (characters === null) return <PageLoading label="Gathering your characters…" />;
 
   return (
-    <div className="container">
+    <div className="container chars-page">
       <header className="wizard-head">
         <p className="eyebrow">Just yours</p>
         <h1>My characters</h1>
@@ -93,7 +93,7 @@ export function MyCharacters({ initial, initialLimit }: { initial: SavedCharacte
           {characters.length ? (arranging ? "" : "Tap a character to edit or delete them.") : ""}
         </p>
         {characters.length > 1 && !arranging && (
-          <button type="button" className="btn btn-soft btn-sm char-arrange-btn" onClick={startArranging}>
+          <button type="button" className="btn btn-soft btn-sm char-arrange-btn char-inline-only" onClick={startArranging}>
             <ArrangeIcon />
             Rearrange
           </button>
@@ -104,7 +104,7 @@ export function MyCharacters({ initial, initialLimit }: { initial: SavedCharacte
         <>
           <div className="char-arrange-bar" role="region" aria-label="Rearranging characters">
             <p className="meta">Drag them into the order you like, or use the arrows. Stories you make will show them in this order too.</p>
-            <div className="char-arrange-actions">
+            <div className="char-arrange-actions char-inline-only">
               <button type="button" className="btn btn-soft btn-sm" onClick={() => setArranging(null)} disabled={savingOrder}>
                 Cancel
               </button>
@@ -121,9 +121,10 @@ export function MyCharacters({ initial, initialLimit }: { initial: SavedCharacte
             {orderError && <p className="error">{orderError}</p>}
           </div>
           <ArrangeShelf list={arranging} onChange={setArranging} disabled={savingOrder} />
-          {/* (again under the cards: on a phone the top ones have scrolled away by now) */}
+          {/* (again under the cards, where the top ones have scrolled away;
+              phones and tablets have the floating bar instead) */}
           {arranging.length > 2 && (
-            <div className="char-arrange-actions char-arrange-actions-foot">
+            <div className="char-arrange-actions char-arrange-actions-foot char-inline-only">
               <button type="button" className="btn btn-soft" onClick={() => setArranging(null)} disabled={savingOrder}>
                 Cancel
               </button>
@@ -195,6 +196,38 @@ export function MyCharacters({ initial, initialLimit }: { initial: SavedCharacte
             setEditing(null);
           }}
         />
+      )}
+
+      {/* Phones and tablets: Rearrange, then Cancel and Done, float at the
+          foot of the screen, so there's no scrolling back up (or down) to
+          find them. Rearrange is a quiet button; Done is the main one. */}
+      {characters.length > 1 && (
+        <div className="floating-cta touch-only char-float" role={arranging ? "region" : undefined} aria-label={arranging ? "Rearranging characters" : undefined}>
+          {arranging ? (
+            <>
+              {orderError && <p className="error char-float-error">{orderError}</p>}
+              <div className="char-float-row">
+                <button type="button" className="btn btn-soft" onClick={() => setArranging(null)} disabled={savingOrder}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary char-float-done" onClick={() => void finishArranging()} disabled={savingOrder}>
+                  {savingOrder ? (
+                    <>
+                      <LeafLoader size={16} /> Saving…
+                    </>
+                  ) : (
+                    "Done"
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <button type="button" className="btn btn-soft char-float-arrange" onClick={startArranging}>
+              <ArrangeIcon />
+              Rearrange
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
