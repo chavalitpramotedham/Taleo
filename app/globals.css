@@ -13472,3 +13472,26 @@ html {
   min-height: 44px;
   border-radius: 10px;
 }
+/* (kept compact: the amount box is a field and a row of small buttons,
+   not a panel of its own) */
+.add-credits-box {
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+.add-credits-box .input,
+.add-credits-box .add-credits-person {
+  min-height: 44px;
+  padding: 6px 12px;
+}
+.add-credits-box .add-credits-number {
+  font-size: 1.15rem;
+}
+.add-credits-quick {
+  gap: 6px;
+}
+.add-credits-quick .chip {
+  min-height: 34px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-size: 0.95rem;
+}
