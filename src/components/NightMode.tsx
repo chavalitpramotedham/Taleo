@@ -89,7 +89,7 @@ export function NightModeProvider({ children }: { children: React.ReactNode }) {
     if (on) root.dataset.night = "1";
     else delete root.dataset.night;
     // The browser's own bar and the iPhone's status-bar area follow too.
-    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = on ? "#13111a" : "#F3ECDC"));
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => (m.content = on ? "#181620" : "#F3ECDC"));
     try {
       localStorage.setItem(NIGHT_KEY, on ? "1" : "0");
       localStorage.setItem(NIGHT_AT_KEY, String(Date.now()));

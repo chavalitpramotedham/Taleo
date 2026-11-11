@@ -14444,3 +14444,10 @@ html[data-night] .topbar {
   background-color: #13111a;
   border-bottom-color: #2a2836;
 }
+/* (the night menu bar, a touch brighter: darker than a wide screen's sky,
+   but no longer the darkest thing on the page) */
+html[data-night] .topbar {
+  background: linear-gradient(to bottom, #1a1823, #16141e);
+  background-color: #181620;
+  border-bottom-color: #2d2b3a;
+}

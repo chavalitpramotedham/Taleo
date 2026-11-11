@@ -20,6 +20,10 @@ const FADE_MS = 450; // fade-out before the reload
 
 const BOUNCE_MAX = 72; // furthest a plain elastic stretch goes
 
+/** Things pinned to the screen inside a page (found by their style as
+ *  well, near the top of the page: this list catches the ones deeper in). */
+const PINNED = ".floating-cta, .wizard-nav, .contact-send, .rating-pill, .char-float, .char-float-done, .reader-index, .nav-skip";
+
 /** Is the touch inside something that scrolls on its own (the words column
  *  of an open book, a popup, a sideways row)? Then that gets the gesture. */
 function inOwnScroller(el: Element | null): boolean {
@@ -54,7 +58,28 @@ export function PullToRefresh() {
       const story = document.querySelectorAll<HTMLElement>("main .reader > .reader-top, main .reader > .book-stage");
       if (story.length) return Array.from(story);
       const page = document.querySelector<HTMLElement>("main > .page-enter");
-      return page ? [page] : [];
+      return page ? movable(page) : [];
+    };
+    // Moving a box moves everything pinned to the screen inside it too (a
+    // floating "Begin a story" button would jump from the foot of the
+    // screen to the foot of the page, and slide about with the finger).
+    // So a box that holds something pinned isn't moved itself: its
+    // children are, except the pinned ones - which stay exactly put.
+    const pinned = (el: Element) => getComputedStyle(el).position === "fixed";
+    const holdsPinned = (el: Element, depth: number): boolean => {
+      if (el.querySelector(PINNED)) return true;
+      if (depth <= 0) return false;
+      for (const c of el.children) if (pinned(c) || holdsPinned(c, depth - 1)) return true;
+      return false;
+    };
+    const movable = (el: HTMLElement, depth = 4): HTMLElement[] => {
+      if (depth <= 0 || !holdsPinned(el, 3)) return [el];
+      const out: HTMLElement[] = [];
+      for (const c of el.children) {
+        if (!(c instanceof HTMLElement) || c.matches(PINNED) || pinned(c)) continue;
+        out.push(...movable(c, depth - 1));
+      }
+      return out;
     };
     let startX = 0;
     let startY: number | null = null;
