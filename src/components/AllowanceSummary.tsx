@@ -43,10 +43,13 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
     <Link href="/account/plans" className="allowance-summary" role="menuitem" onClick={onGo} aria-label="What's left on your plan: see the details">
       {rights ? (
         <>
-          <span className="allowance-item">
-            <ShelfIcon />
-            <span>{storiesLeftText(rights)}</span>
-          </span>
+          {/* (where every story uses credits, the credits say it all) */}
+          {rights.creditsMode !== "always" && (
+            <span className="allowance-item">
+              <ShelfIcon />
+              <span>{storiesLeftText(rights)}</span>
+            </span>
+          )}
           {rights.credits !== null && (
             <span className="allowance-item">
               <CreditIcon />
