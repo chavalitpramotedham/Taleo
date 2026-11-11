@@ -89,10 +89,20 @@ export function PullToRefresh() {
     let raf = 0;
     let refreshing = false;
     let moving: HTMLElement[] = [];
+    // Safari (every browser on an iPhone or iPad) can leave a ghost of the
+    // page behind when parts of it are lifted onto their own layers
+    // mid-gesture: the old picture stays where it was while the lifted
+    // copy slides, so everything shows twice. There the page is simply
+    // moved and repainted, never lifted; elsewhere it's lifted for speed.
+    const safari = typeof CSS !== "undefined" && (CSS.supports("-webkit-touch-callout", "none") || /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent));
+    const place = (px: number) => (px ? (safari ? `translate(0, ${px}px)` : `translate3d(0, ${px}px, 0)`) : "");
+    let shown = 0; // where the page is drawn (it follows `pull`, springing when let go)
+    let spring = 0;
 
     const draw = () => {
       raf = 0;
-      for (const el of moving) el.style.transform = pull ? `translate3d(0, ${pull}px, 0)` : "";
+      if (!spring) shown = pull;
+      for (const el of moving) el.style.transform = place(shown);
       if (spin) {
         const p = Math.max(0, pull);
         spin.style.opacity = String(Math.min(1, p / THRESHOLD));
@@ -111,15 +121,26 @@ export function PullToRefresh() {
       if (!raf) raf = requestAnimationFrame(draw);
     };
     const settle = (to: number) => {
-      for (const n of [...moving, spin]) if (n) n.style.transition = "transform 0.45s cubic-bezier(0.22, 1.25, 0.36, 1), opacity 0.3s ease";
+      if (spin) spin.style.transition = "transform 0.45s cubic-bezier(0.22, 1.25, 0.36, 1), opacity 0.3s ease";
+      // The page springs to where it's going frame by frame (no CSS
+      // transition: that would lift it onto a layer of its own in Safari).
+      const from = shown;
+      const t0 = performance.now();
+      const done = moving;
+      cancelAnimationFrame(spring);
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / 420);
+        // eases out, a touch past the mark and back
+        const k = 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
+        shown = t >= 1 ? to : from + (to - from) * k;
+        for (const el of done) el.style.transform = place(shown);
+        if (t < 1) return void (spring = requestAnimationFrame(step));
+        spring = 0;
+        if (to === 0 && startY == null && !refreshing) for (const el of done) el.style.willChange = "";
+      };
+      spring = requestAnimationFrame(step);
       pull = to;
       schedule();
-      if (to === 0) {
-        const done = moving;
-        window.setTimeout(() => {
-          if (startY == null && !refreshing) for (const el of done) el.style.willChange = "";
-        }, 480);
-      }
     };
 
     const atTop = () => window.scrollY <= 0;
@@ -152,11 +173,11 @@ export function PullToRefresh() {
         if (wantDown && edge === "bottom") return void (startY = null);
         if (!wantDown && edge === "top") return void (startY = null);
         dir = wantDown ? 1 : -1;
+        cancelAnimationFrame(spring);
+        spring = 0;
+        for (const el of moving) el.style.transform = ""; // (whatever the last pull moved, back first)
         moving = targets();
-        for (const el of moving) {
-          el.style.transition = "none";
-          el.style.willChange = "transform";
-        }
+        if (!safari) for (const el of moving) el.style.willChange = "transform";
         if (spin) spin.style.transition = "none";
       }
       // Scrolled away from the edge after all: let go.
@@ -199,6 +220,7 @@ export function PullToRefresh() {
     window.addEventListener("touchcancel", onEnd, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(spring);
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
