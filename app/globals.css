@@ -13978,3 +13978,16 @@ html.leaves-taken .brand-mark {
 .btn:has(.make-label.has-sub) {
   min-height: 56px;
 }
+
+/* The plan page's "Manage plan": the ornament rule and a centred title, as
+   the home page divides its sections. */
+.plans-rule {
+  margin: 28px auto 18px;
+}
+.plans-head {
+  text-align: center;
+  margin-bottom: 14px;
+}
+.plans-head h2 {
+  margin: 0;
+}

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { CrownMark, MapleMark } from "@/components/Icons";
+import { CrownMark, MapleMark, OrnamentRule } from "@/components/Icons";
 import { PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
 /** A small sprouting seedling - the plans still to come. */
@@ -111,9 +111,10 @@ export function AccountPlans({ isAdmin, tier: tierId }: { isAdmin: boolean; tier
   return (
     <div className="account-plans">
       {/* a line across, with what follows named on it */}
-      <h3 className="tier-other-plans plans-divider">
-        <span>Manage plan</span>
-      </h3>
+      <OrnamentRule className="home-divider plans-rule" />
+      <header className="home-shelf-head plans-head">
+        <h2>Manage plan</h2>
+      </header>
       {/* (the admin's own plan is set apart from the plans families have) */}
       <PlanRow cards={cards} divideAfter={isAdmin ? 0 : undefined} />
     </div>
