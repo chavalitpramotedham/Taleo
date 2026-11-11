@@ -22,6 +22,7 @@ export function BookCover({
   canOpen,
   ready,
   onOpen,
+  painting,
   isHeading = false,
 }: {
   story: Story;
@@ -33,6 +34,10 @@ export function BookCover({
    *  the cover simply waits to be opened. */
   ready: boolean;
   onOpen: () => void;
+  /** What's being painted on the first page right now, in a few words
+   *  ("Washing in the sky…") - shown in place of "Painting the first
+   *  page…" once the picture has begun to arrive. */
+  painting?: string | null;
   /** The page's main heading while the book is closed (the reader's own
    *  title only shows once it's open) - for screen readers and search. */
   isHeading?: boolean;
@@ -42,7 +47,7 @@ export function BookCover({
   const heroes = [story.hero, ...(story.companions ?? [])];
   const names = heroes.map((h) => h.name);
   const starring = names.length > 1 ? `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}` : names[0];
-  const status = ready ? null : !story.title ? "Writing your story…" : !first ? "Writing the first page…" : !first.svg ? "Painting the first page…" : "Opening the book…";
+  const status = ready ? null : !story.title ? "Writing your story…" : !first ? "Writing the first page…" : !first.svg ? (painting ?? "Painting the first page…") : "Opening the book…";
 
   return (
     <div className={`book-cover ${opening ? "opening" : ""} ${ready ? "ready" : ""}`} style={coverStyle(story.id)} aria-live="polite">

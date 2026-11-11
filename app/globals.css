@@ -12983,3 +12983,48 @@ html[data-night] .allowance-summary::after {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ---------- the reader: what's being painted ---------- */
+/* While a page's picture is painted, a small label at the picture's top
+   left says what's under the brush ("Washing in the sky…", "Painting
+   Pip…") - the same label, in the same place and hand, as on the
+   homepage's picture. Only its words change. */
+.painting-badge.stage {
+  top: 10px;
+  left: 12px;
+  right: auto;
+  bottom: auto;
+  z-index: 3;
+  max-width: calc(100% - 24px);
+  padding: 4px 13px 5px 9px;
+  border-radius: 999px;
+  background: rgba(251, 247, 238, 0.92);
+  border: 1px solid var(--rule);
+  box-shadow: 0 4px 10px -6px rgba(70, 50, 30, 0.45);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.92rem;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  animation: fadeIn 0.5s ease both;
+}
+.painting-badge.stage {
+  line-height: 1.35;
+  gap: 6px;
+}
+html[data-night] .painting-badge.stage {
+  background: rgba(22, 17, 24, 0.62);
+  border-color: rgba(255, 236, 205, 0.2);
+  box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.7);
+}
+@media (max-width: 760px) {
+  .painting-badge.stage {
+    top: 8px;
+    left: 8px;
+    font-size: 0.82rem;
+  }
+}

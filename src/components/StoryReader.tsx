@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { paintingStage, preparingStage } from "@/lib/art/paintingStage";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, Segment, SegmentResponse, Story } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
@@ -161,6 +162,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const focus = holdSeg !== null ? pageKey(holdSeg, 0) : shown ? pageKey(shown.seg, shown.n) : null;
 
   const { live, failed, retry, painting } = usePaintings(story, update, focus, !readOnly);
+  // (the closed cover says what's being painted on the first page too)
+  const firstOfAll = story.segments[0]?.pages[0];
+  const firstLive = live[pageKey(0, 0)];
+  const coverStage = firstOfAll && !firstOfAll.svg && firstLive ? stageOf(firstLive, firstOfAll, story) : null;
   // The menu's maple leaf glows while this story is still being made:
   // its words unfinished, or a picture of it yet to be painted.
   useMarkMaking(
@@ -773,6 +778,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     const partial = live[key];
     const fallback = !done && ((readOnly && !picturesPending) || failed[key]) ? composePainting(shown.page, castFor(story, shown.page)) : null;
     const svg = done || partial || fallback;
+    // What's under the brush, said in a few words while the page is
+    // painted (as the homepage's picture does): read from the picture as
+    // it arrives - which layer, and whether it's the page's own character
+    // or thing - and, before the first stroke, from how long it has been.
+    const stage = done ? null : partial ? stageOf(partial, shown.page, story) : null;
     picture = (
       <>
         {svg ? (
@@ -798,13 +808,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           <div className="picture-wait canvas-wait" aria-live="polite">
             <span className="blank-canvas painted-edge" aria-hidden />
             <LeafLoader size={40} />
-            <span>The illustrator is painting this page…</span>
+            {/* (said by the label at the picture's corner while it's being painted) */}
+            {(readOnly || !painting(key)) && <span>The illustrator is painting this page…</span>}
           </div>
         )}
-        {!done && partial && (
-          <div className="painting-badge" role="status">
-            <LeafLoader size={21} />
-            Painting…
+        {/* what's being painted: before the first stroke (reading the page,
+            choosing colours), then layer by layer as the picture arrives */}
+        {!done && !fallback && !failed[key] && (partial || (!readOnly && painting(key))) && (
+          <div className="painting-badge stage" role="status" aria-live="polite">
+            {/* (small: the loader's own box is about twice its "size") */}
+            <LeafLoader size={10} />
+            {stage ?? <Preparing key={key} />}
           </div>
         )}
         {!done && !readOnly && failed[key] && !painting(key) && (
@@ -1105,7 +1119,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         )}
       </div>
         )}
-        {cover !== "open" && <BookCover story={story} isHeading={cover === "closed"} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
+        {cover !== "open" && <BookCover painting={coverStage} story={story} isHeading={cover === "closed"} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
       </div>
 
       <nav className={`reader-nav ${cover === "opening" ? "hidden-until-open" : ""}`} aria-label="Turn the page">
@@ -1215,6 +1229,31 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 }
 
 /** The page's tappable moment, in the form the painting needs. */
+/** What's under the brush on this page, from the picture so far: the
+ *  page's own character or thing by name, and who else is on it. */
+function stageOf(partial: string, page: Page, story: Story): string {
+  const cast = [story.hero, ...story.companions, ...story.cast];
+  const act = page.action;
+  const subject = act ? (cast.find((c) => c.id === act.target)?.name ?? `the ${act.target}`) : null;
+  const others = (page.characters ?? [])
+    .filter((id) => id !== act?.target)
+    .map((id) => cast.find((c) => c.id === id)?.name)
+    .filter((n): n is string => Boolean(n));
+  return paintingStage(partial, subject, others);
+}
+
+/** Before a page's first stroke: what the illustrator is doing, by how
+ *  long it has been (it changes twice, a few seconds apart). */
+function Preparing() {
+  const [since] = useState(() => Date.now());
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = window.setInterval(() => tick((n) => n + 1), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  return <>{preparingStage(Date.now() - since)}</>;
+}
+
 function tapTarget(page: Page, cast: CharacterDef[], age: string): TapTarget | null {
   const a = page.action;
   if (!a) return null;
