@@ -5233,15 +5233,33 @@ html[data-night] .topbar {
      lantern's measured position is set (don't redefine them here, or the
      glow stops following the lantern). */
 }
+/* Each part of the light is a square only as big as the light it draws,
+   centred on the lantern (--r: how far it reaches) - not a sheet the size
+   of the whole screen. They pulse without rest, and the browser blends
+   every pixel of each on every frame: as three whole-screen sheets that
+   took enough of a large screen's frames to make a long page stutter as
+   it scrolled. Most of each square is off the screen's corner anyway. */
 .night-glow > * {
   position: absolute;
-  inset: 0;
-  transform-origin: var(--lamp-x) var(--lamp-y);
+  left: calc(var(--lamp-x) - var(--r));
+  top: calc(var(--lamp-y) - var(--r));
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  transform-origin: 50% 50%;
   will-change: transform, opacity;
 }
+/* (and while the page is being scrolled the light holds still - see
+   NightAmbience - so every frame goes to the scrolling) */
+.night-ambience.scrolling .night-glow > *,
+.night-ambience.scrolling .fireflies *,
+.night-ambience.scrolling .lantern-firefly,
+.night-ambience.scrolling .lantern-firefly * {
+  animation-play-state: paused;
+}
 .night-glow-halo {
+  --r: 660px;
   background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
+    circle at 50% 50%,
     rgba(255, 190, 110, 0.095) 0,
     rgba(255, 172, 92, 0.045) 200px,
     rgba(255, 160, 82, 0.016) 420px,
@@ -5250,8 +5268,9 @@ html[data-night] .topbar {
   animation: haloBreathe 7s ease-in-out infinite;
 }
 .night-glow-core {
+  --r: 230px;
   background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
+    circle at 50% 50%,
     rgba(255, 224, 150, 0.234) 0,
     rgba(255, 204, 124, 0.153) 40px,
     rgba(255, 188, 104, 0.072) 110px,
@@ -5260,8 +5279,9 @@ html[data-night] .topbar {
   animation: lanternBreathe 3.6s ease-in-out infinite;
 }
 .night-glow-shimmer {
+  --r: 170px;
   background: radial-gradient(
-    circle at var(--lamp-x) var(--lamp-y),
+    circle at 50% 50%,
     rgba(255, 232, 170, 0.108) 0,
     rgba(255, 210, 132, 0.045) 60px,
     rgba(255, 200, 120, 0) 170px
@@ -8294,6 +8314,12 @@ html[data-night] .photo-drop-tag {
 html[data-night] .seg {
   box-shadow: inset 0 2px 5px -1px rgba(0, 0, 0, 0.6);
 }
+html[data-night] .seg-thumb {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 3px 8px -2px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 226, 190, 0.2);
+}
 .seg .chip.seg-opt {
   position: relative;
   z-index: 1;
@@ -8334,6 +8360,13 @@ html[data-night] .seg {
   left: 0;
   border-radius: 999px;
   background: var(--russet);
+  /* (raised a little out of the trough it lies in: a soft shadow beneath
+     it and the faintest light along its top edge, so it reads as a button
+     floating in the hollow rather than paint on its floor) */
+  box-shadow:
+    0 1px 1.5px rgba(60, 35, 15, 0.3),
+    0 3px 7px -2px rgba(60, 35, 15, 0.38),
+    inset 0 1px 0 rgba(255, 236, 205, 0.22);
   /* (its own layer, so it glides whatever the page is busy drawing; eased
      at both ends - a start at full speed read as a jump. Segmented waits
      this long before passing the choice on: SLIDE_MS) */
@@ -9385,8 +9418,9 @@ html[data-night] .home-stat {
    room, and is a touch brighter. */
 @media (min-width: 1024px) {
   .night-glow-halo {
+    --r: 1000px;
     background: radial-gradient(
-      circle at var(--lamp-x) var(--lamp-y),
+      circle at 50% 50%,
       rgba(255, 190, 110, 0.115) 0,
       rgba(255, 172, 92, 0.058) 300px,
       rgba(255, 160, 82, 0.024) 640px,

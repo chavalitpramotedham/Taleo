@@ -287,6 +287,34 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
   }, []);
 
 
+  // While the page is being scrolled the lantern's light holds still (its
+  // pulsing is paused, and picks up where it was a moment after): the
+  // light is large, soft layers the browser must blend afresh on every
+  // frame they move, and on a big screen that took frames a long page
+  // needed for scrolling. Nobody watches a candle flicker mid-scroll.
+  // (Only this layer's own class changes: nothing else is restyled.)
+  useEffect(() => {
+    let rest = 0;
+    let held = false;
+    const onScroll = () => {
+      if (!held) {
+        held = true;
+        root.current?.classList.add("scrolling");
+      }
+      window.clearTimeout(rest);
+      rest = window.setTimeout(() => {
+        held = false;
+        root.current?.classList.remove("scrolling");
+      }, 220);
+    };
+    // (the page itself, and anything inside it that scrolls)
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll, { capture: true });
+      window.clearTimeout(rest);
+    };
+  }, []);
+
   return (
     <div className={`night-ambience ${leaving ? "leaving" : ""}`} ref={root} aria-hidden>
       <div className="night-room" />

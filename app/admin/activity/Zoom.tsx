@@ -26,6 +26,26 @@ export function ZoomList({ items, children }: { items: ZoomItem[]; children: Rea
   );
 }
 
+/** The small pictures are flattened one at a time, each in a moment the
+ *  browser has to spare (never several in one go, and never while it is
+ *  busy scrolling): drawing a painting once is a few milliseconds of
+ *  work, which a list of them arriving together would add up. */
+const waiting: (() => void)[] = [];
+let turning = false;
+function inTurn(job: () => void) {
+  waiting.push(job);
+  if (turning) return;
+  turning = true;
+  const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 80));
+  const next = () => {
+    const one = waiting.shift();
+    if (!one) return void (turning = false);
+    one();
+    idle(next, { timeout: 4000 });
+  };
+  idle(next, { timeout: 4000 });
+}
+
 /** A painting in the activity log, small: a tap opens it full size over
  *  the page (✕, Esc or a tap outside closes it). Inside a ZoomList it
  *  opens at its place in that list (`index`); on its own, just itself. */
@@ -39,11 +59,54 @@ export function ZoomPicture({ src, className, width, height, lazy = false, recor
   const list = useContext(List);
   const [alone, setAlone] = useState(false);
   const open = () => (list && index !== undefined ? list(index) : setAlone(true));
+  // A small one in a list is shown as a flat picture, not the drawing
+  // itself. A painting is hundreds of soft shapes, and as a drawing every
+  // one of them is drawn again each time its row is scrolled into a fresh
+  // strip of the screen - a long log of them made scrolling stutter, and
+  // more so once some had been opened full size. So once a small one has
+  // arrived it is drawn a single time onto a canvas at the size it's
+  // shown, and that still image takes its place (the full-size view still
+  // opens the drawing itself, sharp at any size).
+  const small = Boolean(lazy && width && height);
+  const [flat, setFlat] = useState<string | null>(null);
+  const made = useRef<string | null>(null);
+  useEffect(() => () => void (made.current && URL.revokeObjectURL(made.current)), []);
+  const flatten = (img: HTMLImageElement) => {
+    if (!small || made.current || !img.naturalWidth || img.src.startsWith("blob:")) return;
+    made.current = "pending";
+    inTurn(() => {
+      try {
+        if (!img.isConnected) return;
+        const scale = Math.min(2, window.devicePixelRatio || 1);
+        const c = document.createElement("canvas");
+        c.width = Math.round(width! * scale);
+        c.height = Math.round(height! * scale);
+        const g = c.getContext("2d");
+        if (!g) return;
+        // (as the small picture shows it: whole, centred, on its paper)
+        const fit = Math.min(c.width / img.naturalWidth, c.height / img.naturalHeight);
+        const w = img.naturalWidth * fit;
+        const h = img.naturalHeight * fit;
+        g.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+        c.toBlob(
+          (blob) => {
+            if (!blob) return;
+            made.current = URL.createObjectURL(blob);
+            setFlat(made.current);
+          },
+          "image/webp",
+          0.86,
+        );
+      } catch {
+        // (a drawing the browser won't let be copied: it stays a drawing)
+      }
+    });
+  };
   return (
     <>
       <button type="button" className="admin-zoom" onClick={open} aria-label={`See ${label} full size`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={className} src={src} alt="" loading={lazy ? "lazy" : undefined} decoding="async" width={width} height={height} />
+        <img className={className} src={flat ?? src} alt="" loading={lazy ? "lazy" : undefined} decoding="async" width={width} height={height} onLoad={(e) => flatten(e.currentTarget)} ref={(el) => void (el?.complete && flatten(el))} />
       </button>
       {alone && <ZoomDialog items={[{ src, label, record, title, caption }]} at={0} onStep={() => {}} onClose={() => setAlone(false)} />}
     </>
