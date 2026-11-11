@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
@@ -12,8 +11,6 @@ import { Segmented } from "@/components/Segmented";
 import { FindUser } from "./FindUser";
 import { ZoomList, ZoomPicture, type ZoomItem } from "./Zoom";
 import { fuzzyPeople } from "@/lib/fuzzy";
-
-export const metadata: Metadata = { title: "Activity", robots: { index: false, follow: false } };
 
 const HERE = "/admin/activity";
 const KIND_NAME: Record<GenKind, string> = { story: "Stories", painting: "Paintings", character: "Characters", voice: "Voice" };
@@ -120,7 +117,7 @@ const href = (params: Record<string, string | undefined | false>) => {
  *  ended. Only the admin account can open it. Always computed fresh. */
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const session = await auth();
-  if (!session?.user?.isAdmin) notFound();
+  if (!session?.user?.isAdmin) redirect("/");
   const sp = await searchParams;
   const one = (k: string) => {
     const v = sp[k];

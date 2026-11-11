@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
 import { anthropicCosts, anthropicCostsEnabled, type AnthropicCosts } from "@/server/anthropic-costs";
-
-export const metadata: Metadata = { title: "Admin dashboard", robots: { index: false, follow: false } };
 
 const DAYS = 30;
 
@@ -18,10 +15,10 @@ const avg = (e: { ratingSum: number; ratingCount: number }) => (e.ratingCount ? 
 
 /** The platform owner's dashboard: users, what's being made, what it costs,
  *  and how the library is doing. Only the admin account can open it;
- *  everyone else gets a plain "not found". Always computed fresh. */
+ *  everyone else is sent to the front page. Always computed fresh. */
 export default async function AdminPage() {
   const session = await auth();
-  if (!session?.user?.isAdmin) notFound();
+  if (!session?.user?.isAdmin) redirect("/");
 
   const [users, gallery, metrics, active7, active30, costs] = await Promise.all([
     listUsers().catch(() => []),
