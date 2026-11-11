@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 /** When this page last changed in substance (shown at its head). */
-const UPDATED = "11 November 2026";
+const UPDATED = "12 November 2026";
 
 /**
  * The privacy policy, in plain words. Everything here describes what the
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
         </p>
         <h3>A record of what was made</h3>
         <p>
-          For 30 days we keep a record of each request to write a story, paint a picture or design a character: what was asked for and what came back. We use it to fix problems and to keep an eye on what the site costs to run. We also keep a monthly figure of what each account&apos;s creations cost us.
+          For 30 days we keep a record of each request to write a story, paint a picture, design a character or voice a page for the first time: what was asked for and what came back, and the kind of browser it came from. We use it to fix problems and to keep an eye on what the site costs to run. We also keep a monthly figure of what each account&apos;s creations cost us.
         </p>
         <h3>Messages you send us</h3>
         <p>
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
 
         <h2>On your device</h2>
         <p>
-          We use cookies for one thing only: signing you in and keeping you signed in. Your browser also remembers a few settings for you, such as day or night mode, your chosen reading voice and your place in a story. There are no advertising or tracking cookies.
+          We use cookies for one thing only: signing you in and keeping you signed in. Your browser also remembers a few settings for you, such as day or night mode, your chosen reading voice and your place in a story. If you say a story idea aloud instead of typing it, it is your browser that turns your voice into words; depending on the browser, that may be done on its maker&apos;s servers, not ours. There are no advertising or tracking cookies.
         </p>
 
         <h2>What other people can see</h2>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
             <b>Anthropic</b> writes the stories and paints the pictures. It receives what you ask for: the story idea, the characters&apos; names and descriptions, and a photo if you chose one.
           </li>
           <li>
-            <b>OpenAI</b> provides the read-aloud voice. It receives the words of the page being read.
+            <b>OpenAI</b> provides the read-aloud voice. It receives the words of a page the first time that page is read aloud, and the recording it made once more, to note when each word is said so the words can light up as they&apos;re read.
           </li>
           <li>
             <b>Google</b> handles signing in.
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
             <b>Vercel</b> hosts the site and stores its files.
           </li>
           <li>
-            <b>Upstash</b> holds the site&apos;s running records: allowance and credit counts, and the 30-day record of what was made.
+            <b>Upstash</b> holds the site&apos;s running records: credit balances and their history, figures of how much the site is used, and the 30-day record of what was made.
           </li>
           <li>
             <b>Resend</b> delivers the messages you send us, and error reports, to our inbox.
@@ -112,13 +112,13 @@ export default function PrivacyPage() {
 
         <h2>How it&apos;s kept safe</h2>
         <p>
-          Your account details, characters, reading diary, saved stories and messages are stored encrypted, with a key that only our server holds. An unfinished story is kept at a private address nobody can guess. Finished stories and their read-aloud recordings are public files, as they are meant to be read by anyone. Only signed-in account holders can create anything, and every request is checked against the account making it.
+          Your account details, characters, reading diary, saved stories, counts of what you&apos;ve used and messages are stored encrypted, with a key that only our server holds. An unfinished story is kept at a private address nobody can guess. Finished stories and their read-aloud recordings are public files, as they are meant to be read by anyone. Only signed-in account holders can make stories and characters, and every request is checked against the account making it.
         </p>
         <p>No website can promise perfect security, but we treat your family&apos;s information as we would want ours treated.</p>
 
         <h2>How long we keep it</h2>
         <p>
-          Your account and what you&apos;ve made stay until you delete them. The record of what was made is kept for 30 days, and the counts of allowance used for about a week.
+          Your account and what you&apos;ve made stay until you delete them. The record of what was made is kept for 30 days, and the counts of allowance used for about a month.
         </p>
 
         <h2>Deleting your information</h2>
@@ -126,7 +126,7 @@ export default function PrivacyPage() {
           You can delete any one story from its page, or all of your stories at once from your <Link href="/account">Account</Link> page. Deleting your account, from the same page, removes your profile, your stories, your characters, your unfinished story, your reading diary, your saved stories, your allowance and credit records, the record of what was made for you, and the copies of messages you sent us.
         </p>
         <p>
-          Two things remain: ratings and comments you left on other families&apos; stories, which stay under the username you wrote them with, and any emails already delivered to our inbox. <Link href="/about#contact">Write to us</Link> if you&apos;d like those removed too, or if you&apos;d like a copy of what we hold about you or want something corrected.
+          Three things remain: ratings and comments you left on other families&apos; stories, which stay under the username you wrote them with; recordings already made of your stories&apos; pages being read aloud, which hold only the words of the page and are no longer linked to anything; and any emails already delivered to our inbox. <Link href="/about#contact">Write to us</Link> if you&apos;d like those removed too, or if you&apos;d like a copy of what we hold about you or want something corrected.
         </p>
 
         <h2>Children</h2>
