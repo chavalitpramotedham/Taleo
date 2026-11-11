@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { accountOf } from "@/server/entitlements";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/server/auth";
 import { getGalleryStory, listGallery, NotYourStoryError, publishStory } from "@/server/gallery";
@@ -91,7 +92,12 @@ export async function POST(req: Request) {
     }
   }
   try {
-    const entry = await publishStory(story, { id: userId, username: session.user.username, isAdmin: session.user.isAdmin });
+    // (only the admin may publish over someone else's story - by the
+    // records, not the cookie's copy of the flag; and an account that no
+    // longer stands, or is suspended, publishes nothing)
+    const account = await accountOf(userId).catch(() => null);
+    if (!account || account.suspended) return NextResponse.json({ error: "This account can't publish at the moment." }, { status: 403 });
+    const entry = await publishStory(story, { id: userId, username: session.user.username, isAdmin: account.isAdmin });
     // The library and the author's bookshelf list their stories in the
     // page itself: show the new one there straight away.
     for (const p of ["/store", `/author/${encodeURIComponent(entry.authorUsername)}`]) revalidatePath(p);

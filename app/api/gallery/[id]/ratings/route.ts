@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { currentAdmin } from "@/server/entitlements";
 import { auth } from "@/server/auth";
 import { getGalleryStory, listRatings, myRating } from "@/server/gallery";
 
@@ -14,7 +15,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const ratings = await listRatings(id);
   // How many gave each number of stars (1-5) - for everyone, no names.
   const counts = [1, 2, 3, 4, 5].map((n) => ratings.filter((r) => r.rating === n).length);
-  const isOwner = session?.user?.id && (session.user.id === story.authorId || session.user.isAdmin);
+  // (who rated what is the author's to see, and the admin's - the admin by
+  // the records, not the cookie's copy of the flag)
+  const isOwner = session?.user?.id && (session.user.id === story.authorId || (session.user.isAdmin && Boolean(await currentAdmin())));
   if (isOwner) return NextResponse.json({ ratings, counts, mine: myRating(ratings, session!.user.id) });
 
   const mine = session?.user?.id ? myRating(ratings, session.user.id) : null;

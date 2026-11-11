@@ -90,7 +90,9 @@ export async function POST(req: Request) {
     if (body.resume === "attach") return NextResponse.json({ missing: true });
   }
 
-  const g = await guard("character");
+  // (credits pay for a character beyond the plan's only when the person
+  // has said so: `useCredits`)
+  const g = await guard("character", { useCredits: (body as { useCredits?: unknown } | null)?.useCredits === true });
   // (for the activity log: what was asked)
   const logged = (user: { id: string } | undefined, tier?: string) => ({
     kind: "character" as const,

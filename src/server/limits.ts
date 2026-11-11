@@ -255,7 +255,14 @@ export async function whoIs(session: Session): Promise<{ user: Who; account: Acc
  * session - what a request costs can depend on who is asking. Call
  * `release()` if the work then fails, to refund it.
  */
-export async function guard(bucket: Bucket | ((session: Session) => Bucket | Cost | NextResponse | Promise<Bucket | Cost | NextResponse>)): Promise<Guard> {
+export async function guard(
+  bucket: Bucket | ((session: Session) => Bucket | Cost | NextResponse | Promise<Bucket | Cost | NextResponse>),
+  /** `useCredits`: the person has said yes to paying with credits if the
+   *  plan's allowance is used up. Credits are never spent without it: a
+   *  request that could have been paid with them is turned away like any
+   *  other, with what it would cost (so the page can offer it). */
+  opts: { useCredits?: boolean } = {},
+): Promise<Guard> {
   let session = await auth();
   if (!session?.user?.id) {
     return { ok: false, response: NextResponse.json({ error: "Please sign in to make stories." }, { status: 401 }) };
@@ -295,10 +302,12 @@ export async function guard(bucket: Bucket | ((session: Session) => Bucket | Cos
     // can't spend the same credit), under a reference of its own, and
     // given back if the work then fails.
     const item = took.limited === b ? PAID_BY_CREDITS[b] : undefined;
+    let offer: { item: CreditItem; price: number; balance: number } | undefined;
     if (item && me.account) {
       const price = CREDIT_PRICES[item];
       const have = await me.account.credits();
-      if (have !== null && have >= price) {
+      if (have !== null && have >= price) offer = { item, price, balance: have };
+      if (offer && opts.useCredits) {
         const ref = `${item}:${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
         const paid = await spendCredits(session.user.id, price, ref, `One ${item} beyond the ${me.account.plan.name} plan's allowance`);
         if (paid.ok) {
@@ -310,7 +319,8 @@ export async function guard(bucket: Bucket | ((session: Session) => Bucket | Cos
     return {
       ok: false,
       response: NextResponse.json(
-        { error: limitMessage(session.user, took.limited, took.retryAfterSec), retryAfterSec: took.retryAfterSec, limited: took.limited, plan: tierFor(session.user).name },
+        // (`credits`: this could be paid for with credits - ask, then send it again saying so)
+        { error: limitMessage(session.user, took.limited, took.retryAfterSec), retryAfterSec: took.retryAfterSec, limited: took.limited, plan: tierFor(session.user).name, credits: offer },
         { status: 429, headers: { "Retry-After": String(took.retryAfterSec) } },
       ),
     };
