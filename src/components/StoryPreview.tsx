@@ -1,5 +1,6 @@
 "use client";
 import Link, { useLinkStatus } from "next/link";
+import { shortDate } from "@/lib/dates";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
@@ -15,8 +16,7 @@ import {
   LeafLoader,
   MapleMark,
   ShareIcon,
-  StarGlyph,
-} from "./Icons";
+  StarGlyph, CogIcon } from "./Icons";
 import { KeywordPill } from "./KeywordPill";
 
 /** Everything a story preview shows - small enough to come from a library
@@ -33,6 +33,8 @@ export interface StorySummary {
   pages?: number;
   ratingAvg: number | null;
   ratingCount: number;
+  /** When it was made (ms). */
+  createdAt?: number;
 }
 
 export function summaryFromEntry(e: GalleryEntry): StorySummary {
@@ -42,6 +44,7 @@ export function summaryFromEntry(e: GalleryEntry): StorySummary {
     title: e.title || "An untitled story",
     cover: e.cover,
     author: e.authorUsername || "taleo",
+    createdAt: e.createdAt,
     keyword: e.keyword,
     starring: e.starring?.length ? e.starring : [e.heroName].filter(Boolean),
     ageLabel: age.label,
@@ -202,6 +205,16 @@ export function StoryPreview({
             Ages <b>{story.ageLabel}</b>
           </p>
           <p className="meta story-preview-by">
+            {/* when it was made, then who by (and, for its own author, a
+                small gear to manage it) */}
+            {shortDate(story.createdAt) && (
+              <>
+                <span suppressHydrationWarning>{shortDate(story.createdAt)}</span>
+                <span className="dot" aria-hidden>
+                  ·
+                </span>
+              </>
+            )}
             by{" "}
             <Link
               className="story-preview-author"
@@ -420,7 +433,7 @@ function ReadLabel({ label }: { label: string }) {
   );
 }
 
-/** For the story's own author: "· Manage" after their name, opening a
+/** For the story's own author: a small gear after their name, opening a
  *  small menu (just Delete for now). Deleting asks first, in its own
  *  dialog, then removes the story everywhere. */
 function ManageStory({
@@ -465,18 +478,19 @@ function ManageStory({
 
   return (
     <>
-      <span className="dot" aria-hidden>
-        ·
-      </span>
       <span className="story-manage" ref={wrap}>
+        {/* (a small gear beside the name; its tappable area is larger
+            than the drawing) */}
         <button
           type="button"
-          className="story-manage-link"
+          className="story-manage-gear"
           onClick={() => setMenu((m) => !m)}
           aria-haspopup="menu"
           aria-expanded={menu}
+          aria-label="Manage this story"
+          title="Manage this story"
         >
-          Manage
+          <CogIcon />
         </button>
         {menu && (
           <span className="music-dropdown story-manage-menu" role="menu">

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark } from "@/components/Icons";
-import { Segmented } from "@/components/Segmented";
 import { useEscape } from "@/lib/useEscape";
 import { MAX_CREDITS_ADDED } from "@/lib/tiers";
 
@@ -47,31 +46,21 @@ export function PlansView({ rights: first, children }: { rights: Rights; childre
   const credits = rights.credits;
   return (
     <>
-      <section className="plans-summary" aria-label="Your plan and credits">
-        <button type="button" className={`plans-summary-item${tab === "plan" ? " on" : ""}`} onClick={() => setTab("plan")}>
+      {/* (the two boxes are the switch between the two: no pill as well) */}
+      <section className="plans-summary" role="tablist" aria-label="Your plan and credits">
+        <button type="button" role="tab" aria-selected={tab === "plan"} className={`plans-summary-item${tab === "plan" ? " on" : ""}`} onClick={() => setTab("plan")}>
           <span className="plans-summary-label">Plan</span>
           <span className="plans-summary-value">
             {rights.isAdmin ? <CrownMark /> : <MapleMark />} {rights.plan}
           </span>
         </button>
-        <button type="button" className={`plans-summary-item${tab === "credits" ? " on" : ""}`} onClick={() => setTab("credits")}>
+        <button type="button" role="tab" aria-selected={tab === "credits"} className={`plans-summary-item${tab === "credits" ? " on" : ""}`} onClick={() => setTab("credits")}>
           <span className="plans-summary-label">Credits</span>
           <span className="plans-summary-value">
             <CreditIcon size={20} /> {credits === null ? "-" : n(credits)}
           </span>
         </button>
       </section>
-      <div className="filter-row plans-tabs">
-        <Segmented
-          label="Plan or credits"
-          value={tab}
-          onChange={setTab}
-          options={[
-            { key: "plan", label: "Plan" },
-            { key: "credits", label: "Credits" },
-          ]}
-        />
-      </div>
       {rights.suspended && <p className="error">This account can&apos;t make anything new at the moment. Please get in touch with us.</p>}
 
       {tab === "credits" ? (

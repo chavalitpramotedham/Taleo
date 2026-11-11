@@ -1,5 +1,6 @@
 "use client";
 import { Painting } from "@/components/art/Painting";
+import { shortDate } from "@/lib/dates";
 import type { GalleryEntry } from "@/lib/types";
 import { ClockIcon, StarGlyph } from "./Icons";
 import { ageById } from "@/lib/ages";
@@ -69,6 +70,13 @@ export function StoryCard({
       <span className="body">
         <KeywordPill keyword={s.keyword} />
         <span className="story-card-title">{title}</span>
+        {/* when it was made: how fresh the story is (the reader's own
+            calendar - so the server's first draw may differ by a day) */}
+        {shortDate(s.createdAt) && (
+          <span className="story-card-date" suppressHydrationWarning>
+            {shortDate(s.createdAt)}
+          </span>
+        )}
       </span>
     </button>
   );

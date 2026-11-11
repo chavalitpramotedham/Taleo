@@ -12826,7 +12826,7 @@ html[data-night] .allowance-summary::after {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   max-width: 30rem;
-  margin: 0 auto;
+  margin: 0 auto 16px;
 }
 .plans-summary-item {
   display: flex;
@@ -13027,4 +13027,47 @@ html[data-night] .painting-badge.stage {
     left: 8px;
     font-size: 0.82rem;
   }
+}
+
+/* ---------- when a story was made ---------- */
+/* Small, grey and italic at the foot of every story card. */
+.story-card-date {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--ink-faint);
+}
+/* The story's own author's gear, beside their name in the preview: the
+   drawing is small, the area that takes a tap is 36px (pulled back in
+   with negative margins, so the line keeps its height). */
+.story-manage-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: -10px -6px -10px -2px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--russet);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.story-manage-gear svg {
+  width: 17px;
+  height: 17px;
+  color: inherit;
+}
+@media (hover: hover) {
+  .story-manage-gear:hover {
+    background: color-mix(in srgb, var(--russet) 12%, transparent);
+  }
+}
+.story-manage-gear:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: -4px;
 }

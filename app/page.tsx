@@ -86,6 +86,7 @@ async function sharedSummary(id: string | null): Promise<SharedStorySummary | nu
     title: story.title || "An untitled story",
     cover: pages.find((p) => p.svg)?.svg ?? null,
     author: story.authorUsername || "taleo",
+    createdAt: story.createdAt,
     keyword: storyKeyword(story),
     starring: [story.hero, ...(story.companions ?? [])].map((c) => c.name).filter(Boolean),
     ageLabel: ageById(story.age).label,
