@@ -14398,3 +14398,49 @@ html[data-night] .site-footer {
   border-top-color: #34324a;
   background: rgba(6, 5, 12, 0.34);
 }
+
+/* ---------- The night sky's brightness follows the screen's size ---------- */
+/* A phone's screen is mostly lit by the lantern already, so its sky stays
+   dark; as the screen widens and the lantern's pool of light becomes a
+   smaller part of it, the sky is lifted - up to the wide-screen sky set
+   above. The menu bar is darker than that sky at every size (though not
+   black), so it reads as a bar across the top of it. */
+html[data-night],
+html[data-night] body,
+.theme-fade.from-night {
+  background-color: #100e17;
+}
+html[data-night] body,
+.theme-fade.from-night {
+  background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(26, 27, 48, 0.42), transparent 72%),
+    radial-gradient(ellipse 80% 60% at 10% 115%, rgba(78, 64, 122, 0.24), transparent 70%);
+}
+@media (min-width: 641px) {
+  html[data-night],
+  html[data-night] body,
+  .theme-fade.from-night {
+    background-color: #13111b;
+  }
+  html[data-night] body,
+  .theme-fade.from-night {
+    background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(30, 31, 54, 0.55), transparent 72%),
+      radial-gradient(ellipse 80% 60% at 10% 115%, rgba(82, 68, 128, 0.27), transparent 70%);
+  }
+}
+@media (min-width: 1100px) {
+  html[data-night],
+  html[data-night] body,
+  .theme-fade.from-night {
+    background-color: #15141f;
+  }
+  html[data-night] body,
+  .theme-fade.from-night {
+    background-image: radial-gradient(ellipse 120% 85% at 50% 0%, rgba(33, 34, 60, 0.66), transparent 72%),
+      radial-gradient(ellipse 80% 60% at 10% 115%, rgba(84, 70, 132, 0.3), transparent 70%);
+  }
+}
+html[data-night] .topbar {
+  background: linear-gradient(to bottom, #15131c, #110f17);
+  background-color: #13111a;
+  border-bottom-color: #2a2836;
+}
