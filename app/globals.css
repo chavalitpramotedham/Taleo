@@ -8335,7 +8335,8 @@ html[data-night] .seg-thumb {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.5),
     0 3px 8px -2px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 226, 190, 0.2);
+    inset 0 1px 0 rgba(255, 226, 190, 0.28),
+    inset 0 -1px 0 rgba(20, 8, 2, 0.3);
 }
 .seg .chip.seg-opt {
   position: relative;
@@ -8380,10 +8381,15 @@ html[data-night] .seg-thumb {
   /* (raised a little out of the trough it lies in: a soft shadow beneath
      it and the faintest light along its top edge, so it reads as a button
      floating in the hollow rather than paint on its floor) */
+  /* (and the slightest bevel: a touch lighter along the top, a touch
+     darker along the foot, with a hairline of light and of shade at the
+     two edges - a pill with a rounded face, not a flat one) */
+  background-image: linear-gradient(to bottom, rgba(255, 240, 215, 0.13), rgba(255, 240, 215, 0) 45%, rgba(40, 18, 6, 0.1));
   box-shadow:
     0 1px 1.5px rgba(60, 35, 15, 0.3),
     0 3px 7px -2px rgba(60, 35, 15, 0.38),
-    inset 0 1px 0 rgba(255, 236, 205, 0.22);
+    inset 0 1px 0 rgba(255, 236, 205, 0.3),
+    inset 0 -1px 0 rgba(40, 18, 6, 0.22);
   /* (its own layer, so it glides whatever the page is busy drawing; eased
      at both ends - a start at full speed read as a jump. Segmented waits
      this long before passing the choice on: SLIDE_MS) */
