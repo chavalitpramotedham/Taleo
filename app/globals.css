@@ -14687,8 +14687,31 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
   box-shadow: inset 0 0 0 1px var(--russet);
 }
 /* ("Other" sits alone on the last row: across its whole width) */
-.buy-credits-pack:last-child {
-  grid-column: 1 / -1;
+/* ("Other" is a tile like the rest; chosen, its number is a box to type in) */
+.buy-credits-other {
+  cursor: text;
+}
+.buy-credits-other-input {
+  width: 4.2em;
+  padding: 0;
+  border: 0;
+  border-bottom: 1.5px dashed color-mix(in srgb, var(--russet) 60%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: lining-nums;
+  outline: none;
+}
+.buy-credits-other-input::placeholder {
+  font-size: 0.78em;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-faint);
+}
+.buy-credits-other-input:focus {
+  border-bottom-style: solid;
+  border-bottom-color: var(--russet);
 }
 .buy-credits-n {
   display: inline-flex;
@@ -14969,4 +14992,111 @@ html[data-night] .first-steps-go {
 .txn-more {
   margin: 12px 0 0;
   text-align: center;
+}
+
+/* (buy credits: the discount note, at the foot of the packs) */
+.buy-credits-footnote {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--ink-soft);
+}
+/* ---------- Buy credits: "Paying safely", up front ---------- */
+/* A green row under the title, gently pulsing so it's seen; a tap opens
+   the details in a dialog of their own. */
+.safety-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 2px 0 14px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, #5f7a3f 45%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, #5f7a3f 10%, var(--page));
+  color: #4c6531;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: safetyPulse 2.8s ease-in-out infinite;
+}
+.safety-row > span:not(.safety-row-go) {
+  display: grid;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.safety-row b {
+  font-weight: 600;
+}
+.safety-row small {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.safety-row-go {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.shield-icon {
+  flex: none;
+}
+@keyframes safetyPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(95, 122, 63, 0.32);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(95, 122, 63, 0);
+  }
+}
+html[data-night] .safety-row {
+  color: #b5cd92;
+  border-color: color-mix(in srgb, #a9c183 40%, transparent);
+  background: color-mix(in srgb, #a9c183 9%, var(--page));
+}
+@media (prefers-reduced-motion: reduce) {
+  .safety-row {
+    animation: none;
+  }
+}
+.safety-backdrop {
+  z-index: 60;
+}
+.safety-dialog .modal-head h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #4c6531;
+}
+html[data-night] .safety-dialog .modal-head h3 {
+  color: #b5cd92;
+}
+.safety-dialog .buy-credits-safety {
+  margin: 4px 0 16px;
+}
+
+/* (every pack tile the same size, its contents centred; the "Other"
+   tile's box no wider than five figures, so the coin stays inside) */
+.buy-credits-packs {
+  grid-auto-rows: 1fr;
+}
+.buy-credits-pack,
+.buy-credits-pack.deal {
+  justify-content: center;
+  padding-top: 12px;
+  padding-bottom: 11px;
+}
+.buy-credits-other .buy-credits-n {
+  max-width: 100%;
+}
+.buy-credits-other-input {
+  width: 3.4em;
+  min-width: 0;
+}
+
+/* (the safety notes read as a list: aligned to the left) */
+.safety-dialog .buy-credits-safety,
+.safety-dialog .buy-credits-safety li {
+  text-align: left;
 }

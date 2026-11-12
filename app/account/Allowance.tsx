@@ -1,6 +1,6 @@
 "use client";
 import { STANDARD_LENGTH, STORY_LENGTHS } from "@/lib/ages";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
@@ -255,7 +255,11 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
   const [error, setError] = useState<string | null>(null);
   // (after "Continue to checkout": what the checkout said)
   const [answer, setAnswer] = useState<string | null>(null);
-  useEscape(onClose, !busy);
+  const otherBox = useRef<HTMLInputElement>(null);
+  const [safety, setSafety] = useState(false);
+  // (Escape closes the details first, then the dialog)
+  useEscape(onClose, !busy && !safety);
+  useEscape(() => setSafety(false), safety);
   const amount = pack === "other" ? (/^[0-9]+$/.test(text) ? Number(text) : 0) : pack;
   const valid = amount >= CREDIT_PACK_MIN && amount <= CREDIT_PACK_MAX;
   const cost = (credits: number) => {
@@ -305,6 +309,17 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
             ✕
           </button>
         </div>
+        {/* Paying safely: up front, under the title - a tap opens the details */}
+        <button type="button" className="safety-row" onClick={() => setSafety(true)}>
+          <ShieldIcon />
+          <span>
+            <b>Paying safely</b>
+            <small>Checkout by Stripe. Taleo never sees your card.</small>
+          </span>
+          <span className="safety-row-go" aria-hidden>
+            ›
+          </span>
+        </button>
         {answer ? (
           <>
             <section className="add-credits-box">
@@ -314,7 +329,6 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                 You chose {n(amount)} credit{amount === 1 ? "" : "s"}. When payments open, this step will take you to Stripe&apos;s checkout page to pay by card.
               </p>
             </section>
-            <PaymentSafety />
             <button type="button" className="btn btn-primary btn-block" onClick={onClose}>
               Close
             </button>
@@ -348,32 +362,69 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                     </span>
                   </button>
                 ))}
-                <button type="button" role="radio" aria-checked={pack === "other"} className={`buy-credits-pack${pack === "other" ? " on" : ""}`} onClick={() => setPack("other")} disabled={busy}>
-                  <span className="buy-credits-n">Other</span>
-                  <span className="buy-credits-price">Your own amount, {n(CREDIT_PACK_MIN)} or more</span>
-                </button>
+                {/* "Other": a tile like the rest; chosen, it becomes the box to type the amount in */}
+                {pack === "other" ? (
+                  <div role="radio" aria-checked className={`buy-credits-pack buy-credits-other on${valid && packDiscount(amount) > 0 ? " deal" : ""}`} onClick={() => otherBox.current?.focus()}>
+                    {valid && packDiscount(amount) > 0 && <span className="buy-credits-off">{packDiscount(amount)}% off</span>}
+                    <span className="buy-credits-n">
+                      <input
+                        ref={otherBox}
+                        className="buy-credits-other-input"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete="off"
+                        maxLength={5}
+                        value={text}
+                        onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 5))}
+                        placeholder="0"
+                        aria-label={`How many credits to buy, from ${CREDIT_PACK_MIN} to ${CREDIT_PACK_MAX}`}
+                        disabled={busy}
+                      />
+                      <CreditIcon size={16} />
+                    </span>
+                    <span className="buy-credits-price">
+                      {valid ? (
+                        <>
+                          {packDiscount(amount) > 0 && (
+                            <>
+                              <s>
+                                <span className="sr-only">was </span>
+                                {money(packPrice(amount)!.full)}
+                              </s>{" "}
+                            </>
+                          )}
+                          <b>{cost(amount)}</b>
+                        </>
+                      ) : (
+                        `${n(CREDIT_PACK_MIN)} to ${n(CREDIT_PACK_MAX)}`
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={false}
+                    className="buy-credits-pack"
+                    onClick={() => {
+                      setPack("other");
+                      // (straight into the box, so the amount can be typed at once)
+                      window.setTimeout(() => otherBox.current?.focus(), 0);
+                    }}
+                    disabled={busy}
+                  >
+                    <span className="buy-credits-n">Other</span>
+                    <span className="buy-credits-price">Your own amount</span>
+                  </button>
+                )}
               </div>
-              {pack === "other" && (
-                <>
-                  <input
-                    className="input add-credits-number"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="off"
-                    maxLength={3}
-                    value={text}
-                    onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 3))}
-                    placeholder="How many?"
-                    aria-label="How many credits to buy"
-                  />
-                  {text !== "" && !valid && (
-                    <p className="error">
-                      Enter a whole number from {n(CREDIT_PACK_MIN)} to {n(CREDIT_PACK_MAX)}.
-                    </p>
-                  )}
-                </>
+              {pack === "other" && text !== "" && !valid && (
+                <p className="error">
+                  Enter a whole number from {n(CREDIT_PACK_MIN)} to {n(CREDIT_PACK_MAX)}.
+                </p>
               )}
+              <p className="buy-credits-footnote">5% off orders of 50 credits or more, 10% off 100 or more.</p>
             </section>
             <section className="add-credits-box" aria-label="What it comes to">
               <ul className="menu-list">
@@ -401,12 +452,46 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                 "Continue to checkout"
               )}
             </button>
-            <p className="meta buy-credits-foot">5% off orders of 50 credits or more, 10% off 100 or more.</p>
-            <PaymentSafety />
+
           </>
         )}
       </form>
+      {safety && (
+        <div
+          className="modal-backdrop safety-backdrop"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSafety(false);
+          }}
+        >
+          <div className="modal-panel draft-prompt safety-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="safety-title">
+            <div className="modal-head">
+              <h3 id="safety-title">
+                <ShieldIcon /> Paying safely
+              </h3>
+              <button type="button" className="icon-btn" onClick={() => setSafety(false)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <PaymentSafety />
+            <button type="button" className="btn btn-primary btn-block" onClick={() => setSafety(false)}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+/** A shield with a tick: paying safely. */
+function ShieldIcon() {
+  return (
+    <svg className="shield-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+      <path d="M12 2.8 4.6 5.6v5.6c0 4.7 3.1 8.6 7.4 10 4.3-1.4 7.4-5.3 7.4-10V5.6L12 2.8Z" fill="currentColor" opacity="0.18" />
+      <path d="M12 2.8 4.6 5.6v5.6c0 4.7 3.1 8.6 7.4 10 4.3-1.4 7.4-5.3 7.4-10V5.6L12 2.8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="m8.6 12.1 2.4 2.4 4.4-4.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -419,10 +504,7 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
  */
 function PaymentSafety() {
   return (
-    <section className="add-credits-box buy-credits-safety" aria-labelledby="buy-credits-safety">
-      <h4 id="buy-credits-safety" className="menu-title">
-        Paying safely
-      </h4>
+    <section className="buy-credits-safety" aria-label="How paying is kept safe">
       <ul>
         <li>
           <b>Not open yet.</b> Card payments are still being set up, so nothing can be charged from here today.

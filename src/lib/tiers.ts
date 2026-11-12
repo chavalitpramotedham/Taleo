@@ -155,12 +155,12 @@ export const STARTER_CREDITS = 250;
 /** The most that can be added by hand in one go. */
 export const MAX_CREDITS_ADDED = 1000;
 /** Credits can be bought in these packs, or another amount up to the most. */
-export const CREDIT_PACKS = [10, 20, 30, 50, 75, 100];
+export const CREDIT_PACKS = [10, 20, 30, 50, 100];
 /** The fewest and the most that can be bought at once ("Other"). The
  *  fewest is the smallest pack: a card payment has a fixed fee of its own,
  *  which would swallow a smaller sale. */
 export const CREDIT_PACK_MIN = CREDIT_PACKS[0];
-export const CREDIT_PACK_MAX = 500;
+export const CREDIT_PACK_MAX = 10_000;
 /** What one credit costs to buy, in US cents - the same in every pack. */
 export const CREDIT_PRICE_CENTS = 50;
 export const CREDIT_CURRENCY = "USD";
