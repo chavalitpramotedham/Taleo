@@ -340,7 +340,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               </span>
             ))}
           </div>
-          {freeMax && <p className="length-free-note">Free stories are up to {freeMax.minutes} minutes.</p>}
+          {freeMax && <p className="length-free-note">Standard stories with your plan are a maximum of {freeMax.minutes} minutes.</p>}
         </section>
       )}
 
@@ -566,13 +566,13 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
         <div className="modal-backdrop" onClick={() => setTooLong(null)}>
           <div className="modal-panel draft-prompt free-length" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="free-length-title">
             <div className="modal-head">
-              <h3 id="free-length-title">Free stories are up to {tooLong.freeMinutes} minutes</h3>
+              <h3 id="free-length-title">Standard stories are up to {tooLong.freeMinutes} minutes</h3>
               <button type="button" className="icon-btn" onClick={() => setTooLong(null)} aria-label="Close">
                 ✕
               </button>
             </div>
             <p className="limit-message">
-              This story is set to {tooLong.minutes} minutes. Your free story covers {tooLong.freeMinutes} of them: add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} for the rest, or make it {tooLong.freeMinutes} minutes.
+              This story is set to {tooLong.minutes} minutes. Your standard story covers {tooLong.freeMinutes} of them: add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} for the rest, or make it {tooLong.freeMinutes} minutes.
             </p>
             <div className="story-preview-actions">
               <button

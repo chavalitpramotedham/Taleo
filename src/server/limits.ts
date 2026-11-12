@@ -581,7 +581,7 @@ export async function guard(
       ok: false,
       response: NextResponse.json(
         {
-          error: `A free story covers ${FREE_STORY_MINUTES} minutes. This one is ${price / CREDITS_PER_STORY_MINUTE}, which needs ${topUp} credit${topUp === 1 ? "" : "s"} for the extra - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it's free.`,
+          error: `A standard story covers ${FREE_STORY_MINUTES} minutes. This one is ${price / CREDITS_PER_STORY_MINUTE}, which needs ${topUp} credit${topUp === 1 ? "" : "s"} for the extra - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it's free.`,
           limited: "credits",
           credits: { item: "story", price: topUp, balance: paid.balance },
           freeMinutes: FREE_STORY_MINUTES,
