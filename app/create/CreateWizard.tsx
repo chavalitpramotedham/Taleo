@@ -48,6 +48,8 @@ const STEP_NOTES = [
  *  and read their characters (`initialCharacters`; null if it couldn't),
  *  so the first step shows at once. */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+/** The three lengths' little pictures (public/art/lengths/<id>.webp): shown once they are in place. */
+const LENGTH_ART = false;
 
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
   const router = useRouter();
@@ -120,6 +122,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   const canNext = step === 0 ? Boolean(age) : step === 1 ? Boolean(hero) : Boolean(theme);
   // (the standard story, unless another length is picked)
   const effectiveMinutes = minutes ?? STANDARD_LENGTH.minutes;
+  const lengthIndex = Math.max(0, STORY_LENGTHS.findIndex((l) => l.minutes === lengthOf(effectiveMinutes).minutes));
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
   const charLimit = useCharacterLimit();
@@ -317,22 +320,41 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
         <section className="panel length-panel">
           <h3>How long are we dreaming?</h3>
           <p className="meta">Each length has its own number of decisions along the way.</p>
-          <div className="length-choices" role="radiogroup" aria-label="Story length">
-            {STORY_LENGTHS.map((l) => (
-              <button key={l.id} type="button" role="radio" aria-checked={effectiveMinutes === l.minutes} className={`length-choice ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)}>
-                <span className="length-choice-name">{l.name}</span>
-                <span className="length-choice-size">{l.size}</span>
-                <span className="length-choice-facts">
-                  {l.decisions} decisions · {l.time} min
+          {/* three stops on a slider; above each, what that length is (tap one to choose it too) */}
+          <div className="length-stops">
+            {STORY_LENGTHS.map((l, i) => (
+              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.size}, ${l.decisions} decisions, ${l.time} minutes, ${l.minutes} credits`}>
+                {LENGTH_ART && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} loading="lazy" />
+                )}
+                <span className="length-stop-name">{l.name}</span>
+                <span className="length-stop-size">{l.size}</span>
+                <span className="length-stop-facts">
+                  {l.decisions} decisions
+                  <br />
+                  {l.time} min
                 </span>
-                <span className="length-choice-cost">
-                  <CreditIcon size={16} />
+                <span className="length-stop-cost">
+                  <CreditIcon size={15} />
                   {l.minutes}
-                  <span className="sr-only"> credits</span>
                 </span>
+                <span className="length-stop-mark" data-i={i} aria-hidden />
               </button>
             ))}
           </div>
+          <input
+            type="range"
+            className="length-slider length-slider-3"
+            min={0}
+            max={STORY_LENGTHS.length - 1}
+            step={1}
+            value={lengthIndex}
+            onChange={(e) => setMinutes(STORY_LENGTHS[Number(e.target.value)].minutes)}
+            aria-label="Story length"
+            aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${STORY_LENGTHS[lengthIndex].size}, ${STORY_LENGTHS[lengthIndex].decisions} decisions, ${STORY_LENGTHS[lengthIndex].time} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
+            style={{ background: `linear-gradient(to right, var(--russet) ${(lengthIndex / (STORY_LENGTHS.length - 1)) * 100}%, var(--rule) 0%)` }}
+          />
           {freeMax && <p className="length-free-note">Your plan&apos;s free story covers a Quest or an Adventure. An Odyssey adds {(STORY_LENGTHS[2].minutes - freeMax.minutes) * freeMax.perMinute} credits.</p>}
         </section>
       )}
