@@ -14330,6 +14330,9 @@ html[data-night] .topbar {
 }
 .night-stars i {
   position: absolute;
+  /* (how far down: --y of the way from under the menu bar to a third of
+     the way down the screen) */
+  top: calc(max(33.3vh - var(--topbar-h, 64px), 110px) * var(--y, 0.5));
   background: #f4ecd6;
   clip-path: polygon(50% 0, 59% 41%, 100% 50%, 59% 59%, 50% 100%, 41% 59%, 0 50%, 41% 41%);
   opacity: 0.3;
@@ -14355,23 +14358,23 @@ html[data-night] .topbar {
   }
   .night-stars i:nth-child(1) {
     left: 1.2% !important;
-    top: 9% !important;
+    --y: 0.18 !important;
   }
   .night-stars i:nth-child(3) {
     left: 1.5% !important;
-    top: 58% !important;
+    --y: 0.62 !important;
   }
   .night-stars i:nth-child(7) {
     left: 96.5% !important;
-    top: 30% !important;
+    --y: 0.34 !important;
   }
   .night-stars i:nth-child(9) {
     left: 96% !important;
-    top: 76% !important;
+    --y: 0.82 !important;
   }
   .night-stars i:nth-child(13) {
     left: 2% !important;
-    top: 88% !important;
+    --y: 0.96 !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

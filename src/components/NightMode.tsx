@@ -208,10 +208,13 @@ const FIREFLIES = 16;
  *  A dozen or so, mostly at the sides and the top, where the page's own
  *  column leaves the sky open. */
 const STARS: [number, number, number, number, number][] = [
-  [4, 16, 9, 0, 5.5], [9, 42, 7, 1.8, 7], [6, 71, 9, 3.1, 6.2], [13, 88, 7, 0.6, 8.3],
-  [17, 27, 7, 2.4, 6.6], [23, 9, 10, 4, 7.4], [38, 5, 7, 1.2, 9.1], [58, 7, 7, 3.5, 6],
-  [72, 12, 9, 0.9, 8], [83, 55, 7, 2.9, 7.2], [88, 78, 9, 1.5, 6.4], [93, 33, 10, 4.4, 5.7],
-  [96, 64, 7, 0.3, 9.3], [79, 90, 7, 3.8, 7.7],
+  // (all in the top third of the screen - the sky is overhead. "Down" is
+  // in hundredths of that band: from just under the menu bar, 0, to a
+  // third of the way down the screen, 100.)
+  [4, 20, 9, 0, 5.5], [9, 55, 7, 1.8, 7], [6, 86, 9, 3.1, 6.2], [13, 96, 7, 0.6, 8.3],
+  [17, 36, 7, 2.4, 6.6], [23, 10, 10, 4, 7.4], [38, 7, 7, 1.2, 9.1], [58, 14, 7, 3.5, 6],
+  [72, 27, 9, 0.9, 8], [83, 64, 7, 2.9, 7.2], [88, 92, 9, 1.5, 6.4], [93, 40, 10, 4.4, 5.7],
+  [96, 76, 7, 0.3, 9.3], [79, 98, 7, 3.8, 7.7],
 ];
 
 function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolean }) {
@@ -355,7 +358,7 @@ function NightAmbience({ leaving, settled }: { leaving: boolean; settled: boolea
     {lit && createPortal(
       <div className={`night-stars ${leaving ? "leaving" : ""}`} aria-hidden>
         {STARS.map(([x, y, size, delay, dur], i) => (
-          <i key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, animationDelay: `${delay}s`, animationDuration: `${dur}s` }} />
+          <i key={i} style={{ left: `${x}%`, "--y": y / 100, width: size, height: size, animationDelay: `${delay}s`, animationDuration: `${dur}s` } as React.CSSProperties} />
         ))}
       </div>,
       document.body,
