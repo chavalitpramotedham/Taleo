@@ -14634,3 +14634,13 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
 .length-slider-3 {
   margin-top: 8px;
 }
+
+/* (a length that takes no credits keeps the line's height, so the three stay level) */
+.length-stop-cost.none {
+  min-height: 1.5em;
+}
+
+/* (a making button's words stay on one line beside what it costs) */
+.make-label-main {
+  white-space: nowrap;
+}

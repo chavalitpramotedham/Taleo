@@ -340,13 +340,24 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
           />
           <div className="length-stops length-stops-words">
             {STORY_LENGTHS.map((l) => (
-              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.time} minutes, ${l.minutes} credits`}>
+              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.time} minutes${freeMax ? (l.minutes > freeMax.minutes ? `, your free story and ${(l.minutes - freeMax.minutes) * freeMax.perMinute} credits` : ", your free story") : `, ${l.minutes} credits`}`}>
                 <span className="length-stop-name">{l.name}</span>
                 <span className="length-stop-facts">{l.time} min</span>
-                <span className="length-stop-cost">
-                  <CreditIcon size={15} />
-                  {l.minutes}
-                </span>
+                {/* What it will take from the account. With a free story to
+                    use, a Quest or an Adventure takes nothing (and says
+                    nothing); an Odyssey takes the credits beyond it. */}
+                {(() => {
+                  // (until it's known which it will be, nothing is said)
+                  const extra = freeMax ? Math.max(0, (l.minutes - freeMax.minutes) * freeMax.perMinute) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
+                  if (!extra) return <span className="length-stop-cost none" aria-hidden />;
+                  return (
+                    <span className="length-stop-cost">
+                      {freeMax ? "+" : ""}
+                      {extra}
+                      <CreditIcon size={15} />
+                    </span>
+                  );
+                })()}
               </button>
             ))}
           </div>

@@ -50,7 +50,7 @@ export function useMakingCost(what: "character" | "story"): MakingCost {
 }
 
 /** On a button that starts something paid for with credits, after its
- *  words: a middle dot, the credit coin, and how many. Nothing at all when
+ *  words: a middle dot, how many, and the credit coin. Nothing at all when
  *  it costs none. */
 export function CreditCost({ credits }: { credits: number | null | undefined }) {
   if (!credits) return null;
@@ -59,11 +59,12 @@ export function CreditCost({ credits }: { credits: number | null | undefined }) 
       <span className="credit-cost-dot" aria-hidden>
         ·
       </span>
-      <CreditIcon size={20} />
+      {/* (the figure, then the coin: the same order wherever an amount of credits is shown) */}
       <span className="credit-cost-n">
         {credits.toLocaleString("en-GB")}
         <span className="sr-only"> {credits === 1 ? "credit" : "credits"}</span>
       </span>
+      <CreditIcon size={20} />
     </span>
   );
 }

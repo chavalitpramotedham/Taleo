@@ -81,7 +81,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
         <button type="button" role="tab" aria-selected={tab === "credits"} className={`plans-summary-item${tab === "credits" ? " on" : ""}`} onClick={() => setTab("credits")}>
           <span className="plans-summary-label">Credits</span>
           <span className="plans-summary-value">
-            <CreditIcon size={20} /> {credits === null ? "-" : n(credits)}
+            {credits === null ? "-" : n(credits)} <CreditIcon size={20} />
           </span>
         </button>
       </section>
