@@ -319,7 +319,6 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       {step === 0 && age && (
         <section className="panel length-panel">
           <h3>How long are we dreaming?</h3>
-          <p className="meta">Each length has its own number of decisions along the way.</p>
           {/* three stops on a slider; above each, what that length is (tap one to choose it too) */}
           <div className="length-stops">
             {STORY_LENGTHS.map((l, i) => (
@@ -329,12 +328,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
                   <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} loading="lazy" />
                 )}
                 <span className="length-stop-name">{l.name}</span>
-                <span className="length-stop-size">{l.size}</span>
-                <span className="length-stop-facts">
-                  {l.decisions} decisions
-                  <br />
-                  {l.time} min
-                </span>
+                <span className="length-stop-facts">{l.time} min</span>
                 <span className="length-stop-cost">
                   <CreditIcon size={15} />
                   {l.minutes}
