@@ -182,7 +182,12 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 
 /** The headline allowances. */
 export const tierRows = (t: TierInfo): TierRow[] => [
-  { label: "New stories", value: allowanceText(t.limits.stories), note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "A free story covers up to 5 minutes - a longer one adds a credit for each extra minute. A story counts once you make its first choice") : undefined },
+  {
+    // (a plan's own story is a "standard story": up to FREE_STORY_MINUTES long)
+    label: t.limits.stories && t.credits !== "beyond" ? `Standard stories (${FREE_STORY_MINUTES} minutes)` : "New stories",
+    value: allowanceText(t.limits.stories),
+    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "A longer story adds a credit for each extra minute. A story counts once you make its first choice") : undefined,
+  },
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
   { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },
