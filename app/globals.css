@@ -15129,8 +15129,10 @@ html[data-night] .safety-dialog .modal-head h3 {
 
 /* (under the Quest, with free stories to use: how many are left) */
 .length-stop-cost.free {
+  display: block;
   min-height: 1.5em;
   font-weight: 600;
   font-size: 0.86rem;
+  line-height: 1.2;
   color: var(--russet);
 }
