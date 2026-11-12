@@ -207,33 +207,27 @@ export interface LengthProfile {
 }
 
 
-/** How many pages a story of each length has - the same at every age.
- *  Every page is a painting, and paintings are most of what a story costs
- *  to make, so the page count is what keeps each length's price in step
- *  with its cost: at about 14 US cents a painted page (and a little for
- *  the writing), a Quest (3 credits, US$1.50) keeps about 36%, an
- *  Adventure (5, US$2.50) about 38% and an Odyssey (8, US$4.00) about
- *  42% - roughly even, a little better for the longer stories. The age
- *  sets how much is written on each page (lib/ages: words), so older
- *  children's stories read longer on the same number of pages. */
-const PAGES: Record<LengthId, number> = { quest: 6, adventure: 10, odyssey: 15 };
+/** The pages in each segment of a story of each length - the same at
+ *  every age, the opening and the ending a little shorter than the
+ *  middle: a Quest 9 (3, 3, 3), an Adventure 14 (3, 4, 4, 3), an Odyssey
+ *  18 (3, 4, 4, 4, 3). Every page is a painting, and paintings are most of
+ *  what a story costs to make: at about 14 US cents a painted page (and a
+ *  little for the writing), a Quest (3 credits, US$1.50) keeps about 8%
+ *  of its price, an Adventure (5, US$2.50) about 15% and an Odyssey (8,
+ *  US$4.00) about 32% - chosen to be generous. The age sets how much is
+ *  written on each page (lib/ages: words). */
+const PAGES: Record<LengthId, number[]> = { quest: [3, 3, 3], adventure: [3, 4, 4, 3], odyssey: [3, 4, 4, 4, 3] };
 
 /**
  * What a story of this length is made of, for this age: its decisions and
- * its pages (set by the length), and the words on a page (set by the age,
- * in a narrow band). The pages are shared out between the segments - not
- * always evenly: the opening and the ending get any extra pages first,
- * then the segments next to them (an Adventure of 10 runs 3, 2, 2, 3).
+ * its pages in each segment (set by the length), and the words on a page
+ * (set by the age, in a narrow band).
  */
 export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
   const length = lengthOf(minutes);
   const choices = length.decisions;
-  const segments = choices + 1;
   const mid = (age.words[0] + age.words[1]) / 2;
   const words: [number, number] = [Math.round(mid * 0.85), Math.round(mid * 1.15)];
-  const total = Math.max(segments * 2, PAGES[length.id]);
-  const pages = Array.from({ length: segments }, () => Math.floor(total / segments));
-  // (the pages left over: first, last, second, second-last...)
-  for (let extra = total - pages[0] * segments, i = 0; extra > 0; extra--, i++) pages[i % 2 ? segments - 1 - (i >> 1) : i >> 1]++;
+  const pages = [...PAGES[length.id]];
   return { length, choices, pages, pagesPerSegment: [Math.min(...pages), Math.max(...pages)], words };
 }
