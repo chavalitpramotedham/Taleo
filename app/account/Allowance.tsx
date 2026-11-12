@@ -242,7 +242,7 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
             <section className="panel credits-panel" aria-label="What your plan allows right now">
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`${standard ? "Free Quests" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                <Line what={`${standard ? "Free stories" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
                 {rights.weekly && <Line what="Weekly credits left" value={n(rights.weekly.left)} note={resets(rights.weekly.resetsAt)} />}
                 <Line
                   what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
