@@ -14340,8 +14340,7 @@ html[data-night] .topbar {
   animation: starGlimmer 7s ease-in-out infinite;
 }
 /* A smaller screen has a smaller sky: seven stars on a tablet, and on a
-   phone five - smaller, and kept to the narrow margins at the two edges
-   of the screen, where the page leaves the sky open. */
+   phone five - smaller, and spread evenly across it. */
 @media (max-width: 899px) {
   .night-stars i:nth-child(even) {
     display: none;
@@ -14356,25 +14355,31 @@ html[data-night] .topbar {
   .night-stars i {
     scale: 0.8;
   }
+  /* (spread evenly across the phone's sky rather than kept to its two
+     edges; the ones that fall behind the page's title are fainter, so
+     they don't pull the eye from the words) */
   .night-stars i:nth-child(1) {
-    left: 1.2% !important;
-    --y: 0.18 !important;
+    left: 5% !important;
+    --y: 0.3 !important;
   }
   .night-stars i:nth-child(3) {
-    left: 1.5% !important;
-    --y: 0.62 !important;
+    left: 27% !important;
+    --y: 0.78 !important;
+    background: rgba(244, 236, 214, 0.5);
   }
   .night-stars i:nth-child(7) {
-    left: 96.5% !important;
-    --y: 0.34 !important;
+    left: 50% !important;
+    --y: 0.12 !important;
+    background: rgba(244, 236, 214, 0.5);
   }
   .night-stars i:nth-child(9) {
-    left: 96% !important;
-    --y: 0.82 !important;
+    left: 73% !important;
+    --y: 0.92 !important;
+    background: rgba(244, 236, 214, 0.5);
   }
   .night-stars i:nth-child(13) {
-    left: 2% !important;
-    --y: 0.96 !important;
+    left: 93% !important;
+    --y: 0.5 !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
