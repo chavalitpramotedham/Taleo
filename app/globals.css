@@ -14744,3 +14744,11 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
   color: var(--ink);
   font-weight: 600;
 }
+
+/* (on a phone the lantern hangs close to the words: its light is a touch
+   softer there - the fade-in ends at this, not at full) */
+@media (max-width: 640px) {
+  .night-glow {
+    opacity: 0.8;
+  }
+}
