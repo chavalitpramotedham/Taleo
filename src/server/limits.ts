@@ -475,24 +475,44 @@ async function guardWith(
   // (Where credits can't be kept at all, or can't be reached just now, the
   // plan's own allowance stands instead: the account is never locked out
   // of making things by the credit store being away.)
-  if (mode === "always" && item && price && !me.stale && billingAvailable()) {
+  // A plan's free story is a Quest (lib/tiers: FREE_STORY_MINUTES). A
+  // longer story isn't one of them: it's paid for with credits, all of
+  // it, as on a plan where everything costs credits - and the free Quest
+  // is left for another night.
+  const freeCovers = FREE_STORY_MINUTES * CREDITS_PER_STORY_MINUTE;
+  const long = item === "story" && price > freeCovers && mode === "auto" && Boolean(account) && !me.stale && billingAvailable();
+  if ((mode === "always" || long) && item && price && !me.stale && billingAvailable()) {
     if (item === "story") {
       const tooMuch = await sitting();
       if (tooMuch) return tooMuch;
       const waited = await fromWaiting();
       if (waited) return waited;
     }
+    // (its first choice asked again - a retry, another tab: paid already)
+    if (long && !beginning && storyRef && (await wasPaid(userId, storyRef))) return { ok: true, session, release: nothing, settle: nothing };
     const paid = await pay();
     if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
-    if (!paid.down) return { ok: false, response: notEnough(paid.offer) };
+    if (!paid.down) {
+      if (!long) return { ok: false, response: notEnough(paid.offer) };
+      const o = paid.offer;
+      return {
+        ok: false,
+        response: NextResponse.json(
+          {
+            error: `Your free story is a Quest. ${cap(aLength(lengthOf(o.price)))} is paid with credits: it needs ${o.price}, and there ${o.balance === 1 ? "is" : "are"} ${o.balance}. Make it a Quest and it's free.`,
+            limited: "credits",
+            credits: o,
+            freeMinutes: FREE_STORY_MINUTES,
+          },
+          { status: 402 },
+        ),
+      };
+    }
+    // (the credits can't be reached just now: a story longer than a free
+    // one is never begun on a guess)
+    if (long) return unavailable;
     console.error("[limits] credits unavailable: the plan's own allowance stands");
   }
-
-  // A free story covers so many minutes (lib/tiers: FREE_STORY_MINUTES).
-  // A longer one still uses the free story - and credits for the minutes
-  // beyond it, set aside when it's begun and spent at its first choice.
-  const freeCovers = FREE_STORY_MINUTES * CREDITS_PER_STORY_MINUTE;
-  const long = item === "story" && price > freeCovers && mode === "auto" && Boolean(account) && !me.stale && billingAvailable();
 
   let took: Took;
   /** how the request itself was counted (before any second look) */
@@ -546,65 +566,6 @@ async function guardWith(
         // (`credits`: this could be paid for with credits - ask, then send it again saying so)
         { error: limitMessage(session.user, took.limited, took.retryAfterSec), retryAfterSec: took.retryAfterSec, limited: took.limited, plan: tierFor(session.user).name, credits: offer },
         { status: 429, headers: { "Retry-After": String(took.retryAfterSec) } },
-      ),
-    };
-  }
-  // One of the plan's free stories, but longer than a free story covers:
-  // the minutes beyond it are paid for with credits.
-  if (long && counted && !counted.already) {
-    const use = counted;
-    const topUp = price - freeCovers;
-    const extra = `${topUp / CREDITS_PER_STORY_MINUTE} minute${topUp === CREDITS_PER_STORY_MINUTE ? "" : "s"} beyond a free story`;
-    const backUse = () => refund(userId, use.limited, use.at);
-    // (its first choice: what was set aside when it was begun becomes the
-    // spend - and stays set aside, to try again, if writing the part fails)
-    const waited = await fromWaiting();
-    if (waited) {
-      return {
-        ...waited,
-        release: async (how?: { left?: boolean }) => {
-          await waited.release();
-          if (!how?.left) await backUse();
-        },
-      };
-    }
-    if (beginning) await releasePendingStories(userId, "Another story was begun instead: credits returned");
-    await heldCredits(userId).catch(() => null);
-    const paid = await holdCredits(userId, topUp, ref, `A ${price}-minute story: ${extra}`);
-    if (paid.ok) {
-      const spent = paid.applied ? topUp : 0;
-      const back = async (how?: { left?: boolean }) => {
-        if (spent) await releaseHold(userId, ref, "The story didn't work out: credits returned");
-        if (!how?.left) await backUse();
-      };
-      // (held from now under the name of the story begun - see heldOpen)
-      if (beginning) {
-        return {
-          ok: true,
-          session,
-          credits: spent,
-          release: back,
-          settle: async (done?: { storyKey?: string }) => {
-            if (spent && done?.storyKey) await moveHold(userId, ref, pendingFor(done.storyKey));
-          },
-        };
-      }
-      return { ok: true, session, credits: spent, release: back, settle: async () => void (spent && (await settleHold(userId, ref, titled(`A ${price}-minute story: ${extra}`)))) };
-    }
-    // (not enough for the extra minutes, or the credits can't be reached:
-    // the free story isn't used up on a story that can't be made)
-    await backUse();
-    if (paid.reason === "unavailable") return unavailable;
-    return {
-      ok: false,
-      response: NextResponse.json(
-        {
-          error: `Your free story covers a Quest or an Adventure. ${cap(aLength(lengthOf(price)))} needs ${topUp} credit${topUp === 1 ? "" : "s"} more - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it an Adventure and it's free.`,
-          limited: "credits",
-          credits: { item: "story", price: topUp, balance: paid.balance },
-          freeMinutes: FREE_STORY_MINUTES,
-        },
-        { status: 402 },
       ),
     };
   }

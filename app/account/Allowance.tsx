@@ -1,5 +1,5 @@
 "use client";
-import { STANDARD_LENGTH, STORY_LENGTHS } from "@/lib/ages";
+import { STORY_LENGTHS } from "@/lib/ages";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -194,7 +194,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <section className="panel credits-panel" aria-label="What your plan allows right now">
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`${standard ? "Standard stories" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                <Line what={`${standard ? "Free Quests" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
                 <Line
                   what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
                   value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)}
@@ -204,7 +204,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
               </ul>
               {standard && (
                 <p className="meta menu-note">
-                  *NOTE: a standard story is a Quest or an Adventure. An Odyssey uses one too, and adds {STORY_LENGTHS[2].minutes - STANDARD_LENGTH.minutes} credits.
+                  *NOTE: your plan&apos;s free story is a Quest, the short one. An Adventure or an Odyssey is paid with credits.
                 </p>
               )}
             </section>
