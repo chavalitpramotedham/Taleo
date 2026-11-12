@@ -1,7 +1,7 @@
 "use client";
 import { QuotaNote } from "./QuotaNote";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useToast } from "./Toast";
 import type { GalleryEntry } from "@/lib/types";
 import { STORY_DELETED_EVENT, fetchGalleryShelf } from "@/lib/gallery-client";
@@ -127,10 +127,15 @@ export function GalleryShelf({
         asked.current.add(key);
         remember<Shelf>(key, { stories: list, categories, daily: today });
         if (live) {
-          setError(false);
-          setStories(list);
-          if (today) setDaily(today);
-          if (limit) setHomeCategories(categories);
+          // (the cards are built a little at a time, between frames - a
+          // shelf arriving while the page is being scrolled doesn't stop
+          // the scroll; the placeholders hold its room until then)
+          startTransition(() => {
+            setError(false);
+            setStories(list);
+            if (today) setDaily(today);
+            if (limit) setHomeCategories(categories);
+          });
         }
       })
       .catch(() => live && !have && setError(true));
