@@ -14805,3 +14805,153 @@ html[data-night] .buy-credits-pack.deal .buy-credits-price b {
   row-gap: 14px;
   padding-top: 4px;
 }
+
+/* ---------- A first story, in three steps (the home page, before any story is made) ---------- */
+/* One card, tappable anywhere, that leads into making a story. Each step
+   has its picture and number, a title and a line saying what to do; a
+   dotted thread runs from one to the next. Stacked on a phone, side by
+   side on wider screens. */
+.first-steps {
+  display: block;
+  max-width: 720px;
+  margin: clamp(20px, 3.5vw, 32px) auto 0;
+  padding: clamp(16px, 3vw, 22px);
+  border: 1px solid color-mix(in srgb, var(--russet) 45%, var(--rule));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--page) 86%, transparent);
+  box-shadow: 0 14px 28px -20px rgba(70, 50, 30, 0.55);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.first-steps:active {
+  transform: translateY(1px);
+}
+@media (hover: hover) {
+  .first-steps:hover {
+    border-color: var(--russet);
+    box-shadow: 0 18px 32px -20px rgba(70, 50, 30, 0.65);
+  }
+}
+.first-steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.first-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+}
+/* (the thread from one step down to the next) */
+.first-steps li + li::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: -14px;
+  height: 14px;
+  border-left: 2px dotted color-mix(in srgb, var(--russet) 45%, transparent);
+}
+.first-steps-mark {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(176, 90, 52, 0.1);
+  color: var(--russet);
+}
+.first-steps-mark svg {
+  width: 24px;
+  height: 24px;
+}
+.first-steps li.first .first-steps-mark {
+  background: var(--russet);
+  color: #fff8ec;
+}
+.first-steps-mark b {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--page);
+  border: 1px solid color-mix(in srgb, var(--russet) 50%, var(--rule));
+  color: var(--russet);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+  line-height: 1;
+}
+.first-steps-words {
+  display: grid;
+  gap: 2px;
+}
+.first-steps-title {
+  font-family: var(--font-title);
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+.first-steps-hint {
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+.first-steps-go {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-caps);
+  letter-spacing: 0.08em;
+  color: var(--russet);
+}
+html[data-night] .first-steps {
+  background: color-mix(in srgb, var(--page) 70%, transparent);
+}
+html[data-night] .first-steps-mark {
+  background: rgba(240, 170, 120, 0.14);
+  color: #f0b088;
+}
+html[data-night] .first-steps li.first .first-steps-mark {
+  background: #d98a5c;
+  color: #1c1410;
+}
+html[data-night] .first-steps-mark b,
+html[data-night] .first-steps-go {
+  color: #f0b088;
+}
+@media (min-width: 700px) {
+  .first-steps ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .first-steps li {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-items: start;
+    text-align: center;
+    gap: 10px;
+  }
+  /* (the thread runs across, from one step to the next) */
+  .first-steps li + li::before {
+    left: calc(-50% + 30px);
+    right: calc(50% + 30px);
+    top: 24px;
+    height: 0;
+    border-left: 0;
+    border-top: 2px dotted color-mix(in srgb, var(--russet) 45%, transparent);
+  }
+}

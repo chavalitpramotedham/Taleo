@@ -7,7 +7,7 @@ import { ageById } from "@/lib/ages";
 import { MyCreationsRow } from "@/components/MyCreationsRow";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { FloatingBeginBar } from "@/components/FloatingBeginBar";
-import { MapleMark, OrnamentRule } from "@/components/Icons";
+import { AccountIcon, CharacterIcon, MapleMark, OpenBookIcon, OrnamentRule } from "@/components/Icons";
 import { QuotaNote } from "@/components/QuotaNote";
 import { ReadingChart } from "@/components/ReadingChart";
 import { readingDiary } from "@/server/reading";
@@ -46,9 +46,9 @@ export default async function HomePage() {
   const isNew = mine.length === 0;
   // Brand new: how a first story comes together, instead of three zeros.
   const firstSteps = [
-    { value: 1, label: "Choose who it's for" },
-    { value: 2, label: "Pick a hero and an adventure" },
-    { value: 3, label: "Read it together tonight" },
+    { icon: <AccountIcon />, title: "Say who it's for", hint: "Pick your child's age, and how long a story you'd like tonight." },
+    { icon: <CharacterIcon />, title: "Choose a hero", hint: "A rabbit, a fox, or a character of your own - then what the story is about." },
+    { icon: <OpenBookIcon />, title: "Read it together", hint: "Taleo writes it and paints every page. Your child decides what happens next." },
   ];
   const stats = [
     // (each number said as what it gave the child, not what was produced)
@@ -83,14 +83,39 @@ export default async function HomePage() {
         )}
       </header>
 
-      <section className={`home-stats${isNew ? " home-steps" : ""}`} aria-label={isNew ? "How your first story comes together" : "Your stories so far"}>
-        {(isNew ? firstSteps : stats).map((s) => (
-          <div key={s.label} className="home-stat">
-            <span className="home-stat-value">{s.value.toLocaleString()}</span>
-            <span className="home-stat-label">{s.label}</span>
-          </div>
-        ))}
-      </section>
+      {isNew ? (
+        // Brand new: the three steps of a first story, as one card that
+        // can be tapped anywhere to begin - the first step is where it
+        // starts, and says so.
+        <Link className="first-steps" href="/create" aria-label="Begin your first story: say who it's for, choose a hero, then read it together">
+          <ol>
+            {firstSteps.map((s, i) => (
+              <li key={s.title} className={i === 0 ? "first" : undefined}>
+                <span className="first-steps-mark" aria-hidden>
+                  {s.icon}
+                  <b>{i + 1}</b>
+                </span>
+                <span className="first-steps-words">
+                  <span className="first-steps-title">{s.title}</span>
+                  <span className="first-steps-hint">{s.hint}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <span className="first-steps-go">
+            Start here <span aria-hidden>›</span>
+          </span>
+        </Link>
+      ) : (
+        <section className="home-stats" aria-label="Your stories so far">
+          {stats.map((s) => (
+            <div key={s.label} className="home-stat">
+              <span className="home-stat-value">{s.value.toLocaleString()}</span>
+              <span className="home-stat-label">{s.label}</span>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* The days you've read together, with the current streak. */}
       <ReadingChart />
