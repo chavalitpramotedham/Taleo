@@ -36,8 +36,47 @@ function versionOf(git: (...args: string[]) => string, headAt?: string): string 
   // rest of the day's first, and count what's there if that can't be had.
   const since = new Date(Math.max(LAUNCH, dayOf(at) * DAY_MS - ZONE_MS)).toISOString();
   if (git("rev-parse", "--is-shallow-repository") === "true") git("fetch", "--quiet", `--shallow-since=${since}`, "origin", "HEAD");
-  const pushes = Number(git("rev-list", "--count", `--since=${since}`, "HEAD")) || 1;
+  const counted = Number(git("rev-list", "--count", `--since=${since}`, "HEAD")) || 1;
+  // (Vercel's copy of the code holds only the last few commits, so on a busy
+  // day that count stops at about ten: a live build counts itself instead -
+  // see liveBuildNumber - and the count above is only the fallback)
+  const pushes = liveBuildNumber(minor, Math.max(counted, SEEN[minor] ?? 0)) ?? counted;
   return `1.${minor}.${Math.max(0, pushes - 1)}`;
+}
+
+/** Pushes already made on a day before builds counted themselves (day 1:
+ *  12 November 2026, GMT+8). */
+const SEEN: Record<number, number> = { 1: 89 };
+
+/**
+ * A live (production) build's number within its day: 1 for the day's
+ * first, then 2, 3... - counted in the app's own Redis store, which every
+ * build can reach, and the same number again if the same commit is built
+ * twice. `atLeast`: where the day's count starts, if this is its first
+ * build. Null on any other build, or if the store can't be reached (the
+ * version then comes from the commits the build has).
+ */
+function liveBuildNumber(day: number, atLeast: number): number | null {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (process.env.VERCEL_ENV !== "production" || !url || !token || !sha) return null;
+  const script = [
+    "local n = redis.call('GET', KEYS[2]) if n then return tonumber(n) end",
+    "if redis.call('EXISTS', KEYS[1]) == 0 then redis.call('SET', KEYS[1], tonumber(ARGV[1]) - 1) end",
+    "n = redis.call('INCR', KEYS[1]) redis.call('EXPIRE', KEYS[1], 864000) redis.call('SET', KEYS[2], n, 'EX', 2592000) return n",
+  ].join(" ");
+  const command = JSON.stringify(["EVAL", script, "2", `version:day:${day}`, `version:sha:${sha}`, String(Math.max(1, atLeast))]);
+  // (the config is read without waiting, so the store is asked from a
+  // short-lived child process, which waits at most a few seconds)
+  const ask = `fetch(${JSON.stringify(url.replace(/\/$/, ""))},{method:"POST",headers:{Authorization:"Bearer "+process.env.T,"Content-Type":"application/json"},body:process.env.C,signal:AbortSignal.timeout(4000)}).then(r=>r.json()).then(d=>process.stdout.write(String(d.result??""))).catch(()=>{})`;
+  try {
+    const out = execFileSync(process.execPath, ["-e", ask], { encoding: "utf8", env: { ...process.env, T: token, C: command }, timeout: 6000, stdio: ["ignore", "pipe", "ignore"] }).trim();
+    const n = Number(out);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
 }
 
 function buildInfo() {
