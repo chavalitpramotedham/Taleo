@@ -474,9 +474,13 @@ function BuyCredits({ balance, open, onClose }: { balance: number; open: boolean
                 ) : (
                   <Line what={`Price (${perCredit} a credit)`} value={total ?? "-"} />
                 )}
-                <Line what="Your credits after" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
+                <Line what="Your credit balance after*" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
               </ul>
-              <p className="buy-credits-tax">Prices are before tax. Any tax due where you live is added at checkout, before you pay.</p>
+              <p className="buy-credits-tax">
+                *Added as soon as Stripe confirms your payment.
+                <br />
+                Prices are before tax. Any tax due where you live is added at checkout, before you pay.
+              </p>
             </section>
             {error && <p className="error">{error}</p>}
             <button type="submit" className="btn btn-primary btn-block" disabled={!valid || busy}>
