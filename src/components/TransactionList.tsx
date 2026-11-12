@@ -14,7 +14,7 @@ const clock = (at: number) => {
 /**
  * An account's credit transactions, set out as a bank lists them: one row
  * each with a rule between - what it was and when on the left, the credits
- * in or out (with the coin) on the right. Newest first, as given.
+ * in or out on the right, the coin after the figure. Newest first, as given.
  */
 export function TransactionList({ items }: { items: Transaction[] }) {
   return (
@@ -30,8 +30,8 @@ export function TransactionList({ items }: { items: Transaction[] }) {
           </span>
           <span className={`txn-amount ${t.amount > 0 ? "in" : "out"}`} aria-label={`${t.amount > 0 ? "plus" : "minus"} ${n(Math.abs(t.amount))} credits`}>
             {t.amount > 0 ? "+" : "−"}
-            <CreditIcon size={18} />
             {n(Math.abs(t.amount))}
+            <CreditIcon size={18} />
           </span>
         </li>
       ))}
