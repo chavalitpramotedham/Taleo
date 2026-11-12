@@ -48,8 +48,8 @@ const STEP_NOTES = [
  *  and read their characters (`initialCharacters`; null if it couldn't),
  *  so the first step shows at once. */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
-/** The three lengths' little pictures (public/art/lengths/<id>.webp): shown once they are in place. */
-const LENGTH_ART = false;
+/** The three lengths' little pictures (public/art/lengths/<id>.webp). */
+const LENGTH_ART = true;
 
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
   const router = useRouter();
