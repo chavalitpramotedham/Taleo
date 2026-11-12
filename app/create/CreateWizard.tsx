@@ -316,7 +316,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
 
       {step === 0 && age && (
         <section className="panel length-panel">
-          <h3>How long are we dreaming?</h3>
+          <h3>How far shall we go tonight?</h3>
           {/* three stops on a slider: each stop's picture above the line, its name and time below (tap either to choose it) */}
           <div className="length-stops length-stops-art">
             {STORY_LENGTHS.map((l) => (
