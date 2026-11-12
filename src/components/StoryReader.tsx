@@ -30,11 +30,11 @@ import { LimitDialog, type LimitNotice } from "./LimitDialog";
 import { useToast } from "./Toast";
 
 /** Strokes a page's painting needs before the waiting page opens onto it. */
-const RELEASE_SHAPES = 70;
+const RELEASE_SHAPES = 115;
 /** The longest the story waits for a picture once the words are there:
  *  past this the book opens (or the next part begins) and the picture
  *  finishes on the page. Nothing a painter does can hold up the reading. */
-const PICTURE_WAIT_MS = 20_000;
+const PICTURE_WAIT_MS = 28_000;
 
 type View =
   | { kind: "page"; page: Page; seg: number; n: number; number: number }
@@ -138,6 +138,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // until the next page's words AND picture are ready, then moves on - so
   // the child never lands on a half-made page with the voice starting.
   const [holdSeg, setHoldSeg] = useState<number | null>(null);
+  // Is something happening on the page right now that a page change would
+  // cut short - words being read aloud, a page in the middle of turning?
+  // Every change the reader didn't ask for waits until this is false.
+  const [speaking, setSpeaking] = useState(false);
+  useEffect(() => onSpeechProgress((p) => setSpeaking(p !== null)), []);
+  const [turning, setTurning] = useState(false);
+  const occupied = speaking || turning;
   // When the current wait began (for the progress bar's easing).
   const [progressStart, setProgressStart] = useState(() => Date.now());
 
@@ -194,21 +201,32 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // laid in), the page opens and the painting finishes in front of the
   // reader - about half the wait, with nothing half-empty to land on.
   const heldPainted = holdSeg !== null && countShapes(live[pageKey(holdSeg, 0)]) >= RELEASE_SHAPES;
+  // (when its first words arrived: the slow-painting clock runs from then,
+  // whatever else restarts this effect)
+  const heldWordsAt = useRef(0);
+  useEffect(() => {
+    heldWordsAt.current = heldHasWords ? Date.now() : 0;
+  }, [heldHasWords, holdSeg]);
   useEffect(() => {
     if (holdSeg === null) return;
     if (error || (!busy && heldMissing) || heldFailed) return setHoldSeg(null);
+    // Nothing moves on while something is still happening on this page -
+    // words being read aloud, a page still turning: it waits for that to
+    // end, then goes.
+    if (occupied) return;
     if (heldHasPicture || heldPainted) {
       const t = window.setTimeout(() => setHoldSeg(null), 350);
       return () => window.clearTimeout(t);
     }
     if (heldHasWords) {
-      const t = window.setTimeout(() => setHoldSeg(null), PICTURE_WAIT_MS);
+      const since = heldWordsAt.current || Date.now();
+      const t = window.setTimeout(() => setHoldSeg(null), Math.max(350, PICTURE_WAIT_MS - (Date.now() - since)));
       return () => window.clearTimeout(t);
     }
     // (story.segments is only read for "is the part there", which
     // `missing` carries: listing it would restart the clock on every word)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [holdSeg, heldHasWords, heldHasPicture, heldPainted, heldFailed, error, busy, heldMissing]);
+  }, [holdSeg, heldHasWords, heldHasPicture, heldPainted, heldFailed, error, busy, heldMissing, occupied]);
 
   // ---------------------------------------------------------------- the cover
   const firstPage = story.segments[0]?.pages[0];
@@ -389,6 +407,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // beneath it).
   const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; art: string | null; dir: 1 | -1; n: number } | null>(null);
   const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode; art: string | null }>({ picture: null, words: null, art: null });
+  // (a page in the middle of turning counts as "something happening")
+  useEffect(() => setTurning(Boolean(outgoing)), [outgoing]);
   const indexRef = useRef(index);
   indexRef.current = index;
   /** True while sitting on a choice the child hasn't answered: no reading ahead. */
@@ -427,6 +447,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   coverRef.current = cover;
   const go = useCallback(
     (d: number) => {
+      // (the reader is turning pages themselves: the book doesn't then move on by itself)
+      autoTurn.current = null;
       // The cover is the page before page 1.
       if (coverRef.current !== "open") {
         if (d > 0 && coverRef.current === "closed" && storyRef.current.segments[0]?.pages[0]) {
@@ -468,25 +490,51 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     setIndex(index + 1);
   }, [pendingNext, views, index]);
 
+  // A turn the reader didn't ask for (the book moving on by itself) waits
+  // for whatever is happening on the page to end - the voice mid-sentence,
+  // a page still turning - and is dropped if the reader turns a page
+  // themselves in the meantime.
+  const autoTurn = useRef<(() => void) | null>(null);
+  const [autoTick, setAutoTick] = useState(0);
+  const turnWhenFree = useCallback((turn: () => void) => {
+    autoTurn.current = turn;
+    setAutoTick((n) => n + 1);
+  }, []);
+  useEffect(() => {
+    if (occupied || !autoTurn.current) return;
+    // (a breath after the last word, rather than on its heels)
+    const t = window.setTimeout(() => {
+      const turn = autoTurn.current;
+      autoTurn.current = null;
+      turn?.();
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [occupied, autoTick]);
+
   // When a new segment lands, turn to its first page.
   const segCount = story.segments.length;
   const prevSegCount = useRef(segCount);
   useEffect(() => {
     if (segCount > prevSegCount.current) {
-      const firstNew = views.findIndex((v) => v.kind === "page" && v.seg === segCount - 1);
-      if (firstNew >= 0) turnTo(firstNew, { force: true });
+      const seg = segCount - 1;
+      if (views.some((v) => v.kind === "page" && v.seg === seg)) {
+        turnWhenFree(() => {
+          const firstNew = viewsRef.current.findIndex((v) => v.kind === "page" && v.seg === seg);
+          if (firstNew >= 0) turnTo(firstNew, { force: true });
+        });
+      }
     }
     prevSegCount.current = segCount;
-  }, [segCount, views, turnTo]);
+  }, [segCount, views, turnTo, turnWhenFree]);
 
   // When writing starts, turn once to the "writing" page. (Not on every
   // page that streams in after - that would pull the reader away from the
   // page they're on.)
   const wasBusy = useRef(false);
   useEffect(() => {
-    if (busy && !wasBusy.current) turnTo(views.length - 1, { force: true });
+    if (busy && !wasBusy.current) turnWhenFree(() => turnTo(viewsRef.current.length - 1, { force: true }));
     wasBusy.current = busy;
-  }, [busy, views.length, turnTo]);
+  }, [busy, turnTo, turnWhenFree]);
   useEffect(() => {
     if (!busy) return;
     const t = window.setInterval(() => setLoadingLine((n) => (n + 1) % LOADING_LINES.length), 2600);
