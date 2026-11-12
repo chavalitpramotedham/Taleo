@@ -14661,3 +14661,86 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
 .menu-orn-rule {
   margin: 22px auto 14px;
 }
+
+/* ---------- Buy credits: the packs ---------- */
+.buy-credits-packs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.buy-credits-pack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px 9px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.buy-credits-pack.on {
+  border-color: var(--russet);
+  box-shadow: inset 0 0 0 1px var(--russet);
+}
+/* ("Other" sits alone on the last row: across its whole width) */
+.buy-credits-pack:last-child {
+  grid-column: 1 / -1;
+}
+.buy-credits-n {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: lining-nums;
+}
+.buy-credits-price {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.buy-credits .add-credits-number {
+  margin-top: 10px;
+}
+.buy-credits-foot {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 0.84rem;
+}
+.buy-credits-answer {
+  margin: 0 0 6px;
+}
+
+/* (buy credits: how paying is kept safe) */
+.buy-credits-safety ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+.buy-credits-safety li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+.buy-credits-safety li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--russet);
+}
+.buy-credits-safety li b {
+  color: var(--ink);
+  font-weight: 600;
+}

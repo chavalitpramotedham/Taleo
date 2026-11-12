@@ -154,6 +154,13 @@ export const STORY_CREDITS_RANGE: [number, number] = [storyCredits(STORY_LENGTHS
 export const STARTER_CREDITS = 250;
 /** The most that can be added by hand in one go. */
 export const MAX_CREDITS_ADDED = 1000;
+/** Credits can be bought in these packs, or another amount up to the most. */
+export const CREDIT_PACKS = [5, 10, 20, 30, 40, 50];
+export const CREDIT_PACK_MAX = 500;
+/** What a number of credits costs to buy. NOT DECIDED YET: null, and the
+ *  pages say "price to be announced". When it is, this is the one place
+ *  it goes (the checkout and the page both ask here). */
+export const packPrice = (_credits: number): { amount: number; currency: string } | null => null;
 
 const isTier = (v: unknown): v is TierId => typeof v === "string" && Object.prototype.hasOwnProperty.call(PLANS, v);
 

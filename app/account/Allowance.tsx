@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark, OrnamentRule } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
-import { MAX_CREDITS_ADDED, monthOf, weekOf } from "@/lib/tiers";
+import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, packPrice } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -80,6 +80,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
   const always = rights.creditsMode === "always";
   const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
   const [adding, setAdding] = useState(false);
+  const [buying, setBuying] = useState(false);
   const router = useRouter();
   const s = rights.stories;
   const c = rights.characters;
@@ -112,8 +113,9 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
               <b>{credits === null ? "-" : n(credits)}</b>
               <span>{credits === 1 ? "credit" : "credits"}</span>
             </p>
-            {rights.canAddCredits && (
-              <button type="button" className="btn btn-primary credits-add" onClick={() => setAdding(true)} aria-label="Add credits" title="Add credits">
+            {/* (the admin's test account adds credits by hand; everyone else buys them) */}
+            {(
+              <button type="button" className="btn btn-primary credits-add" onClick={() => (rights.canAddCredits ? setAdding(true) : setBuying(true))} aria-label={rights.canAddCredits ? "Add credits" : "Buy credits"} title={rights.canAddCredits ? "Add credits" : "Buy credits"}>
                 <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
                   <path d="M8 2.5v11M2.5 8h11" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
                 </svg>
@@ -194,6 +196,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
         </>
       )}
 
+      {buying && <BuyCredits balance={credits ?? 0} onClose={() => setBuying(false)} />}
       {adding && (
         <AddCredits
           balance={credits ?? 0}
@@ -219,6 +222,180 @@ const lost = (e: unknown, fallback: string) => (e instanceof TypeError ? "No con
  *  amounts, for the admin's own account or for someone found by handle or
  *  email. Digits only - anything else can't be typed or pasted in. How it
  *  went is said in a toast at the top of the screen. */
+/**
+ * Buying credits: choose a pack (or another amount), see what it comes to,
+ * and go on to the card checkout.
+ *
+ * The price isn't decided and the checkout isn't open: the price reads "to
+ * be announced", and going on says plainly that payments are still being
+ * set up - nothing charged, nothing added. Both are kept in one place each
+ * (lib/tiers: packPrice; /api/account/checkout) for when they're ready.
+ */
+function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void }) {
+  const [pack, setPack] = useState<number | "other">(CREDIT_PACKS[1]);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // (after "Continue to checkout": what the checkout said)
+  const [answer, setAnswer] = useState<string | null>(null);
+  useEscape(onClose, !busy);
+  const amount = pack === "other" ? (/^[0-9]+$/.test(text) ? Number(text) : 0) : pack;
+  const valid = amount >= 1 && amount <= CREDIT_PACK_MAX;
+  const cost = (credits: number) => {
+    const p = packPrice(credits);
+    return p ? new Intl.NumberFormat("en-GB", { style: "currency", currency: p.currency }).format(p.amount) : null;
+  };
+  const total = valid ? cost(amount) : null;
+  const checkout = async () => {
+    if (!valid || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/account/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credits: amount }) });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; pending?: boolean; message?: string; error?: string };
+      // (when the checkout is open, it sends where to pay: go there)
+      if (res.ok && data.url) return void (window.location.href = data.url);
+      if (data.pending) return setAnswer(data.message || "Card payments are still being set up. Nothing has been charged.");
+      throw new Error(data.error || "The checkout couldn't be opened. Please try again.");
+    } catch (e) {
+      setError(lost(e, "Something went wrong."));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="modal-backdrop" onClick={() => !busy && onClose()}>
+      <form
+        className="modal-panel draft-prompt add-credits buy-credits"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void checkout();
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Buy credits"
+      >
+        <div className="modal-head">
+          <h3>
+            <CreditIcon size={22} /> Buy credits
+          </h3>
+          <button type="button" className="icon-btn" onClick={onClose} disabled={busy} aria-label="Close">
+            ✕
+          </button>
+        </div>
+        {answer ? (
+          <>
+            <section className="add-credits-box">
+              <h4 className="menu-title">Checkout isn&apos;t open yet</h4>
+              <p className="limit-message buy-credits-answer">{answer}</p>
+              <p className="meta">
+                You chose {n(amount)} credit{amount === 1 ? "" : "s"}. When payments open, this step will take you to Stripe&apos;s checkout page to pay by card.
+              </p>
+            </section>
+            <PaymentSafety />
+            <button type="button" className="btn btn-primary btn-block" onClick={onClose}>
+              Close
+            </button>
+          </>
+        ) : (
+          <>
+            <section className="add-credits-box" aria-labelledby="buy-credits-pack">
+              <h4 id="buy-credits-pack" className="menu-title">
+                Choose a pack
+              </h4>
+              <div className="buy-credits-packs" role="radiogroup" aria-label="Credit packs">
+                {CREDIT_PACKS.map((c) => (
+                  <button key={c} type="button" role="radio" aria-checked={pack === c} className={`buy-credits-pack${pack === c ? " on" : ""}`} onClick={() => setPack(c)} disabled={busy}>
+                    <span className="buy-credits-n">
+                      {n(c)}
+                      <CreditIcon size={16} />
+                    </span>
+                    <span className="buy-credits-price">{cost(c) ?? "Price to come"}</span>
+                  </button>
+                ))}
+                <button type="button" role="radio" aria-checked={pack === "other"} className={`buy-credits-pack${pack === "other" ? " on" : ""}`} onClick={() => setPack("other")} disabled={busy}>
+                  <span className="buy-credits-n">Other</span>
+                  <span className="buy-credits-price">Your own amount</span>
+                </button>
+              </div>
+              {pack === "other" && (
+                <>
+                  <input
+                    className="input add-credits-number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="off"
+                    maxLength={3}
+                    value={text}
+                    onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 3))}
+                    placeholder="How many?"
+                    aria-label="How many credits to buy"
+                  />
+                  {text !== "" && !valid && <p className="error">Enter a whole number from 1 to {n(CREDIT_PACK_MAX)}.</p>}
+                </>
+              )}
+            </section>
+            <section className="add-credits-box" aria-label="What it comes to">
+              <ul className="menu-list">
+                <Line what="Credits" value={valid ? <Cost n={n(amount)} /> : "-"} />
+                <Line what="Price" value={total ?? "To be announced"} />
+                <Line what="Your credits after" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
+              </ul>
+            </section>
+            {error && <p className="error">{error}</p>}
+            <button type="submit" className="btn btn-primary btn-block" disabled={!valid || busy}>
+              {busy ? (
+                <>
+                  <LeafLoader size={16} /> Opening the checkout…
+                </>
+              ) : (
+                "Continue to checkout"
+              )}
+            </button>
+            <PaymentSafety />
+          </>
+        )}
+      </form>
+    </div>
+  );
+}
+
+/**
+ * How paying is kept safe, said plainly. Every line here must be true of
+ * the checkout as it is built (see /api/account/checkout): Stripe's own
+ * hosted page takes the card, this app never sees or keeps card details,
+ * and credits are added only on Stripe's confirmation. Until payments are
+ * open it says so first - nothing can be charged from here today.
+ */
+function PaymentSafety() {
+  return (
+    <section className="add-credits-box buy-credits-safety" aria-labelledby="buy-credits-safety">
+      <h4 id="buy-credits-safety" className="menu-title">
+        Paying safely
+      </h4>
+      <ul>
+        <li>
+          <b>Not open yet.</b> Card payments are still being set up, so nothing can be charged from here today.
+        </li>
+        <li>
+          <b>Paid on Stripe&apos;s page.</b> When payments open, you&apos;ll enter your card on Stripe&apos;s own secure checkout page, not on Taleo.
+        </li>
+        <li>
+          <b>We never see your card.</b> Your card number goes straight to Stripe. Taleo doesn&apos;t receive it or store it.
+        </li>
+        <li>
+          <b>You confirm the total first.</b> Stripe shows the amount before you pay, and nothing is charged until you confirm there.
+        </li>
+        <li>
+          <b>Credits follow the payment.</b> Credits are added to your account only once Stripe tells us the payment went through.
+        </li>
+      </ul>
+    </section>
+  );
+}
+
 function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: () => void; onAdded: (credits: number) => void }) {
   const toast = useToast();
   const me = useSession().data?.user?.username ?? null;
