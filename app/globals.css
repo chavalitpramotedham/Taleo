@@ -14530,3 +14530,12 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
   color: var(--ink-soft);
   text-align: center;
 }
+
+/* (a making button's words and the small line beneath: clearly apart -
+   and the button a little taller, to hold them) */
+.make-label.has-sub .make-label-sub {
+  margin-top: 5px;
+}
+.btn:has(.make-label.has-sub) {
+  min-height: 64px;
+}
