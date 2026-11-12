@@ -1,4 +1,4 @@
-import { AGES, ageById, clampMinutes } from "@/lib/ages";
+import { AGES, ageById, clampMinutes, fitMinutes } from "@/lib/ages";
 import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
 import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
@@ -58,7 +58,9 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
     const age = AGES.find((a) => a.id === b.age)?.id;
     const theme = str(b.theme, 200).trim();
     if (!age || !theme) return null;
-    return { kind: "start", age, minutes: minutesFor(b.minutes, age), theme, hero: cleanCharacter(b.hero), companions: cleanCompanions(b.companions) };
+    // (a new story: at a length this age has - an Odyssey asked for a
+    // child under three is made as an Adventure, and charged as one)
+    return { kind: "start", age, minutes: fitMinutes(age, minutesFor(b.minutes, age)), theme, hero: cleanCharacter(b.hero), companions: cleanCompanions(b.companions) };
   }
   if (b.kind === "continue") {
     const s = (b.story ?? {}) as Partial<Story>;

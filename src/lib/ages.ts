@@ -138,8 +138,8 @@ export const ageById = (id: string): AgeLevel => AGES.find((a) => a.id === id) ?
 // it costs: a credit a minute.
 //
 //   Quest      short    2 decisions   3 minutes straight through   3 credits   under 5 min at bedtime
-//   Adventure  medium   3 decisions   5 minutes                    5 credits   5-8 min   (the standard)
-//   Odyssey    long     4 decisions   8 minutes                    8 credits   over 8 min
+//   Adventure  medium   3 decisions   5 minutes                    5 credits   5-10 min  (the standard)
+//   Odyssey    long     4 decisions   8 minutes                    8 credits   over 10 min
 //
 // The library shows the bedtime range ("5-8 min"), never the names: those
 // are only for choosing a length when making a story.
@@ -165,8 +165,8 @@ export interface StoryLength {
 }
 export const STORY_LENGTHS: StoryLength[] = [
   { id: "quest", name: "Quest", size: "short", minutes: 3, decisions: 2, time: "<5" },
-  { id: "adventure", name: "Adventure", size: "medium", minutes: 5, decisions: 3, time: "5–8" },
-  { id: "odyssey", name: "Odyssey", size: "long", minutes: 8, decisions: 4, time: ">8" },
+  { id: "adventure", name: "Adventure", size: "medium", minutes: 5, decisions: 3, time: "5–10" },
+  { id: "odyssey", name: "Odyssey", size: "long", minutes: 8, decisions: 4, time: ">10" },
 ];
 /** The standard story: what a plan's own story covers. */
 export const STANDARD_LENGTH = STORY_LENGTHS[1];
@@ -177,8 +177,19 @@ export const lengthOf = (minutes: number): StoryLength => {
 };
 /** The same, said in words (for a screen reader): "under 5", "5 to 8", "over 8". */
 export const timeWords = (minutes: number): string => lengthOf(minutes).time.replace("<", "under ").replace(">", "over ").replace("–", " to ");
-/** A story's time as readers are shown it: "<5", "5–8", ">8" (minutes). */
+/** A story's time as readers are shown it: "<5", "5–10", ">10" (minutes). */
 export const timeRange = (minutes: number): string => lengthOf(minutes).time;
+/** The youngest ages don't have the Odyssey: under three, a longer story
+ *  has little more to it and only drags out. */
+const NO_ODYSSEY: AgeId[] = ["1.5-2", "2-3"];
+/** Whether this length can be chosen for this age. */
+export const lengthAllowed = (ageId: string, l: StoryLength) => !(l.id === "odyssey" && NO_ODYSSEY.includes(ageId as AgeId));
+/** The length a story of this age is made at: the one asked for, or - if
+ *  that isn't offered at this age - the longest that is. */
+export const fitMinutes = (ageId: string, minutes: number): number => {
+  const l = lengthOf(minutes);
+  return lengthAllowed(ageId, l) ? l.minutes : STORY_LENGTHS.filter((x) => lengthAllowed(ageId, x)).slice(-1)[0].minutes;
+};
 /** "an Odyssey", "a Quest" */
 export const aLength = (l: StoryLength) => `${/^[AEIOU]/.test(l.name) ? "an" : "a"} ${l.name}`;
 
@@ -195,26 +206,24 @@ export interface LengthProfile {
   words: [number, number];
 }
 
-/** How briskly a page of each age's text is read aloud (words a minute):
- *  the youngest pages are few words said slowly, with sounds and pointing. */
-const PACE: Record<AgeId, number> = { "1.5-2": 70, "2-3": 85, "3-4": 110, "4-5": 130, "5-6": 140, "6+": 150 };
-/** Turning the page and taking in the picture, in seconds. */
-const PAGE_TURN_S = 4;
 
-/** The most pages a story of each length has, whatever the age. Every
- *  page is a painting, and paintings are what a story costs to make: the
- *  youngest get their length from fuller pages of real sentences, not from
- *  many more pages. */
-const MAX_PAGES: Record<LengthId, number> = { quest: 9, adventure: 12, odyssey: 18 };
+/** How many pages a story of each length has - the same at every age.
+ *  Every page is a painting, and paintings are most of what a story costs
+ *  to make, so the page count is what keeps each length's price in step
+ *  with its cost: at about 14 US cents a painted page (and a little for
+ *  the writing), a Quest (3 credits, US$1.50) keeps about 36%, an
+ *  Adventure (5, US$2.50) about 38% and an Odyssey (8, US$4.00) about
+ *  42% - roughly even, a little better for the longer stories. The age
+ *  sets how much is written on each page (lib/ages: words), so older
+ *  children's stories read longer on the same number of pages. */
+const PAGES: Record<LengthId, number> = { quest: 6, adventure: 10, odyssey: 15 };
 
 /**
- * What a story of this length is made of, for this age: its decisions
- * (set by the length), and pages and words that come to the length's
- * reading time. The words on a page follow the age (how hard it reads),
- * in a narrow band. The pages make up the time, up to the length's most,
- * and are shared out between the segments - not evenly: the opening and
- * the ending get the extra pages first, then the segments next to them
- * (an Odyssey of 18 pages runs 4, 4, 3, 3, 4).
+ * What a story of this length is made of, for this age: its decisions and
+ * its pages (set by the length), and the words on a page (set by the age,
+ * in a narrow band). The pages are shared out between the segments - not
+ * always evenly: the opening and the ending get any extra pages first,
+ * then the segments next to them (an Adventure of 10 runs 3, 2, 2, 3).
  */
 export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
   const length = lengthOf(minutes);
@@ -222,8 +231,7 @@ export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
   const segments = choices + 1;
   const mid = (age.words[0] + age.words[1]) / 2;
   const words: [number, number] = [Math.round(mid * 0.85), Math.round(mid * 1.15)];
-  const secondsPerPage = (mid / PACE[age.id]) * 60 + PAGE_TURN_S;
-  const total = Math.min(MAX_PAGES[length.id], Math.max(segments * 2, Math.round((length.minutes * 60) / secondsPerPage)));
+  const total = Math.max(segments * 2, PAGES[length.id]);
   const pages = Array.from({ length: segments }, () => Math.floor(total / segments));
   // (the pages left over: first, last, second, second-last...)
   for (let extra = total - pages[0] * segments, i = 0; extra > 0; extra--, i++) pages[i % 2 ? segments - 1 - (i >> 1) : i >> 1]++;

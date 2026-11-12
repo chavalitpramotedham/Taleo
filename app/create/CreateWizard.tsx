@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { recall, remember } from "@/lib/remember";
-import { AGES, MAX_MINUTES, MIN_MINUTES, STANDARD_LENGTH, STORY_LENGTHS, aLength, lengthOf, timeWords, type AgeId } from "@/lib/ages";
+import { AGES, MAX_MINUTES, MIN_MINUTES, STANDARD_LENGTH, STORY_LENGTHS, aLength, fitMinutes, lengthAllowed, lengthOf, timeWords, type AgeId } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
 import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
@@ -119,7 +119,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   const theme = themeText.trim() || THEMES.find((t) => t.key === themeKey)?.line || "";
   const canNext = step === 0 ? Boolean(age) : step === 1 ? Boolean(hero) : Boolean(theme);
   // (the standard story, unless another length is picked)
-  const effectiveMinutes = minutes ?? STANDARD_LENGTH.minutes;
+  // (and never longer than this age has: no Odyssey under three)
+  const effectiveMinutes = age ? fitMinutes(age, minutes ?? STANDARD_LENGTH.minutes) : (minutes ?? STANDARD_LENGTH.minutes);
   const lengthIndex = Math.max(0, STORY_LENGTHS.findIndex((l) => l.minutes === lengthOf(effectiveMinutes).minutes));
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
@@ -320,7 +321,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
           {/* three stops on a slider: each stop's picture above the line, its name and time below (tap either to choose it) */}
           <div className="length-stops length-stops-art">
             {STORY_LENGTHS.map((l) => (
-              <button key={l.id} type="button" tabIndex={-1} aria-hidden className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)}>
+              <button key={l.id} type="button" tabIndex={-1} aria-hidden className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}${age && !lengthAllowed(age, l) ? " unavailable" : ""}`} onClick={() => (!age || lengthAllowed(age, l)) && setMinutes(l.minutes)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} />
               </button>
@@ -333,22 +334,26 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             max={STORY_LENGTHS.length - 1}
             step={1}
             value={lengthIndex}
-            onChange={(e) => setMinutes(STORY_LENGTHS[Number(e.target.value)].minutes)}
+            onChange={(e) => {
+              const l = STORY_LENGTHS[Number(e.target.value)];
+              // (a length this age doesn't have stays out of reach)
+              setMinutes(age && !lengthAllowed(age, l) ? fitMinutes(age, l.minutes) : l.minutes);
+            }}
             aria-label="Story length"
             aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${timeWords(STORY_LENGTHS[lengthIndex].minutes)} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
             style={{ background: `linear-gradient(to right, var(--russet) ${(lengthIndex / (STORY_LENGTHS.length - 1)) * 100}%, var(--rule) 0%)` }}
           />
           <div className="length-stops length-stops-words">
             {STORY_LENGTHS.map((l) => (
-              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${timeWords(l.minutes)} minutes${freeMax ? (l.minutes > freeMax.minutes ? `, your free story and ${(l.minutes - freeMax.minutes) * freeMax.perMinute} credits` : ", your free story") : `, ${l.minutes} credits`}`}>
+              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}${age && !lengthAllowed(age, l) ? " unavailable" : ""}`} disabled={Boolean(age && !lengthAllowed(age, l))} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${timeWords(l.minutes)} minutes${freeMax ? (l.minutes > freeMax.minutes ? `, your free story and ${(l.minutes - freeMax.minutes) * freeMax.perMinute} credits` : ", your free story") : `, ${l.minutes} credits`}`}>
                 <span className="length-stop-name">{l.name}</span>
-                <span className="length-stop-facts">{l.time} min</span>
+                <span className="length-stop-facts">{age && !lengthAllowed(age, l) ? "From age 3" : `${l.time} min`}</span>
                 {/* What it will take from the account. With a free story to
                     use, a Quest takes nothing (and says nothing); an
                     Adventure or an Odyssey is paid in full. */}
                 {(() => {
                   // (until it's known which it will be, nothing is said)
-                  const extra = freeMax ? (l.minutes > freeMax.minutes ? l.minutes * freeMax.perMinute : 0) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
+                  const extra = age && !lengthAllowed(age, l) ? 0 : freeMax ? (l.minutes > freeMax.minutes ? l.minutes * freeMax.perMinute : 0) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
                   if (!extra) return <span className="length-stop-cost none" aria-hidden />;
                   return (
                     <span className="length-stop-cost">

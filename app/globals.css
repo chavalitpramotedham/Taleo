@@ -15105,3 +15105,12 @@ html[data-night] .safety-dialog .modal-head h3 {
   display: block;
   margin: 10px auto 0;
 }
+
+/* (a length this age doesn't have: shown, faint, and not to be chosen) */
+.length-stop.unavailable {
+  opacity: 0.3;
+  cursor: default;
+}
+.length-stop.unavailable .length-stop-art {
+  filter: grayscale(1);
+}
