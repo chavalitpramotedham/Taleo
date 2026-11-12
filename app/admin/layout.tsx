@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /** The dashboard's frame, shared by all of its pages: the title and the
  *  pill that chooses between them. It stays on the screen, untouched,
  *  while a page beneath it is fetched (the falling leaves show there
- *  meanwhile) - moving between Overall and User details, opening one
+ *  meanwhile) - moving between Overall and Details, opening one
  *  account or one record, or changing what the log shows. Only the admin
  *  account gets as far as seeing it: everyone else has already been sent
  *  to the front page (proxy.ts), and would be again from here. */

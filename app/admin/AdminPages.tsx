@@ -4,7 +4,7 @@ import { Segmented } from "@/components/Segmented";
 
 const PAGES = [
   { key: "overall", label: "Overall", href: "/admin" },
-  { key: "users", label: "User details", href: "/admin/activity" },
+  { key: "users", label: "Details", href: "/admin/activity" },
 ] as const;
 
 /** The dashboard's two pages, as the two halves of one pill. It lives in
