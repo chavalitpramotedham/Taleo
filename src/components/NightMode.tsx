@@ -205,7 +205,7 @@ const FIREFLIES = 16;
  *  fireflies drifting across the screen. Decorative only - never catches a
  *  tap. */
 /** The daylight rays are built but not switched on yet (being looked at first). */
-const SHOW_DAYLIGHT = false;
+const SHOW_DAYLIGHT = true;
 
 /** The stars: where each is on the screen (percent across, percent down),
  *  how big (px, tip to tip), and how its glimmer is timed (seconds:

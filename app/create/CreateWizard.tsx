@@ -140,6 +140,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // One of the plan's free stories is there to use: how long it can be,
   // and what the account holds for a longer one (null: none to use).
   const freeStory = useRef<{ minutes: number; perMinute: number; balance: number | null } | null>(null);
+  // (the same, for what the page shows: how long a free story can be)
+  const [freeMax, setFreeMax] = useState<{ minutes: number; perMinute: number } | null>(null);
   // "A free story is up to 5 minutes": asked when a longer one is chosen.
   const [tooLong, setTooLong] = useState<{ minutes: number; freeMinutes: number; cost: number; balance: number | null } | null>(null);
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
@@ -147,6 +149,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       const res = await fetch("/api/story", { cache: "no-store", headers: deviceHeader() });
       const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number }; free?: { minutes: number; perMinute: number; balance: number | null } };
       freeStory.current = data.canStart && data.free ? data.free : null;
+      setFreeMax(freeStory.current ? { minutes: freeStory.current.minutes, perMinute: freeStory.current.perMinute } : null);
       setDaily(data.windowHours === 168 ? "this week" : data.windowHours === 24 ? "today" : "for now");
       // (the plan's free story is used: this one will be paid for with credits)
       setPerMinute(data.credits ? data.credits.perMinute : null);
@@ -195,7 +198,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
     // asked: keep the length and pay with credits, or make it a free one?
     const f = freeStory.current;
     if (length === undefined && f && storyMinutes > f.minutes) {
-      setTooLong({ minutes: storyMinutes, freeMinutes: f.minutes, cost: storyMinutes * f.perMinute, balance: f.balance });
+      setTooLong({ minutes: storyMinutes, freeMinutes: f.minutes, cost: (storyMinutes - f.minutes) * f.perMinute, balance: f.balance });
       return;
     }
     // (one at a time: anything left unfinished - say, begun in another tab
@@ -337,6 +340,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               </span>
             ))}
           </div>
+          {freeMax && <p className="length-free-note">Free stories are up to {freeMax.minutes} minutes.</p>}
         </section>
       )}
 
@@ -568,7 +572,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               </button>
             </div>
             <p className="limit-message">
-              This story is set to {tooLong.minutes} minutes. Keep that length by using credits, or make it {tooLong.freeMinutes} minutes and use your free story.
+              This story is set to {tooLong.minutes} minutes. Your free story covers {tooLong.freeMinutes} of them: add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} for the rest, or make it {tooLong.freeMinutes} minutes.
             </p>
             <div className="story-preview-actions">
               <button
@@ -585,7 +589,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               </button>
               {tooLong.balance !== null && tooLong.balance < tooLong.cost && (
                 <p className="meta free-length-short">
-                  That needs {tooLong.cost} credits, and there {tooLong.balance === 1 ? "is" : "are"} {tooLong.balance} in your account.
+                  That needs {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"}, and there {tooLong.balance === 1 ? "is" : "are"} {tooLong.balance} in your account.
                 </p>
               )}
               <button
@@ -619,7 +623,11 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
           ) : (
             step === 2 ? (
               // (what it takes: credits for its minutes, or one of the plan's free stories)
-              <MakeLabel icon={<MapleMark />} credits={creditsPerMinute ? effectiveMinutes * creditsPerMinute : null} free={creditsPerMinute ? null : storyCost.free}>
+              <MakeLabel
+                icon={<MapleMark />}
+                credits={creditsPerMinute ? effectiveMinutes * creditsPerMinute : freeMax && effectiveMinutes > freeMax.minutes ? (effectiveMinutes - freeMax.minutes) * freeMax.perMinute : null}
+                free={creditsPerMinute ? null : storyCost.free}
+              >
                 Create story
               </MakeLabel>
             ) : (

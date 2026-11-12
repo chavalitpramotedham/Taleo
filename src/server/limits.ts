@@ -470,44 +470,18 @@ export async function guard(
     console.error("[limits] credits unavailable: the plan's own allowance stands");
   }
 
-  // A story longer than a free one can be (lib/tiers: FREE_STORY_MINUTES)
-  // is never one of the plan's free stories: it's paid for with credits,
-  // all of its minutes, and the free one is left for another day.
-  if (item === "story" && price > FREE_STORY_MINUTES * CREDITS_PER_STORY_MINUTE && mode === "auto" && account && !me.stale && billingAvailable()) {
-    const tooMuch = await sitting();
-    if (tooMuch) return tooMuch;
-    if (!beginning && storyRef) {
-      // (its first choice asked again - a retry, another tab: paid already)
-      if (await wasPaid(userId, storyRef)) return { ok: true, session, release: nothing, settle: nothing };
-      // (what was set aside when it was begun becomes the spend)
-      const waited = await fromWaiting();
-      if (waited) return waited;
-    }
-    const paid = await pay();
-    if (paid.ok) return beginning ? heldOpen(paid.spent) : { ok: true, session, credits: paid.spent, release: giveBack(paid.spent), settle: keep(paid.spent) };
-    if (!paid.down) {
-      const o = paid.offer;
-      return {
-        ok: false,
-        response: NextResponse.json(
-          {
-            error: `A free story is up to ${FREE_STORY_MINUTES} minutes. This one is ${o.price} minutes, which needs ${o.price} credits (one for each minute) - there ${o.balance === 1 ? "is" : "are"} ${o.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it can be a free one.`,
-            limited: "credits",
-            credits: o,
-            freeMinutes: FREE_STORY_MINUTES,
-          },
-          { status: 402 },
-        ),
-      };
-    }
-    // (the credits can't be reached just now: nothing longer than a free
-    // story is begun on a guess)
-    return unavailable;
-  }
+  // A free story covers so many minutes (lib/tiers: FREE_STORY_MINUTES).
+  // A longer one still uses the free story - and credits for the minutes
+  // beyond it, set aside when it's begun and spent at its first choice.
+  const freeCovers = FREE_STORY_MINUTES * CREDITS_PER_STORY_MINUTE;
+  const long = item === "story" && price > freeCovers && mode === "auto" && Boolean(account) && !me.stale && billingAvailable();
 
   let took: Took;
+  /** how the request itself was counted (before any second look) */
+  let counted: Took | null = null;
   try {
     took = await take(session.user, cost);
+    counted = took;
     // (already paid for: it's an ordinary request for more of that story)
     if (took.already && b !== "segment") took = await take(session.user, { bucket: "segment" });
   } catch (e) {
@@ -557,13 +531,72 @@ export async function guard(
       ),
     };
   }
+  // One of the plan's free stories, but longer than a free story covers:
+  // the minutes beyond it are paid for with credits.
+  if (long && counted && !counted.already) {
+    const use = counted;
+    const topUp = price - freeCovers;
+    const extra = `${topUp / CREDITS_PER_STORY_MINUTE} minute${topUp === CREDITS_PER_STORY_MINUTE ? "" : "s"} beyond a free story`;
+    const backUse = () => refund(userId, use.limited, use.at);
+    // (its first choice: what was set aside when it was begun becomes the
+    // spend - and stays set aside, to try again, if writing the part fails)
+    const waited = await fromWaiting();
+    if (waited) {
+      return {
+        ...waited,
+        release: async (how?: { left?: boolean }) => {
+          await waited.release();
+          if (!how?.left) await backUse();
+        },
+      };
+    }
+    if (beginning) await releasePendingStories(userId, "Another story was begun instead: credits returned");
+    await heldCredits(userId).catch(() => null);
+    const paid = await holdCredits(userId, topUp, ref, `A ${price}-minute story: ${extra}`);
+    if (paid.ok) {
+      const spent = paid.applied ? topUp : 0;
+      const back = async (how?: { left?: boolean }) => {
+        if (spent) await releaseHold(userId, ref, "The story didn't work out: credits returned");
+        if (!how?.left) await backUse();
+      };
+      // (held from now under the name of the story begun - see heldOpen)
+      if (beginning) {
+        return {
+          ok: true,
+          session,
+          credits: spent,
+          release: back,
+          settle: async (done?: { storyKey?: string }) => {
+            if (spent && done?.storyKey) await moveHold(userId, ref, pendingFor(done.storyKey));
+          },
+        };
+      }
+      return { ok: true, session, credits: spent, release: back, settle: async () => void (spent && (await settleHold(userId, ref, `A ${price}-minute story: ${extra}`))) };
+    }
+    // (not enough for the extra minutes, or the credits can't be reached:
+    // the free story isn't used up on a story that can't be made)
+    await backUse();
+    if (paid.reason === "unavailable") return unavailable;
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: `A free story covers ${FREE_STORY_MINUTES} minutes. This one is ${price / CREDITS_PER_STORY_MINUTE}, which needs ${topUp} credit${topUp === 1 ? "" : "s"} for the extra - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it's free.`,
+          limited: "credits",
+          credits: { item: "story", price: topUp, balance: paid.balance },
+          freeMinutes: FREE_STORY_MINUTES,
+        },
+        { status: 402 },
+      ),
+    };
+  }
   // (it turned out to be one of the plan's own after all - a new week has
   // begun since it was started: what was set aside for it goes back)
   // (and a beginning on the plan's own allowance takes the place of one
   // that was being paid for and never carried on)
   if (item === "story" && account && beginning) {
     await releasePendingStories(userId, "Another story was begun instead: credits returned").catch(() => 0);
-  } else if (item === "story" && account && cost.key) {
+  } else if (item === "story" && account && cost.key && !counted?.already) {
     await releaseHold(userId, pendingFor(cost.key), "The story was one of the plan's own: credits returned").catch(() => null);
   }
   const used = took.limited;
