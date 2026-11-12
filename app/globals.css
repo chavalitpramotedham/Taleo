@@ -15191,7 +15191,8 @@ html[data-night] .safety-dialog .modal-head h3 {
   text-align: center;
 }
 .plan-fine {
-  margin: 10px 0 0;
+  max-width: 560px;
+  margin: 10px auto 0;
   font-size: 0.8rem;
   text-align: center;
 }
@@ -15208,34 +15209,13 @@ html[data-night] .safety-dialog .modal-head h3 {
   font-weight: 600;
 }
 
-/* (under the plans: how paying is kept safe, folded) */
-.plan-safety {
-  margin: 14px auto 0;
+/* (under the plans: how paying is kept safe - the same row as in Buy
+   credits, centred under the cards) */
+.plan-safety-row {
   max-width: 560px;
-  border: 1px solid color-mix(in srgb, #5f7f45 35%, transparent);
-  border-radius: 14px;
-  background: color-mix(in srgb, #5f7f45 7%, transparent);
-  padding: 4px 14px;
+  margin: 16px auto 0;
 }
-.plan-safety summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  cursor: pointer;
-  font-weight: 600;
-  color: #4f6b38;
-  list-style: none;
-}
-.plan-safety summary::-webkit-details-marker {
-  display: none;
-}
-.plan-safety .buy-credits-safety {
-  margin: 0 0 8px;
-}
-html[data-night] .plan-safety summary {
-  color: #b9d197;
-}
+
 
 /* (a plan's feature: what, how much, and a small line on how it works) */
 .plan-feature {
@@ -15260,54 +15240,48 @@ html[data-night] .plan-safety summary {
   contain-intrinsic-size: auto 150px;
 }
 
-/* Landing: "Why I made Taleo", a small frosted-glass pill under the
-   caption, leading to the About page. The same glass as the time pill on
-   the covers: a light tint, a soft blur, a bright edge. */
+/* Landing: "Why I made Taleo", a small quiet pill under the caption,
+   leading to the About page. Flat and low-key - a soft tint, no edge, no
+   glow, muted italic words - so it never competes with "Begin a story". */
 .founder-pill {
   display: inline-flex;
   align-self: flex-start;
   justify-self: start;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 2px 0 6px;
-  padding: 6px 12px 6px 14px;
+  padding: 4px 12px 4px 13px;
   border-radius: 999px;
-  background: rgba(255, 252, 244, 0.42);
-  -webkit-backdrop-filter: blur(8px) saturate(1.3);
-  backdrop-filter: blur(8px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 2px 8px -3px rgba(60, 40, 20, 0.25);
-  color: var(--ink);
-  font-size: 0.9rem;
+  background: rgba(160, 136, 108, 0.08);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-style: italic;
   letter-spacing: 0.01em;
   text-decoration: none;
   transition:
     background 0.2s ease,
-    box-shadow 0.2s ease;
+    color 0.2s ease;
 }
 .founder-pill:hover,
 .founder-pill:focus-visible {
-  background: rgba(255, 252, 244, 0.7);
-  box-shadow: 0 4px 12px -4px rgba(60, 40, 20, 0.3);
+  background: rgba(160, 136, 108, 0.15);
+  color: var(--ink);
 }
 .founder-pill-arrow {
   display: inline-block;
-  color: var(--russet);
+  font-style: normal;
   transition: transform 0.2s ease;
 }
 .founder-pill:hover .founder-pill-arrow,
 .founder-pill:focus-visible .founder-pill-arrow {
-  transform: translateX(3px);
-}
-.founder-pill:active {
-  transform: scale(0.98);
+  transform: translateX(2px);
 }
 html[data-night] .founder-pill {
-  background: rgba(22, 17, 24, 0.55);
-  border-color: rgba(255, 236, 205, 0.2);
-  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.6);
-  color: #f3e7cf;
+  background: rgba(255, 236, 205, 0.05);
+  color: rgba(243, 231, 207, 0.66);
 }
-html[data-night] .founder-pill-arrow {
-  color: #e9b98c;
+html[data-night] .founder-pill:hover,
+html[data-night] .founder-pill:focus-visible {
+  background: rgba(255, 236, 205, 0.09);
+  color: #f3e7cf;
 }

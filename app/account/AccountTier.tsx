@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Rights } from "@/server/rights";
 import { PaymentSafety, ShieldIcon } from "@/components/PaymentSafety";
+import { useEscape } from "@/lib/useEscape";
 import { CrownMark, MapleMark, OrnamentRule } from "@/components/Icons";
 import { isPaidPlan, PLANS, PUBLIC_PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
@@ -91,6 +92,8 @@ export function AccountPlans({ isAdmin, tier: tierId, subscription = null, open 
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ text: string; error?: boolean } | null>(null);
+  const [safety, setSafety] = useState(false);
+  useEscape(() => setSafety(false), safety);
   // Back from Stripe's checkout (?subscribed=plus): the plan changes when
   // Stripe's own notice arrives - usually within seconds. Until then this
   // says so, and looks again every few seconds.
@@ -190,13 +193,37 @@ export function AccountPlans({ isAdmin, tier: tierId, subscription = null, open 
           <span className="meta"> - card, invoices and cancelling, on Stripe</span>
         </p>
       )}
+      {/* Paying safely: the same row as in Buy credits - what matters in a
+          line, and a tap opens the details */}
       {!isAdmin && open && (
-        <details className="plan-safety">
-          <summary>
-            <ShieldIcon /> Paying safely
-          </summary>
-          <PaymentSafety open plans />
-        </details>
+        <button type="button" className="safety-row plan-safety-row" onClick={() => setSafety(true)}>
+          <ShieldIcon />
+          <span>
+            <b>Paying safely</b>
+            <small>Checkout by Stripe. Taleo never sees your card. Cancel any time.</small>
+          </span>
+          <span className="safety-row-go" aria-hidden>
+            ›
+          </span>
+        </button>
+      )}
+      {safety && (
+        <div className="modal-backdrop safety-backdrop" onClick={() => setSafety(false)}>
+          <div className="modal-panel draft-prompt safety-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="plan-safety-title">
+            <div className="modal-head">
+              <h3 id="plan-safety-title">
+                <ShieldIcon /> Paying safely
+              </h3>
+              <button type="button" className="icon-btn" onClick={() => setSafety(false)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <PaymentSafety open plans />
+            <button type="button" className="btn btn-primary btn-block" onClick={() => setSafety(false)}>
+              Got it
+            </button>
+          </div>
+        </div>
       )}
       {!isAdmin && open && (
         <p className="meta plan-fine">
