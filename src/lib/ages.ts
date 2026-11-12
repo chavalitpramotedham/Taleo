@@ -32,7 +32,7 @@ export const MAX_MINUTES = 8;
 export const AGES: AgeLevel[] = [
   {
     id: "1.5-2",
-    label: "1½ – 2",
+    label: "1 – 2",
     blurb: "First words",
     emoji: "🍼",
     choices: 2,

@@ -9,7 +9,7 @@ import type { Story } from "@/lib/types";
 
 const cast = (story: Story) => [story.hero, ...(story.companions ?? [])].map((c) => c.name).filter(Boolean);
 const listNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0] || "a little hero");
-/** "1½ – 2" -> "1½-2": the age label, written compactly for search text. */
+/** "1 – 2" -> "1-2": the age label, written compactly for search text. */
 const ages = (story: Story) => ageById(story.age).label.replace(/\s*–\s*/g, "-");
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

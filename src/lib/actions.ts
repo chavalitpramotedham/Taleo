@@ -40,7 +40,7 @@ export const isMotion = (m: unknown): m is MotionId => typeof m === "string" && 
 
 /**
  * Motions grouped by what they express, each from gentlest to most dramatic,
- * indexed by age level 1-5 (1½–2 … 5–6). A toddler's car wiggles; a
+ * indexed by age level 1-5 (1–2 … 5–6). A toddler's car wiggles; a
  * five-year-old's car zooms right off the page and back.
  */
 const FAMILIES: Record<string, MotionId[]> = {
