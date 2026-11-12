@@ -19,6 +19,11 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
  *  It's a diary too: a filled square opens that day - the stories made on
  *  it and the stories read. (A story of your own counts on the day it was
  *  made, whether or not the day was logged at the time.) */
+// (one formatter for every square's label: making one per square - a few
+// hundred of them, on each drawing of the chart - was most of its cost)
+let dayFormat: Intl.DateTimeFormat | null = null;
+const dayLabel = () => (dayFormat ??= new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" }));
+
 export function ReadingChart() {
   // (the diary as it was last seen shows at once; the server is still asked)
   const [diary, setDiary] = useState<Diary | null>(() => recall<Diary>("reading") ?? null);
@@ -64,19 +69,25 @@ export function ReadingChart() {
   const fromKey = sinceJoining ? joinedKey! : localDay(yearAgo);
 
   // the grid starts on the Sunday `weeks - 1` weeks before this week's
-  const start = new Date(today);
-  start.setDate(start.getDate() - today.getDay() - (weeks - 1) * 7);
-  const cols: { day: string; date: Date; future: boolean; pre: boolean }[][] = [];
-  for (let w = 0; w < weeks; w++) {
-    const col = [];
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + w * 7 + d);
-      const day = localDay(date);
-      col.push({ day, date, future: date > today, pre: Boolean(joinedKey && day < joinedKey) });
+  // (worked out again only when the width, the day or the joining day
+  // changes - not on every drawing of the chart)
+  const cols = useMemo(() => {
+    const now = new Date(`${todayKey}T12:00:00`);
+    const start = new Date(now);
+    start.setDate(start.getDate() - now.getDay() - (weeks - 1) * 7);
+    const out: { day: string; date: Date; future: boolean; pre: boolean }[][] = [];
+    for (let w = 0; w < weeks; w++) {
+      const col = [];
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + w * 7 + d);
+        const day = localDay(date);
+        col.push({ day, date, future: date > now, pre: Boolean(joinedKey && day < joinedKey) });
+      }
+      out.push(col);
     }
-    cols.push(col);
-  }
+    return out;
+  }, [weeks, todayKey, joinedKey]);
   const joinedShown = Boolean(joinedKey && cols.some((col) => col.some((c) => c.day === joinedKey)));
 
   // Your own stories, on the day (here) each was made - newest first.
@@ -169,7 +180,7 @@ export function ReadingChart() {
                   const read = !c.future && set.has(c.day);
                   const cls = c.future ? "future" : read ? "read" : c.pre ? "pre" : "";
                   const className = `reading-cell ${cls}${c.day === todayKey ? " today" : ""}${c.day === joinedKey ? " joined" : ""}`;
-                  const label = `${c.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}${read ? " - read together" : ""}${c.day === joinedKey ? " - you joined Taleo" : ""}`;
+                  const label = `${dayLabel().format(c.date)}${read ? " - read together" : ""}${c.day === joinedKey ? " - you joined Taleo" : ""}`;
                   // (a day with a story in it opens as a diary page)
                   return read ? (
                     <button key={c.day} type="button" className={className} title={label} aria-label={`${label}. Open this day`} onClick={() => setOpenDay(c.day)} />
