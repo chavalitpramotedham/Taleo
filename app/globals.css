@@ -14477,10 +14477,10 @@ html[data-night] .topbar {
   overflow: hidden;
   /* where the light enters: across (the middle), and how far above the
      menu bar's bottom edge the shafts would meet */
-  --sun-x: 50vw;
+  --sun-x: 20vw;
   --sun-h: 9vmax;
   /* how far the light reaches */
-  --reach: 92vmax;
+  --reach: 105vmax;
   animation: dayLightIn 1.6s ease 0.3s both;
 }
 .day-light {
@@ -14542,33 +14542,35 @@ html[data-night] .topbar {
   will-change: opacity;
   animation: dayRay 9s ease-in-out infinite;
 }
+/* (the light comes in on the left, so the shafts lean out to the right
+   across the page, with one or two falling straight down and leftward) */
 .day-ray.r1 {
-  --a: 160deg;
+  --a: 152deg;
   --w: 8deg;
-  --b: 205deg;
+  --b: 200deg;
   --v: 6deg;
 }
 .day-ray.r2 {
-  --a: 133deg;
+  --a: 128deg;
   --w: 6deg;
-  --b: 184deg;
+  --b: 178deg;
   --v: 5deg;
   animation-duration: 11.5s;
   animation-delay: -3s;
 }
 .day-ray.r3 {
-  --a: 108deg;
-  --w: 7deg;
-  --b: 232deg;
-  --v: 8deg;
+  --a: 103deg;
+  --w: 5deg;
+  --b: 222deg;
+  --v: 7deg;
   animation-duration: 13s;
   animation-delay: -7s;
 }
 .day-ray.r4 {
-  --a: 120deg;
-  --w: 3deg;
-  --b: 254deg;
-  --v: 6deg;
+  --a: 115deg;
+  --w: 4deg;
+  --b: 140deg;
+  --v: 5deg;
   animation-duration: 10s;
   animation-delay: -5s;
 }
@@ -14719,4 +14721,13 @@ html[data-night] .brand-mark .leaf-whirl > svg {
    its leaves hold still until then. */
 html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
   animation-play-state: paused;
+}
+
+/* Under the length slider, while a free story is there to use. */
+.length-free-note {
+  margin: 10px 0 0;
+  font-size: 0.86rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  text-align: center;
 }

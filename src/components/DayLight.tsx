@@ -15,7 +15,7 @@ const MOTES: [number, number, number, number, number][] = [
 
 /**
  * Daylight: the day's answer to the night's lantern - sunshine coming in
- * through a skylight over the middle of the menu bar, spreading in soft
+ * through a skylight on the left of the menu bar, spreading in soft
  * shafts down and out across the page, with specks of dust afloat in it.
  *
  * Most of it is behind the page (words and cards stay crisp on top); a
@@ -27,11 +27,21 @@ const MOTES: [number, number, number, number, number][] = [
  * (see NightMode).
  */
 export function DayLight() {
-  const [ready, setReady] = useState(false);
+  // Where the light comes in, across the screen: over the "Begin a story"
+  // leaf in the menu on a phone, over the Taleo title on wider screens.
+  const [at, setAt] = useState<number | null>(null);
   const back = useRef<HTMLDivElement>(null);
   const front = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setReady(true);
+    const place = () => {
+      const narrow = window.matchMedia("(max-width: 640px)").matches;
+      const from = (narrow ? document.querySelector(".nav-begin-pill") : null) ?? document.querySelector(".brand");
+      const r = from?.getBoundingClientRect();
+      // (never hard against the edge of the screen: the light needs a little room to its left)
+      setAt(r && r.width ? Math.max(Math.round(r.left + r.width / 2), Math.round(window.innerWidth * 0.14)) : Math.round(window.innerWidth * 0.2));
+    };
+    place();
+    window.addEventListener("resize", place);
     // (still while the page is scrolled, like the night's lantern light)
     let rest = 0;
     const set = (on: boolean) => {
@@ -45,14 +55,16 @@ export function DayLight() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
+      window.removeEventListener("resize", place);
       window.removeEventListener("scroll", onScroll);
       window.clearTimeout(rest);
     };
   }, []);
-  if (!ready) return null;
+  if (at === null) return null;
+  const sun = { "--sun-x": `${at}px` } as React.CSSProperties;
   return createPortal(
     <>
-      <div className="day-light" ref={back} aria-hidden>
+      <div className="day-light" ref={back} aria-hidden style={sun}>
         <i className="day-room" />
         <div className="day-beams">
           <i className="day-glow" />
@@ -62,10 +74,10 @@ export function DayLight() {
           <i className="day-ray r4" />
         </div>
         {MOTES.map(([x, y, size, delay, dur], i) => (
-          <b key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, animationDelay: `-${delay}s`, animationDuration: `${dur}s` }} />
+          <b key={i} style={{ left: `calc(var(--sun-x) + ${x - 30}vw)`, top: `${y}%`, width: size, height: size, animationDelay: `-${delay}s`, animationDuration: `${dur}s` }} />
         ))}
       </div>
-      <div className="day-shine" ref={front} aria-hidden>
+      <div className="day-shine" ref={front} aria-hidden style={sun}>
         <i />
       </div>
     </>,
