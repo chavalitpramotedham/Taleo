@@ -40,7 +40,8 @@ export function useOngoingStory({ finishing = false } = {}) {
     if (!userId) return setStory(null);
     let live = true;
     const look = async () => {
-      const draft = await fetchDraft();
+      // (only to show it's there: without its paintings)
+      const draft = await fetchDraft({ light: true });
       if (!live) return;
       const local = localUnfinished(userId);
       // (a finished story's draft only counts where asked for - and never
@@ -58,10 +59,15 @@ export function useOngoingStory({ finishing = false } = {}) {
   }, [status, userId, finishing]);
 
   /** Opens it again where it was left. */
-  const resume = useCallback(() => {
+  const resume = useCallback(async () => {
     if (!story) return;
     const local = getStory(story.id);
-    saveStory(local && (local.updatedAt ?? 0) > (story.updatedAt ?? 0) ? local : story);
+    // (the account's copy was fetched without its paintings: the whole of
+    // it is fetched now, before it's kept and opened)
+    const full = (story as Story & { light?: boolean }).light ? ((await fetchDraft()) ?? story) : story;
+    const keep = full.id === story.id ? full : story;
+    const { light: _light, ...clean } = keep as Story & { light?: boolean };
+    saveStory(local && (local.updatedAt ?? 0) > (clean.updatedAt ?? 0) ? local : clean);
     router.push(`/story/${story.id}`);
   }, [story, router]);
 
@@ -73,7 +79,7 @@ export function useOngoingStory({ finishing = false } = {}) {
       const ids = new Set(story ? [story.id] : []);
       if (all && userId) {
         for (const s of listStories()) if (!s.demo && unfinished(s) && (!s.authorId || s.authorId === userId)) ids.add(s.id);
-        const draft = await fetchDraft();
+        const draft = await fetchDraft({ light: true });
         if (draft && unfinished(draft)) ids.add(draft.id);
       }
       // (the account keeps one draft; clearing by id leaves any other alone)

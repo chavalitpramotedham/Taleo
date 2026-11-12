@@ -7,11 +7,25 @@ import { releaseStorySession } from "@/server/story-session";
 
 /** The signed-in user's unfinished story: GET it, PUT to save, DELETE to
  *  discard (or, with ?id=, to clear it once that story is finished). */
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ draft: null });
   try {
-    return NextResponse.json({ draft: await getDraft(session.user.id) }, { headers: { "Cache-Control": "no-store" } });
+    const draft = await getDraft(session.user.id);
+    // `?light=1`: for showing that a story is under way (the "pick up where
+    // you left off" card), not for reading it - its paintings left out but
+    // the cover's, so every page load doesn't download the whole book.
+    if (draft && new URL(req.url).searchParams.get("light") === "1") {
+      const coverAt = draft.segments.flatMap((s) => s.pages).findIndex((p) => p.svg);
+      let n = -1;
+      const light = {
+        ...draft,
+        light: true,
+        segments: draft.segments.map((s) => ({ ...s, pages: s.pages.map((p) => (++n === coverAt ? p : { ...p, svg: undefined })) })),
+      };
+      return NextResponse.json({ draft: light }, { headers: { "Cache-Control": "no-store" } });
+    }
+    return NextResponse.json({ draft }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ draft: null }, { status: 503 });
   }

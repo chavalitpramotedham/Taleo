@@ -29,7 +29,7 @@ export const EARLY_FETCH = `(function(){try{var w=window,f=w.fetch;if(!f)return;
 function g(u){E[u]=f.call(w,u,{credentials:"same-origin"});E[u].catch(function(){});n++}
 g("/api/auth/session");
 if(p==="/store")g("/api/gallery?day="+day);
-if(inn){if(p!=="/sign-in"&&p!=="/welcome"&&p.indexOf("/admin")!==0){g("/api/story");g("/api/draft")}
+if(inn){if(p!=="/sign-in"&&p!=="/welcome"&&p.indexOf("/admin")!==0){g("/api/story");g("/api/draft?light=1")}
 if(p==="/home"){g("/api/gallery/mine");g("/api/user/saved");g("/api/user/reading")}
 }
 function done(){E={};n=0;w.fetch=f}

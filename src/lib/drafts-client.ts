@@ -70,19 +70,28 @@ export function clearDraftFor(id: string, discarded = false): Promise<void> {
 // (several parts of a page ask at once - the popup, the bookshelf card -
 // and share the one answer)
 let asked: { at: number; answer: Promise<Story | null> } | null = null;
-export function fetchDraft(): Promise<Story | null> {
-  if (asked && Date.now() - asked.at < 4000) return asked.answer;
-  const answer = fetch("/api/draft", { cache: "no-store" })
+let askedLight: { at: number; answer: Promise<Story | null> } | null = null;
+/** The account's unfinished story. `light`: only to show that it's there
+ *  (its paintings left out but the cover's - the story itself carries
+ *  `light: true`); fetch it in full before reading or keeping it. */
+export function fetchDraft({ light = false } = {}): Promise<Story | null> {
+  const kept = light ? askedLight : asked;
+  if (kept && Date.now() - kept.at < 4000) return kept.answer;
+  // (the full story answers a light question too, if it was just asked)
+  if (light && asked && Date.now() - asked.at < 4000) return asked.answer;
+  const answer = fetch(light ? "/api/draft?light=1" : "/api/draft", { cache: "no-store" })
     .then((res) => (res.ok ? (res.json() as Promise<{ draft: Story | null }>) : { draft: null }))
     .then((d) => d.draft)
     .catch(() => null);
-  asked = { at: Date.now(), answer };
+  if (light) askedLight = { at: Date.now(), answer };
+  else asked = { at: Date.now(), answer };
   return answer;
 }
 
 /** Throws the draft away (done by the time this resolves). */
 export async function discardDraft(id: string) {
   asked = null;
+  askedLight = null;
   await clearDraftFor(id, true);
 }
 
