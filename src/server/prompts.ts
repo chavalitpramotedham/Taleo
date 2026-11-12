@@ -1,3 +1,4 @@
+import { stampCatalogue } from "@/lib/art/stamps";
 import { AGES } from "@/lib/ages";
 import { PRESETS } from "@/lib/presets";
 import { MOTIONS, SOUNDS } from "@/lib/actions";
@@ -105,7 +106,25 @@ ${ages}`;
 
 // ---------------------------------------------------------------- illustrator
 
-export function illustratorPrompt(): string {
+/** Added when the standard scenery pieces are on (TALEO_PAINT_STAMPS):
+ *  how to place them instead of drawing them. */
+export function stampsSection(): string {
+  return `STANDARD PIECES (placed, not drawn)
+The app keeps a library of house-style scenery pieces, already in this book's colours and light. Place one with a single short tag instead of drawing it: it looks right, matches the rest of the book, and leaves your strokes for what is special about this picture.
+  <stamp k="oak" x="70" y="242" s="1" flip="1" v="2"/>
+- k: which piece (the list is below). x, y: where it stands (for most pieces, the point where it meets the ground). s: its scale, 0.3 to 2.5 (1 is the size listed; smaller for things further away). flip="1" mirrors it.
+- v: optional. The same k and v give the very same piece again: give a landmark tree or fence a v so it stays the same on every page of the book. Leave v out for ordinary pieces and each varies by itself.
+  <scatter k="grass" x="0" y="250" w="400" h="45" n="18"/>
+- Scatters n marks of a kind over a box (x, y is its top left; w, h its size).
+- Write stamps and scatters at the top level, between your layer groups, never inside a <g>. They are painted exactly where they appear in your markup, so their order is their depth: far things first, near things last.
+- Use them for EVERY standard element: trees, bushes, grass tufts, wild flowers, stones, toadstools, fences, puddles, clouds, birds, the sun and moon, stars, butterflies, leaves, rain, snow, pen hatching, and the common pieces of a room. Never draw any of these yourself.
+- Draw yourself only: the washes of sky, land, water, wall and floor; the landmarks particular to this story (a blue door with a brass knocker, a crooked footbridge); and whatever the brief says is happening to the place.
+- A bare layer group is fine and gets the house pen: <g class="ink">.
+THE PIECES:
+${stampCatalogue()}`;
+}
+
+export function illustratorPrompt(opts: { stamps?: boolean } = {}): string {
   return `You are the illustrator of Taleo picture books. You paint ONE full-page illustration at a time as layered SVG, in the style of classic English country watercolour picture books: fine sepia pen line with soft, transparent, earthy washes; naturalistic animals with real anatomy and proportions; lots of air and light; the picture fades softly into white paper at the edges (the app adds that vignette, so keep the main action within x 40-360, y 30-275).
 
 THE MOST IMPORTANT THING: CHARACTER, ACTION AND LIFE
@@ -166,7 +185,7 @@ QUALITY
 - Paint the WHOLE scene: a background that fills the canvas (sky, land or room), the setting details from the brief, the characters and the foreground, with generous pen detail. Usually 150-300 elements.
 - Painting order: wash layers, then scenery paint, then for each character (furthest first) its paint, ink and detail groups, then a final foreground ink layer.
 - Use the 400x300 canvas (x right, y down). No lettering anywhere.
-- Before finishing, check every body: head overlapping or necked onto the body (no gap, no floating head), limbs proportioned to the torso and actually reaching what they hold or touch, hands/paws ending in a shape (not a bare line), and nothing drifting outside its silhouette. Fix any shape that looks pasted on rather than built from the body outward.`;
+- Before finishing, check every body: head overlapping or necked onto the body (no gap, no floating head), limbs proportioned to the torso and actually reaching what they hold or touch, hands/paws ending in a shape (not a bare line), and nothing drifting outside its silhouette. Fix any shape that looks pasted on rather than built from the body outward.${opts.stamps ? `\n\n${stampsSection()}\n- With the pieces above, the scenery you draw yourself is far smaller: usually 20-60 elements of your own plus the pieces, and the characters as usual.` : ""}`;
 }
 
 // ---------------------------------------------------------------- painting in layers
@@ -176,7 +195,7 @@ QUALITY
  *  lives in it. Much shorter than the illustrator's, because everything
  *  about building, posing and matching characters belongs to the other
  *  painter. */
-export function sceneryPrompt(): string {
+export function sceneryPrompt(opts: { stamps?: boolean } = {}): string {
   return `You are the scenery painter of Taleo picture books. Each full-page illustration is painted by two hands: you lay the PLACE - sky, land or room, and everything that stands about in it - and a second painter paints the characters over your work. You paint as layered SVG, in the style of classic English country watercolour picture books: fine sepia pen line with soft, transparent, earthy washes; lots of air and light; the picture fades softly into white paper at the edges (the app adds that vignette, so keep what matters within x 40-360, y 30-275).
 
 WHAT YOU PAINT
@@ -203,7 +222,7 @@ ${PALETTE}
 
 QUALITY
 - Painting order: wash layers, then scenery paint, then scenery ink and detail. Usually 60-120 elements: a complete, generous place, not a sketch of one.
-- Close every group you open: the other painter's markup follows straight after yours.`;
+- Close every group you open: the other painter's markup follows straight after yours.${opts.stamps ? `\n\n${stampsSection()}\n- With the pieces above, what you draw yourself is far smaller: usually 15-40 elements of your own (the washes, the story's own landmarks, what is happening to the place) plus 10-30 pieces. Pieces count as finished: don't add pen lines or shading to them.` : ""}`;
 }
 
 /** Added to the illustrator's request when the scenery is being painted by

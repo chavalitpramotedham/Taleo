@@ -11,6 +11,7 @@ import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
 // many pages unpainted doesn't send them all in one burst.
 const CONCURRENCY = 10;
 const DONE = "<!--taleo:done-->";
+const RESTART = "<!--taleo:restart-->";
 /** A painting that sends nothing for this long has stalled: it's given up
  *  on and begun again, rather than left until the server's own time limit
  *  (five minutes) cuts it off. A healthy painter is never silent this long. */
@@ -120,6 +121,10 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           if (done) break;
           heard();
           text += decoder.decode(value, { stream: true });
+          // (painted from reused pieces, it went wrong part-way: it starts
+          // again, painted the ordinary way - what came before is dropped)
+          const again = text.lastIndexOf(RESTART);
+          if (again >= 0) text = text.slice(again + RESTART.length);
           const now = performance.now();
           if (now - last > 250 && focusRef.current === key) {
             last = now;

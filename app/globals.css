@@ -15285,3 +15285,66 @@ html[data-night] .founder-pill:focus-visible {
   background: rgba(255, 236, 205, 0.09);
   color: #f3e7cf;
 }
+
+/* ---------- the painting bench (admin) ---------- */
+.lab .lab-totals {
+  margin: 16px 0;
+  font-size: 0.95rem;
+}
+.lab-row {
+  margin: 16px 0;
+}
+.lab-row-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.lab-row-head h3 {
+  margin: 0 0 4px;
+}
+.lab-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+.lab-cell {
+  margin: 0;
+}
+.lab-cell figcaption {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.lab-art {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--page);
+}
+.lab-art svg {
+  width: 100%;
+  height: 100%;
+}
+.lab-numbers {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.lab-call {
+  font-size: 0.74rem;
+}
+.lab-state {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.lab-state.failed {
+  color: #b3261e;
+}

@@ -13,10 +13,14 @@ import type {
   IllustrateRequest,
   Page,
   PageAction,
+  ReuseSettings,
   SegmentResponse,
   StoryRequest,
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
+import { expandStream, newStats, ReuseFailed, type Box, type ExpandContext } from "./paint/expand";
+import { hashOf } from "@/lib/art/stamps";
+import { lightOf, paletteFor, seasonOf } from "@/lib/art/palette";
 import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, sceneryPrompt, writerPrompt } from "./prompts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
@@ -606,6 +610,28 @@ export function paintsInLayers(req: IllustrateRequest): boolean {
   return req.cast.length > 0 || Boolean(req.page.action);
 }
 
+/** The characters' space on the page, as a box (see stageFor). */
+function stageBox(req: IllustrateRequest): Box {
+  const half = Math.min(150, 45 + 35 * Math.max(1, req.page.characters.length));
+  return { x0: 200 - half, x1: 200 + half, y0: 75, y1: 250 };
+}
+
+/** Which reuse savings a page is painted with: the request's own (set by
+ *  the server for the admin's comparison bench), else the settings -
+ *  TALEO_PAINT_STAMPS, TALEO_PAINT_PARTS, TALEO_PAINT_BACKDROPS ("1": on).
+ *  All off unless switched on. */
+export function reuseOf(req: Pick<IllustrateRequest, "reuse">): ReuseSettings {
+  if (req.reuse) return req.reuse;
+  const on = (v: string | undefined) => v === "1" || v === "true";
+  return { stamps: on(process.env.TALEO_PAINT_STAMPS), parts: on(process.env.TALEO_PAINT_PARTS), backdrops: on(process.env.TALEO_PAINT_BACKDROPS) };
+}
+const NO_REUSE: ReuseSettings = { stamps: false, parts: false, backdrops: false };
+
+/** Sent down the painting's stream when a page painted from reused pieces
+ *  went wrong part-way: everything sent so far is to be thrown away, and
+ *  the page is painted again, the ordinary way, from the start. */
+export const RESTART = "\u0000restart\u0000";
+
 /** Where the characters stand, worked out the same way for both painters:
  *  neither sees the other's work, so this is what makes the layers fit. */
 function stageFor(req: IllustrateRequest): string {
@@ -617,8 +643,40 @@ function stageFor(req: IllustrateRequest): string {
 - The light comes from the upper left; shadows fall to the lower right.`;
 }
 
-/** Streams the SVG markup of one painted page. */
-export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): AsyncGenerator<string> {
+/** Streams the SVG markup of one painted page. `notes`: what the reuse
+ *  did, for the activity log. */
+export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, notes: Record<string, unknown> = {}): AsyncGenerator<string> {
+  const reuse = reuseOf(req);
+  if (!reuse.stamps) {
+    yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, notes);
+    return;
+  }
+  // From reused pieces - and should anything about that go wrong, the
+  // page is painted again the ordinary way, so it never fails for it.
+  try {
+    yield* paintOnce({ ...req, reuse }, signal, notes);
+  } catch (err) {
+    if (!(err instanceof ReuseFailed) || signal?.aborted) throw err;
+    console.warn("painting: reuse failed, painting the ordinary way", err.message);
+    notes.reuseFailed = err.message;
+    yield RESTART;
+    yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, {});
+  }
+}
+
+async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefined, notes: Record<string, unknown>): AsyncGenerator<string> {
+  const reuse = req.reuse ?? NO_REUSE;
+  // (the pieces' colours: the book's season, the page's light; their
+  // seeds: the book, and the page)
+  const stats = newStats();
+  if (reuse.stamps) notes.reuse = stats;
+  const expandCtx = (stage: Box | null): ExpandContext => ({
+    bookSeed: hashOf(req.storyId || req.world || "taleo"),
+    pageSeed: hashOf(`${req.storyId ?? ""}|${req.page.text}`),
+    palette: paletteFor(seasonOf(req.world), lightOf(`${req.page.picture} ${req.page.text}`)),
+    stamps: reuse.stamps,
+    stage,
+  });
   const sheet = (c: CharacterDef) => {
     const art = referenceArt(c);
     return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
@@ -664,7 +722,9 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     label: layered ? "character painter" : req.quick ? "quick painter" : "main painter",
     unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING,
     clockMs: req.quick ? 0 : FIRST_STROKE_MS,
-    system: illustratorPrompt(),
+    // (the standard pieces are offered to whoever paints the scenery:
+    // the illustrator only when it paints the whole picture alone)
+    system: illustratorPrompt({ stamps: reuse.stamps && !layered }),
     content,
   };
   // One line per painting in the server log: which painter, how long until
@@ -673,7 +733,8 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
   const log: Record<string, unknown> = { model, quick: Boolean(req.quick), retry: Boolean(req.retry) };
   try {
     if (!layered) {
-      yield* brushStrokes(main, signal, log);
+      const strokes = brushStrokes(main, signal, log);
+      yield* reuse.stamps ? expandStream(strokes, expandCtx(null), stats) : strokes;
       return;
     }
     // In layers: the scenery painter never sees the character sheets (it
@@ -684,7 +745,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
       label: "scenery painter",
       unthinking: QUICK_ART_UNTHINKING,
       clockMs: FIRST_STROKE_MS,
-      system: sceneryPrompt(),
+      system: sceneryPrompt({ stamps: reuse.stamps }),
       content: [
         {
           type: "text",
@@ -703,11 +764,14 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     };
     const logs = { scenery: { model: scenery.model } as Record<string, unknown>, characters: {} as Record<string, unknown> };
     Object.assign(log, { layered: true, ...logs });
-    for await (const strokes of inLayers(
-      (stop, why) => brushStrokes(scenery, stop, logs.scenery, why),
-      (stop, why) => brushStrokes(main, stop, logs.characters, why),
-      signal,
-    )) {
+    // (with the pieces on, the scenery painter's placeholders are expanded
+    // as they come - kept out of the characters' space - and the character
+    // painter's bare pen groups given the house pen)
+    const sceneryStrokes = (stop: AbortSignal, why: () => string | undefined) =>
+      reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
+    const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
+      reuse.stamps ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: false }, stats) : brushStrokes(main, stop, logs.characters, why);
+    for await (const strokes of inLayers(sceneryStrokes, characterStrokes, signal)) {
       log.firstStrokeMs ??= Date.now() - began;
       yield strokes;
     }
@@ -716,6 +780,7 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal): 
     throw err;
   } finally {
     log.totalMs = Date.now() - began;
+    if (reuse.stamps) log.reuse = stats;
     console.info("painting", JSON.stringify(log));
   }
 }

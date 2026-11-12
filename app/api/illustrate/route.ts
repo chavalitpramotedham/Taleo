@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { hasApiKey, paintPage, paintsInLayers, SlowPainter, StoryRefusal } from "@/server/claude";
+import { hasApiKey, paintPage, paintsInLayers, RESTART, reuseOf, SlowPainter, StoryRefusal } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { composePainting } from "@/lib/art/compose";
@@ -25,6 +25,10 @@ export async function POST(req: Request) {
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
   // (for the activity log: which of the ways below let the page through)
   let allowedAs: string | null = null;
+  // The admin's comparison bench (/admin/lab) paints the same page the
+  // ordinary way and from reused pieces, side by side: which one this is.
+  // Honoured for the admin only (checked below, by the records).
+  const lab = req.headers.get("x-taleo-paint-lab");
   const g = await guard(async (session) => {
     // Only the storyteller's own pages are painted: the page must carry the
     // signature it was given when it was written for this account...
@@ -62,6 +66,8 @@ export async function POST(req: Request) {
       parsed.cast.length ? `${parsed.cast.length} ${parsed.cast.length === 1 ? "character" : "characters"}` : "nobody on the page",
       parsed.page.action ? "with an action" : "no action",
       allowedAs,
+      parsed.reuse && `lab: ${parsed.reuse.stamps ? "reused pieces" : "ordinary"}`,
+      !parsed.reuse && reuseOf(parsed).stamps && "reused pieces",
     ].filter((c): c is string => Boolean(c)),
     userId: user?.id ?? null,
     tier,
@@ -74,6 +80,8 @@ export async function POST(req: Request) {
     await logDenied(logged((await auth())?.user, undefined, false), g.response);
     return g.response;
   }
+  const benched = (lab === "new" || lab === "old") && g.session.user.isAdmin;
+  if (benched) parsed.reuse = lab === "new" ? { stamps: true, parts: false, backdrops: false } : { stamps: false, parts: false, backdrops: false };
   // The quick painter takes the pages a reader waits on at the start of each
   // part (the story's beginning, and after every decision) - how many is
   // set by the plan; the rest get the main painter.
@@ -102,9 +110,18 @@ export async function POST(req: Request) {
         gen.sent(s.length);
       };
       const paint = (s: string) => {
+        // (painted from reused pieces, it went wrong part-way: what was
+        // sent is thrown away and the page comes again, painted the
+        // ordinary way)
+        if (s === RESTART) {
+          svg = "";
+          send("\n<!--taleo:restart-->\n");
+          return;
+        }
         svg += s;
         send(s);
       };
+      const notes: Record<string, unknown> = {};
       const shapes = () => `${(svg.match(/<(path|circle|ellipse|rect|polygon|polyline|line)\b/g) || []).length} shapes`;
       try {
         if (!hasApiKey()) {
@@ -115,13 +132,13 @@ export async function POST(req: Request) {
             await new Promise((r) => setTimeout(r, 220));
           }
         } else {
-          for await (const delta of paintPage(parsed, stop.signal)) paint(delta);
+          for await (const delta of paintPage(parsed, stop.signal, notes)) paint(delta);
         }
         const left = stop.signal.aborted;
         send("\n<!--taleo:done-->");
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
         // (a reader who left got no picture, whatever was painted)
-        await gen.end(left ? "left" : "ok", { summary: left ? `${shapes()} painted before the reader left` : shapes(), result: svg });
+        await gen.end(left ? "left" : "ok", { summary: `${left ? `${shapes()} painted before the reader left` : shapes()}${reuseNote(notes)}`, result: svg });
       } catch (err) {
         // (a painter too slow to begin isn't a failure to report: the page
         // is asked for again at once and the quick painter takes it)
@@ -148,6 +165,20 @@ export async function POST(req: Request) {
   after(() => gen.done);
 
   return new Response(body, {
-    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+      "x-accel-buffering": "no",
+      // (the bench reads the painting's record back, for its tokens and times)
+      ...(benched ? { "x-taleo-gen": gen.id } : {}),
+    },
   });
+}
+
+/** What reuse did on a page, for its line in the activity log. */
+function reuseNote(notes: Record<string, unknown>): string {
+  const r = notes.reuse as { stamps: number; scatter: number; moved: number; bareInk: number } | undefined;
+  const failed = typeof notes.reuseFailed === "string" ? ` · reuse failed, painted the ordinary way (${notes.reuseFailed.slice(0, 80)})` : "";
+  if (!r) return failed;
+  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${failed}`;
 }

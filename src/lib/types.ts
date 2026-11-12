@@ -239,6 +239,20 @@ export interface IllustrateRequest {
   /** This page's place in its part (0 = the first page after the story
    *  begins or after a decision). */
   pageInPart?: number;
+  /** Painting from reused pieces (see server/paint): set by the server
+   *  only - from its settings, or the admin's comparison bench - never
+   *  taken from the request. */
+  reuse?: ReuseSettings;
+}
+
+/** Which of the reuse savings a painting uses (see server/paint). */
+export interface ReuseSettings {
+  /** standard scenery pieces (stamps) and scatter */
+  stamps: boolean;
+  /** characters placed from stored parts */
+  parts: boolean;
+  /** per-book backdrops under each page's own layer */
+  backdrops: boolean;
 }
 
 export interface CharacterRequest {
