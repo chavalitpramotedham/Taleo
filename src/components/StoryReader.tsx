@@ -790,6 +790,26 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
     const nextView = views[index + 1];
     if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "), "page", true);
+    // ...and a little further on: once this page has settled, the next two
+    // pages' voices and tappable words (or, on the cover, the first
+    // pages'), so turning on - and reading on aloud - starts with no wait.
+    // Only recordings that already exist are fetched: nothing is made (or
+    // paid for) for a page that may never be reached.
+    const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 600));
+    const stop = window.cancelIdleCallback ?? window.clearTimeout;
+    const from = cover === "open" ? index + 1 : index;
+    const id = idle(
+      () => {
+        for (const v of views.slice(from, from + 2)) {
+          if (v.kind !== "page" && v.kind !== "choice") continue;
+          const words = wordsOf(v);
+          if (words) prefetchSpeech(words, "page", true, true);
+          if (v.kind === "page" && v.page.action?.word) prefetchSpeech(v.page.action.word, "word", true, true);
+        }
+      },
+      { timeout: 2500 },
+    );
+    return () => stop(id);
   }, [view, views, index, readAloud, cover, wordsOf]);
 
   useEffect(() => {

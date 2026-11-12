@@ -134,7 +134,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     blurb: "Stories every night, longer adventures",
     monthlyUsd: 29.99,
     credits: "auto",
-    limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 8, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
+    limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 12, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
   },
   admin: {
     id: "admin",

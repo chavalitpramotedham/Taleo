@@ -354,7 +354,9 @@ export function PreviewButtons({
 }) {
   return (
     <div className="story-preview-buttons">
-      <Link className="btn btn-primary" href={href} onClick={onRead}>
+      {/* (the whole story page is fetched as soon as the preview opens - the
+          tap that opens it is a good sign it's about to be read) */}
+      <Link className="btn btn-primary" href={href} onClick={onRead} prefetch>
         <ReadLabel label={label} />
       </Link>
       {extra}

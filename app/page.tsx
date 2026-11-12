@@ -123,6 +123,13 @@ export default async function Home({ searchParams }: HomeProps) {
             <strong>By parents, for parents</strong> - a watercolour picture book you and your little one shape <em>together</em> at
             bedtime, with a warm lesson in every story.
           </p>
+          {/* (the story behind it, a tap away) */}
+          <Link className="founder-pill" href="/about">
+            Why I made Taleo
+            <span className="founder-pill-arrow" aria-hidden>
+              →
+            </span>
+          </Link>
           {/* Desktop: the call to action sits right here; touch devices get the floating bar instead. */}
           <div className="hero-actions desktop-only">
             <Link className="btn btn-primary hero-cta" href="/create">
