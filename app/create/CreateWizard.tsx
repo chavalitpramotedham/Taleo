@@ -49,6 +49,28 @@ const STEP_NOTES = [
  *  so the first step shows at once. */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 
+/** What a story of this length will use, in words: "1 free Quest",
+ *  "1 free Quest + 2 weekly credits", "1 weekly credit + 4 credits".
+ *  This week's credits go before bought ones (as the server spends them).
+ *  Null until it's known. */
+function storyUses(minutes: number, free: { minutes: number; perMinute: number } | null, perMinute: number | null, wallet: { weekly: number; bought: number } | null): string | null {
+  const price = lengthOf(minutes).minutes;
+  const parts: string[] = [];
+  let rest: number;
+  if (free) {
+    parts.push("1 free Quest");
+    rest = Math.max(0, (price - free.minutes) * free.perMinute);
+  } else if (perMinute) rest = price * perMinute;
+  else return null;
+  if (rest > 0) {
+    const weekly = Math.min(wallet?.weekly ?? 0, rest);
+    const bought = rest - weekly;
+    if (weekly) parts.push(`${weekly} weekly credit${weekly === 1 ? "" : "s"}`);
+    if (bought) parts.push(`${bought} credit${bought === 1 ? "" : "s"}`);
+  }
+  return parts.join(" + ");
+}
+
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -146,14 +168,18 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   const freeStory = useRef<{ minutes: number; perMinute: number; balance: number | null } | null>(null);
   // (the same, for what the page shows: how long a free story can be)
   const [freeMax, setFreeMax] = useState<{ minutes: number; perMinute: number } | null>(null);
+  // (what there is to spend, by kind: this week's credits from the plan,
+  // then bought ones - so the page can say exactly what a story will use)
+  const [wallet, setWallet] = useState<{ weekly: number; bought: number } | null>(null);
   // "A free story is up to 5 minutes": asked when a longer one is chosen.
   const [tooLong, setTooLong] = useState<{ minutes: number; freeMinutes: number; cost: number; balance: number | null } | null>(null);
   const askAllowance = async (): Promise<LimitNotice | null | "failed"> => {
     try {
       const res = await fetch("/api/story", { cache: "no-store", headers: deviceHeader() });
-      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number }; free?: { minutes: number; perMinute: number; balance: number | null } };
+      const data = (await res.json()) as { canStart?: boolean; error?: string; limited?: string; plan?: string; startsLeft?: number; windowHours?: number; credits?: { perMinute: number; balance: number }; free?: { minutes: number; perMinute: number; balance: number | null }; wallet?: { weekly: number; bought: number } | null };
       freeStory.current = data.canStart && data.free ? data.free : null;
       setFreeMax(freeStory.current ? { minutes: freeStory.current.minutes, perMinute: freeStory.current.perMinute } : null);
+      setWallet(data.wallet ?? null);
       setDaily(data.windowHours === 168 ? "this week" : data.windowHours === 24 ? "today" : "for now");
       // (the plan's free story is used: this one will be paid for with credits)
       setPerMinute(data.credits ? data.credits.perMinute : null);
@@ -369,6 +395,15 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             ))}
           </div>
           {freeMax && <p className="length-free-note">Your free story is a Quest. For an Adventure or an Odyssey, it&apos;s used too - add the credits shown for the rest.</p>}
+          {/* exactly what this one will use: "1 free Quest + 2 weekly credits" */}
+          {(() => {
+            const uses = storyUses(effectiveMinutes, freeMax, creditsPerMinute, wallet);
+            return uses ? (
+              <p className="length-uses">
+                This story uses: <b>{uses}</b>
+              </p>
+            ) : null;
+          })()}
         </section>
       )}
 

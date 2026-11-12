@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 import type { Account } from "./entitlements";
-import { billingAvailable, heldCredits } from "./billing";
+import { billingAvailable, heldCredits, weeklyCredits, planOf } from "./billing";
 import { peekLimit, peekStart, starterCredits } from "./limits";
 import { listCharacters } from "./characters";
 import { CHARACTER_CREDITS, STORY_CREDITS_RANGE, type CreditsMode, type TierId } from "@/lib/tiers";
@@ -25,6 +25,23 @@ export interface Rights {
   /** Credits set aside right now for a story or character being made
    *  (already out of `credits`; they come back if the work fails). */
   reserved: number;
+  /** This week's credits from the plan (null: the plan gives none, or they
+   *  couldn't be read). Used before bought ones; gone when the week ends. */
+  weekly: { left: number; perWeek: number; resetsAt: number } | null;
+  /** The paid plan, as Stripe last confirmed it (null: none). */
+  subscription: {
+    plan: TierId;
+    status: "active" | "past_due" | "canceled";
+    /** in force now */
+    live: boolean;
+    periodEnd: number;
+    /** cancelled: it ends at periodEnd, then Basic */
+    ending: boolean;
+    /** a move down waiting for the period's end */
+    nextPlan: TierId | null;
+    /** Stripe's customer portal can be opened */
+    manageable: boolean;
+  } | null;
   /** Whether this account may add credits to itself by hand (the admin's
    *  test account only). */
   canAddCredits: boolean;
@@ -60,13 +77,16 @@ export async function rightsOf(account: Account): Promise<Rights> {
   // (first: anything held for work that never finished goes back - so the
   // balance read below is the true one)
   const reserved = billingAvailable() ? ((await heldCredits(account.id).catch(() => null)) ?? 0) : 0;
-  const [story, start, design, saved, credits] = await Promise.all([
+  const perWeek = limits.weeklyCredits;
+  const [story, start, design, saved, credits, weekly] = await Promise.all([
     peekLimit(who, "story"),
     peekStart(who),
     peekLimit(who, "character"),
     listCharacters(account.id).then((c) => c.length, () => 0),
     billingAvailable() ? account.credits() : Promise.resolve(null),
+    perWeek && billingAvailable() ? weeklyCredits(account.id, perWeek).catch(() => null) : Promise.resolve(null),
   ]);
+  const sub = account.subscription;
   return {
     tier: account.tier,
     plan: account.plan.name,
@@ -75,6 +95,18 @@ export async function rightsOf(account: Account): Promise<Rights> {
     creditsMode: account.plan.credits,
     credits,
     reserved,
+    weekly: weekly ? { left: weekly.left, perWeek: weekly.perWeek, resetsAt: weekly.resetsAt } : null,
+    subscription: sub
+      ? {
+          plan: sub.plan,
+          status: sub.status,
+          live: Boolean(planOf(sub)),
+          periodEnd: sub.periodEnd,
+          ending: sub.status === "canceled" || Boolean(sub.cancelAtPeriodEnd),
+          nextPlan: sub.nextPlan ?? null,
+          manageable: Boolean(sub.customerId),
+        }
+      : null,
     canAddCredits: account.isAdmin && billingAvailable(),
     prices: { story: STORY_CREDITS_RANGE, character: CHARACTER_CREDITS },
     stories: {

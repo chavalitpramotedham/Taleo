@@ -3,6 +3,7 @@ import { auth } from "@/server/auth";
 import { errorResponse } from "@/server/errors";
 import { CharacterLimitError, listCharacters, reorderCharacters, saveCharacter } from "@/server/characters";
 import { characterLimit, tierFor } from "@/lib/tiers";
+import { whoIs } from "@/server/limits";
 
 export async function GET() {
   const session = await auth();
@@ -36,12 +37,15 @@ export async function POST(req: Request) {
   const replaceId = typeof body?.replaceId === "string" ? body.replaceId : undefined;
   if (!name) return NextResponse.json({ error: "That character needs a name first." }, { status: 400 });
 
-  const limit = characterLimit(session.user);
+  // (the plan as the records have it now: a move up or down shows at once)
+  const me = await whoIs(session).catch(() => null);
+  const who = me?.user ?? session.user;
+  const limit = characterLimit(who);
   if (!replaceId) {
     const list = await listCharacters(session.user.id);
     if (list.length >= limit) {
       return NextResponse.json(
-        { error: `On the ${tierFor(session.user).name} plan you can keep ${limit} custom characters - replace one to add another.`, limitReached: true },
+        { error: `On the ${tierFor(who).name} plan you can keep ${limit} custom characters - replace one to add another.`, limitReached: true },
         { status: 409 },
       );
     }

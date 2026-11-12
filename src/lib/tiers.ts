@@ -7,7 +7,7 @@
  */
 import { STORY_LENGTHS, lengthOf } from "./ages";
 
-export type TierId = "free" | "admin";
+export type TierId = "free" | "plus" | "pro" | "admin";
 
 /** "So many, per so many hours" - or, with `week`, so many in each
  *  calendar week (Monday to Sunday: everything is counted afresh as the
@@ -50,6 +50,10 @@ export interface TierLimits {
    *  (a change of mind about the theme, say), on top of the stories
    *  themselves and over the same stretch of time. */
   changesOfMind: number;
+  /** Credits the plan gives at the start of each calendar week. Any left
+   *  when the week ends are gone: they never add up, and they're used
+   *  before credits that were bought. */
+  weeklyCredits: number;
   /** Custom characters that can be kept. */
   characters: number | null;
   /** Character designs and redraws (each one is paid AI work). */
@@ -80,7 +84,18 @@ export interface TierInfo {
   credits: CreditsMode;
   /** Extra headline rows beyond those worked out from the limits. */
   extras?: TierRow[];
+  /** What it costs each month, in US dollars (0: nothing; absent: not
+   *  something that's bought). */
+  monthlyUsd?: number;
 }
+
+/** The plans that can be bought, cheapest first. */
+export const PAID_PLANS = ["plus", "pro"] as const;
+export type PaidPlan = (typeof PAID_PLANS)[number];
+export const isPaidPlan = (v: unknown): v is PaidPlan => v === "plus" || v === "pro";
+/** The plans a person can be on, in order (the admin's isn't one). */
+export const PUBLIC_PLANS: TierId[] = ["free", "plus", "pro"];
+const SAFETY = { minutes: 30, segment: 16, illustrate: 80, tts: 400 };
 
 export const PLANS: Record<TierId, TierInfo> = {
   free: {
@@ -88,6 +103,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     // (the plan everyone has, and what it's called; it costs nothing)
     name: "Basic",
     blurb: "Your starter pack for bedtime",
+    monthlyUsd: 0,
     // (credits an account holds are used, without asking each time, once
     // the week's free story or the month's free character is gone)
     credits: "auto",
@@ -96,12 +112,29 @@ export const PLANS: Record<TierId, TierInfo> = {
       // calendar month)
       stories: WEEKLY(1),
       changesOfMind: 3,
+      weeklyCredits: 0,
       characters: 3,
       designs: MONTHLY(1),
       quickPages: 2,
-      burst: { minutes: 30, segment: 16, illustrate: 80, tts: 400 },
+      burst: SAFETY,
       verified: true,
     },
+  },
+  plus: {
+    id: "plus",
+    name: "Plus",
+    blurb: "A story most nights of the week",
+    monthlyUsd: 12.99,
+    credits: "auto",
+    limits: { stories: WEEKLY(2), changesOfMind: 4, weeklyCredits: 5, characters: 6, designs: MONTHLY(2), quickPages: 2, burst: SAFETY, verified: true },
+  },
+  pro: {
+    id: "pro",
+    name: "Pro",
+    blurb: "Long adventures, every night",
+    monthlyUsd: 29.99,
+    credits: "auto",
+    limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 8, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
   },
   admin: {
     id: "admin",
@@ -111,7 +144,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     // (the same free story a week and free character a month as the Free plan, so
     // both flows can be tried: free first, then credits. Room for ten
     // saved characters where Free has three, and plenty of beginnings.)
-    limits: { stories: WEEKLY(1), changesOfMind: 50, characters: 10, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
+    limits: { stories: WEEKLY(1), changesOfMind: 50, weeklyCredits: 0, characters: 10, designs: MONTHLY(1), quickPages: 1, burst: null, verified: false },
     extras: [
       { label: "Adding credits", value: "Any time" },
       { label: "Admin dashboard", value: "Full access" },
@@ -214,6 +247,7 @@ export const tierRows = (t: TierInfo): TierRow[] => [
     value: allowanceText(t.limits.stories),
     note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "An Adventure or an Odyssey uses it too, and adds the difference in credits (2 or 5). A story counts once you make its first choice") : undefined,
   },
+  ...(t.limits.weeklyCredits ? [{ label: "Weekly credits", value: `${t.limits.weeklyCredits} a week`, note: "Used first; any left at the week's end are gone" }] : []),
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
   { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },

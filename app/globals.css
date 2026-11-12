@@ -15136,3 +15136,56 @@ html[data-night] .safety-dialog .modal-head h3 {
   line-height: 1.2;
   color: var(--russet);
 }
+
+/* (the plan's weekly credits, under the bought ones) */
+.credits-weekly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.credits-weekly b {
+  color: var(--ink);
+  font-variant-numeric: lining-nums;
+}
+
+/* (the plans: when yours renews or ends, and notes from moving between them) */
+.plan-status {
+  margin: 2px 0 8px;
+  font-size: 0.86rem;
+  font-style: italic;
+  color: var(--russet);
+}
+.plan-note {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--russet) 10%, transparent);
+  font-size: 0.95rem;
+}
+.plan-note.error {
+  background: color-mix(in srgb, #b3261e 10%, transparent);
+}
+.plan-manage {
+  margin: 14px 0 0;
+  text-align: center;
+}
+.plan-fine {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* (under the length slider: exactly what the story will use) */
+.length-uses {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+.length-uses b {
+  color: var(--ink);
+  font-weight: 600;
+}

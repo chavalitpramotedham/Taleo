@@ -25,6 +25,21 @@ interface Entry {
   of?: string;
   /** on a settling or a release: the credits concerned */
   amount?: number;
+  /** how many of them were the plan's weekly credits */
+  weekly?: number;
+}
+
+/** How something was paid for, when it wasn't simply bought credits:
+ *  "1 free Quest + 2 weekly credits", "1 weekly credit + 4 credits". */
+function paidWith(e: Entry): string {
+  const parts: string[] = [];
+  if (/beyond a free story/.test(e.note ?? "")) parts.push("1 free Quest");
+  const w = e.weekly ?? 0;
+  const b = -e.delta;
+  if (w) parts.push(`${w} weekly credit${w === 1 ? "" : "s"}`);
+  if (w && b > 0) parts.push(`${b} credit${b === 1 ? "" : "s"}`);
+  if (parts.length === 1 && parts[0] === "1 free Quest" && b > 0) parts.push(`${b} credit${b === 1 ? "" : "s"}`);
+  return parts.length > 1 || w ? parts.join(" + ") : "";
 }
 
 /** A story that was partly the plan's free story and partly credits
@@ -92,7 +107,7 @@ export function transactionsOf(ledger: Entry[]): Transaction[] {
     if (e.reason === "hold") {
       // (titled with the character's or the story's own name once it's made)
       // (under a story's name, how it was paid for if part of it was free)
-      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { pending: !settled.has(e.ref), detail: named.has(e.ref) ? mixed(e.note) || undefined : undefined });
+      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { amount: e.delta - (e.weekly ?? 0), pending: !settled.has(e.ref), detail: paidWith(e) || (named.has(e.ref) ? mixed(e.note) || undefined : undefined) });
     } else if (e.reason === "spend") {
       // (a settling changes nothing more: its hold is the line. A spend
       // from before holds existed is its own line.)

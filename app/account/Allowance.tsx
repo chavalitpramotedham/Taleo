@@ -135,7 +135,7 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
         <button type="button" role="tab" aria-selected={tab === "credits"} className={`plans-summary-item${tab === "credits" ? " on" : ""}`} onClick={() => setTab("credits")}>
           <span className="plans-summary-label">Credits</span>
           <span className="plans-summary-value">
-            {credits === null ? "-" : n(credits)} <CreditIcon size={20} />
+            {credits === null ? "-" : n(credits + (rights.weekly?.left ?? 0))} <CreditIcon size={20} />
           </span>
         </button>
       </section>
@@ -159,6 +159,16 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
               </button>
             )}
           </div>
+          {/* (the plan's own credits for this week, apart from bought ones:
+              used first, gone when the week ends) */}
+          {rights.weekly && (
+            <p className="credits-weekly">
+              <CreditIcon size={18} />
+              <span>
+                <b>{n(rights.weekly.left)}</b> weekly credit{rights.weekly.left === 1 ? "" : "s"}, reset Monday
+              </span>
+            </p>
+          )}
           {rights.reserved > 0 && (
             <p className="meta credits-reserved">
               <b>{n(rights.reserved)}</b> more set aside for what&apos;s being made right now. {rights.reserved === 1 ? "It comes" : "They come"} back if it doesn&apos;t work out.
@@ -168,7 +178,11 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
             <p className="meta">Credits aren&apos;t available here yet.</p>
           ) : (
             <p className="meta">
-              {always ? "Every story and character on this account uses credits." : "Your plan's free stories and characters go first. Credits pay for more once they're used up."}
+              {always
+                ? "Every story and character on this account uses credits."
+                : rights.weekly
+                  ? `Your plan's free stories and characters go first, then its ${rights.weekly.perWeek} weekly credits, then credits you've bought. Weekly credits don't carry over; bought ones never expire.`
+                  : "Your plan's free stories and characters go first. Credits pay for more once they're used up. Bought credits never expire."}
             </p>
           )}
           {/* the price list, set apart in its own dotted frame: it's what
@@ -229,6 +243,7 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
                 <Line what={`${standard ? "Free Quests" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                {rights.weekly && <Line what="Weekly credits left" value={n(rights.weekly.left)} note={resets(rights.weekly.resetsAt)} />}
                 <Line
                   what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
                   value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)}

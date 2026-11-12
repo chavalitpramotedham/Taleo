@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { metricsEnabled, pipeline } from "./metrics";
-import type { TierId } from "@/lib/tiers";
+import { weekOf, type TierId } from "@/lib/tiers";
 
 /**
  * What an account has paid for: its subscription (which plan, and until
@@ -36,13 +36,22 @@ export type SubscriptionStatus = "active" | "past_due" | "canceled";
 export interface Subscription {
   plan: TierId;
   status: SubscriptionStatus;
-  /** The end of the period paid for (ms). The plan holds until then, and
-   *  for a few days after while a failed payment is retried. */
+  /** The end of the period paid for (ms). The plan holds until then (a
+   *  cancelled subscription: when it ended). */
   periodEnd: number;
+  /** When the current period began (ms) - which is when a renewal that
+   *  failed was due: the plan holds for a few days from then while the
+   *  payment is retried. */
+  periodStart?: number;
   /** The provider's own names for the customer and the subscription. */
   provider?: string;
   customerId?: string;
   subscriptionId?: string;
+  /** Cancelled, but paid up until `periodEnd`: the plan holds until then. */
+  cancelAtPeriodEnd?: boolean;
+  /** A plan already chosen to follow this one when the period ends (a
+   *  move down from Pro to Plus). */
+  nextPlan?: TierId | null;
   updatedAt: number;
 }
 
@@ -62,6 +71,9 @@ export interface CreditEntry {
   note?: string;
   /** The balance once this was applied. */
   balance: number;
+  /** On a hold, a settling or a release: how many of the credits were the
+   *  plan's weekly ones (taken first; `delta` is only the bought ones). */
+  weekly?: number;
 }
 
 export type CreditResult =
@@ -80,6 +92,12 @@ const balKey = (id: string) => `bill:cr:${id}`;
 const ledgerKey = (id: string) => `bill:ledger:${id}`;
 const refKey = (id: string, ref: string) => `bill:ref:${id}:${ref}`;
 const subKey = (id: string) => `bill:sub:${id}`;
+// (weekly credits: how many of this week's have been used - counted per
+// account and per week, so a new week starts at none used with nothing
+// to reset; the plan says how many a week brings)
+const weekUsedKey = (id: string, weekStart: number) => `bill:wk:${id}:${weekStart}`;
+const WEEK_KEPT_S = 9 * 86_400;
+const holdWeeklyKey = (id: string) => `bill:holdwk:${id}`;
 const safe = (s: string) => /^[\w.:-]{1,120}$/.test(s);
 
 // One step on the store: seen before? enough? then balance, ref and ledger
@@ -101,8 +119,10 @@ interface Local {
   balance: number;
   refs: Record<string, 1>;
   ledger: CreditEntry[];
-  holds?: Record<string, { amount: number; at: number; of?: string }>;
+  holds?: Record<string, { amount: number; at: number; of?: string; weekly?: number; week?: number }>;
   sub?: Subscription | null;
+  /** weekly credits used, by the week's start */
+  weekUsed?: Record<string, number>;
 }
 const localFile = (id: string) => path.join(process.cwd(), ".data", "billing", `${id}.json`);
 // (read from the file each time - pages and API routes are separate
@@ -138,6 +158,25 @@ export async function creditBalance(userId: string): Promise<number | null> {
     return Math.max(0, Number(v ?? 0) || 0);
   } catch (e) {
     console.error("[billing] couldn't read a balance", e);
+    return null;
+  }
+}
+
+/** This week's credits from the plan (`perWeek` of them): how many are
+ *  left, and when the next week's arrive. They aren't kept anywhere as a
+ *  balance - only how many of this week's were used - so there's nothing
+ *  to reset: a new week has used none, and a move to another plan mid-week
+ *  gives its own number less those already used. Null: couldn't be read. */
+export async function weeklyCredits(userId: string, perWeek: number, now = Date.now()): Promise<{ left: number; used: number; perWeek: number; resetsAt: number } | null> {
+  const week = weekOf(now);
+  const out = (used: number) => ({ left: Math.max(0, perWeek - used), used, perWeek, resetsAt: week.end });
+  if (!safe(userId)) return out(0);
+  if (!metricsEnabled()) return onVercel ? out(perWeek) : out((await localOf(userId)).weekUsed?.[String(week.start)] ?? 0);
+  try {
+    const [v] = await pipeline([["GET", weekUsedKey(userId, week.start)]]);
+    return out(Math.max(0, Number(v ?? 0) || 0));
+  } catch (e) {
+    console.error("[billing] couldn't read the weekly credits", e);
     return null;
   }
 }
@@ -237,7 +276,31 @@ export async function setSubscription(userId: string, sub: Omit<Subscription, "u
 export function planOf(sub: Subscription | null, now = Date.now()): TierId | null {
   if (!sub) return null;
   if (sub.status === "canceled") return now < sub.periodEnd ? sub.plan : null;
+  // (a renewal that didn't go through: a few days from when it was due)
+  if (sub.status === "past_due") return now < (sub.periodStart ?? sub.periodEnd) + GRACE_MS ? sub.plan : null;
   return now < sub.periodEnd + GRACE_MS ? sub.plan : null;
+}
+export const PAST_DUE_GRACE_MS = GRACE_MS;
+
+/** Whether a payment provider's notice (by its id) has been dealt with
+ *  already - and, with `mark`, notes that it now has. */
+export async function noticeSeen(id: string, mark = false): Promise<boolean> {
+  if (!safe(id)) return false;
+  const key = `bill:evt:${id}`;
+  if (!metricsEnabled()) {
+    if (onVercel) return false;
+    return localInTurn(async () => {
+      const rec = await localOf("_notices");
+      const seen = Boolean(rec.refs[id]);
+      if (mark && !seen) {
+        rec.refs[id] = 1;
+        await localSave("_notices", rec);
+      }
+      return seen;
+    });
+  }
+  const [v] = await pipeline([mark ? ["SET", key, "1", "EX", REF_KEPT_S, "GET"] : ["GET", key]]);
+  return v !== null && v !== undefined;
 }
 
 /** Removes everything kept about an account's credits and subscription
@@ -248,7 +311,7 @@ export async function forgetBilling(userId: string): Promise<void> {
     if (!onVercel) await localInTurn(() => fs.unlink(localFile(userId)).catch(() => {}));
     return;
   }
-  await pipeline([["DEL", balKey(userId), ledgerKey(userId), subKey(userId), holdsKey(userId)]]);
+  await pipeline([["DEL", balKey(userId), ledgerKey(userId), subKey(userId), holdsKey(userId), holdWeeklyKey(userId), weekUsedKey(userId, weekOf(Date.now()).start)]]);
 }
 
 // ------------------------------------------------------------------ holds
@@ -272,29 +335,56 @@ const holdsKey = (id: string) => `bill:holds:${id}`;
 /** No request runs longer than five minutes; well past that, a hold is stale. */
 const HOLD_STALE_MS = 20 * 60_000;
 
-// KEYS: balance, holds, ledger, ref-of-the-work. ARGV: ref, amount, entry, now, ledger kept.
+// KEYS: balance, holds, ledger, ref-of-the-work, this week's used, weekly
+// part of each hold. ARGV: ref, amount, entry, now, ledger kept, the plan's
+// weekly credits, this week's start, how long a week's count is kept (s).
+// This week's credits are taken first, then bought ones.
 const HOLD = `
 if redis.call('HEXISTS', KEYS[2], ARGV[1]) == 1 or redis.call('EXISTS', KEYS[4]) == 1 then return {2, tonumber(redis.call('GET', KEYS[1]) or '0')} end
 local bal = tonumber(redis.call('GET', KEYS[1]) or '0')
 local amount = tonumber(ARGV[2])
-if bal < amount then return {0, bal} end
-local nb = redis.call('DECRBY', KEYS[1], amount)
+local wavail = math.max(0, tonumber(ARGV[6]) - tonumber(redis.call('GET', KEYS[5]) or '0'))
+local w = math.min(wavail, amount)
+local b = amount - w
+if bal < b then return {0, bal + wavail} end
+local nb = bal
+if b > 0 then nb = redis.call('DECRBY', KEYS[1], b) end
+if w > 0 then
+  redis.call('INCRBY', KEYS[5], w)
+  redis.call('EXPIRE', KEYS[5], tonumber(ARGV[8]))
+  redis.call('HSET', KEYS[6], ARGV[1], w .. ':' .. ARGV[7])
+end
 redis.call('HSET', KEYS[2], ARGV[1], amount .. ':' .. ARGV[4])
 local entry = string.gsub(ARGV[3], '"balance":%-?%d+', '"balance":' .. nb, 1)
+entry = string.gsub(entry, '"delta":%-?%d+', '"delta":' .. (-b), 1)
+entry = string.gsub(entry, '"weekly":%-?%d+', '"weekly":' .. w, 1)
 redis.call('LPUSH', KEYS[3], entry)
 redis.call('LTRIM', KEYS[3], 0, tonumber(ARGV[5]) - 1)
 return {1, nb}`;
-// KEYS: as above. ARGV: ref, 'spend' | 'release', entry, ref kept (s), ledger kept.
+// KEYS: as above. ARGV: ref, 'spend' | 'release', entry, ref kept (s),
+// ledger kept, this week's start. Weekly credits go back only within the
+// week they came from (after it, they'd have gone anyway).
 const SETTLE = `
 local h = redis.call('HGET', KEYS[2], ARGV[1])
 if not h then return {2, tonumber(redis.call('GET', KEYS[1]) or '0'), 0} end
 local amount = tonumber(string.match(h, '^(%d+)'))
 redis.call('HDEL', KEYS[2], ARGV[1])
+local w = 0
+local wk = redis.call('HGET', KEYS[6], ARGV[1])
+if wk then
+  w = tonumber(string.match(wk, '^(%d+)')) or 0
+  redis.call('HDEL', KEYS[6], ARGV[1])
+end
+local b = amount - w
 local nb
 local delta = 0
 if ARGV[2] == 'release' then
-  nb = redis.call('INCRBY', KEYS[1], amount)
-  delta = amount
+  if b > 0 then nb = redis.call('INCRBY', KEYS[1], b) else nb = tonumber(redis.call('GET', KEYS[1]) or '0') end
+  delta = b
+  if w > 0 and wk and string.match(wk, ':(%d+)$') == ARGV[6] then
+    local left = redis.call('DECRBY', KEYS[5], w)
+    if left < 0 then redis.call('SET', KEYS[5], '0', 'KEEPTTL') end
+  end
 else
   nb = tonumber(redis.call('GET', KEYS[1]) or '0')
   redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[4]))
@@ -302,6 +392,7 @@ end
 local entry = string.gsub(ARGV[3], '"balance":%-?%d+', '"balance":' .. nb, 1)
 entry = string.gsub(entry, '"delta":%-?%d+', '"delta":' .. delta, 1)
 entry = string.gsub(entry, '"amount":%-?%d+', '"amount":' .. amount, 1)
+entry = string.gsub(entry, '"weekly":%-?%d+', '"weekly":' .. w, 1)
 local origin = string.match(h, '^%d+:%d+:(.+)$')
 if origin then entry = string.gsub(entry, '"of":""', '"of":"' .. string.gsub(origin, '%%', '') .. '"', 1) end
 redis.call('LPUSH', KEYS[3], entry)
@@ -311,27 +402,34 @@ return {1, nb, amount}`;
 /** Sets `amount` credits aside for the piece of work `ref`, if the account
  *  has them. `applied: false`: this work is already held for, or already
  *  paid for - nothing more is taken. */
-export async function holdCredits(userId: string, amount: number, ref: string, note?: string): Promise<CreditResult> {
+export async function holdCredits(userId: string, amount: number, ref: string, note?: string, weeklyCap = 0): Promise<CreditResult> {
   if (!safe(userId) || !safe(ref) || !Number.isInteger(amount) || amount <= 0 || amount > 1_000_000) throw new Error("Not a valid hold.");
   const now = Date.now();
-  const entry: CreditEntry = { ref, at: now, delta: -amount, reason: "hold", note: note?.slice(0, 200), balance: 0 };
+  const week = weekOf(now).start;
+  const cap = Math.max(0, Math.floor(weeklyCap) || 0);
+  const entry: CreditEntry = { ref, at: now, delta: -amount, reason: "hold", note: note?.slice(0, 200), balance: 0, weekly: 0 };
   if (!metricsEnabled()) {
     if (onVercel) return { ok: false, balance: 0, reason: "unavailable" };
     return localInTurn(async (): Promise<CreditResult> => {
       const rec = await localOf(userId);
       rec.holds ??= {};
       if (rec.holds[ref] || rec.refs[ref]) return { ok: true, balance: rec.balance, applied: false };
-      if (rec.balance < amount) return { ok: false, balance: rec.balance, reason: "insufficient" };
-      rec.balance -= amount;
-      rec.holds[ref] = { amount, at: now };
-      rec.ledger.unshift({ ...entry, balance: rec.balance });
+      rec.weekUsed ??= {};
+      const wavail = Math.max(0, cap - (rec.weekUsed[String(week)] ?? 0));
+      const w = Math.min(wavail, amount);
+      const b = amount - w;
+      if (rec.balance < b) return { ok: false, balance: rec.balance + wavail, reason: "insufficient" };
+      rec.balance -= b;
+      if (w) rec.weekUsed = { [String(week)]: (rec.weekUsed[String(week)] ?? 0) + w };
+      rec.holds[ref] = { amount, at: now, ...(w ? { weekly: w, week } : {}) };
+      rec.ledger.unshift({ ...entry, delta: -b, weekly: w, balance: rec.balance });
       rec.ledger.length = Math.min(rec.ledger.length, LEDGER_KEPT);
       await localSave(userId, rec);
       return { ok: true, balance: rec.balance, applied: true };
     });
   }
   try {
-    const [out] = await pipeline([["EVAL", HOLD, 4, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), ref, amount, JSON.stringify(entry), now, LEDGER_KEPT]]);
+    const [out] = await pipeline([["EVAL", HOLD, 6, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), weekUsedKey(userId, week), holdWeeklyKey(userId), ref, amount, JSON.stringify(entry), now, LEDGER_KEPT, cap, week, WEEK_KEPT_S]]);
     const [state, balance] = (Array.isArray(out) ? out : [0, 0]).map(Number);
     if (state === 0) return { ok: false, balance, reason: "insufficient" };
     return { ok: true, balance, applied: state === 1 };
@@ -349,7 +447,8 @@ async function endHold(userId: string, ref: string, how: "spend" | "release", no
   // (the amount and the change to the balance are filled in from the hold itself)
   // (`of`: for a hold that was renamed along the way, the name it was first
   // held under - so the history can tell which "hold" line this ends)
-  const entry = { ref: `${how === "spend" ? "settled" : "released"}:${ref}`, at: Date.now(), delta: 0, reason: how, note: note?.slice(0, 200), balance: 0, amount: 0, of: "" };
+  const entry = { ref: `${how === "spend" ? "settled" : "released"}:${ref}`, at: Date.now(), delta: 0, reason: how, note: note?.slice(0, 200), balance: 0, amount: 0, weekly: 0, of: "" };
+  const week = weekOf(Date.now()).start;
   if (!metricsEnabled()) {
     if (onVercel) return { done: false, amount: 0 };
     return localInTurn(async () => {
@@ -357,16 +456,21 @@ async function endHold(userId: string, ref: string, how: "spend" | "release", no
       const held = rec.holds?.[ref];
       if (!held) return { done: false, amount: 0 };
       delete rec.holds![ref];
-      if (how === "release") rec.balance += held.amount;
-      else rec.refs[ref] = 1;
-      rec.ledger.unshift({ ...entry, of: held.of ?? "", delta: how === "release" ? held.amount : 0, amount: held.amount, balance: rec.balance } as CreditEntry);
+      const w = held.weekly ?? 0;
+      const b = held.amount - w;
+      if (how === "release") {
+        rec.balance += b;
+        // (this week's credits go back only within the week they came from)
+        if (w && held.week === week && rec.weekUsed?.[String(week)]) rec.weekUsed[String(week)] = Math.max(0, rec.weekUsed[String(week)] - w);
+      } else rec.refs[ref] = 1;
+      rec.ledger.unshift({ ...entry, of: held.of ?? "", delta: how === "release" ? b : 0, amount: held.amount, weekly: w, balance: rec.balance } as CreditEntry);
       rec.ledger.length = Math.min(rec.ledger.length, LEDGER_KEPT);
       await localSave(userId, rec);
       return { done: true, amount: held.amount };
     });
   }
   try {
-    const [out] = await pipeline([["EVAL", SETTLE, 4, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), ref, how, JSON.stringify(entry), REF_KEPT_S, LEDGER_KEPT]]);
+    const [out] = await pipeline([["EVAL", SETTLE, 6, balKey(userId), holdsKey(userId), ledgerKey(userId), refKey(userId, ref), weekUsedKey(userId, week), holdWeeklyKey(userId), ref, how, JSON.stringify(entry), REF_KEPT_S, LEDGER_KEPT, week]]);
     const [state, , amount] = (Array.isArray(out) ? out : [0, 0, 0]).map(Number);
     return { done: state === 1, amount: amount || 0 };
   } catch (e) {
@@ -379,12 +483,17 @@ export const settleHold = (userId: string, ref: string, note?: string) => endHol
 /** The work failed or was stopped: the held credits go back. */
 export const releaseHold = (userId: string, ref: string, note?: string) => endHold(userId, ref, "release", note);
 
-// KEYS: holds. ARGV: from, to, now.
+// KEYS: holds, weekly part of each hold. ARGV: from, to, now.
 const MOVE = `
 local h = redis.call('HGET', KEYS[1], ARGV[1])
 if not h then return 0 end
 if redis.call('HEXISTS', KEYS[1], ARGV[2]) == 1 then return 0 end
 redis.call('HDEL', KEYS[1], ARGV[1])
+local wk = redis.call('HGET', KEYS[2], ARGV[1])
+if wk then
+  redis.call('HDEL', KEYS[2], ARGV[1])
+  redis.call('HSET', KEYS[2], ARGV[2], wk)
+end
 redis.call('HSET', KEYS[1], ARGV[2], string.match(h, '^(%d+)') .. ':' .. ARGV[3] .. ':' .. (string.match(h, '^%d+:%d+:(.+)$') or ARGV[1]))
 return 1`;
 /** Renames a hold (the same credits, now set aside under another piece of
@@ -402,13 +511,13 @@ export async function moveHold(userId: string, from: string, to: string): Promis
       if (!held || rec.holds![to]) return false;
       delete rec.holds![from];
       // (`of`: the name it was first held under - what the ledger's "hold" line says)
-      rec.holds![to] = { amount: held.amount, at: now, of: held.of ?? from };
+      rec.holds![to] = { ...held, at: now, of: held.of ?? from };
       await localSave(userId, rec);
       return true;
     });
   }
   try {
-    const [out] = await pipeline([["EVAL", MOVE, 1, holdsKey(userId), from, to, now]]);
+    const [out] = await pipeline([["EVAL", MOVE, 2, holdsKey(userId), holdWeeklyKey(userId), from, to, now]]);
     return Number(out) === 1;
   } catch (e) {
     console.error("[billing] couldn't move a hold", e);

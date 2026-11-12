@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { auth } from "./auth";
 import { getUser } from "./users";
-import { creditBalance, getSubscription, planOf, type Subscription } from "./billing";
+import { creditBalance, getSubscription, planOf, weeklyCredits, type Subscription } from "./billing";
 import { PLANS, tierIdFor, type TierId, type TierInfo } from "@/lib/tiers";
 
 /**
@@ -31,8 +31,13 @@ export interface Account {
   tier: TierId;
   plan: TierInfo;
   subscription: Subscription | null;
-  /** On-demand credits, read from the store each time it's asked. */
+  /** Bought credits, read from the store each time it's asked. */
   credits: () => Promise<number | null>;
+  /** This week's credits from the plan still to use (0 on a plan without
+   *  them; null: couldn't be read). */
+  weekly: () => Promise<number | null>;
+  /** Everything that can be spent now: this week's credits and bought ones. */
+  spendable: () => Promise<number | null>;
 }
 
 const KEEP_MS = 15_000;
@@ -66,6 +71,11 @@ async function read(userId: string): Promise<Account | null> {
     subscription,
     // (always the balance as it is this moment: it's never kept)
     credits: () => creditBalance(userId),
+    weekly: () => (PLANS[tier].limits.weeklyCredits ? weeklyCredits(userId, PLANS[tier].limits.weeklyCredits).then((w) => (w ? w.left : null)) : Promise.resolve(0)),
+    spendable: async () => {
+      const [bought, week] = await Promise.all([creditBalance(userId), PLANS[tier].limits.weeklyCredits ? weeklyCredits(userId, PLANS[tier].limits.weeklyCredits) : Promise.resolve({ left: 0 })]);
+      return bought === null ? null : bought + (week?.left ?? 0);
+    },
   };
 }
 

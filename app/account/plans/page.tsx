@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { AccountPlans } from "../AccountTier";
 import { PlansView } from "../Allowance";
-import { paymentsOpen } from "@/server/stripe";
+import { paymentsOpen, subscriptionsOpen } from "@/server/stripe";
 import { currentAccount } from "@/server/entitlements";
 import { rightsOf } from "@/server/rights";
 import { creditLedger } from "@/server/billing";
@@ -29,7 +29,7 @@ export default async function PlansPage() {
       </header>
       {rights ? (
         <PlansView rights={rights} history={history} paymentsOpen={paymentsOpen()}>
-          <AccountPlans isAdmin={rights.isAdmin} tier={rights.tier} />
+          <AccountPlans isAdmin={rights.isAdmin} tier={rights.tier} subscription={rights.subscription} open={subscriptionsOpen()} />
         </PlansView>
       ) : (
         <AccountPlans isAdmin={session.user.isAdmin} tier={session.user.tier} />

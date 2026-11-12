@@ -5,7 +5,7 @@ import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
 import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
-import { guard, limitMessage, peekStart, whoIs } from "@/server/limits";
+import { guard, limitMessage, peekLimit, peekStart, whoIs } from "@/server/limits";
 import { limitsFor, tierFor, storyCredits, CREDITS_PER_STORY_MINUTE, FREE_STORY_MINUTES, STORY_CREDITS_RANGE } from "@/lib/tiers";
 import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
 import type { Page } from "@/lib/types";
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
   // and the page is told, so it can say what this one will cost.
   let credits: { perMinute: number; balance: number } | undefined;
   if (!ok && limited === "story" && tierFor(user).credits === "auto" && me.account) {
-    const balance = await me.account.credits();
+    const balance = await me.account.spendable();
     if (balance !== null) {
       credits = { perMinute: CREDITS_PER_STORY_MINUTE, balance };
       ok = balance >= STORY_CREDITS_RANGE[0];
@@ -49,12 +49,17 @@ export async function GET(req: Request) {
   // page asks which, with what's in the account).
   let free: { minutes: number; perMinute: number; balance: number | null } | undefined;
   if (peek.ok && tierFor(user).credits === "auto" && tierFor(user).limits.stories && me.account) {
-    free = { minutes: FREE_STORY_MINUTES, perMinute: CREDITS_PER_STORY_MINUTE, balance: await me.account.credits().catch(() => null) };
+    free = { minutes: FREE_STORY_MINUTES, perMinute: CREDITS_PER_STORY_MINUTE, balance: await me.account.spendable().catch(() => null) };
   }
+  // (what there is to spend, by kind - so the page can say exactly what a
+  // story will use: "1 free Quest + 2 weekly credits")
+  const wallet = me.account && tierFor(user).credits === "auto" ? await Promise.all([me.account.weekly(), me.account.credits()]).then(([weekly, bought]) => (weekly === null || bought === null ? null : { weekly, bought }), () => null) : null;
   return NextResponse.json({
     canStart: ok,
     credits,
     free,
+    wallet,
+    freeLeft: peek.ok && tierFor(user).limits.stories ? ((await peekLimit(user, "story").catch(() => null))?.left ?? null) : 0,
     retryAfterSec,
     limited: ok ? undefined : limited,
     startsLeft: left,

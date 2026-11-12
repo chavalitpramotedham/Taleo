@@ -419,11 +419,13 @@ async function guardWith(
     // (set aside as the work begins - gone from the balance at once - and
     // settled or released when it's known how the work went)
     await heldCredits(userId).catch(() => null); // (first, anything left by work that never finished goes back)
-    const paid = await holdCredits(userId, price, ref, what);
+    const paid = await holdCredits(userId, price, ref, what, weeklyCap);
     if (paid.ok) return { ok: true, spent: paid.applied ? price : 0 };
     return { ok: false, offer: { item, price, balance: paid.balance }, down: paid.reason === "unavailable" };
   };
   const what = item === "story" ? `A ${price}-minute story` : "A character";
+  // (this week's credits from the plan are used first, then bought ones)
+  const weeklyCap = account?.plan.limits.weeklyCredits ?? 0;
   // (a beginning's credits stay held when its opening has been written -
   // they're settled at the first choice - and go back if writing it fails)
   // (...and from then they're held under the name of the story begun, so
@@ -528,7 +530,7 @@ async function guardWith(
         if (waited) return waited;
       }
       const waiting = item === "story" && beginning ? await pendingStoryHold(userId) : null;
-      const balance = await account.credits();
+      const balance = await account.spendable();
       // (beginning another gives back what's held for one not carried on)
       const free = balance === null ? null : balance + (beginning ? (waiting?.amount ?? 0) : 0);
       if (free !== null && free >= price) offer = { item, price, balance: free };
@@ -569,7 +571,7 @@ async function guardWith(
     }
     if (beginning) await releasePendingStories(userId, "Another story was begun instead: credits returned");
     await heldCredits(userId).catch(() => null);
-    const paid = await holdCredits(userId, topUp, ref, `A ${price}-minute story: ${extra}`);
+    const paid = await holdCredits(userId, topUp, ref, `A ${price}-minute story: ${extra}`, weeklyCap);
     if (paid.ok) {
       const spent = paid.applied ? topUp : 0;
       const back = async (how?: { left?: boolean }) => {
@@ -598,7 +600,7 @@ async function guardWith(
       ok: false,
       response: NextResponse.json(
         {
-          error: `Your free story covers a Quest. ${cap(aLength(lengthOf(price)))} needs ${topUp} credit${topUp === 1 ? "" : "s"} more - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it a Quest and it's free.`,
+          error: `Your free Quest covers 3 credits of it. ${cap(aLength(lengthOf(price)))} needs ${topUp} credit${topUp === 1 ? "" : "s"} more, and ${paid.balance === 0 ? "there are none" : `there ${paid.balance === 1 ? "is" : "are"} only ${paid.balance}`} - ${topUp - paid.balance} missing. Make it a Quest and it's free.`,
           limited: "credits",
           credits: { item: "story", price: topUp, balance: paid.balance },
           freeMinutes: FREE_STORY_MINUTES,

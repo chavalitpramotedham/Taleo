@@ -1,6 +1,7 @@
 import Stripe from "stripe";
-import { applyCredits } from "./billing";
-import { CREDIT_PACK_MAX, CREDIT_PACK_MIN, packPrice } from "@/lib/tiers";
+import { applyCredits, getSubscription, planOf, setSubscription, type Subscription, type SubscriptionStatus } from "./billing";
+import { forgetAccount } from "./entitlements";
+import { CREDIT_PACK_MAX, CREDIT_PACK_MIN, isPaidPlan, packPrice, type PaidPlan } from "@/lib/tiers";
 
 /**
  * Card payments for credits, with Stripe Checkout (Stripe's own hosted
@@ -103,5 +104,181 @@ export function webhookEvent(body: string, signature: string | null): Stripe.Eve
     return stripe().webhooks.constructEvent(body, signature, secret);
   } catch {
     return null;
+  }
+}
+
+// ------------------------------------------------------------ subscriptions
+//
+// Plus and Pro are monthly subscriptions, also on Stripe:
+//
+//  - Upgrading from Basic opens Stripe Checkout in subscription mode: the
+//    card is kept on file and charged each month from that day.
+//  - The plan changes only when Stripe's signed webhook says so - never on
+//    the browser's word that it came back from paying. Each notice reads
+//    the subscription back from Stripe and records it as it is then, so a
+//    notice sent twice, or late, or out of order changes nothing wrong.
+//  - Plus to Pro is at once, with Stripe's charge for the rest of the
+//    month; Pro to Plus waits for the end of the month paid for (a
+//    subscription schedule). Cancelling, cards and invoices are in
+//    Stripe's customer portal.
+//
+// Switched on only when the key and both price ids are set
+// (STRIPE_PRICE_PLUS, STRIPE_PRICE_PRO: monthly prices made in Stripe's
+// dashboard, on products with a tax category).
+
+const priceFor = (plan: PaidPlan) => (plan === "plus" ? process.env.STRIPE_PRICE_PLUS : process.env.STRIPE_PRICE_PRO) || "";
+export const subscriptionsOpen = () => paymentsOpen() && Boolean(process.env.STRIPE_PRICE_PLUS && process.env.STRIPE_PRICE_PRO);
+/** Which plan a Stripe price is (null: not one of ours). */
+const planOfPrice = (priceId: string | null | undefined): PaidPlan | null => (priceId && priceId === process.env.STRIPE_PRICE_PLUS ? "plus" : priceId && priceId === process.env.STRIPE_PRICE_PRO ? "pro" : null);
+const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : (v?.id ?? null));
+
+/** Opens Stripe Checkout for a new subscription to `plan`. Where to send
+ *  the buyer. */
+export async function openSubscriptionCheckout(opts: { userId: string; email?: string | null; plan: PaidPlan; origin: string; customerId?: string | null }): Promise<string> {
+  const { userId, plan, origin } = opts;
+  const price = priceFor(plan);
+  if (!price) throw new Error("Subscriptions aren't switched on.");
+  const session = await stripe().checkout.sessions.create({
+    mode: "subscription",
+    line_items: [{ price, quantity: 1 }],
+    client_reference_id: userId,
+    // (a returning subscriber keeps their Stripe customer - and its cards)
+    ...(opts.customerId ? { customer: opts.customerId } : { customer_email: opts.email || undefined }),
+    metadata: { userId, plan },
+    // (the subscription itself carries whose it is: every later notice
+    // about it is matched to the account by this)
+    subscription_data: { metadata: { userId, plan } },
+    success_url: `${origin}/account/plans?subscribed=${plan}`,
+    cancel_url: `${origin}/account/plans`,
+  });
+  if (!session.url) throw new Error("Stripe didn't give a checkout page.");
+  return session.url;
+}
+
+/** Stripe's customer portal for this customer: cards, invoices,
+ *  cancelling. Where to send them. */
+export async function portalLink(customerId: string, origin: string): Promise<string> {
+  const portal = await stripe().billingPortal.sessions.create({ customer: customerId, return_url: `${origin}/account/plans` });
+  return portal.url;
+}
+
+const statusOf = (s: Stripe.Subscription.Status): SubscriptionStatus | null =>
+  s === "active" || s === "trialing" ? "active" : s === "past_due" ? "past_due" : s === "canceled" || s === "unpaid" || s === "incomplete_expired" || s === "paused" ? "canceled" : null;
+
+/**
+ * Reads a subscription back from Stripe and records it on its account, as
+ * it is now. `at`: when the notice was sent (an older one than the last
+ * recorded changes nothing). Returns what was recorded (null: nothing -
+ * not ours, not yet paid, or about an old subscription).
+ */
+export async function syncSubscription(subscriptionId: string, at: number): Promise<{ userId: string; sub: Subscription | null } | null> {
+  if (!/^sub_[A-Za-z0-9_]{6,200}$/.test(subscriptionId)) return null;
+  const sub = await stripe().subscriptions.retrieve(subscriptionId, { expand: ["schedule"] });
+  const userId = sub.metadata?.userId;
+  if (!userId) return null;
+  const item = sub.items.data[0];
+  const plan = planOfPrice(item?.price?.id);
+  const status = statusOf(sub.status);
+  // (not yet paid for - the first payment hasn't gone through: nothing
+  // changes until it has)
+  if (!plan || !status) return null;
+  const current = await getSubscription(userId);
+  // (a notice about an older subscription while a newer one is in force
+  // is history: it doesn't replace it)
+  if (current?.subscriptionId && current.subscriptionId !== sub.id && planOf(current) && status === "canceled") return null;
+  // (a move down waiting for the month's end: the schedule's next phase)
+  const schedule = sub.schedule && typeof sub.schedule === "object" ? sub.schedule : null;
+  const later = schedule?.phases?.find((p) => p.start_date * 1000 > Date.now());
+  const nextPlan = later ? planOfPrice(idOf(later.items?.[0]?.price as string | { id: string })) : null;
+  const ended = status === "canceled";
+  const record: Omit<Subscription, "updatedAt"> = {
+    plan,
+    status,
+    // (ended: when it did - at the period's end if cancelled then, at once
+    // if payments ran out)
+    periodEnd: ended ? (sub.ended_at ?? sub.canceled_at ?? Math.floor(Date.now() / 1000)) * 1000 : (item.current_period_end ?? 0) * 1000,
+    periodStart: (item.current_period_start ?? 0) * 1000,
+    provider: "stripe",
+    customerId: idOf(sub.customer) ?? undefined,
+    subscriptionId: sub.id,
+    cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end || sub.cancel_at),
+    nextPlan: nextPlan && nextPlan !== plan ? nextPlan : null,
+  };
+  await setSubscription(userId, record, at);
+  forgetAccount(userId);
+  return { userId, sub: { ...record, updatedAt: at } };
+}
+
+/** Moves a live subscription to another paid plan: up at once (Stripe
+ *  charges for the rest of the month now), down at the end of the month
+ *  paid for. The plan recorded here changes when Stripe's notice of it
+ *  arrives. */
+export async function changePlan(current: Subscription, to: PaidPlan): Promise<"now" | "later" | "same"> {
+  if (!current.subscriptionId || !isPaidPlan(current.plan)) throw new Error("No subscription to change.");
+  const s = stripe();
+  const sub = await s.subscriptions.retrieve(current.subscriptionId);
+  const item = sub.items.data[0];
+  const from = planOfPrice(item?.price?.id);
+  const scheduleId = idOf(sub.schedule as string | { id: string } | null);
+  if (from === to) {
+    // (back to the plan it's on: a move down that was waiting is called off,
+    // and so is a cancellation)
+    if (scheduleId) await s.subscriptionSchedules.release(scheduleId);
+    if (sub.cancel_at_period_end) await s.subscriptions.update(sub.id, { cancel_at_period_end: false });
+    return "same";
+  }
+  if (to === "pro") {
+    if (scheduleId) await s.subscriptionSchedules.release(scheduleId);
+    // (only if the charge for the rest of the month goes through)
+    await s.subscriptions.update(sub.id, {
+      items: [{ id: item.id, price: priceFor("pro") }],
+      proration_behavior: "always_invoice",
+      payment_behavior: "pending_if_incomplete",
+      ...(sub.cancel_at_period_end ? { cancel_at_period_end: false } : {}),
+    });
+    return "now";
+  }
+  // Down to Plus: Pro until the month paid for ends, then Plus.
+  if (sub.cancel_at_period_end) await s.subscriptions.update(sub.id, { cancel_at_period_end: false });
+  const schedule = scheduleId ? await s.subscriptionSchedules.retrieve(scheduleId) : await s.subscriptionSchedules.create({ from_subscription: sub.id });
+  const now = schedule.phases[0];
+  await s.subscriptionSchedules.update(schedule.id, {
+    end_behavior: "release",
+    phases: [
+      { items: [{ price: priceFor("pro"), quantity: 1 }], start_date: now.start_date, end_date: item.current_period_end, metadata: sub.metadata },
+      { items: [{ price: priceFor("plus"), quantity: 1 }], metadata: sub.metadata },
+    ],
+  });
+  return "later";
+}
+
+/** What a Stripe notice is about, for the subscriptions: the subscription
+ *  to read back (null: not about one). */
+export function subscriptionOfEvent(event: Stripe.Event): string | null {
+  const o = event.data.object as unknown as Record<string, unknown>;
+  switch (event.type) {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded":
+      return o.mode === "subscription" ? idOf(o.subscription as string | { id: string } | null) : null;
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+    case "customer.subscription.paused":
+    case "customer.subscription.resumed":
+      return idOf(o as { id: string });
+    case "invoice.paid":
+    case "invoice.payment_succeeded":
+    case "invoice.payment_failed": {
+      const parent = o.parent as { subscription_details?: { subscription?: string | { id: string } } } | null;
+      return idOf(parent?.subscription_details?.subscription ?? (o.subscription as string | null) ?? null);
+    }
+    case "subscription_schedule.created":
+    case "subscription_schedule.updated":
+    case "subscription_schedule.released":
+    case "subscription_schedule.canceled":
+    case "subscription_schedule.completed":
+      return idOf(o.subscription as string | { id: string } | null);
+    default:
+      return null;
   }
 }
