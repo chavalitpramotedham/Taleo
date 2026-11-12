@@ -123,7 +123,7 @@ export const PLANS: Record<TierId, TierInfo> = {
   plus: {
     id: "plus",
     name: "Plus",
-    blurb: "A story most nights of the week",
+    blurb: "A story every other night of the week",
     monthlyUsd: 12.99,
     credits: "auto",
     limits: { stories: WEEKLY(2), changesOfMind: 4, weeklyCredits: 5, characters: 6, designs: MONTHLY(2), quickPages: 2, burst: SAFETY, verified: true },
@@ -131,7 +131,7 @@ export const PLANS: Record<TierId, TierInfo> = {
   pro: {
     id: "pro",
     name: "Pro",
-    blurb: "Long adventures, every night",
+    blurb: "Stories every night, longer adventures",
     monthlyUsd: 29.99,
     credits: "auto",
     limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 8, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
