@@ -1,5 +1,5 @@
 "use client";
-import { STORY_LENGTHS } from "@/lib/ages";
+import { STANDARD_LENGTH, STORY_LENGTHS } from "@/lib/ages";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -78,6 +78,8 @@ function Line({ what, value, sub, note }: { what: React.ReactNode; value: React.
 export function PlansView({ rights: first, history = [], children }: { rights: Rights; history?: Transaction[]; children: React.ReactNode }) {
   const [rights, setRights] = useState(first);
   const always = rights.creditsMode === "always";
+  // (a plan's own story is a "standard story" where longer ones add credits)
+  const standard = rights.creditsMode === "auto" && rights.stories.left !== null;
   const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
@@ -192,7 +194,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <section className="panel credits-panel" aria-label="What your plan allows right now">
               <h4 className="menu-title">Your quota</h4>
               <ul className="menu-list">
-                <Line what={`Stories left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
+                <Line what={`${standard ? "Standard stories" : "Stories"} left${s.weekly ? " this week" : s.windowHours === 24 ? " today" : ""}${standard ? "*" : ""}`} value={s.left === null ? "Unlimited" : n(s.left)} note={s.left !== null && s.weekly ? resets(weekOf(Date.now()).end) : undefined} />
                 <Line
                   what={`Characters left${c.designsPer ? ` this ${c.designsPer}` : ""}`}
                   value={c.designsLeft === null ? "Unlimited" : n(c.designsLeft)}
@@ -200,6 +202,11 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
                 />
                 <Line what="Custom character slots used" value={c.limit === null ? n(c.saved) : `${n(c.saved)} of ${n(c.limit)}`} />
               </ul>
+              {standard && (
+                <p className="meta menu-note">
+                  *NOTE: a standard story is a Quest or an Adventure. An Odyssey uses one too, and adds {STORY_LENGTHS[2].minutes - STANDARD_LENGTH.minutes} credits.
+                </p>
+              )}
             </section>
           )}
           {children}
