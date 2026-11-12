@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { CREDIT_PACK_MAX, packPrice } from "@/lib/tiers";
+import { CREDIT_PACK_MAX, CREDIT_PACK_MIN, packPrice } from "@/lib/tiers";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +25,11 @@ export async function POST(req: Request) {
   if (!session?.user?.id) return NextResponse.json({ error: "Please sign in first." }, { status: 401 });
   const body = (await req.json().catch(() => null)) as { credits?: unknown } | null;
   const credits = typeof body?.credits === "number" ? body.credits : NaN;
-  if (!Number.isInteger(credits) || credits < 1 || credits > CREDIT_PACK_MAX) {
-    return NextResponse.json({ error: `Choose a whole number of credits, from 1 to ${CREDIT_PACK_MAX}.` }, { status: 400 });
+  if (!Number.isInteger(credits) || credits < CREDIT_PACK_MIN || credits > CREDIT_PACK_MAX) {
+    return NextResponse.json({ error: `Choose a whole number of credits, from ${CREDIT_PACK_MIN} to ${CREDIT_PACK_MAX}.` }, { status: 400 });
   }
-  // (the price isn't decided yet: null)
+  // (worked out here, never taken from the request: the browser says how
+  // many credits, the server says what they cost)
   const price = packPrice(credits);
   return NextResponse.json(
     {

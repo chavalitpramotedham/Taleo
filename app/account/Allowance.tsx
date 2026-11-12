@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark, OrnamentRule } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
-import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, packPrice } from "@/lib/tiers";
+import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, CREDIT_PACK_MIN, CREDIT_PRICE_CENTS, CREDIT_CURRENCY, packPrice } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -232,7 +232,7 @@ const lost = (e: unknown, fallback: string) => (e instanceof TypeError ? "No con
  * (lib/tiers: packPrice; /api/account/checkout) for when they're ready.
  */
 function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void }) {
-  const [pack, setPack] = useState<number | "other">(CREDIT_PACKS[1]);
+  const [pack, setPack] = useState<number | "other">(CREDIT_PACKS[0]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -240,12 +240,14 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
   const [answer, setAnswer] = useState<string | null>(null);
   useEscape(onClose, !busy);
   const amount = pack === "other" ? (/^[0-9]+$/.test(text) ? Number(text) : 0) : pack;
-  const valid = amount >= 1 && amount <= CREDIT_PACK_MAX;
+  const valid = amount >= CREDIT_PACK_MIN && amount <= CREDIT_PACK_MAX;
   const cost = (credits: number) => {
     const p = packPrice(credits);
-    return p ? new Intl.NumberFormat("en-GB", { style: "currency", currency: p.currency }).format(p.amount) : null;
+    // ("US$5.00": said with its country, as dollars are not everyone's own)
+    return p ? new Intl.NumberFormat("en-GB", { style: "currency", currency: p.currency, currencyDisplay: "symbol" }).format(p.amount) : null;
   };
   const total = valid ? cost(amount) : null;
+  const perCredit = new Intl.NumberFormat("en-GB", { style: "currency", currency: CREDIT_CURRENCY }).format(CREDIT_PRICE_CENTS / 100);
   const checkout = async () => {
     if (!valid || busy) return;
     setBusy(true);
@@ -316,7 +318,7 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                 ))}
                 <button type="button" role="radio" aria-checked={pack === "other"} className={`buy-credits-pack${pack === "other" ? " on" : ""}`} onClick={() => setPack("other")} disabled={busy}>
                   <span className="buy-credits-n">Other</span>
-                  <span className="buy-credits-price">Your own amount</span>
+                  <span className="buy-credits-price">Your own amount, {n(CREDIT_PACK_MIN)} or more</span>
                 </button>
               </div>
               {pack === "other" && (
@@ -333,14 +335,18 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                     placeholder="How many?"
                     aria-label="How many credits to buy"
                   />
-                  {text !== "" && !valid && <p className="error">Enter a whole number from 1 to {n(CREDIT_PACK_MAX)}.</p>}
+                  {text !== "" && !valid && (
+                    <p className="error">
+                      Enter a whole number from {n(CREDIT_PACK_MIN)} to {n(CREDIT_PACK_MAX)}.
+                    </p>
+                  )}
                 </>
               )}
             </section>
             <section className="add-credits-box" aria-label="What it comes to">
               <ul className="menu-list">
                 <Line what="Credits" value={valid ? <Cost n={n(amount)} /> : "-"} />
-                <Line what="Price" value={total ?? "To be announced"} />
+                <Line what={`Price (${perCredit} a credit)`} value={total ?? "-"} />
                 <Line what="Your credits after" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
               </ul>
             </section>
