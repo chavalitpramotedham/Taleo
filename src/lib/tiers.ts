@@ -84,9 +84,9 @@ export interface TierInfo {
   credits: CreditsMode;
   /** Extra headline rows beyond those worked out from the limits. */
   extras?: TierRow[];
-  /** What it costs each month, in the shop's currency (CREDIT_CURRENCY;
-   *  0: nothing; absent: not something that's bought). */
-  monthly?: number;
+  /** What it costs each month, in US dollars (0: nothing; absent: not
+   *  something that's bought). */
+  monthlyUsd?: number;
 }
 
 /** The plans that can be bought, cheapest first. */
@@ -103,7 +103,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     // (the plan everyone has, and what it's called; it costs nothing)
     name: "Basic",
     blurb: "Your starter pack for bedtime",
-    monthly: 0,
+    monthlyUsd: 0,
     // (credits an account holds are used, without asking each time, once
     // the week's free story or the month's free character is gone)
     credits: "auto",
@@ -124,7 +124,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "plus",
     name: "Plus",
     blurb: "A story every other night of the week",
-    monthly: 16.99,
+    monthlyUsd: 12.99,
     credits: "auto",
     limits: { stories: WEEKLY(2), changesOfMind: 4, weeklyCredits: 5, characters: 6, designs: MONTHLY(2), quickPages: 2, burst: SAFETY, verified: true },
   },
@@ -132,7 +132,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "pro",
     name: "Pro",
     blurb: "Stories every night, longer adventures",
-    monthly: 38.99,
+    monthlyUsd: 29.99,
     credits: "auto",
     limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 8, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
   },
@@ -193,14 +193,9 @@ export const CREDIT_PACKS = [10, 20, 30, 50, 100];
  *  which would swallow a smaller sale. */
 export const CREDIT_PACK_MIN = CREDIT_PACKS[0];
 export const CREDIT_PACK_MAX = 10_000;
-/** What one credit costs to buy, in cents of CREDIT_CURRENCY - the same
- *  in every pack. (Singapore dollars: the Stripe account is in Singapore
- *  and pays out in them, so nothing is converted - which Stripe charges
- *  about 2% for.) */
-export const CREDIT_PRICE_CENTS = 65;
-export const CREDIT_CURRENCY = "SGD";
-/** An amount of money as it's shown: "S$6.50". */
-export const money = (amount: number) => `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** What one credit costs to buy, in US cents - the same in every pack. */
+export const CREDIT_PRICE_CENTS = 50;
+export const CREDIT_CURRENCY = "USD";
 /** Bigger orders cost less a credit: so much off (per cent) from so many
  *  credits upward - whether a pack or an amount of one's own. */
 export const CREDIT_DISCOUNTS: { from: number; off: number }[] = [
