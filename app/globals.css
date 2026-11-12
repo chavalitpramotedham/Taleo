@@ -1265,6 +1265,9 @@ main {
   position: absolute;
   inset: 0;
   animation: paintingIn 0.6s ease both;
+  /* (a new page's painting is hundreds of shapes: laid out and styled on
+     their own, without the rest of the page being looked at again) */
+  contain: strict;
 }
 /* the blank sheet under a picture that's arriving: fades away once the
    picture is complete (it stays while a picture is still being painted) */
