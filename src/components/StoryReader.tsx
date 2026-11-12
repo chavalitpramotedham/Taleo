@@ -13,6 +13,7 @@ import { usePaintings } from "@/lib/usePaintings";
 import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
+import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -165,6 +166,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   const view = views[Math.min(index, views.length - 1)];
   const lastIndex = views.length - 1;
+  // The next pages' paintings are cleaned (made safe to draw) while the
+  // reader is reading this one, so a turn only has to put them up. The
+  // cleaner remembers what it has done; this just does it ahead of time.
+  useEffect(() => {
+    const ahead = views.slice(index + 1, index + 3).flatMap((v) => (v.kind === "page" && v.page.svg ? [v.page.svg] : []));
+    if (!ahead.length) return;
+    const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
+    const stop = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = idle(() => ahead.forEach((svg) => sanitizeSvg(svg)));
+    return () => stop(id);
+  }, [views, index]);
   const totalPages = views.filter((v) => v.kind === "page").length;
 
   // The picture shown alongside choices / endings is the most recent page's.

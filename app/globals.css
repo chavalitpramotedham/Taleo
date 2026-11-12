@@ -10711,9 +10711,18 @@ html[data-night] .glass-toast {
   will-change: transform;
   animation: streakFlame 2.6s ease-in-out infinite;
 }
+.reading-flame {
+  display: inline-block;
+}
+.reading-flame > svg {
+  display: block;
+}
 .reading-flame-heart {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+  position: absolute;
+  inset: 0;
+  /* (the heart's foot: 19 of the drawing's 24 units down) */
+  transform-origin: 50% 80%;
+  will-change: transform, opacity;
   animation: streakHeart 1.3s ease-in-out infinite;
 }
 @keyframes streakFlame {
@@ -15231,4 +15240,13 @@ html[data-night] .plan-safety summary {
   font-size: 0.8rem;
   line-height: 1.35;
   color: var(--ink-soft);
+}
+
+/* (the story set-up's character and story-kind cards below the screen's
+   edge aren't laid out or painted until they're scrolled near, so the
+   step appears at once; their space is kept, so nothing jumps) */
+.chars > .plate,
+.themes > .plate {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 150px;
 }

@@ -4,6 +4,7 @@ import { deviceHeader } from "@/lib/device";
 import { MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { useEscape } from "@/lib/useEscape";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { preload } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { recall, remember } from "@/lib/remember";
@@ -72,6 +73,9 @@ function storyUses(minutes: number, free: { minutes: number; perMinute: number }
 }
 
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
+  // (the three length pictures appear as soon as an age is chosen: fetched
+  // now, while the ages are read, so they're there when the slider opens)
+  for (const l of STORY_LENGTHS) preload(`/art/lengths/${l.id}.webp`, { as: "image", fetchPriority: "low" });
   const router = useRouter();
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(0);
@@ -349,7 +353,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             {STORY_LENGTHS.map((l) => (
               <button key={l.id} type="button" tabIndex={-1} aria-hidden className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}${age && !lengthAllowed(age, l) ? " unavailable" : ""}`} onClick={() => (!age || lengthAllowed(age, l)) && setMinutes(l.minutes)}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} />
+                <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} decoding="async" />
               </button>
             ))}
           </div>
