@@ -310,13 +310,25 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
               </h4>
               <div className="buy-credits-packs" role="radiogroup" aria-label="Credit packs">
                 {CREDIT_PACKS.map((c) => (
-                  <button key={c} type="button" role="radio" aria-checked={pack === c} className={`buy-credits-pack${pack === c ? " on" : ""}`} onClick={() => setPack(c)} disabled={busy}>
+                  <button key={c} type="button" role="radio" aria-checked={pack === c} className={`buy-credits-pack${pack === c ? " on" : ""}${packDiscount(c) > 0 ? " deal" : ""}`} onClick={() => setPack(c)} disabled={busy}>
                     <span className="buy-credits-n">
                       {n(c)}
                       <CreditIcon size={16} />
                     </span>
-                    <span className="buy-credits-price">{cost(c) ?? "Price to come"}</span>
+                    {/* (a discounted pack: a green badge on its corner, and
+                        the full price struck through beside what's paid) */}
                     {packDiscount(c) > 0 && <span className="buy-credits-off">{packDiscount(c)}% off</span>}
+                    <span className="buy-credits-price">
+                      {packDiscount(c) > 0 && (
+                        <>
+                          <s>
+                            <span className="sr-only">was </span>
+                            {money(packPrice(c)!.full)}
+                          </s>{" "}
+                        </>
+                      )}
+                      <b>{cost(c) ?? "Price to come"}</b>
+                    </span>
                   </button>
                 ))}
                 <button type="button" role="radio" aria-checked={pack === "other"} className={`buy-credits-pack${pack === "other" ? " on" : ""}`} onClick={() => setPack("other")} disabled={busy}>

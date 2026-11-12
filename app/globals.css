@@ -14753,17 +14753,55 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
   }
 }
 
-/* (a pack that comes with a discount says so) */
+/* (a pack that comes with a discount says so: a green badge riding its
+   top edge, and the full price struck through beside what's paid) */
+.buy-credits-pack {
+  position: relative;
+}
+.buy-credits-pack.deal {
+  border-color: color-mix(in srgb, #5f7a3f 55%, var(--rule));
+  padding-top: 15px;
+}
+.buy-credits-pack.deal.on {
+  border-color: var(--russet);
+}
 .buy-credits-off {
-  margin-top: 2px;
-  padding: 1px 7px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2px 9px;
   border-radius: 999px;
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  color: #5f7a3f;
-  background: color-mix(in srgb, #5f7a3f 12%, transparent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fffdf6;
+  background: #5f7a3f;
+  box-shadow: 0 1px 3px rgba(40, 50, 20, 0.3);
 }
 html[data-night] .buy-credits-off {
+  color: #16210c;
+  background: #a9c183;
+}
+.buy-credits-price s {
+  opacity: 0.6;
+  text-decoration-thickness: 1px;
+}
+.buy-credits-price b {
+  font-weight: 600;
+  font-style: normal;
+  color: var(--ink);
+}
+.buy-credits-pack.deal .buy-credits-price b {
+  color: #5f7a3f;
+}
+html[data-night] .buy-credits-pack.deal .buy-credits-price b {
   color: #a9c183;
-  background: color-mix(in srgb, #a9c183 14%, transparent);
+}
+/* (room above the packs for the badges that ride their top edges) */
+.buy-credits-packs {
+  row-gap: 14px;
+  padding-top: 4px;
 }
