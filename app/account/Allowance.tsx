@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
-import { CreditIcon, CrownMark, LeafLoader, MapleMark } from "@/components/Icons";
+import { CreditIcon, CrownMark, LeafLoader, MapleMark, OrnamentRule } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
 import { MAX_CREDITS_ADDED, monthOf, weekOf } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
@@ -39,6 +39,17 @@ type Tab = "plan" | "credits";
 
 /** One line of a menu: the thing on the left, a row of dots, what it is
  *  (or costs) on the right. */
+/** An amount of credits: the figure, then the coin. */
+function Cost({ n }: { n: number | string }) {
+  return (
+    <span className="menu-cost">
+      {n}
+      <CreditIcon size={16} />
+      <span className="sr-only"> credits</span>
+    </span>
+  );
+}
+
 function Line({ what, value, sub, note }: { what: React.ReactNode; value: React.ReactNode; /** a sub-point of the line above: indented, smaller */ sub?: boolean; /** a small grey line beneath the words */ note?: React.ReactNode }) {
   return (
     <li className={`menu-line${note ? " has-sub" : ""}${sub ? " sub-point" : ""}`}>
@@ -127,18 +138,27 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <h4 className="menu-title">What things cost</h4>
             <ul className="menu-list">
               <Line what="Reading, and the whole library" value="Free" />
-              <Line what="A character, new or repainted" value={rights.prices.character} />
-              <Line what="A new story, by its length" value={`${lo}–${hi}`} />
+              <Line what="A character, new or repainted" value={<Cost n={rights.prices.character} />} />
+              <Line what="A new story, by its length*" value={<Cost n={`${lo}–${hi}`} />} />
               {/* (the three lengths) */}
               {STORY_LENGTHS.map((l) => (
-                <Line key={l.id} sub what={`${l.name}: ${l.size}, ${l.decisions} decisions, ${l.time} minutes`} value={l.minutes} />
+                <Line
+                  key={l.id}
+                  sub
+                  what={
+                    <>
+                      <b>{l.name}</b>: {l.time} min, {l.decisions} decisions
+                    </>
+                  }
+                  value={<Cost n={l.minutes} />}
+                />
               ))}
             </ul>
-            <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
+            <p className="meta menu-note">*NOTE: a story&apos;s credits are set aside when it begins and spent at its first choice. One dropped before that gets them back.</p>
           </div>
 
           {/* what the credits were spent on, and when more arrived */}
-          <hr className="menu-rule" />
+          <OrnamentRule className="home-divider menu-orn-rule" />
           <div className="txn-head">
             <h4 className="menu-title">Transaction history</h4>
             {history.length > 0 && (

@@ -14644,3 +14644,20 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
 .make-label-main {
   white-space: nowrap;
 }
+
+/* (a price in the menu: the figure, then the coin) */
+.menu-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.menu-line.sub-point > span:first-child b {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* (the ornament rule above "Transaction history", as the home page divides its sections) */
+.menu-orn-rule {
+  margin: 22px auto 14px;
+}
