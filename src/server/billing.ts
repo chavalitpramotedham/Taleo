@@ -101,7 +101,7 @@ interface Local {
   balance: number;
   refs: Record<string, 1>;
   ledger: CreditEntry[];
-  holds?: Record<string, { amount: number; at: number }>;
+  holds?: Record<string, { amount: number; at: number; of?: string }>;
   sub?: Subscription | null;
 }
 const localFile = (id: string) => path.join(process.cwd(), ".data", "billing", `${id}.json`);
@@ -302,6 +302,8 @@ end
 local entry = string.gsub(ARGV[3], '"balance":%-?%d+', '"balance":' .. nb, 1)
 entry = string.gsub(entry, '"delta":%-?%d+', '"delta":' .. delta, 1)
 entry = string.gsub(entry, '"amount":%-?%d+', '"amount":' .. amount, 1)
+local origin = string.match(h, '^%d+:%d+:(.+)$')
+if origin then entry = string.gsub(entry, '"of":""', '"of":"' .. string.gsub(origin, '%%', '') .. '"', 1) end
 redis.call('LPUSH', KEYS[3], entry)
 redis.call('LTRIM', KEYS[3], 0, tonumber(ARGV[5]) - 1)
 return {1, nb, amount}`;
@@ -345,7 +347,9 @@ export async function holdCredits(userId: string, amount: number, ref: string, n
 async function endHold(userId: string, ref: string, how: "spend" | "release", note?: string): Promise<{ done: boolean; amount: number }> {
   if (!safe(userId) || !safe(ref)) return { done: false, amount: 0 };
   // (the amount and the change to the balance are filled in from the hold itself)
-  const entry = { ref: `${how === "spend" ? "settled" : "released"}:${ref}`, at: Date.now(), delta: 0, reason: how, note: note?.slice(0, 200), balance: 0, amount: 0 };
+  // (`of`: for a hold that was renamed along the way, the name it was first
+  // held under - so the history can tell which "hold" line this ends)
+  const entry = { ref: `${how === "spend" ? "settled" : "released"}:${ref}`, at: Date.now(), delta: 0, reason: how, note: note?.slice(0, 200), balance: 0, amount: 0, of: "" };
   if (!metricsEnabled()) {
     if (onVercel) return { done: false, amount: 0 };
     return localInTurn(async () => {
@@ -355,7 +359,7 @@ async function endHold(userId: string, ref: string, how: "spend" | "release", no
       delete rec.holds![ref];
       if (how === "release") rec.balance += held.amount;
       else rec.refs[ref] = 1;
-      rec.ledger.unshift({ ...entry, delta: how === "release" ? held.amount : 0, amount: held.amount, balance: rec.balance } as CreditEntry);
+      rec.ledger.unshift({ ...entry, of: held.of ?? "", delta: how === "release" ? held.amount : 0, amount: held.amount, balance: rec.balance } as CreditEntry);
       rec.ledger.length = Math.min(rec.ledger.length, LEDGER_KEPT);
       await localSave(userId, rec);
       return { done: true, amount: held.amount };
@@ -381,7 +385,7 @@ local h = redis.call('HGET', KEYS[1], ARGV[1])
 if not h then return 0 end
 if redis.call('HEXISTS', KEYS[1], ARGV[2]) == 1 then return 0 end
 redis.call('HDEL', KEYS[1], ARGV[1])
-redis.call('HSET', KEYS[1], ARGV[2], string.match(h, '^(%d+)') .. ':' .. ARGV[3])
+redis.call('HSET', KEYS[1], ARGV[2], string.match(h, '^(%d+)') .. ':' .. ARGV[3] .. ':' .. (string.match(h, '^%d+:%d+:(.+)$') or ARGV[1]))
 return 1`;
 /** Renames a hold (the same credits, now set aside under another piece of
  *  work's name), all at once - so nothing can settle or release it in
@@ -397,7 +401,8 @@ export async function moveHold(userId: string, from: string, to: string): Promis
       const held = rec.holds?.[from];
       if (!held || rec.holds![to]) return false;
       delete rec.holds![from];
-      rec.holds![to] = { amount: held.amount, at: now };
+      // (`of`: the name it was first held under - what the ledger's "hold" line says)
+      rec.holds![to] = { amount: held.amount, at: now, of: held.of ?? from };
       await localSave(userId, rec);
       return true;
     });

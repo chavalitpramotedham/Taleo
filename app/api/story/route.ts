@@ -214,7 +214,7 @@ export async function POST(req: Request) {
         if (stop.signal.aborted) await gen.end("left", { error: "The reader left before it was written." });
         else if (made.v) {
           // (written and sent: credits held for it are now spent)
-          await g.settle({ storyKey: made.ticket ?? undefined });
+          await g.settle({ storyKey: made.ticket ?? undefined, title: parsed.kind === "start" ? undefined : (parsed.story as { title?: string }).title });
           await gen.end("ok", made.v);
         }
       } catch (err) {

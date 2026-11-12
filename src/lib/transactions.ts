@@ -2,7 +2,8 @@
 export interface Transaction {
   id: string;
   at: number;
-  /** "Story (5 min)", "Character", "Complimentary bonus", "Recharge"... */
+  /** The name of the character or story made (or "Story (5 min)" /
+   *  "Character" while it has none), "Complimentary bonus", "Recharge"... */
   label: string;
   /** Credits in (+) or out (-). */
   amount: number;
@@ -16,6 +17,10 @@ interface Entry {
   delta: number;
   reason: string;
   note?: string;
+  /** on a settling or a release: the name the hold was first made under */
+  of?: string;
+  /** on a settling or a release: the credits concerned */
+  amount?: number;
 }
 
 /** What a spend was for, from the note kept with it. */
@@ -34,21 +39,50 @@ function spentOn(note: string | undefined): string {
  */
 export function transactionsOf(ledger: Entry[]): Transaction[] {
   const settled = new Set<string>();
+  // (the name of what was made, told when it was settled: "... | Pip")
+  const named = new Map<string, string>();
+  const nameIn = (note: string | undefined) => {
+    const i = (note ?? "").indexOf(" | ");
+    return i < 0 ? "" : note!.slice(i + 3).trim();
+  };
   const undone = new Set<string>();
+  const holds = new Set(ledger.filter((e) => e.reason === "hold").map((e) => e.ref));
+  // (a story's credits are held under one name when it's begun and
+  // settled under the story's own: the ledger says which hold that was -
+  // `of` - and for the few from before it did, it's the nearest earlier
+  // hold for a story of the same amount that nothing else ended)
+  const claimed = new Set<string>();
+  const holdOf = (e: Entry, ended: string): string => {
+    if (e.of) return e.of;
+    if (holds.has(ended) || !ended.startsWith("story:")) return ended;
+    const earlier = ledger.find((h) => h.reason === "hold" && h.at <= e.at && h.ref.startsWith("story:pending:") && !claimed.has(h.ref) && (!e.amount || -h.delta === e.amount) && !ledger.some((x) => (x.ref === `settled:${h.ref}` || x.ref === `released:${h.ref}`) || x.of === h.ref));
+    return earlier ? earlier.ref : ended;
+  };
   for (const e of ledger) {
-    if (e.ref.startsWith("settled:")) settled.add(e.ref.slice(8));
-    if (e.ref.startsWith("released:")) undone.add(e.ref.slice(9));
+    if (e.ref.startsWith("settled:")) {
+      const hold = holdOf(e, e.ref.slice(8));
+      claimed.add(hold);
+      settled.add(hold);
+      const name = nameIn(e.note);
+      if (name) named.set(hold, name);
+    }
+    if (e.ref.startsWith("released:")) {
+      const hold = holdOf(e, e.ref.slice(9));
+      claimed.add(hold);
+      undone.add(hold);
+    }
     if (e.ref.startsWith("refund:")) undone.add(e.ref.slice(7));
   }
   const out: Transaction[] = [];
   for (const e of ledger) {
     const line = (label: string, extra: Partial<Transaction> = {}) => out.push({ id: `${e.ref}:${e.at}`, at: e.at, label, amount: e.delta, ...extra });
     if (e.reason === "hold") {
-      if (!undone.has(e.ref)) line(spentOn(e.note), { pending: !settled.has(e.ref) });
+      // (titled with the character's or the story's own name once it's made)
+      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { pending: !settled.has(e.ref) });
     } else if (e.reason === "spend") {
       // (a settling changes nothing more: its hold is the line. A spend
       // from before holds existed is its own line.)
-      if (!e.ref.startsWith("settled:") && e.delta < 0 && !undone.has(e.ref)) line(spentOn(e.note));
+      if (!e.ref.startsWith("settled:") && e.delta < 0 && !undone.has(e.ref)) line(nameIn(e.note) || spentOn(e.note));
     } else if (e.reason === "release" || e.reason === "refund") {
       // (the other half of something that came to nothing)
     } else if (e.reason === "purchase" || (e.reason === "grant" && e.ref.startsWith("self:"))) {

@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       };
       const finished = async (made: Awaited<ReturnType<typeof designCharacter>>) => {
         // (painted: credits held for it are now spent)
-        await g.settle();
+        await g.settle({ title: made.character.name });
         await gen.end("ok", { summary: `${made.character.name}: ${made.character.look ?? ""}`, result: JSON.stringify(made, null, 1) });
         return made;
       };

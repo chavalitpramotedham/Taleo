@@ -275,7 +275,7 @@ export type Guard =
        *  to do where no credits were held.) `storyKey`: for a story's
        *  beginning, the ticket of the story it began - what's held for it
        *  is then held under that story's own name until its first choice. */
-      settle: (done?: { storyKey?: string }) => Promise<void>;
+      settle: (done?: { storyKey?: string; title?: string }) => Promise<void>;
       /** credits held for this request, if the plan's own allowance was used up */
       credits?: number;
     }
@@ -337,7 +337,22 @@ export async function whoIs(session: Session): Promise<{ user: Who; account: Acc
  * session - what a request costs can depend on who is asking. Call
  * `release()` if the work then fails, to refund it.
  */
-export async function guard(
+export async function guard(bucket: Parameters<typeof guardWith>[1], opts: Parameters<typeof guardWith>[2] = {}): Promise<Guard> {
+  // (the name of what was made - a character's, a story's - is told when
+  // the work is settled, and kept with the spend for the account's history)
+  const tag = { title: "" };
+  const g = await guardWith(tag, bucket, opts);
+  if (!g.ok) return g;
+  return {
+    ...g,
+    settle: (done) => {
+      tag.title = (done?.title ?? "").replace(/[|\s]+/g, " ").trim().slice(0, 80);
+      return g.settle(done);
+    },
+  };
+}
+async function guardWith(
+  tag: { title: string },
   bucket: Bucket | ((session: Session) => Bucket | Cost | NextResponse | Promise<Bucket | Cost | NextResponse>),
   /** `useCredits`: the person has said yes to paying with credits if the
    *  plan's allowance is used up. Credits are never spent without it: a
@@ -373,6 +388,7 @@ export async function guard(
   if (me.stale && (stored(b) || (cost.needs && stored(cost.needs)))) return unavailable;
   // ---- credits (see lib/tiers: one a minute of story, three a character)
   const userId = session.user.id;
+  const titled = (note: string) => (tag.title ? `${note} | ${tag.title}` : note).slice(0, 200);
   const account = me.account;
   const mode = account?.plan.credits ?? "beyond";
   await starterCredits(account);
@@ -434,7 +450,7 @@ export async function guard(
       session,
       credits: price,
       release: async () => void (await moveHold(userId, storyRef, waitingRef)),
-      settle: async () => void (await settleHold(userId, storyRef, what)),
+      settle: async () => void (await settleHold(userId, storyRef, titled(what))),
     };
   };
   /** Every request to the storyteller counts toward the sitting's cap,
@@ -448,7 +464,7 @@ export async function guard(
     if (spent) await releaseHold(userId, ref, `${what}: it didn't work out, credits returned`);
   };
   const keep = (spent: number) => async () => {
-    if (spent) await settleHold(userId, ref, what);
+    if (spent) await settleHold(userId, ref, titled(what));
   };
   const nothing = async () => {};
 
@@ -571,7 +587,7 @@ export async function guard(
           },
         };
       }
-      return { ok: true, session, credits: spent, release: back, settle: async () => void (spent && (await settleHold(userId, ref, `A ${price}-minute story: ${extra}`))) };
+      return { ok: true, session, credits: spent, release: back, settle: async () => void (spent && (await settleHold(userId, ref, titled(`A ${price}-minute story: ${extra}`)))) };
     }
     // (not enough for the extra minutes, or the credits can't be reached:
     // the free story isn't used up on a story that can't be made)
