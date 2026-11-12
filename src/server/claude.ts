@@ -148,7 +148,7 @@ function buildSegmentRequest(req: StoryRequest) {
   const isStart = req.kind === "start";
   const age = ageById(isStart ? req.age : req.story.age);
   const minutes = isStart ? req.minutes : req.story.minutes;
-  const { choices, pagesPerSegment, words, length } = lengthProfile(age, minutes);
+  const { choices, pages, words, length } = lengthProfile(age, minutes);
   const hero = isStart ? req.hero : req.story.hero;
   const companions = isStart ? req.companions : req.story.companions;
   const heroes = [hero, ...companions];
@@ -216,7 +216,7 @@ function buildSegmentRequest(req: StoryRequest) {
     );
   }
   parts.push(
-    `Use ${pagesPerSegment[0] === pagesPerSegment[1] ? pagesPerSegment[0] : `${pagesPerSegment[0]}-${pagesPerSegment[1]}`} pages (as the plot of this segment needs), ${words[0]}-${words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
+    `This segment is ${pages[Math.min(index, pages.length) - 1]} pages (the whole story is planned as ${pages.join(", ")} pages across its ${totalSegments} segments - ${pages.reduce((a, b) => a + b, 0)} in all; one page more or fewer here only if the plot truly needs it, never more than ${Math.max(...pages) + 1}), ${words[0]}-${words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
   );
 
   return {

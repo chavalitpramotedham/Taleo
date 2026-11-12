@@ -187,6 +187,9 @@ export const clampMinutes = (m: number): number => lengthOf(Math.min(MAX_MINUTES
 export interface LengthProfile {
   length: StoryLength;
   choices: number;
+  /** Pages in each segment, in order (one more segment than decisions). */
+  pages: number[];
+  /** The fewest and the most of those. */
   pagesPerSegment: [number, number];
   /** Words on a page: a narrow band around this age's usual page. */
   words: [number, number];
@@ -198,19 +201,20 @@ const PACE: Record<AgeId, number> = { "1.5-2": 70, "2-3": 85, "3-4": 110, "4-5":
 /** Turning the page and taking in the picture, in seconds. */
 const PAGE_TURN_S = 4;
 
-/** The most pages between two decisions, whatever the age. Every page is
- *  a painting, and paintings are what a story costs to make: a story has
- *  much the same number of pages at every age (a Quest 6-9, an Adventure
- *  8-12, an Odyssey 10-15), and the youngest get their length from fuller
- *  pages of real sentences rather than from many more pages. */
-const MAX_PAGES_PER_PART = 3;
+/** The most pages a story of each length has, whatever the age. Every
+ *  page is a painting, and paintings are what a story costs to make: the
+ *  youngest get their length from fuller pages of real sentences, not from
+ *  many more pages. */
+const MAX_PAGES: Record<LengthId, number> = { quest: 9, adventure: 12, odyssey: 18 };
 
 /**
  * What a story of this length is made of, for this age: its decisions
  * (set by the length), and pages and words that come to the length's
  * reading time. The words on a page follow the age (how hard it reads),
- * in a narrow band; the pages between decisions make up the time, two or
- * three at every age.
+ * in a narrow band. The pages make up the time, up to the length's most,
+ * and are shared out between the segments - not evenly: the opening and
+ * the ending get the extra pages first, then the segments next to them
+ * (an Odyssey of 18 pages runs 4, 4, 3, 3, 4).
  */
 export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
   const length = lengthOf(minutes);
@@ -219,8 +223,9 @@ export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
   const mid = (age.words[0] + age.words[1]) / 2;
   const words: [number, number] = [Math.round(mid * 0.85), Math.round(mid * 1.15)];
   const secondsPerPage = (mid / PACE[age.id]) * 60 + PAGE_TURN_S;
-  const perPart = (length.minutes * 60) / secondsPerPage / segments;
-  const low = Math.min(MAX_PAGES_PER_PART, Math.max(2, Math.floor(perPart)));
-  const high = Math.min(MAX_PAGES_PER_PART, Math.max(low, Math.ceil(perPart)));
-  return { length, choices, pagesPerSegment: [low, high], words };
+  const total = Math.min(MAX_PAGES[length.id], Math.max(segments * 2, Math.round((length.minutes * 60) / secondsPerPage)));
+  const pages = Array.from({ length: segments }, () => Math.floor(total / segments));
+  // (the pages left over: first, last, second, second-last...)
+  for (let extra = total - pages[0] * segments, i = 0; extra > 0; extra--, i++) pages[i % 2 ? segments - 1 - (i >> 1) : i >> 1]++;
+  return { length, choices, pages, pagesPerSegment: [Math.min(...pages), Math.max(...pages)], words };
 }
