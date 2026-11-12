@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark, OrnamentRule } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
-import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, CREDIT_PACK_MIN, CREDIT_PRICE_CENTS, CREDIT_CURRENCY, packPrice } from "@/lib/tiers";
+import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, CREDIT_PACK_MIN, CREDIT_PRICE_CENTS, CREDIT_CURRENCY, packDiscount, packPrice } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -247,6 +247,8 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
     return p ? new Intl.NumberFormat("en-GB", { style: "currency", currency: p.currency, currencyDisplay: "symbol" }).format(p.amount) : null;
   };
   const total = valid ? cost(amount) : null;
+  const priced = valid ? packPrice(amount) : null;
+  const money = (v: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: CREDIT_CURRENCY }).format(v);
   const perCredit = new Intl.NumberFormat("en-GB", { style: "currency", currency: CREDIT_CURRENCY }).format(CREDIT_PRICE_CENTS / 100);
   const checkout = async () => {
     if (!valid || busy) return;
@@ -314,6 +316,7 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                       <CreditIcon size={16} />
                     </span>
                     <span className="buy-credits-price">{cost(c) ?? "Price to come"}</span>
+                    {packDiscount(c) > 0 && <span className="buy-credits-off">{packDiscount(c)}% off</span>}
                   </button>
                 ))}
                 <button type="button" role="radio" aria-checked={pack === "other"} className={`buy-credits-pack${pack === "other" ? " on" : ""}`} onClick={() => setPack("other")} disabled={busy}>
@@ -346,7 +349,16 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
             <section className="add-credits-box" aria-label="What it comes to">
               <ul className="menu-list">
                 <Line what="Credits" value={valid ? <Cost n={n(amount)} /> : "-"} />
-                <Line what={`Price (${perCredit} a credit)`} value={total ?? "-"} />
+                {/* (a discount is shown as its own line: the full price, what comes off, what's paid) */}
+                {valid && priced && priced.off > 0 ? (
+                  <>
+                    <Line what={`${perCredit} a credit`} value={money(priced.full)} />
+                    <Line what={`Discount (${priced.off}% on ${n(priced.off >= 10 ? 100 : 50)} credits or more)`} value={`−${money(priced.full - priced.amount)}`} />
+                    <Line what="Price" value={total ?? "-"} />
+                  </>
+                ) : (
+                  <Line what={`Price (${perCredit} a credit)`} value={total ?? "-"} />
+                )}
                 <Line what="Your credits after" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
               </ul>
             </section>
@@ -360,6 +372,7 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                 "Continue to checkout"
               )}
             </button>
+            <p className="meta buy-credits-foot">5% off orders of 50 credits or more, 10% off 100 or more.</p>
             <PaymentSafety />
           </>
         )}

@@ -164,10 +164,24 @@ export const CREDIT_PACK_MAX = 500;
 /** What one credit costs to buy, in US cents - the same in every pack. */
 export const CREDIT_PRICE_CENTS = 50;
 export const CREDIT_CURRENCY = "USD";
+/** Bigger orders cost less a credit: so much off (per cent) from so many
+ *  credits upward - whether a pack or an amount of one's own. */
+export const CREDIT_DISCOUNTS: { from: number; off: number }[] = [
+  { from: 100, off: 10 },
+  { from: 50, off: 5 },
+];
+/** The discount (per cent) on an order of this many credits. */
+export const packDiscount = (credits: number): number => CREDIT_DISCOUNTS.find((d) => credits >= d.from)?.off ?? 0;
 /** What a number of credits costs to buy. The one place the price is
- *  worked out: the page and the checkout both ask here. */
-export const packPrice = (credits: number): { amount: number; currency: string } | null =>
-  Number.isInteger(credits) && credits > 0 ? { amount: (credits * CREDIT_PRICE_CENTS) / 100, currency: CREDIT_CURRENCY } : null;
+ *  worked out (in whole cents, the discount taken off and rounded to the
+ *  nearest cent): the page and the checkout both ask here. `full` is the
+ *  price before any discount. */
+export const packPrice = (credits: number): { amount: number; full: number; off: number; currency: string } | null => {
+  if (!Number.isInteger(credits) || credits <= 0) return null;
+  const full = credits * CREDIT_PRICE_CENTS;
+  const off = packDiscount(credits);
+  return { amount: Math.round((full * (100 - off)) / 100) / 100, full: full / 100, off, currency: CREDIT_CURRENCY };
+};
 
 const isTier = (v: unknown): v is TierId => typeof v === "string" && Object.prototype.hasOwnProperty.call(PLANS, v);
 

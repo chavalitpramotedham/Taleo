@@ -14752,3 +14752,18 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
     opacity: 0.8;
   }
 }
+
+/* (a pack that comes with a discount says so) */
+.buy-credits-off {
+  margin-top: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: #5f7a3f;
+  background: color-mix(in srgb, #5f7a3f 12%, transparent);
+}
+html[data-night] .buy-credits-off {
+  color: #a9c183;
+  background: color-mix(in srgb, #a9c183 14%, transparent);
+}
