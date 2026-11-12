@@ -15100,3 +15100,8 @@ html[data-night] .safety-dialog .modal-head h3 {
 .safety-dialog .buy-credits-safety li {
   text-align: left;
 }
+
+.add-credits-buy {
+  display: block;
+  margin: 10px auto 0;
+}

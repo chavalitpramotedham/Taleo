@@ -75,7 +75,7 @@ function Line({ what, value, sub, note }: { what: React.ReactNode; value: React.
  * to it (the test account only) and what things cost, set out like a
  * menu. All as the server's records have it.
  */
-export function PlansView({ rights: first, history = [], children }: { rights: Rights; history?: Transaction[]; children: React.ReactNode }) {
+export function PlansView({ rights: first, history = [], paymentsOpen = false, children }: { rights: Rights; history?: Transaction[]; paymentsOpen?: boolean; children: React.ReactNode }) {
   const [rights, setRights] = useState(first);
   const always = rights.creditsMode === "always";
   // (a plan's own story is a "standard story" where longer ones add credits)
@@ -84,6 +84,37 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const router = useRouter();
+  const toastPaid = useToast();
+  // Back from Stripe's checkout (?paid=<session>): confirm the payment and
+  // show its credits; or, having left the checkout (?tab=credits), the
+  // credits again. The address is then tidied, so a reload doesn't repeat it.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const paid = q.get("paid");
+    if (q.get("tab") === "credits" || paid) setTab("credits");
+    if (q.has("paid") || q.has("tab")) window.history.replaceState(null, "", window.location.pathname);
+    if (!paid) return;
+    let here = true;
+    const ask = async (tries: number): Promise<void> => {
+      const res = await fetch(`/api/account/checkout?session=${encodeURIComponent(paid)}`, { cache: "no-store" }).catch(() => null);
+      const d = res && res.ok ? ((await res.json()) as { status: string; credits: number; balance: number | null }) : null;
+      if (!here) return;
+      if (d && (d.status === "added" || d.status === "already")) {
+        toastPaid(`Payment received: ${n(d.credits)} credits added`);
+        if (d.balance !== null) setRights((r) => ({ ...r, credits: d.balance }));
+        router.refresh();
+        return;
+      }
+      // (a payment can take a moment to be confirmed)
+      if (d?.status === "unpaid" && tries > 0) return void window.setTimeout(() => void ask(tries - 1), 2500);
+      toastPaid(d?.status === "unpaid" ? "Your payment is still being confirmed. The credits will appear as soon as it is." : "We couldn't confirm the payment just now. If you were charged, the credits will appear shortly.", "error");
+    };
+    void ask(4);
+    return () => {
+      here = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const s = rights.stories;
   const c = rights.characters;
   const [lo, hi] = rights.prices.story;
@@ -213,10 +244,14 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
         </>
       )}
 
-      {buying && <BuyCredits balance={credits ?? 0} onClose={() => setBuying(false)} />}
+      {buying && <BuyCredits balance={credits ?? 0} open={paymentsOpen} onClose={() => setBuying(false)} />}
       {adding && (
         <AddCredits
           balance={credits ?? 0}
+          onBuy={() => {
+            setAdding(false);
+            setBuying(true);
+          }}
           onClose={() => setAdding(false)}
           onAdded={(now) => {
             setRights({ ...rights, credits: now });
@@ -248,7 +283,7 @@ const lost = (e: unknown, fallback: string) => (e instanceof TypeError ? "No con
  * set up - nothing charged, nothing added. Both are kept in one place each
  * (lib/tiers: packPrice; /api/account/checkout) for when they're ready.
  */
-function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void }) {
+function BuyCredits({ balance, open, onClose }: { balance: number; open: boolean; onClose: () => void }) {
   const [pack, setPack] = useState<number | "other">(CREDIT_PACKS[0]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -473,7 +508,7 @@ function BuyCredits({ balance, onClose }: { balance: number; onClose: () => void
                 ✕
               </button>
             </div>
-            <PaymentSafety />
+            <PaymentSafety open={open} />
             <button type="button" className="btn btn-primary btn-block" onClick={() => setSafety(false)}>
               Got it
             </button>
@@ -502,15 +537,17 @@ function ShieldIcon() {
  * and credits are added only on Stripe's confirmation. Until payments are
  * open it says so first - nothing can be charged from here today.
  */
-function PaymentSafety() {
+function PaymentSafety({ open }: { open: boolean }) {
   return (
     <section className="buy-credits-safety" aria-label="How paying is kept safe">
       <ul>
+        {!open && (
+          <li>
+            <b>Not open yet.</b> Card payments are still being set up, so nothing can be charged from here today.
+          </li>
+        )}
         <li>
-          <b>Not open yet.</b> Card payments are still being set up, so nothing can be charged from here today.
-        </li>
-        <li>
-          <b>Paid on Stripe&apos;s page.</b> When payments open, you&apos;ll enter your card on Stripe&apos;s own secure checkout page, not on Taleo.
+          <b>Paid on Stripe&apos;s page.</b> {open ? "You" : "When payments open, you"}&apos;ll enter your card on Stripe&apos;s own secure checkout page, not on Taleo.
         </li>
         <li>
           <b>We never see your card.</b> Your card number goes straight to Stripe. Taleo doesn&apos;t receive it or store it.
@@ -526,7 +563,7 @@ function PaymentSafety() {
   );
 }
 
-function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: () => void; onAdded: (credits: number) => void }) {
+function AddCredits({ balance, onClose, onAdded, onBuy }: { balance: number; onClose: () => void; onAdded: (credits: number) => void; onBuy?: () => void }) {
   const toast = useToast();
   const me = useSession().data?.user?.username ?? null;
   const [text, setText] = useState("");
@@ -742,6 +779,12 @@ function AddCredits({ balance, onClose, onAdded }: { balance: number; onClose: (
             "Add credits"
           )}
         </button>
+        {/* (the admin's own account can try the card checkout too) */}
+        {onBuy && whom === "me" && (
+          <button type="button" className="link-btn add-credits-buy" onClick={onBuy} disabled={busy}>
+            Or buy credits with a card
+          </button>
+        )}
       </form>
     </div>
   );

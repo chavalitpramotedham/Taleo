@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/server/auth";
 import { AccountPlans } from "../AccountTier";
 import { PlansView } from "../Allowance";
+import { paymentsOpen } from "@/server/stripe";
 import { currentAccount } from "@/server/entitlements";
 import { rightsOf } from "@/server/rights";
 import { creditLedger } from "@/server/billing";
@@ -27,7 +28,7 @@ export default async function PlansPage() {
         <h1>Plan and credits</h1>
       </header>
       {rights ? (
-        <PlansView rights={rights} history={history}>
+        <PlansView rights={rights} history={history} paymentsOpen={paymentsOpen()}>
           <AccountPlans isAdmin={rights.isAdmin} tier={rights.tier} />
         </PlansView>
       ) : (
