@@ -15114,3 +15114,12 @@ html[data-night] .safety-dialog .modal-head h3 {
 .length-stop.unavailable .length-stop-art {
   filter: grayscale(1);
 }
+
+/* (buy credits: tax is added at checkout) */
+.buy-credits-tax {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--ink-soft);
+}

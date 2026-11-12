@@ -476,6 +476,7 @@ function BuyCredits({ balance, open, onClose }: { balance: number; open: boolean
                 )}
                 <Line what="Your credits after" value={valid ? <Cost n={n(balance + amount)} /> : "-"} />
               </ul>
+              <p className="buy-credits-tax">Prices are before tax. Any tax due where you live is added at checkout, before you pay.</p>
             </section>
             {error && <p className="error">{error}</p>}
             <button type="submit" className="btn btn-primary btn-block" disabled={!valid || busy}>
@@ -553,7 +554,7 @@ function PaymentSafety({ open }: { open: boolean }) {
           <b>We never see your card.</b> Your card number goes straight to Stripe. Taleo doesn&apos;t receive it or store it.
         </li>
         <li>
-          <b>You confirm the total first.</b> Stripe shows the amount before you pay, and nothing is charged until you confirm there.
+          <b>You confirm the total first.</b> Stripe shows the amount - with any tax due where you live - before you pay, and nothing is charged until you confirm there.
         </li>
         <li>
           <b>Credits follow the payment.</b> Credits are added to your account only once Stripe tells us the payment went through.
