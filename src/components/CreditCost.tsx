@@ -43,7 +43,8 @@ export function useMakingCost(what: "character" | "story"): MakingCost {
     const left = rights.characters.designsLeft;
     if (left === null) return none; // (no count: nothing to say)
     if (left > 0) return { ...none, free: freeLine(left, "character", "characters", rights.characters.designsPer) };
-    return { ...none, credits: pays && rights.credits! >= rights.prices.character ? rights.prices.character : null };
+    // (what can pay: this week's credits from the plan, then bought ones)
+    return { ...none, credits: pays && rights.credits! + (rights.weekly?.left ?? 0) >= rights.prices.character ? rights.prices.character : null };
   }
   const left = rights.stories.left;
   if (left === null) return none;

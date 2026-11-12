@@ -1,5 +1,6 @@
 import { reportError } from "./alerts";
-import { forgetBilling } from "./billing";
+import { forgetBilling, getSubscription } from "./billing";
+import { cancelSubscriptionNow, paymentsOpen } from "./stripe";
 import { parkedPath } from "./character-jobs";
 import { charactersPath } from "./characters";
 import { CONTACT_INDEX, forgetContactMessages } from "./contact";
@@ -23,8 +24,27 @@ import { ADMIN_USER_ID, deleteUser, listUsers } from "./users";
  * stories (under the username they were written with), and the day's
  * totals in the usage figures, which name nobody.
  */
+/** The account has a paid plan that couldn't be ended just now. */
+export class SubscriptionStillOn extends Error {
+  constructor() {
+    super("Your Plus or Pro plan couldn't be cancelled just now, so nothing has been deleted. Please try again in a minute.");
+  }
+}
+
 export async function deleteAccountData(userId: string): Promise<{ stories: number; problems: string[] }> {
   const problems: string[] = [];
+  // A paid plan is ended first - at once, so the card isn't charged again
+  // for an account that's gone. If it can't be, nothing is deleted: the
+  // person is told to try again rather than left paying for nothing.
+  const sub = await getSubscription(userId).catch(() => null);
+  if (sub?.subscriptionId && sub.status !== "canceled" && paymentsOpen()) {
+    try {
+      await cancelSubscriptionNow(sub.subscriptionId);
+    } catch (e) {
+      console.error("[account] couldn't end the subscription of an account being deleted", e);
+      throw new SubscriptionStillOn();
+    }
+  }
   const step = async <T>(what: string, work: () => Promise<T>): Promise<T | null> => {
     try {
       return await work();

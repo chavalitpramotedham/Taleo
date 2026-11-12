@@ -1,5 +1,6 @@
 import Stripe from "stripe";
-import { applyCredits, getSubscription, planOf, setSubscription, type Subscription, type SubscriptionStatus } from "./billing";
+import { applyCredits, creditBalance, getSubscription, planOf, setSubscription, type Subscription, type SubscriptionStatus } from "./billing";
+import { setSuspended } from "./users";
 import { forgetAccount } from "./entitlements";
 import { CREDIT_PACK_MAX, CREDIT_PACK_MIN, isPaidPlan, packPrice, type PaidPlan } from "@/lib/tiers";
 
@@ -189,6 +190,13 @@ export async function syncSubscription(subscriptionId: string, at: number): Prom
   // (a notice about an older subscription while a newer one is in force
   // is history: it doesn't replace it)
   if (current?.subscriptionId && current.subscriptionId !== sub.id && planOf(current) && status === "canceled") return null;
+  // (a second subscription while one is already in force - two checkouts
+  // opened side by side and both paid: the second is ended at once and its
+  // payment refunded, so nobody pays twice)
+  if (current?.subscriptionId && current.subscriptionId !== sub.id && current.status !== "canceled" && planOf(current) && status !== "canceled") {
+    await refundDuplicate(sub);
+    return null;
+  }
   // (a move down waiting for the month's end: the schedule's next phase)
   const schedule = sub.schedule && typeof sub.schedule === "object" ? sub.schedule : null;
   const later = schedule?.phases?.find((p) => p.start_date * 1000 > Date.now());
@@ -210,6 +218,21 @@ export async function syncSubscription(subscriptionId: string, at: number): Prom
   await setSubscription(userId, record, at);
   forgetAccount(userId);
   return { userId, sub: { ...record, updatedAt: at } };
+}
+
+/** Ends a subscription that doubled one already in force, and refunds
+ *  what it was charged. */
+async function refundDuplicate(sub: Stripe.Subscription): Promise<void> {
+  const s = stripe();
+  console.error("[stripe] a second subscription for one account: ending it and refunding", sub.id);
+  await s.subscriptions.cancel(sub.id);
+  const invoiceId = idOf(sub.latest_invoice as string | { id: string } | null);
+  if (!invoiceId) return;
+  const payments = await s.invoicePayments.list({ invoice: invoiceId, limit: 5 });
+  for (const p of payments.data) {
+    const pi = idOf((p.payment as { payment_intent?: string | { id: string } } | null)?.payment_intent ?? null);
+    if (pi && p.status === "paid") await s.refunds.create({ payment_intent: pi, reason: "duplicate" }, { idempotencyKey: `dup-refund-${pi}` });
+  }
 }
 
 /** Moves a live subscription to another paid plan: up at once (Stripe
@@ -284,4 +307,63 @@ export function subscriptionOfEvent(event: Stripe.Event): string | null {
     default:
       return null;
   }
+}
+
+/** Ends a subscription at once, with no refund for the rest of the month
+ *  (the account is being deleted). Nothing to do if it has already ended. */
+export async function cancelSubscriptionNow(subscriptionId: string): Promise<void> {
+  if (!/^sub_[A-Za-z0-9_]{6,200}$/.test(subscriptionId)) return;
+  const s = stripe();
+  const sub = await s.subscriptions.retrieve(subscriptionId);
+  if (sub.status === "canceled" || sub.status === "incomplete_expired") return;
+  const scheduleId = idOf(sub.schedule as string | { id: string } | null);
+  if (scheduleId) await s.subscriptionSchedules.release(scheduleId).catch(() => {});
+  await s.subscriptions.cancel(subscriptionId);
+}
+
+/**
+ * A payment that was refunded, or disputed with the card's bank: what was
+ * bought with it is taken back.
+ *  - Credits: as many of them as are still unspent come off the balance
+ *    (once only, whatever Stripe sends).
+ *  - A plan: a dispute ends the subscription at once.
+ *  - A dispute also suspends the account, so credits bought, spent and
+ *    then disputed can't be repeated; the admin can lift it.
+ * Returns what was done, for the log.
+ */
+export async function takeBack(chargeId: string, how: "refund" | "dispute", refundedCents?: number): Promise<string> {
+  const s = stripe();
+  const charge = await s.charges.retrieve(chargeId);
+  const piId = idOf(charge.payment_intent as string | { id: string } | null);
+  const pi = piId ? await s.paymentIntents.retrieve(piId) : null;
+  let userId = pi?.metadata?.userId || null;
+  const credits = Number(pi?.metadata?.credits);
+  const done: string[] = [];
+  if (userId && Number.isInteger(credits) && credits > 0) {
+    // (a refund of part of it takes back that part of the credits)
+    const share = how === "refund" && refundedCents !== undefined && charge.amount > 0 ? Math.min(1, refundedCents / charge.amount) : 1;
+    const back = Math.round(credits * share);
+    const balance = (await creditBalance(userId)) ?? 0;
+    const take = Math.min(back, balance);
+    if (take > 0) {
+      const r = await applyCredits(userId, -take, "adjust", `${how}:${chargeId}`.slice(0, 120), how === "dispute" ? "Payment disputed: credits taken back" : "Payment refunded: credits taken back");
+      done.push(r.ok && r.applied ? `took back ${take} credits` : "credits already taken back");
+    }
+    if (take < back) done.push(`${back - take} were already spent`);
+  } else if (charge.customer) {
+    // (a plan's payment: whose subscription it was)
+    const subs = await s.subscriptions.list({ customer: idOf(charge.customer as string | { id: string })!, status: "all", limit: 5 });
+    const mine = subs.data.find((x) => x.metadata?.userId);
+    userId = mine?.metadata?.userId ?? null;
+    if (mine && how === "dispute" && mine.status !== "canceled") {
+      await s.subscriptions.cancel(mine.id);
+      done.push("ended the subscription");
+    }
+  }
+  if (userId && how === "dispute") {
+    await setSuspended(userId, true).catch(() => {});
+    forgetAccount(userId);
+    done.push("suspended the account");
+  }
+  return `${userId ?? "no account"}: ${done.join(", ") || "nothing to take back"}`;
 }

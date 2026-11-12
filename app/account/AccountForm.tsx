@@ -141,7 +141,7 @@ export function AccountForm({
 
   const deleteAccount = async () => {
     if (busy) return;
-    if (!window.confirm("Delete your account and everything kept with it - your stories, characters, reading diary and credits? This can't be undone.")) return;
+    if (!window.confirm("Delete your account and everything kept with it - your stories, characters, reading diary and credits? A Plus or Pro plan is cancelled at once, with no refund for the rest of the month. This can't be undone.")) return;
     setBusy("account");
     try {
       const res = await fetch("/api/account", { method: "DELETE" });

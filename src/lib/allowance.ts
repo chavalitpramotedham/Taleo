@@ -91,5 +91,8 @@ export function waitText(seconds: number) {
 export function quotaLine(a: StoryAllowance | null): string | null {
   if (!a || a.canStart) return null;
   const left = Math.max(0, a.retryAfterSec - Math.round((Date.now() - a.at) / 1000));
-  return `Story limit reached. Refreshes in about ${waitText(left)}.`;
+  // (said plainly: what's used, when more come, and the other way to make one now)
+  if (a.limited === "busy") return "A story is being made on another device. Finish or leave it there first.";
+  if (a.limited === "start") return `A few stories were begun and set aside. A new one can start in about ${waitText(left)}.`;
+  return `This week's free stories are used. More in about ${waitText(left)}, or add credits to make one now.`;
 }

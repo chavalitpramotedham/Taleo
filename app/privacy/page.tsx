@@ -52,6 +52,10 @@ export default function PrivacyPage() {
         <p>
           Your reading diary (the days you finished a story, and which stories), the stories you&apos;ve saved from the Library, ratings and comments you leave, how much of your plan&apos;s allowance you&apos;ve used, and your credits with a list of how they were added and spent.
         </p>
+        <h3>Payments</h3>
+        <p>
+          If you buy credits or a Plus or Pro plan, you pay on Stripe&apos;s own checkout page. Stripe receives your card details; we never do, and we never store them. Stripe tells us what was paid for, and we keep: your plan, whether it&apos;s paid up and until when, and the reference numbers Stripe gives your customer record and your subscription, so we can match its messages to your account and open its billing page for you.
+        </p>
         <h3>A record of what was made</h3>
         <p>
           For 30 days we keep a record of each request to write a story, paint a picture, design a character or voice a page for the first time: what was asked for and what came back, and the kind of browser it came from. We use it to fix problems and to keep an eye on what the site costs to run. We also keep a monthly figure of what each account&apos;s creations cost us.
@@ -99,10 +103,13 @@ export default function PrivacyPage() {
             <b>Google</b> handles signing in.
           </li>
           <li>
+            <b>Stripe</b> takes payments for credits and plans, on its own checkout and billing pages, and works out any tax due. We send it your email address, to fill in its checkout page, and an account number so its messages can be matched to you; your card details you give to Stripe yourself, on its pages.
+          </li>
+          <li>
             <b>Vercel</b> hosts the site and stores its files.
           </li>
           <li>
-            <b>Upstash</b> holds the site&apos;s running records: credit balances and their history, figures of how much the site is used, and the 30-day record of what was made.
+            <b>Upstash</b> holds the site&apos;s running records: credit balances and their history, your plan and its Stripe reference numbers, figures of how much the site is used, and the 30-day record of what was made.
           </li>
           <li>
             <b>Resend</b> delivers the messages you send us, and error reports, to our inbox.
@@ -123,10 +130,10 @@ export default function PrivacyPage() {
 
         <h2>Deleting your information</h2>
         <p>
-          You can delete any one story from its page, or all of your stories at once from your <Link href="/account">Account</Link> page. Deleting your account, from the same page, removes your profile, your stories, your characters, your unfinished story, your reading diary, your saved stories, your allowance and credit records, the record of what was made for you, and the copies of messages you sent us.
+          You can delete any one story from its page, or all of your stories at once from your <Link href="/account">Account</Link> page. Deleting your account, from the same page, cancels a Plus or Pro plan at once (with no refund for the rest of the month) and removes your profile, your stories, your characters, your unfinished story, your reading diary, your saved stories, your allowance and credit records, the record of what was made for you, and the copies of messages you sent us.
         </p>
         <p>
-          Three things remain: ratings and comments you left on other families&apos; stories, which stay under the username you wrote them with; recordings already made of your stories&apos; pages being read aloud, which hold only the words of the page and are no longer linked to anything; and any emails already delivered to our inbox. <Link href="/about#contact">Write to us</Link> if you&apos;d like those removed too, or if you&apos;d like a copy of what we hold about you or want something corrected.
+          Four things remain: ratings and comments you left on other families&apos; stories, which stay under the username you wrote them with; recordings already made of your stories&apos; pages being read aloud, which hold only the words of the page and are no longer linked to anything; any emails already delivered to our inbox; and Stripe&apos;s own records of payments made, which it must keep by law. <Link href="/about#contact">Write to us</Link> if you&apos;d like those removed too, or if you&apos;d like a copy of what we hold about you or want something corrected.
         </p>
 
         <h2>Children</h2>

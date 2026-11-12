@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Rights } from "@/server/rights";
+import { PaymentSafety, ShieldIcon } from "@/components/PaymentSafety";
 import { CrownMark, MapleMark, OrnamentRule } from "@/components/Icons";
 import { isPaidPlan, PLANS, PUBLIC_PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
@@ -19,7 +20,7 @@ type Card = {
   status?: string;
   current: boolean;
   intro: string;
-  features: string[];
+  features: TierRow[];
   caps?: TierRow[];
 };
 
@@ -29,11 +30,12 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   name: t.name,
   tagline: t.blurb,
   // (the plan everyone has costs nothing, whatever it's called)
-  price: t.id === "free" ? "Free" : t.monthlyUsd ? `$${t.monthlyUsd.toFixed(2)}/mo` : t.limits.stories ? t.name : "Unlimited",
+  // (US$, as the credit packs say it: the same currency everywhere)
+  price: t.id === "free" ? "Free" : t.monthlyUsd ? `US$${t.monthlyUsd.toFixed(2)}/mo` : t.limits.stories ? t.name : "Unlimited",
   button: "",
   current,
   intro: t.id === "admin" ? "The test account gets:" : t.id === "free" ? "Every family gets:" : "Each week and month:",
-  features: tierRows(t).map((r) => `${r.label}: ${r.value}`),
+  features: tierRows(t),
   // (only the admin sees the safety limits)
   caps: tierCaps(t),
 });
@@ -68,7 +70,7 @@ export function AccountTier({ isAdmin, tier: tierId, credits }: { isAdmin: boole
                 them yet, so "0 credits" would only puzzle) */}
             {!isAdmin && typeof credits === "number" && credits > 0 && (
               <li>
-                On-demand credits: <b>{credits.toLocaleString("en-GB")}</b>
+                Bought credits: <b>{credits.toLocaleString("en-GB")}</b>
               </li>
             )}
           </ul>
@@ -189,6 +191,14 @@ export function AccountPlans({ isAdmin, tier: tierId, subscription = null, open 
         </p>
       )}
       {!isAdmin && open && (
+        <details className="plan-safety">
+          <summary>
+            <ShieldIcon /> Paying safely
+          </summary>
+          <PaymentSafety open plans />
+        </details>
+      )}
+      {!isAdmin && open && (
         <p className="meta plan-fine">
           Plans renew monthly from the day you join, until cancelled. Cancelling keeps your plan until the month paid for ends; there are no refunds for the days left. Weekly credits don&apos;t carry over. Bought credits are yours on every plan.
         </p>
@@ -289,11 +299,16 @@ function PlanCard({ card }: { card: Card }) {
         <p>{card.intro}</p>
         <ul>
           {card.features.map((f) => (
-            <li key={f}>
+            <li key={f.label}>
               <span className="plan-tick" aria-hidden>
                 ✓
               </span>
-              {f}
+              <span className="plan-feature">
+                <span>
+                  {f.label}: <b>{f.value}</b>
+                </span>
+                {f.note && <small>{f.note}</small>}
+              </span>
             </li>
           ))}
         </ul>

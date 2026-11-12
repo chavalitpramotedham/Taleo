@@ -15189,3 +15189,46 @@ html[data-night] .safety-dialog .modal-head h3 {
   color: var(--ink);
   font-weight: 600;
 }
+
+/* (under the plans: how paying is kept safe, folded) */
+.plan-safety {
+  margin: 14px auto 0;
+  max-width: 560px;
+  border: 1px solid color-mix(in srgb, #5f7f45 35%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, #5f7f45 7%, transparent);
+  padding: 4px 14px;
+}
+.plan-safety summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: #4f6b38;
+  list-style: none;
+}
+.plan-safety summary::-webkit-details-marker {
+  display: none;
+}
+.plan-safety .buy-credits-safety {
+  margin: 0 0 8px;
+}
+html[data-night] .plan-safety summary {
+  color: #b9d197;
+}
+
+/* (a plan's feature: what, how much, and a small line on how it works) */
+.plan-feature {
+  display: grid;
+  gap: 1px;
+}
+.plan-feature b {
+  font-weight: 600;
+}
+.plan-feature small {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}

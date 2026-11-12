@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/server/throttle";
 import { auth } from "@/server/auth";
 import { currentAccount, currentAdmin } from "@/server/entitlements";
 import { getSubscription, planOf } from "@/server/billing";
@@ -28,6 +29,8 @@ export async function POST(req: Request) {
   if (!subscriptionsOpen()) {
     return NextResponse.json({ pending: true, message: "Plans can't be bought just yet - card payments for them are still being set up. Nothing has been charged." }, { status: 503, headers: noStore });
   }
+  // (opening payment pages over and over: a person never needs to)
+  if (!allow(`pay:${session.user.id}`, 8, 10 * 60_000)) return NextResponse.json({ error: "That's a lot of checkouts in a few minutes. Please wait a little and try again." }, { status: 429, headers: noStore });
   const origin = new URL(req.url).origin;
   const sub = await getSubscription(account.id);
   try {

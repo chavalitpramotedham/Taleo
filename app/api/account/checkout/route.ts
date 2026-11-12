@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/server/throttle";
 import { auth } from "@/server/auth";
 import { currentAdmin } from "@/server/entitlements";
 import { CREDIT_PACK_MAX, CREDIT_PACK_MIN } from "@/lib/tiers";
@@ -21,6 +22,8 @@ export async function POST(req: Request) {
   if (!Number.isInteger(credits) || credits < CREDIT_PACK_MIN || credits > CREDIT_PACK_MAX) {
     return NextResponse.json({ error: `Choose a whole number of credits, from ${CREDIT_PACK_MIN} to ${CREDIT_PACK_MAX}.` }, { status: 400 });
   }
+  // (opening payment pages over and over: a person never needs to)
+  if (!allow(`pay:${session.user.id}`, 8, 10 * 60_000)) return NextResponse.json({ error: "That's a lot of checkouts in a few minutes. Please wait a little and try again." }, { status: 429, headers: noStore });
   if (!paymentsOpen()) {
     return NextResponse.json(
       { pending: true, credits, message: "Card payments are still being set up. Nothing has been charged, and no credits have been added." },

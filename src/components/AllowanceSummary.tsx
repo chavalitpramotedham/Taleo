@@ -103,6 +103,13 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
               <CreditIcon />
               <span>
                 <b>{rights.credits.toLocaleString("en-GB")}</b> {rights.credits === 1 ? "credit" : "credits"}
+                {/* (and the plan's own for this week, used first) */}
+                {rights.weekly && (
+                  <>
+                    {" "}
+                    + <b>{rights.weekly.left}</b> weekly
+                  </>
+                )}
               </span>
             </span>
           )}

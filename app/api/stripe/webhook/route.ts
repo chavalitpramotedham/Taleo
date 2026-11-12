@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fulfil, subscriptionOfEvent, syncSubscription, webhookEvent } from "@/server/stripe";
+import { fulfil, subscriptionOfEvent, syncSubscription, takeBack, webhookEvent } from "@/server/stripe";
 import { noticeSeen } from "@/server/billing";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +17,9 @@ export const runtime = "nodejs";
  *    updated / deleted, invoice.paid, invoice.payment_failed and
  *    subscription_schedule.updated / released. Each reads the subscription
  *    back from Stripe and records it as it is now.
+ *  - Money back: charge.refunded and charge.dispute.created. Credits
+ *    bought with that payment come off the balance (as many as are left);
+ *    a dispute also ends the plan and pauses the account.
  *
  * Each notice is dealt with once: sent again, it's recognised and changes
  * nothing. (One that fails is answered with an error, so Stripe sends it
@@ -32,6 +35,14 @@ export async function POST(req: Request) {
     if (subscription) {
       const done = await syncSubscription(subscription, event.created * 1000);
       console.log("[stripe] subscription", event.type, done ? `${done.sub?.plan} ${done.sub?.status}` : "unchanged");
+    } else if (event.type === "charge.refunded") {
+      // (refunded - by us, or by Stripe on a buyer's behalf: what it bought is taken back)
+      const charge = event.data.object as { id: string; amount_refunded?: number };
+      console.log("[stripe] refund", await takeBack(charge.id, "refund", charge.amount_refunded));
+    } else if (event.type === "charge.dispute.created") {
+      // (disputed with the card's bank: taken back, and the account paused)
+      const dispute = event.data.object as { charge: string | { id: string } };
+      console.log("[stripe] dispute", await takeBack(typeof dispute.charge === "string" ? dispute.charge : dispute.charge.id, "dispute"));
     } else if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const done = await fulfil((event.data.object as { id: string }).id);
       console.log("[stripe] payment", event.type, done.status, done.credits);

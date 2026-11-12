@@ -240,21 +240,28 @@ export const allowancePhrase = (a: Allowance, one: string, many: string) =>
 export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per(a.hours)}` : "Unlimited");
 
 /** The headline allowances. */
-export const tierRows = (t: TierInfo): TierRow[] => [
-  {
-    // (a plan's own story is a "standard story": up to FREE_STORY_MINUTES long)
-    label: t.limits.stories && t.credits !== "beyond" ? "Free stories (a Quest)" : "New stories",
-    value: allowanceText(t.limits.stories),
-    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "An Adventure or an Odyssey uses it too, and adds the difference in credits (2 or 5). A story counts once you make its first choice") : undefined,
-  },
-  ...(t.limits.weeklyCredits ? [{ label: "Weekly credits", value: `${t.limits.weeklyCredits} a week`, note: "Used first; any left at the week's end are gone" }] : []),
-  // (what's free to make, then how many can be kept)
-  ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
-  { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },
-  { label: "Reading the Public Library", value: "Unlimited" },
-  ...(t.credits === "beyond" ? [] : [{ label: "After the free ones", value: "Credits", note: "Quest 3, Adventure 5, Odyssey 8; a character 3" }]),
-  ...(t.extras ?? []),
-];
+export const tierRows = (t: TierInfo): TierRow[] => {
+  const s = t.limits.stories;
+  const d = t.limits.designs;
+  const every = (a: Allowance) => (a.week ? "a week" : a.month ? "a month" : `every ${per(a.hours)}`);
+  return [
+    s
+      ? {
+          // (a plan's own story is a Quest; a longer one uses it and adds credits)
+          label: "Free stories",
+          value: `${s.count} ${every(s)}`,
+          note: t.credits === "beyond" ? "A story counts once you make its first choice" : "Each covers a Quest. An Adventure or Odyssey uses one plus 2 or 5 credits",
+        }
+      : { label: "New stories", value: "Unlimited" },
+    ...(t.limits.weeklyCredits ? [{ label: "Weekly credits", value: `${t.limits.weeklyCredits} a week`, note: "Used before bought credits. Unused ones don't carry over" }] : []),
+    // (what's free to make, then how many can be kept)
+    ...(d ? [{ label: "Free characters", value: `${d.count} ${every(d)}`, note: t.credits === "beyond" ? undefined : `New or repainted. After that, ${CHARACTER_CREDITS} credits each` }] : []),
+    { label: "Saved characters", value: t.limits.characters === null ? "Unlimited" : `Up to ${t.limits.characters}` },
+    { label: "The Public Library", value: "Free to read" },
+    ...(t.credits === "beyond" ? [] : [{ label: "More stories", value: "With credits", note: `Quest ${storyCredits(3)}, Adventure ${storyCredits(5)}, Odyssey ${storyCredits(8)} credits. Bought credits are US$${(CREDIT_PRICE_CENTS / 100).toFixed(2)} each and never expire` }]),
+    ...(t.extras ?? []),
+  ];
+};
 
 /** The behind-the-scenes safety limits. */
 export const tierCaps = (t: TierInfo): TierRow[] => {

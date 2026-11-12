@@ -14,6 +14,7 @@ import { fuzzyPeople } from "@/lib/fuzzy";
 import { shortDate } from "@/lib/dates";
 import Link from "next/link";
 import { TransactionList } from "@/components/TransactionList";
+import { PaymentSafety, ShieldIcon } from "@/components/PaymentSafety";
 import type { Transaction } from "@/lib/transactions";
 
 /** How many transactions the Credits panel lists (all of them are on their own page). */
@@ -539,50 +540,6 @@ function BuyCredits({ balance, open, onClose }: { balance: number; open: boolean
         </div>
       )}
     </div>
-  );
-}
-
-/** A shield with a tick: paying safely. */
-function ShieldIcon() {
-  return (
-    <svg className="shield-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-      <path d="M12 2.8 4.6 5.6v5.6c0 4.7 3.1 8.6 7.4 10 4.3-1.4 7.4-5.3 7.4-10V5.6L12 2.8Z" fill="currentColor" opacity="0.18" />
-      <path d="M12 2.8 4.6 5.6v5.6c0 4.7 3.1 8.6 7.4 10 4.3-1.4 7.4-5.3 7.4-10V5.6L12 2.8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="m8.6 12.1 2.4 2.4 4.4-4.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-/**
- * How paying is kept safe, said plainly. Every line here must be true of
- * the checkout as it is built (see /api/account/checkout): Stripe's own
- * hosted page takes the card, this app never sees or keeps card details,
- * and credits are added only on Stripe's confirmation. Until payments are
- * open it says so first - nothing can be charged from here today.
- */
-function PaymentSafety({ open }: { open: boolean }) {
-  return (
-    <section className="buy-credits-safety" aria-label="How paying is kept safe">
-      <ul>
-        {!open && (
-          <li>
-            <b>Not open yet.</b> Card payments are still being set up, so nothing can be charged from here today.
-          </li>
-        )}
-        <li>
-          <b>Paid on Stripe&apos;s page.</b> {open ? "You" : "When payments open, you"}&apos;ll enter your card on Stripe&apos;s own secure checkout page, not on Taleo.
-        </li>
-        <li>
-          <b>We never see your card.</b> Your card number goes straight to Stripe. Taleo doesn&apos;t receive it or store it.
-        </li>
-        <li>
-          <b>You confirm the total first.</b> Stripe shows the amount - with any tax due where you live - before you pay, and nothing is charged until you confirm there.
-        </li>
-        <li>
-          <b>Credits follow the payment.</b> Credits are added to your account only once Stripe tells us the payment went through.
-        </li>
-      </ul>
-    </section>
   );
 }
 
