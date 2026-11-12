@@ -14845,10 +14845,13 @@ html[data-night] .buy-credits-pack.deal .buy-credits-price b {
   box-shadow: 0 14px 28px -20px rgba(70, 50, 30, 0.55);
   color: var(--ink);
   text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
+/* (pressed: a deeper shadow and the border lit - never moved, so a
+   touch that's the start of a scroll or a pull doesn't nudge it) */
 .first-steps:active {
-  transform: translateY(1px);
+  border-color: var(--russet);
+  box-shadow: 0 6px 14px -12px rgba(70, 50, 30, 0.6);
 }
 @media (hover: hover) {
   .first-steps:hover {

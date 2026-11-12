@@ -136,7 +136,11 @@ export function PullToRefresh() {
         for (const el of done) el.style.transform = place(shown);
         if (t < 1) return void (spring = requestAnimationFrame(step));
         spring = 0;
-        if (to === 0 && startY == null && !refreshing) for (const el of done) el.style.willChange = "";
+        if (to === 0 && startY == null && !refreshing)
+          for (const el of done) {
+            el.style.willChange = "";
+            el.style.transition = "";
+          }
       };
       spring = requestAnimationFrame(step);
       pull = to;
@@ -177,6 +181,9 @@ export function PullToRefresh() {
         spring = 0;
         for (const el of moving) el.style.transform = ""; // (whatever the last pull moved, back first)
         moving = targets();
+        // (each block follows the finger exactly: any slide of its own -
+        // a card's press effect, say - is held off while it's moved)
+        for (const el of moving) el.style.transition = "none";
         if (!safari) for (const el of moving) el.style.willChange = "transform";
         if (spin) spin.style.transition = "none";
       }
