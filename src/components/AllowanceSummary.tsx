@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, OpenBookIcon } from "./Icons";
 
@@ -66,8 +66,24 @@ export function AllowanceSummary({ onGo }: { onGo?: () => void }) {
       here = false;
     };
   }, []);
+  // While the menu stays open the figures keep themselves current: each
+  // time the sheen crosses, they're asked for again - so credits set aside
+  // for a story being made, spent, or returned show within a few seconds.
+  const live = useRef(true);
+  useEffect(
+    () => () => {
+      live.current = false;
+    },
+    [],
+  );
+  const refresh = (e: React.AnimationEvent) => {
+    if (e.animationName !== "allowanceSheen" || document.visibilityState !== "visible") return;
+    void preloadAllowance().then((r) => {
+      if (live.current && r) setRights(r);
+    });
+  };
   return (
-    <Link href="/account/plans" className="allowance-summary" role="menuitem" onClick={onGo} aria-label="What's left on your plan: see the details">
+    <Link href="/account/plans" className="allowance-summary" role="menuitem" onClick={onGo} onAnimationIteration={refresh} aria-label="What's left on your plan: see the details">
       {rights ? (
         <>
           {/* the plan's free stories first (how many are left, or when the
