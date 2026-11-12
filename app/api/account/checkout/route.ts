@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
+import { currentAdmin } from "@/server/entitlements";
 import { CREDIT_PACK_MAX, CREDIT_PACK_MIN } from "@/lib/tiers";
 import { fulfil, openCheckout, paymentsOpen } from "@/server/stripe";
 
@@ -31,7 +32,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ url }, { headers: noStore });
   } catch (e) {
     console.error("[checkout] couldn't open", e);
-    return NextResponse.json({ error: "The checkout couldn't be opened just now. Nothing has been charged. Please try again." }, { status: 502, headers: noStore });
+    // (the admin is told Stripe's own reason, to put the set-up right -
+    // Stripe's messages never show a key, only its last four characters)
+    const why = e as { type?: string; code?: string; message?: string };
+    const admin = Boolean(session.user.isAdmin && (await currentAdmin().catch(() => null)));
+    const detail = admin ? ` (Stripe said: ${[why.type, why.code].filter(Boolean).join(", ")}${why.message ? ` - ${why.message.slice(0, 200)}` : ""})` : "";
+    return NextResponse.json({ error: `The checkout couldn't be opened just now. Nothing has been charged. Please try again.${detail}` }, { status: 502, headers: noStore });
   }
 }
 

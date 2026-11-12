@@ -23,6 +23,11 @@ import { CREDIT_PACK_MAX, CREDIT_PACK_MIN, packPrice } from "@/lib/tiers";
  *     told (the ledger refuses a reference it has seen).
  */
 
+/** Stripe's tax category for what's sold: "Artificial Intelligence as a
+ *  Service - Cloud Based - Personal Use" (AI tools hosted on the
+ *  provider's servers, used in a browser, by individuals). */
+const STRIPE_TAX_CODE = "txcd_10105001";
+
 let client: Stripe | null = null;
 export const paymentsOpen = () => Boolean(process.env.STRIPE_SECRET_KEY);
 function stripe(): Stripe {
@@ -48,6 +53,9 @@ export async function openCheckout(opts: { userId: string; email?: string | null
           currency: price.currency.toLowerCase(),
           unit_amount: cents,
           product_data: {
+            // (what it is, for tax: Stripe works out the tax from this -
+            // and Managed Payments won't sell a product without one)
+            tax_code: STRIPE_TAX_CODE,
             name: `${credits.toLocaleString("en-US")} Taleo credits`,
             description: price.off ? `${price.off}% off - credits for making bedtime stories and characters` : "Credits for making bedtime stories and characters",
           },
