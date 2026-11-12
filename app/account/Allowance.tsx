@@ -26,8 +26,14 @@ const wait = (sec: number) => {
 };
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-/** "Resets Monday, 16th Nov": when a count starts afresh, by the reader's own calendar. */
-const resets = (at: number) => `Resets ${DAYS[new Date(at).getDay()]}, ${shortDate(at)}`;
+/** "Resets Monday, 16th Nov, 12:00 am": when a count starts afresh, by the
+ *  reader's own calendar and clock (the count turns at midnight in GMT+8,
+ *  which is another hour elsewhere). */
+const resets = (at: number) => {
+  const d = new Date(at);
+  const h = d.getHours();
+  return `Resets ${DAYS[d.getDay()]}, ${shortDate(at)}, ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")} ${h < 12 ? "am" : "pm"}`;
+};
 
 type Tab = "plan" | "credits";
 
