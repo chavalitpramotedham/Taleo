@@ -5,6 +5,7 @@
  * plan means adding a row to PLANS (and setting `tier` on the accounts that
  * bought it) - no other code changes.
  */
+import { STORY_LENGTHS, lengthOf } from "./ages";
 
 export type TierId = "free" | "admin";
 
@@ -145,12 +146,10 @@ export const CHARACTER_CREDITS = 3;
  *  is paid for with credits (all of its minutes), and leaves the free one
  *  for another day. */
 export const FREE_STORY_MINUTES = 5;
-/** The shortest and longest story (lib/ages), kept here so prices need no
- *  other file: a story costs between these. */
-const STORY_MINUTES: [number, number] = [3, 8];
-export const storyCredits = (minutes: number) =>
-  Math.min(STORY_MINUTES[1], Math.max(STORY_MINUTES[0], Math.round(Number(minutes) || STORY_MINUTES[0]))) * CREDITS_PER_STORY_MINUTE;
-export const STORY_CREDITS_RANGE: [number, number] = [storyCredits(STORY_MINUTES[0]), storyCredits(STORY_MINUTES[1])];
+/** A story costs its length's reading time, a credit a minute (lib/ages:
+ *  Quest 3, Adventure 5, Odyssey 8). */
+export const storyCredits = (minutes: number) => lengthOf(minutes).minutes * CREDITS_PER_STORY_MINUTE;
+export const STORY_CREDITS_RANGE: [number, number] = [storyCredits(STORY_LENGTHS[0].minutes), storyCredits(STORY_LENGTHS[STORY_LENGTHS.length - 1].minutes)];
 /** What the admin's test account is given once, to begin with. */
 export const STARTER_CREDITS = 250;
 /** The most that can be added by hand in one go. */
@@ -184,15 +183,15 @@ export const allowanceText = (a: Allowance | null) => (a ? `${a.count} per ${per
 export const tierRows = (t: TierInfo): TierRow[] => [
   {
     // (a plan's own story is a "standard story": up to FREE_STORY_MINUTES long)
-    label: t.limits.stories && t.credits !== "beyond" ? `Standard stories (${FREE_STORY_MINUTES} minutes)` : "New stories",
+    label: t.limits.stories && t.credits !== "beyond" ? "Standard stories (a Quest or an Adventure)" : "New stories",
     value: allowanceText(t.limits.stories),
-    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "A longer story adds a credit for each extra minute. A story counts once you make its first choice") : undefined,
+    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "An Odyssey adds 3 credits. A story counts once you make its first choice") : undefined,
   },
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),
   { label: "Custom character slots", value: t.limits.characters === null ? "Unlimited" : `${t.limits.characters}` },
   { label: "Reading the Public Library", value: "Unlimited" },
-  ...(t.credits === "beyond" ? [] : [{ label: "After the free ones", value: "Credits", note: "One a minute of story, three a character" }]),
+  ...(t.credits === "beyond" ? [] : [{ label: "After the free ones", value: "Credits", note: "Quest 3, Adventure 5, Odyssey 8; a character 3" }]),
   ...(t.extras ?? []),
 ];
 

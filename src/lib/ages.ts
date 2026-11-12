@@ -27,6 +27,7 @@ export interface AgeLevel {
 
 export const MIN_MINUTES = 3;
 export const MAX_MINUTES = 8;
+// (the two ends of what a story's `minutes` has ever been; lengths are below)
 
 export const AGES: AgeLevel[] = [
   {
@@ -129,25 +130,88 @@ export const AGES: AgeLevel[] = [
 
 export const ageById = (id: string): AgeLevel => AGES.find((a) => a.id === id) ?? AGES[2];
 
-export const clampMinutes = (m: number): number => Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, Math.round(m)));
+// ---------------------------------------------------------------- length
+//
+// A story comes in three lengths. Each has a set number of decisions, and
+// a reading time - how long it takes to read straight through once it's
+// all written and painted (no waiting, no deciding) - which is also what
+// it costs: a credit a minute.
+//
+//   Quest      short    2 decisions   3 minutes straight through   3 credits   under 5 min at bedtime
+//   Adventure  medium   3 decisions   5 minutes                    5 credits   5-8 min   (the standard)
+//   Odyssey    long     4 decisions   8 minutes                    8 credits   over 8 min
+//
+// The library shows the bedtime range ("5-8 min"), never the names: those
+// are only for choosing a length when making a story.
+//
+// A story's `minutes` is its length's reading time (3, 5 or 8). Stories
+// made when length was a slider carry other numbers: they read as the
+// nearest length.
+
+export type LengthId = "quest" | "adventure" | "odyssey";
+export interface StoryLength {
+  id: LengthId;
+  name: string;
+  /** "short" / "medium" / "long" */
+  size: string;
+  /** Reading time straight through, in minutes - and its price in credits. */
+  minutes: number;
+  /** Decisions the child makes along the way. */
+  decisions: number;
+  /** About how long it takes at bedtime, as readers are told: "under 5",
+   *  "5–8", "over 8" (minutes) - from reading it straight through to
+   *  taking it slowly, with the decisions talked over. */
+  time: string;
+}
+export const STORY_LENGTHS: StoryLength[] = [
+  { id: "quest", name: "Quest", size: "short", minutes: 3, decisions: 2, time: "under 5" },
+  { id: "adventure", name: "Adventure", size: "medium", minutes: 5, decisions: 3, time: "5–8" },
+  { id: "odyssey", name: "Odyssey", size: "long", minutes: 8, decisions: 4, time: "over 8" },
+];
+/** The standard story: what a plan's own story covers. */
+export const STANDARD_LENGTH = STORY_LENGTHS[1];
+/** The length a number of minutes stands for (the nearest one). */
+export const lengthOf = (minutes: number): StoryLength => {
+  const m = Number(minutes) || STANDARD_LENGTH.minutes;
+  return m <= 4 ? STORY_LENGTHS[0] : m <= 6 ? STORY_LENGTHS[1] : STORY_LENGTHS[2];
+};
+/** A story's time as readers are shown it: "under 5", "5–8", "over 8" (minutes). */
+export const timeRange = (minutes: number): string => lengthOf(minutes).time;
+/** "an Odyssey", "a Quest" */
+export const aLength = (l: StoryLength) => `${/^[AEIOU]/.test(l.name) ? "an" : "a"} ${l.name}`;
+
+export const clampMinutes = (m: number): number => lengthOf(Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, Math.round(m)))).minutes;
 
 export interface LengthProfile {
+  length: StoryLength;
   choices: number;
   pagesPerSegment: [number, number];
+  /** Words on a page: a narrow band around this age's usual page. */
+  words: [number, number];
 }
 
-/** Scales choice count and pages-per-segment to a target read-aloud length.
- *  The age guide (vocabulary, sentence complexity, words per page) stays
- *  fixed by age - how long the story is and how hard it reads are
- *  independent choices. */
+/** How briskly a page of each age's text is read aloud (words a minute):
+ *  the youngest pages are few words said slowly, with sounds and pointing. */
+const PACE: Record<AgeId, number> = { "1.5-2": 70, "2-3": 85, "3-4": 110, "4-5": 130, "5-6": 140, "6+": 150 };
+/** Turning the page and taking in the picture, in seconds. */
+const PAGE_TURN_S = 4;
+
+/**
+ * What a story of this length is made of, for this age: its decisions
+ * (set by the length), and pages and words that come to the length's
+ * reading time. The words on a page follow the age (how hard it reads);
+ * the number of pages between decisions makes up the time - more, shorter
+ * pages for the youngest, fewer and fuller for the oldest.
+ */
 export function lengthProfile(age: AgeLevel, minutes: number): LengthProfile {
-  const m = clampMinutes(minutes);
-  const totalPages = Math.max(age.choices + 1, Math.round((m * 60) / age.secondsPerPage));
-  const minChoices = Math.max(1, age.choices - 1);
-  const maxChoices = age.choices + 2;
-  const scaled = Math.round(age.choices * (m / age.recommendedMinutes));
-  const choices = Math.min(maxChoices, Math.max(minChoices, scaled));
+  const length = lengthOf(minutes);
+  const choices = length.decisions;
   const segments = choices + 1;
-  const avgPages = Math.max(2, Math.round(totalPages / segments));
-  return { choices, pagesPerSegment: [Math.max(2, avgPages - 1), avgPages + 1] };
+  const mid = (age.words[0] + age.words[1]) / 2;
+  const words: [number, number] = [Math.round(mid * 0.85), Math.round(mid * 1.15)];
+  const secondsPerPage = (mid / PACE[age.id]) * 60 + PAGE_TURN_S;
+  const perPart = (length.minutes * 60) / secondsPerPage / segments;
+  const low = Math.min(5, Math.max(2, Math.floor(perPart)));
+  const high = Math.min(6, Math.max(low, Math.ceil(perPart)));
+  return { length, choices, pagesPerSegment: [low, high], words };
 }

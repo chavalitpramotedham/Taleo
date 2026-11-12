@@ -14539,3 +14539,90 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
 .btn:has(.make-label.has-sub) {
   min-height: 64px;
 }
+
+/* ---------- How long are we dreaming? Quest, Adventure, Odyssey ---------- */
+/* Three plates side by side (stacked on a narrow phone): the name, how
+   long it is in a word, its decisions and reading time, and what it costs. */
+.length-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.length-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 14px 8px 12px;
+  background: var(--page);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.length-choice.selected {
+  border-color: var(--russet);
+  box-shadow: inset 0 0 0 1px var(--russet);
+}
+.length-choice:active {
+  transform: translateY(1px);
+}
+.length-choice-name {
+  font-family: var(--font-display, inherit);
+  font-size: 1.18rem;
+  line-height: 1.15;
+}
+.length-choice-size {
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--russet);
+}
+.length-choice-facts {
+  margin-top: 4px;
+  font-size: 0.84rem;
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+.length-choice-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-weight: 600;
+  font-variant-numeric: lining-nums;
+}
+@media (max-width: 420px) {
+  .length-choices {
+    grid-template-columns: 1fr;
+  }
+  .length-choice {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "name cost" "size cost" "facts cost";
+    justify-items: start;
+    align-items: center;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  .length-choice-name {
+    grid-area: name;
+  }
+  .length-choice-size {
+    grid-area: size;
+  }
+  .length-choice-facts {
+    grid-area: facts;
+    margin-top: 2px;
+  }
+  .length-choice-cost {
+    grid-area: cost;
+    margin-top: 0;
+    font-size: 1.1rem;
+  }
+}

@@ -3,7 +3,7 @@ import { Painting } from "@/components/art/Painting";
 import { shortDate } from "@/lib/dates";
 import type { GalleryEntry } from "@/lib/types";
 import { ClockIcon, StarGlyph } from "./Icons";
-import { ageById } from "@/lib/ages";
+import { ageById, timeRange } from "@/lib/ages";
 import { KeywordPill } from "./KeywordPill";
 
 const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 0);
@@ -52,8 +52,8 @@ export function StoryCard({
             </span>
           </>
         )}
-        <span className="cover-time" aria-label={`About ${minutes} minutes to read`}>
-          <ClockIcon /> {minutes} min
+        <span className="cover-time" aria-label={`About ${timeRange(minutes).replace("–", " to ")} minutes to read`}>
+          <ClockIcon /> {timeRange(minutes)} min
         </span>
         <span className="cover-meta">
           <span className="cover-rating">

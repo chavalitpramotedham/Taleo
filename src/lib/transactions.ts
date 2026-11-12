@@ -1,3 +1,4 @@
+import { lengthOf } from "./ages";
 /** One line of an account's credit history, as its owner reads it. */
 export interface Transaction {
   id: string;
@@ -30,15 +31,15 @@ interface Entry {
  *  ("A 6-minute story: 1 minute beyond a free story"): "Free 5 min + 1 min". */
 function mixed(note: string | undefined): string {
   const m = /(\d+)-minute story: (\d+) minutes? beyond/.exec(note ?? "");
-  return m ? `Free ${Number(m[1]) - Number(m[2])} min + ${m[2]} min` : "";
+  return m ? `Free story + ${m[2]} credit${m[2] === "1" ? "" : "s"}` : "";
 }
 
 /** What a spend was for, from the note kept with it. */
 function spentOn(note: string | undefined): string {
-  const split = mixed(note);
-  if (split) return `Story (${split})`;
   const story = /(\d+)-minute story/.exec(note ?? "");
-  if (story) return `Story (${story[1]} min)`;
+  const split = mixed(note);
+  if (story && split) return `${lengthOf(Number(story[1])).name} (${split})`;
+  if (story) return `${lengthOf(Number(story[1])).name} story`;
   if (/character/i.test(note ?? "")) return "Character";
   return "Story or character";
 }

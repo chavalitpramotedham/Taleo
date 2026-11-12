@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { streamUsageTracker, type AiFeature } from "./metrics";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
-import { ageById, lengthProfile } from "@/lib/ages";
+import { aLength, ageById, lengthProfile } from "@/lib/ages";
 import { characterArt, presetByKey } from "@/lib/presets";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { isMotion, isSound } from "@/lib/actions";
@@ -148,7 +148,7 @@ function buildSegmentRequest(req: StoryRequest) {
   const isStart = req.kind === "start";
   const age = ageById(isStart ? req.age : req.story.age);
   const minutes = isStart ? req.minutes : req.story.minutes;
-  const { choices, pagesPerSegment } = lengthProfile(age, minutes);
+  const { choices, pagesPerSegment, words, length } = lengthProfile(age, minutes);
   const hero = isStart ? req.hero : req.story.hero;
   const companions = isStart ? req.companions : req.story.companions;
   const heroes = [hero, ...companions];
@@ -161,7 +161,9 @@ function buildSegmentRequest(req: StoryRequest) {
 
   const parts: string[] = [];
   parts.push(`READER AGE: ${age.label} years (age id ${age.id}). Follow that age guide closely.`);
-  parts.push(`TARGET LENGTH: about ${minutes} minute${minutes === 1 ? "" : "s"} read aloud in total, across ${totalSegments} segments.`);
+  parts.push(
+    `TARGET LENGTH: ${aLength(length)} - ${length.size}: about ${length.minutes} minutes to read aloud straight through, in ${totalSegments} segments with ${choices} decisions between them. Keep to the pages and words asked for below: the length was chosen, and paid for, by the family.`,
+  );
   parts.push(`THEME: ${theme}`);
   const moral = isStart ? "" : req.story.moral?.trim();
   if (moral) parts.push(`THE STORY'S HEART (the lesson this book builds to and lands at the end): ${moral}`);
@@ -214,7 +216,7 @@ function buildSegmentRequest(req: StoryRequest) {
     );
   }
   parts.push(
-    `Use ${pagesPerSegment[0]}-${pagesPerSegment[1]} pages, ${age.words[0]}-${age.words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
+    `Use ${pagesPerSegment[0] === pagesPerSegment[1] ? pagesPerSegment[0] : `${pagesPerSegment[0]}-${pagesPerSegment[1]}`} pages (as the plot of this segment needs), ${words[0]}-${words[1]} words per page${isLast ? "" : `, and exactly ${age.optionCount} choice options`}.`,
   );
 
   return {

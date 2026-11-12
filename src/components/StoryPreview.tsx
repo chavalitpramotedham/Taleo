@@ -8,7 +8,7 @@ import { deleteGalleryStory } from "@/lib/gallery-client";
 import { setStorySaved, useSaved } from "@/lib/saved-client";
 import { useToast } from "./Toast";
 import { Painting } from "@/components/art/Painting";
-import { ageById } from "@/lib/ages";
+import { ageById, timeRange } from "@/lib/ages";
 import type { GalleryEntry } from "@/lib/types";
 import {
   BookmarkIcon,
@@ -168,9 +168,9 @@ export function StoryPreview({
           )}
           <span
             className="cover-time"
-            aria-label={`About ${story.minutes} minutes to read${story.pages ? `, ${story.pages} ${story.pages === 1 ? "page" : "pages"}` : ""}`}
+            aria-label={`About ${timeRange(story.minutes).replace("–", " to ")} minutes to read${story.pages ? `, ${story.pages} ${story.pages === 1 ? "page" : "pages"}` : ""}`}
           >
-            <ClockIcon /> {story.minutes} min
+            <ClockIcon /> {timeRange(story.minutes)} min
             {story.pages
               ? ` · ${story.pages} ${story.pages === 1 ? "page" : "pages"}`
               : ""}

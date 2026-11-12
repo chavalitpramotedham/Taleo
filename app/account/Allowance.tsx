@@ -1,4 +1,5 @@
 "use client";
+import { STORY_LENGTHS } from "@/lib/ages";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -121,10 +122,11 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <ul className="menu-list">
               <Line what="Reading, and the whole library" value="Free" />
               <Line what="A character, new or repainted" value={rights.prices.character} />
-              <Line what="A new story, for each minute" value={1} />
-              {/* (what that comes to, at either end) */}
-              <Line sub what={`The shortest story (${lo} minutes)`} value={lo} />
-              <Line sub what={`The longest story (${hi} minutes)`} value={hi} />
+              <Line what="A new story, by its length" value={`${lo}–${hi}`} />
+              {/* (the three lengths) */}
+              {STORY_LENGTHS.map((l) => (
+                <Line key={l.id} sub what={`${l.name}: ${l.size}, ${l.decisions} decisions, ${l.time} minutes`} value={l.minutes} />
+              ))}
             </ul>
             <p className="meta menu-note">A story is charged once, at its first choice. One dropped before that costs nothing.</p>
           </div>

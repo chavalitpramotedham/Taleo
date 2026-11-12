@@ -5,7 +5,7 @@ import { allPages } from "@/lib/story-utils";
 import { sanitizeSvgFlat } from "@/lib/svg-sanitize";
 import { loadBrandFonts } from "@/server/og-fonts";
 import { clothFor } from "@/lib/cover";
-import { ageById } from "@/lib/ages";
+import { ageById, timeRange } from "@/lib/ages";
 import { keywordColour, storyKeyword } from "@/lib/keywords";
 
 export const size = { width: 1200, height: 630 };
@@ -189,7 +189,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             {age ? `Ages ${age.label}` : ""}
           </div>
           <div style={{ display: "flex", fontSize: 26, marginTop: 8, color: "#6B5A48" }}>
-            {`${minutes} min read${pages.length ? `  ·  ${pages.length} ${pages.length === 1 ? "page" : "pages"}` : ""}`}
+            {`${timeRange(minutes)} min read${pages.length ? `  ·  ${pages.length} ${pages.length === 1 ? "page" : "pages"}` : ""}`}
           </div>
           <div style={{ display: "flex", alignItems: "center", marginTop: 18 }}>
             {count ? (

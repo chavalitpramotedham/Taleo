@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { recall, remember } from "@/lib/remember";
-import { AGES, MAX_MINUTES, MIN_MINUTES, type AgeId, ageById } from "@/lib/ages";
+import { AGES, MAX_MINUTES, MIN_MINUTES, STANDARD_LENGTH, STORY_LENGTHS, aLength, lengthOf, type AgeId } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
 import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
@@ -21,7 +21,7 @@ import { GrowingInput } from "@/components/GrowingInput";
 import { CharacterCreatorModal } from "@/components/CharacterCreatorModal";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { PageLoading } from "@/components/PageLoading";
-import { LeafLoader, MapleMark } from "@/components/Icons";
+import { CreditIcon, LeafLoader, MapleMark } from "@/components/Icons";
 import { LimitDialog, type LimitNotice } from "@/components/LimitDialog";
 import { coverOf, titleOf } from "@/components/OngoingStory";
 import { useOngoingStory } from "@/lib/ongoing";
@@ -47,6 +47,8 @@ const STEP_NOTES = [
 /** The story wizard. The page has already checked who's signed in (`me`)
  *  and read their characters (`initialCharacters`; null if it couldn't),
  *  so the first step shows at once. */
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -75,7 +77,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       const savedAge = localStorage.getItem(AGE_KEY) as AgeId | null;
       if (savedAge && AGES.some((a) => a.id === savedAge)) setAge(savedAge);
       const savedMinutes = Number(localStorage.getItem(MINUTES_KEY));
-      if (Number.isFinite(savedMinutes) && savedMinutes >= MIN_MINUTES && savedMinutes <= MAX_MINUTES) setMinutes(savedMinutes);
+      if (Number.isFinite(savedMinutes) && savedMinutes >= MIN_MINUTES && savedMinutes <= MAX_MINUTES) setMinutes(lengthOf(savedMinutes).minutes);
     } catch {}
   }, []);
 
@@ -116,8 +118,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
 
   const theme = themeText.trim() || THEMES.find((t) => t.key === themeKey)?.line || "";
   const canNext = step === 0 ? Boolean(age) : step === 1 ? Boolean(hero) : Boolean(theme);
-  const recommendedMinutes = age ? ageById(age).recommendedMinutes : null;
-  const effectiveMinutes = minutes ?? recommendedMinutes ?? MIN_MINUTES;
+  // (the standard story, unless another length is picked)
+  const effectiveMinutes = minutes ?? STANDARD_LENGTH.minutes;
   const visiblePresets = useMemo(() => PRESETS.filter((p) => group === "all" || p.group === group), [group]);
 
   const charLimit = useCharacterLimit();
@@ -313,34 +315,25 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
 
       {step === 0 && age && (
         <section className="panel length-panel">
-          <h3>How long should it be?</h3>
-          <p className="meta">
-            {minutes === null
-              ? `Recommended for this age: about ${recommendedMinutes} minute${recommendedMinutes === 1 ? "" : "s"}. Slide to choose your own.`
-              : `About ${effectiveMinutes} minute${effectiveMinutes === 1 ? "" : "s"}, read aloud.`}
-          </p>
-          <input
-            type="range"
-            className="length-slider"
-            min={MIN_MINUTES}
-            max={MAX_MINUTES}
-            step={1}
-            value={effectiveMinutes}
-            onChange={(e) => setMinutes(Number(e.target.value))}
-            aria-label="Story length in minutes"
-            aria-valuetext={`${effectiveMinutes} minutes`}
-            style={{
-              background: `linear-gradient(to right, var(--russet) ${((effectiveMinutes - MIN_MINUTES) / (MAX_MINUTES - MIN_MINUTES)) * 100}%, var(--rule) 0%)`,
-            }}
-          />
-          <div className="length-ticks" aria-hidden>
-            {Array.from({ length: MAX_MINUTES - MIN_MINUTES + 1 }, (_, i) => MIN_MINUTES + i).map((m) => (
-              <span key={m} className={`length-tick ${m === recommendedMinutes ? "recommended" : ""}`}>
-                {m}
-              </span>
+          <h3>How long are we dreaming?</h3>
+          <p className="meta">Each length has its own number of decisions along the way.</p>
+          <div className="length-choices" role="radiogroup" aria-label="Story length">
+            {STORY_LENGTHS.map((l) => (
+              <button key={l.id} type="button" role="radio" aria-checked={effectiveMinutes === l.minutes} className={`length-choice ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)}>
+                <span className="length-choice-name">{l.name}</span>
+                <span className="length-choice-size">{l.size}</span>
+                <span className="length-choice-facts">
+                  {l.decisions} decisions · {l.time} min
+                </span>
+                <span className="length-choice-cost">
+                  <CreditIcon size={16} />
+                  {l.minutes}
+                  <span className="sr-only"> credits</span>
+                </span>
+              </button>
             ))}
           </div>
-          {freeMax && <p className="length-free-note">Standard stories with your plan are a maximum of {freeMax.minutes} minutes.</p>}
+          {freeMax && <p className="length-free-note">Your plan&apos;s free story covers a Quest or an Adventure. An Odyssey adds {(STORY_LENGTHS[2].minutes - freeMax.minutes) * freeMax.perMinute} credits.</p>}
         </section>
       )}
 
@@ -566,13 +559,13 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
         <div className="modal-backdrop" onClick={() => setTooLong(null)}>
           <div className="modal-panel draft-prompt free-length" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="free-length-title">
             <div className="modal-head">
-              <h3 id="free-length-title">Standard stories are up to {tooLong.freeMinutes} minutes</h3>
+              <h3 id="free-length-title">{cap(aLength(lengthOf(tooLong.minutes)))} is longer than a standard story</h3>
               <button type="button" className="icon-btn" onClick={() => setTooLong(null)} aria-label="Close">
                 ✕
               </button>
             </div>
             <p className="limit-message">
-              This story is set to {tooLong.minutes} minutes. Your standard story covers {tooLong.freeMinutes} of them: add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} for the rest, or make it {tooLong.freeMinutes} minutes.
+              Your free story covers a Quest or an Adventure. Add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} to keep the {lengthOf(tooLong.minutes).name}, or make it an Adventure.
             </p>
             <div className="story-preview-actions">
               <button
@@ -585,7 +578,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
                   void start(m);
                 }}
               >
-                <MakeLabel credits={tooLong.cost}>Keep {tooLong.minutes} minutes</MakeLabel>
+                <MakeLabel credits={tooLong.cost}>Keep the {lengthOf(tooLong.minutes).name}</MakeLabel>
               </button>
               {tooLong.balance !== null && tooLong.balance < tooLong.cost && (
                 <p className="meta free-length-short">
@@ -602,7 +595,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
                   void start(m);
                 }}
               >
-                Make it {tooLong.freeMinutes} minutes, free
+                Make it {aLength(lengthOf(tooLong.freeMinutes))}, free
               </button>
             </div>
           </div>

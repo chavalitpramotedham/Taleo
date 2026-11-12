@@ -6,6 +6,7 @@ import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, CREDITS_P
 import { accountOf, type Account } from "./entitlements";
 import { applyCredits, billingAvailable, heldCredits, holdCredits, pendingStoryHold, releaseHold, releasePendingStories, settleHold, moveHold, wasPaid, STORY_PENDING } from "./billing";
 import { underDailyCap, type CapKind } from "./caps";
+import { aLength, lengthOf } from "@/lib/ages";
 import { STARTER_CREDITS } from "@/lib/tiers";
 
 /**
@@ -298,12 +299,13 @@ export async function starterCredits(account: Account | null) {
   if (!given?.ok) started.delete(account.id);
 }
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const notEnough = (o: CreditOffer) =>
   NextResponse.json(
     {
       error:
         o.item === "story"
-          ? `This story needs ${o.price} credit${o.price === 1 ? "" : "s"} (one for each minute), and there ${o.balance === 1 ? "is" : "are"} ${o.balance} left.`
+          ? `${cap(aLength(lengthOf(o.price)))} needs ${o.price} credits, and there ${o.balance === 1 ? "is" : "are"} ${o.balance} left.`
           : `A character needs ${o.price} credit${o.price === 1 ? "" : "s"}, and there ${o.balance === 1 ? "is" : "are"} ${o.balance} left.`,
       limited: "credits",
       credits: o,
@@ -597,7 +599,7 @@ async function guardWith(
       ok: false,
       response: NextResponse.json(
         {
-          error: `A standard story covers ${FREE_STORY_MINUTES} minutes. This one is ${price / CREDITS_PER_STORY_MINUTE}, which needs ${topUp} credit${topUp === 1 ? "" : "s"} for the extra - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it ${FREE_STORY_MINUTES} minutes or shorter and it's free.`,
+          error: `Your free story covers a Quest or an Adventure. ${cap(aLength(lengthOf(price)))} needs ${topUp} credit${topUp === 1 ? "" : "s"} more - there ${paid.balance === 1 ? "is" : "are"} ${paid.balance}. Make it an Adventure and it's free.`,
           limited: "credits",
           credits: { item: "story", price: topUp, balance: paid.balance },
           freeMinutes: FREE_STORY_MINUTES,
