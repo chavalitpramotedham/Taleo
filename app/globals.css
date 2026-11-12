@@ -14613,3 +14613,24 @@ html:not(.leaves-taken) .pull-refresh-spin .leaf-whirl {
 .length-slider-3 {
   margin-top: 4px;
 }
+
+/* (the length slider: pictures above the line, names and times below it) */
+.length-stops-art {
+  margin-top: 12px;
+  align-items: end;
+}
+.length-stops-art .length-stop {
+  padding-bottom: 2px;
+}
+.length-stops-art .length-stop-art {
+  margin-bottom: 0;
+}
+.length-stops-words {
+  margin-top: 8px;
+}
+.length-stops-words .length-stop {
+  padding-top: 0;
+}
+.length-slider-3 {
+  margin-top: 8px;
+}

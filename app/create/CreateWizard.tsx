@@ -48,8 +48,6 @@ const STEP_NOTES = [
  *  and read their characters (`initialCharacters`; null if it couldn't),
  *  so the first step shows at once. */
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
-/** The three lengths' little pictures (public/art/lengths/<id>.webp). */
-const LENGTH_ART = true;
 
 export function CreateWizard({ me, initialCharacters }: { me: { id: string; username: string }; initialCharacters: SavedCharacter[] | null }) {
   const router = useRouter();
@@ -319,21 +317,12 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
       {step === 0 && age && (
         <section className="panel length-panel">
           <h3>How long are we dreaming?</h3>
-          {/* three stops on a slider; above each, what that length is (tap one to choose it too) */}
-          <div className="length-stops">
-            {STORY_LENGTHS.map((l, i) => (
-              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.size}, ${l.decisions} decisions, ${l.time} minutes, ${l.minutes} credits`}>
-                {LENGTH_ART && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} loading="lazy" />
-                )}
-                <span className="length-stop-name">{l.name}</span>
-                <span className="length-stop-facts">{l.time} min</span>
-                <span className="length-stop-cost">
-                  <CreditIcon size={15} />
-                  {l.minutes}
-                </span>
-                <span className="length-stop-mark" data-i={i} aria-hidden />
+          {/* three stops on a slider: each stop's picture above the line, its name and time below (tap either to choose it) */}
+          <div className="length-stops length-stops-art">
+            {STORY_LENGTHS.map((l) => (
+              <button key={l.id} type="button" tabIndex={-1} aria-hidden className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="length-stop-art painted-edge-square" src={`/art/lengths/${l.id}.webp`} alt="" width={160} height={160} />
               </button>
             ))}
           </div>
@@ -346,9 +335,21 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             value={lengthIndex}
             onChange={(e) => setMinutes(STORY_LENGTHS[Number(e.target.value)].minutes)}
             aria-label="Story length"
-            aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${STORY_LENGTHS[lengthIndex].size}, ${STORY_LENGTHS[lengthIndex].decisions} decisions, ${STORY_LENGTHS[lengthIndex].time} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
+            aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${STORY_LENGTHS[lengthIndex].time} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
             style={{ background: `linear-gradient(to right, var(--russet) ${(lengthIndex / (STORY_LENGTHS.length - 1)) * 100}%, var(--rule) 0%)` }}
           />
+          <div className="length-stops length-stops-words">
+            {STORY_LENGTHS.map((l) => (
+              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.time} minutes, ${l.minutes} credits`}>
+                <span className="length-stop-name">{l.name}</span>
+                <span className="length-stop-facts">{l.time} min</span>
+                <span className="length-stop-cost">
+                  <CreditIcon size={15} />
+                  {l.minutes}
+                </span>
+              </button>
+            ))}
+          </div>
           {freeMax && <p className="length-free-note">Your plan&apos;s free story covers a Quest or an Adventure. An Odyssey adds {(STORY_LENGTHS[2].minutes - freeMax.minutes) * freeMax.perMinute} credits.</p>}
         </section>
       )}
