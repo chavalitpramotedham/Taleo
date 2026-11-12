@@ -98,6 +98,20 @@ export function GalleryShelf({
   // newest first: today's story sits wherever its date puts it, as an
   // ordinary card.
   const [daily, setDaily] = useState<GalleryEntry | null>(first?.daily ?? null);
+  // A shelf partway down a page (the homepages') fetches its books only as
+  // it comes near the screen: its covers are paintings, and on a slow
+  // connection fetching them at once slowed the picture at the top of the
+  // page, which is what's seen first. The full library fetches at once.
+  const head = useRef<HTMLElement>(null);
+  const [near, setNear] = useState(!limit);
+  useEffect(() => {
+    if (near) return;
+    const el = head.current;
+    if (!el || typeof IntersectionObserver === "undefined") return setNear(true);
+    const io = new IntersectionObserver((seen) => seen.some((e) => e.isIntersecting) && setNear(true), { rootMargin: "250px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
   useEffect(() => {
     // the homepage keeps each order (and category) it has fetched
     const key = keyOf(sort, category);
@@ -105,6 +119,7 @@ export function GalleryShelf({
     if (have) setStories(have.stories);
     // (asked once each time the page is opened, not on every switch back)
     if (asked.current.has(key)) return;
+    if (!near) return;
     let live = true;
     fetchGalleryShelf(limit ? { sort, limit, category, daily: !author } : { daily: !author })
       .then(({ stories: all, categories, daily: today }) => {
@@ -123,7 +138,7 @@ export function GalleryShelf({
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, sort, author, category]);
+  }, [limit, sort, author, category, near]);
 
   const sorted = useMemo(() => {
     if (!stories) return [];
@@ -150,7 +165,7 @@ export function GalleryShelf({
 
   return (
     <>
-      <header className={headClass}>
+      <header className={headClass} ref={head}>
         {heading}
         {pills}
       </header>

@@ -92,11 +92,17 @@ const garamondItalic = EB_Garamond({
   preload: false,
   variable: "--font-garamond-italic",
 });
+// The two decorative faces (the title's, and the small capitals) aren't
+// asked for ahead of the page: on a slow phone, fetching them alongside the
+// stylesheet held the first paint back by most of a second. The text face
+// still is - it's most of every page, and swapping it late made long pages
+// jump. These two arrive a moment after the first paint instead.
 const fell = IM_Fell_English({
   subsets: ["latin"],
   weight: "400",
   style: ["normal"],
   display: "swap",
+  preload: false,
   variable: "--font-fell",
 });
 const fellItalic = IM_Fell_English({
@@ -111,6 +117,7 @@ const fellSC = IM_Fell_English_SC({
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+  preload: false,
   variable: "--font-fell-sc",
 });
 

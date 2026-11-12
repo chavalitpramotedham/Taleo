@@ -30,9 +30,8 @@ function g(u){E[u]=f.call(w,u,{credentials:"same-origin"});E[u].catch(function()
 g("/api/auth/session");
 if(p==="/store")g("/api/gallery?day="+day);
 if(inn){if(p!=="/sign-in"&&p!=="/welcome"&&p.indexOf("/admin")!==0){g("/api/story");g("/api/draft")}
-if(p==="/home"){g("/api/gallery?sort=rating&limit=8&day="+day);g("/api/gallery/mine");g("/api/user/saved");g("/api/user/reading")}
+if(p==="/home"){g("/api/gallery/mine");g("/api/user/saved");g("/api/user/reading")}
 }
-else if(p==="/")g("/api/gallery?sort=rating&limit=8&day="+day);
 function done(){E={};n=0;w.fetch=f}
 w.fetch=function(i,o){var u=typeof i==="string"?i:"",m=o&&o.method?String(o.method).toUpperCase():"GET";if(m!=="GET"){done();return f.apply(w,arguments)}var r=E[u];if(!r||(o&&o.signal))return f.apply(w,arguments);delete E[u];if(--n<=0)w.fetch=f;var a=arguments;return r.then(function(x){return x},function(){return f.apply(w,a)})};
 setTimeout(done,8000)}catch(e){}})();`;
