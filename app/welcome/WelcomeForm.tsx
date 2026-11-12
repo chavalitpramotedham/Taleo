@@ -32,7 +32,7 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
       if (!res.ok) throw new Error(data.error || "That didn't save - please try again.");
       // Refresh the sign-in so it carries the new username; if that fails the
       // username is still saved, so carry on regardless.
-      await update().catch(() => null);
+      await update({ profile: true }).catch(() => null);
       router.push(next || "/home");
       router.refresh();
     } catch (e) {

@@ -86,7 +86,9 @@ export function AccountForm({
       setPicking(false);
       // Re-sync the session (every avatar shown via useSession, e.g. the nav
       // icon) so the new picture appears everywhere without a manual reload.
-      await update();
+      // (with something to send, so it asks the server to read the profile
+      // again - called empty it only re-reads the stale session)
+      await update({ profile: true });
       router.refresh();
     } catch (e) {
       setAvatarError(e instanceof Error ? e.message : "Something went wrong.");
@@ -108,7 +110,9 @@ export function AccountForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Couldn't save that username.");
-      await update();
+      // (with something to send, so it asks the server to read the profile
+      // again - called empty it only re-reads the stale session)
+      await update({ profile: true });
       setNameSaved(true);
       router.refresh();
     } catch (e) {
