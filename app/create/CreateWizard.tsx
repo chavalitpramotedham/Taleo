@@ -202,7 +202,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
     // asked: keep the length and pay with credits, or make it a free one?
     const f = freeStory.current;
     if (length === undefined && f && storyMinutes > f.minutes) {
-      setTooLong({ minutes: storyMinutes, freeMinutes: f.minutes, cost: storyMinutes * f.perMinute, balance: f.balance });
+      setTooLong({ minutes: storyMinutes, freeMinutes: f.minutes, cost: (storyMinutes - f.minutes) * f.perMinute, balance: f.balance });
       return;
     }
     // (one at a time: anything left unfinished - say, begun in another tab
@@ -350,13 +350,14 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
                 <span className="length-stop-facts">{age && !lengthAllowed(age, l) ? "From age 3" : `${l.time} min`}</span>
                 {/* What it will take from the account. With a free story to
                     use, a Quest takes nothing (and says nothing); an
-                    Adventure or an Odyssey is paid in full. */}
+                    Adventure or an Odyssey uses it and adds the difference. */}
                 {(() => {
                   // (until it's known which it will be, nothing is said)
-                  const extra = age && !lengthAllowed(age, l) ? 0 : freeMax ? (l.minutes > freeMax.minutes ? l.minutes * freeMax.perMinute : 0) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
+                  const extra = age && !lengthAllowed(age, l) ? 0 : freeMax ? Math.max(0, (l.minutes - freeMax.minutes) * freeMax.perMinute) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
                   if (!extra) return <span className="length-stop-cost none" aria-hidden />;
                   return (
                     <span className="length-stop-cost">
+                      {freeMax ? "+" : ""}
                       {extra}
                       <CreditIcon size={15} />
                     </span>
@@ -365,7 +366,7 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               </button>
             ))}
           </div>
-          {freeMax && <p className="length-free-note">Your plan&apos;s free story is a Quest. An Adventure or an Odyssey is paid with credits.</p>}
+          {freeMax && <p className="length-free-note">Your free story is a Quest. For an Adventure or an Odyssey, it&apos;s used too - add the credits shown for the rest.</p>}
         </section>
       )}
 
@@ -591,13 +592,13 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
         <div className="modal-backdrop" onClick={() => setTooLong(null)}>
           <div className="modal-panel draft-prompt free-length" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="free-length-title">
             <div className="modal-head">
-              <h3 id="free-length-title">Your free story is a Quest</h3>
+              <h3 id="free-length-title">Your free story covers a Quest</h3>
               <button type="button" className="icon-btn" onClick={() => setTooLong(null)} aria-label="Close">
                 ✕
               </button>
             </div>
             <p className="limit-message">
-              {cap(aLength(lengthOf(tooLong.minutes)))} is paid with credits ({tooLong.cost}), and your free Quest stays for another night. Or make it a Quest, free.
+              Use your free story and add {tooLong.cost} credit{tooLong.cost === 1 ? "" : "s"} for {aLength(lengthOf(tooLong.minutes))}, or make it a Quest and it&apos;s free.
             </p>
             <div className="story-preview-actions">
               <button
@@ -650,8 +651,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
               // (what it takes: credits for its minutes, or one of the plan's free stories)
               <MakeLabel
                 icon={<MapleMark />}
-                credits={creditsPerMinute ? effectiveMinutes * creditsPerMinute : freeMax && effectiveMinutes > freeMax.minutes ? effectiveMinutes * freeMax.perMinute : null}
-                free={creditsPerMinute || (freeMax && effectiveMinutes > freeMax.minutes) ? null : storyCost.free}
+                credits={creditsPerMinute ? effectiveMinutes * creditsPerMinute : freeMax && effectiveMinutes > freeMax.minutes ? (effectiveMinutes - freeMax.minutes) * freeMax.perMinute : null}
+                free={creditsPerMinute ? null : storyCost.free}
               >
                 Create story
               </MakeLabel>

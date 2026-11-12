@@ -142,9 +142,8 @@ export const PLANS: Record<TierId, TierInfo> = {
 export type CreditsMode = "beyond" | "auto" | "always";
 export const CREDITS_PER_STORY_MINUTE = 1;
 export const CHARACTER_CREDITS = 3;
-/** The longest story that can be one of a plan's free ones. A longer story
- *  is paid for with credits (all of its minutes), and leaves the free one
- *  for another day. */
+/** What a plan's free story covers (a Quest). A longer story still uses
+ *  it, and the difference is paid for with credits. */
 export const FREE_STORY_MINUTES = 3;
 /** A story costs its length's reading time, a credit a minute (lib/ages:
  *  Quest 3, Adventure 5, Odyssey 8). */
@@ -213,7 +212,7 @@ export const tierRows = (t: TierInfo): TierRow[] => [
     // (a plan's own story is a "standard story": up to FREE_STORY_MINUTES long)
     label: t.limits.stories && t.credits !== "beyond" ? "Free stories (a Quest)" : "New stories",
     value: allowanceText(t.limits.stories),
-    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "An Adventure or an Odyssey is paid with credits. A story counts once you make its first choice") : undefined,
+    note: t.limits.stories ? (t.credits === "beyond" ? "A story counts once you make its first choice" : "An Adventure or an Odyssey uses it too, and adds the difference in credits (2 or 5). A story counts once you make its first choice") : undefined,
   },
   // (what's free to make, then how many can be kept)
   ...(t.limits.designs ? [{ label: "New characters", value: allowanceText(t.limits.designs), note: t.credits === "beyond" ? undefined : "Then credits" }] : []),

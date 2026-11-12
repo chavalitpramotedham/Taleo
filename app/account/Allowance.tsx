@@ -238,7 +238,7 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
               </ul>
               {standard && (
                 <p className="meta menu-note">
-                  *NOTE: your plan&apos;s free story is a Quest, the short one. An Adventure or an Odyssey is paid with credits.
+                  *NOTE: a free story covers a Quest. An Adventure or an Odyssey uses one too, and adds the difference in credits.
                 </p>
               )}
             </section>
