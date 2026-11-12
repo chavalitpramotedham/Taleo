@@ -6,8 +6,9 @@ import { useSession } from "next-auth/react";
 import { useOngoingStory } from "@/lib/ongoing";
 import { MapleMark } from "./Icons";
 import { OngoingSummary } from "./OngoingStory";
+import { DRAFT_ASKED } from "@/lib/drafts-client";
 
-const ASKED = "taleo.draftAsked";
+const ASKED = DRAFT_ASKED;
 
 /**
  * On a visit after leaving a story unfinished (on any device): "Pick up

@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { StoryReader } from "@/components/StoryReader";
 import { PageLoading } from "@/components/PageLoading";
 import { MapleMark } from "@/components/Icons";
+import { LeaveStoryPrompt } from "@/components/LeaveStoryPrompt";
 
 export default function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -96,5 +97,11 @@ export default function StoryPage({ params }: { params: Promise<{ id: string }> 
         <QuotaNote />
       </div>
     );
-  return <StoryReader story={story} update={update} />;
+  return (
+    <>
+      <StoryReader story={story} update={update} />
+      {/* (an unfinished story: leaving for another page asks first) */}
+      <LeaveStoryPrompt active={signedIn && story.status !== "complete"} storyPath={`/story/${story.id}`} />
+    </>
+  );
 }

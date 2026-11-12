@@ -98,3 +98,8 @@ export async function discardCredits(): Promise<{ held: number; spent: boolean }
     return null;
   }
 }
+
+/** Kept for the visit once "Pick up where you left off?" has been asked -
+ *  or needn't be: the reader has just chosen to leave the story, knowing
+ *  it waits on the home page. */
+export const DRAFT_ASKED = "taleo.draftAsked";
