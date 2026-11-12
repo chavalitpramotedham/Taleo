@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { Rights } from "@/server/rights";
 import { CrownMark, MapleMark, OrnamentRule } from "@/components/Icons";
-import { isPaidPlan, PLANS, PUBLIC_PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
+import { isPaidPlan, money, PLANS, PUBLIC_PLANS, tierCaps, tierFor, tierRows, type TierId, type TierInfo, type TierRow } from "@/lib/tiers";
 
 type Card = {
   key: string;
@@ -29,7 +29,7 @@ const fromTier = (t: TierInfo, current: boolean): Card => ({
   name: t.name,
   tagline: t.blurb,
   // (the plan everyone has costs nothing, whatever it's called)
-  price: t.id === "free" ? "Free" : t.monthlyUsd ? `$${t.monthlyUsd.toFixed(2)}/mo` : t.limits.stories ? t.name : "Unlimited",
+  price: t.id === "free" ? "Free" : t.monthly ? `${money(t.monthly)}/mo` : t.limits.stories ? t.name : "Unlimited",
   button: "",
   current,
   intro: t.id === "admin" ? "The test account gets:" : t.id === "free" ? "Every family gets:" : "Each week and month:",

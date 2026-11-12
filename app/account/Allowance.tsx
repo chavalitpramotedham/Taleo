@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import type { Rights } from "@/server/rights";
 import { CreditIcon, CrownMark, LeafLoader, MapleMark, OrnamentRule } from "@/components/Icons";
 import { useEscape } from "@/lib/useEscape";
-import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, CREDIT_PACK_MIN, CREDIT_PRICE_CENTS, CREDIT_CURRENCY, packDiscount, packPrice } from "@/lib/tiers";
+import { MAX_CREDITS_ADDED, monthOf, weekOf, CREDIT_PACKS, CREDIT_PACK_MAX, CREDIT_PACK_MIN, CREDIT_PRICE_CENTS, money, packDiscount, packPrice } from "@/lib/tiers";
 import { Segmented } from "@/components/Segmented";
 import { useToast } from "@/components/Toast";
 import { fuzzyPeople } from "@/lib/fuzzy";
@@ -317,13 +317,12 @@ function BuyCredits({ balance, open, onClose }: { balance: number; open: boolean
   const valid = amount >= CREDIT_PACK_MIN && amount <= CREDIT_PACK_MAX;
   const cost = (credits: number) => {
     const p = packPrice(credits);
-    // ("US$5.00": said with its country, as dollars are not everyone's own)
-    return p ? new Intl.NumberFormat("en-GB", { style: "currency", currency: p.currency, currencyDisplay: "symbol" }).format(p.amount) : null;
+    // ("S$6.50": said with its country, as dollars are not everyone's own)
+    return p ? money(p.amount) : null;
   };
   const total = valid ? cost(amount) : null;
   const priced = valid ? packPrice(amount) : null;
-  const money = (v: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: CREDIT_CURRENCY }).format(v);
-  const perCredit = new Intl.NumberFormat("en-GB", { style: "currency", currency: CREDIT_CURRENCY }).format(CREDIT_PRICE_CENTS / 100);
+  const perCredit = money(CREDIT_PRICE_CENTS / 100);
   const checkout = async () => {
     if (!valid || busy) return;
     setBusy(true);

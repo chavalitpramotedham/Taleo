@@ -87,7 +87,10 @@ export async function fulfil(sessionId: string): Promise<Fulfilled> {
   if (s.payment_status !== "paid" || !userId) return { status: "unpaid", credits: 0, userId };
   // (paid what that many credits cost, in that currency - nothing less)
   const price = Number.isInteger(credits) ? packPrice(credits) : null;
-  if (!price || s.currency !== price.currency.toLowerCase() || (s.amount_total ?? 0) < Math.round(price.amount * 100)) {
+  // (a checkout opened while credits were still sold in US dollars, at 50
+  // cents each, and paid after the move to Singapore dollars)
+  const legacyUsd = s.currency === "usd" && Number.isInteger(credits) && (s.amount_total ?? 0) >= Math.round(credits * 50 * (100 - (price?.off ?? 0)) / 100);
+  if (!price || (!legacyUsd && (s.currency !== price.currency.toLowerCase() || (s.amount_total ?? 0) < Math.round(price.amount * 100)))) {
     console.error("[stripe] a paid session didn't match its credits", sessionId);
     return { status: "mismatch", credits: 0, userId };
   }
