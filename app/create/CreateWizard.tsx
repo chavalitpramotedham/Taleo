@@ -354,6 +354,8 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
                 {(() => {
                   // (until it's known which it will be, nothing is said)
                   const extra = age && !lengthAllowed(age, l) ? 0 : freeMax ? Math.max(0, (l.minutes - freeMax.minutes) * freeMax.perMinute) : creditsPerMinute ? l.minutes * creditsPerMinute : 0;
+                  // (a Quest with a free story to use: how many are left)
+                  if (!extra && freeMax && storyCost.freeLeft && l.minutes <= freeMax.minutes) return <span className="length-stop-cost free">{storyCost.freeLeft} free remaining</span>;
                   if (!extra) return <span className="length-stop-cost none" aria-hidden />;
                   return (
                     <span className="length-stop-cost">

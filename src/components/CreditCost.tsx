@@ -19,6 +19,8 @@ export interface MakingCost {
    *  (counting this one), said in a few words - "1 free story left this
    *  week". Null when it isn't free, or the plan has no count of them. */
   free: string | null;
+  /** The same count as a number (null when there's none to use). */
+  freeLeft: number | null;
   /** Ask again (after making one: the free one may just have been used). */
   again: () => void;
 }
@@ -34,7 +36,7 @@ export function useMakingCost(what: "character" | "story"): MakingCost {
   const [rights, setRights] = useState<Rights | null>(null);
   const again = useCallback(() => void read().then((r) => r && setRights(r)), []);
   useEffect(() => again(), [again]);
-  const none = { credits: null, perMinute: null, free: null, again };
+  const none = { credits: null, perMinute: null, free: null, freeLeft: null, again };
   if (!rights) return none;
   const pays = rights.creditsMode !== "beyond" && rights.credits !== null;
   if (what === "character") {
@@ -45,7 +47,7 @@ export function useMakingCost(what: "character" | "story"): MakingCost {
   }
   const left = rights.stories.left;
   if (left === null) return none;
-  if (left > 0) return { ...none, free: freeLine(left, "story", "stories", rights.stories.weekly ? "week" : rights.stories.windowHours === 24 ? "day" : null).replace("this day", "today") };
+  if (left > 0) return { ...none, freeLeft: left, free: freeLine(left, "story", "stories", rights.stories.weekly ? "week" : rights.stories.windowHours === 24 ? "day" : null).replace("this day", "today") };
   return { ...none, perMinute: pays ? 1 : null };
 }
 
