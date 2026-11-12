@@ -1,4 +1,5 @@
 "use client";
+import { useSwipeTabs } from "@/lib/useSwipeTabs";
 import { STORY_LENGTHS } from "@/lib/ages";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -81,6 +82,8 @@ export function PlansView({ rights: first, history = [], paymentsOpen = false, c
   // (a plan's own story is a "standard story" where longer ones add credits)
   const standard = rights.creditsMode === "auto" && rights.stories.left !== null;
   const [tab, setTab] = useState<Tab>(always ? "credits" : "plan");
+  // (a swipe left goes on to Credits, a swipe right back to Plan)
+  useSwipeTabs(tab === "plan" ? () => setTab("credits") : null, tab === "credits" && !always ? () => setTab("plan") : null);
   const [adding, setAdding] = useState(false);
   const [buying, setBuying] = useState(false);
   const router = useRouter();

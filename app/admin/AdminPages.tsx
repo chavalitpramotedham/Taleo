@@ -1,5 +1,6 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSwipeTabs } from "@/lib/useSwipeTabs";
 import { Segmented } from "@/components/Segmented";
 
 const PAGES = [
@@ -12,6 +13,9 @@ const PAGES = [
  *  it reads which page is open from the address. */
 export function AdminPages() {
   const on = usePathname().startsWith("/admin/activity") ? "users" : "overall";
+  const router = useRouter();
+  // (a swipe left goes on to Details, a swipe right back to Overall)
+  useSwipeTabs(on === "overall" ? () => router.push(PAGES[1].href) : null, on === "users" ? () => router.push(PAGES[0].href) : null);
   return (
     <div className="filter-row admin-pages">
       <Segmented nav options={PAGES} value={on} label="Admin pages" />
