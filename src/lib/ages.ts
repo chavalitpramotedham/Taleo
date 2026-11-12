@@ -158,15 +158,15 @@ export interface StoryLength {
   minutes: number;
   /** Decisions the child makes along the way. */
   decisions: number;
-  /** About how long it takes at bedtime, as readers are told: "under 5",
-   *  "5–8", "over 8" (minutes) - from reading it straight through to
+  /** About how long it takes at bedtime, as readers are told: "<5",
+   *  "5–8", ">8" (minutes) - from reading it straight through to
    *  taking it slowly, with the decisions talked over. */
   time: string;
 }
 export const STORY_LENGTHS: StoryLength[] = [
-  { id: "quest", name: "Quest", size: "short", minutes: 3, decisions: 2, time: "under 5" },
+  { id: "quest", name: "Quest", size: "short", minutes: 3, decisions: 2, time: "<5" },
   { id: "adventure", name: "Adventure", size: "medium", minutes: 5, decisions: 3, time: "5–8" },
-  { id: "odyssey", name: "Odyssey", size: "long", minutes: 8, decisions: 4, time: "over 8" },
+  { id: "odyssey", name: "Odyssey", size: "long", minutes: 8, decisions: 4, time: ">8" },
 ];
 /** The standard story: what a plan's own story covers. */
 export const STANDARD_LENGTH = STORY_LENGTHS[1];
@@ -175,7 +175,9 @@ export const lengthOf = (minutes: number): StoryLength => {
   const m = Number(minutes) || STANDARD_LENGTH.minutes;
   return m <= 4 ? STORY_LENGTHS[0] : m <= 6 ? STORY_LENGTHS[1] : STORY_LENGTHS[2];
 };
-/** A story's time as readers are shown it: "under 5", "5–8", "over 8" (minutes). */
+/** The same, said in words (for a screen reader): "under 5", "5 to 8", "over 8". */
+export const timeWords = (minutes: number): string => lengthOf(minutes).time.replace("<", "under ").replace(">", "over ").replace("–", " to ");
+/** A story's time as readers are shown it: "<5", "5–8", ">8" (minutes). */
 export const timeRange = (minutes: number): string => lengthOf(minutes).time;
 /** "an Odyssey", "a Quest" */
 export const aLength = (l: StoryLength) => `${/^[AEIOU]/.test(l.name) ? "an" : "a"} ${l.name}`;

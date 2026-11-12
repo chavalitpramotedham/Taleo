@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { recall, remember } from "@/lib/remember";
-import { AGES, MAX_MINUTES, MIN_MINUTES, STANDARD_LENGTH, STORY_LENGTHS, aLength, lengthOf, type AgeId } from "@/lib/ages";
+import { AGES, MAX_MINUTES, MIN_MINUTES, STANDARD_LENGTH, STORY_LENGTHS, aLength, lengthOf, timeWords, type AgeId } from "@/lib/ages";
 import { PRESETS, THEMES, presetCharacter } from "@/lib/presets";
 import type { CharacterDef, SavedCharacter, Story } from "@/lib/types";
 import { newId, saveStory } from "@/lib/storage";
@@ -335,12 +335,12 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
             value={lengthIndex}
             onChange={(e) => setMinutes(STORY_LENGTHS[Number(e.target.value)].minutes)}
             aria-label="Story length"
-            aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${STORY_LENGTHS[lengthIndex].time} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
+            aria-valuetext={`${STORY_LENGTHS[lengthIndex].name}: ${timeWords(STORY_LENGTHS[lengthIndex].minutes)} minutes, ${STORY_LENGTHS[lengthIndex].minutes} credits`}
             style={{ background: `linear-gradient(to right, var(--russet) ${(lengthIndex / (STORY_LENGTHS.length - 1)) * 100}%, var(--rule) 0%)` }}
           />
           <div className="length-stops length-stops-words">
             {STORY_LENGTHS.map((l) => (
-              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${l.time} minutes${freeMax ? (l.minutes > freeMax.minutes ? `, your free story and ${(l.minutes - freeMax.minutes) * freeMax.perMinute} credits` : ", your free story") : `, ${l.minutes} credits`}`}>
+              <button key={l.id} type="button" tabIndex={-1} className={`length-stop ${effectiveMinutes === l.minutes ? "selected" : ""}`} onClick={() => setMinutes(l.minutes)} aria-label={`${l.name}: ${timeWords(l.minutes)} minutes${freeMax ? (l.minutes > freeMax.minutes ? `, your free story and ${(l.minutes - freeMax.minutes) * freeMax.perMinute} credits` : ", your free story") : `, ${l.minutes} credits`}`}>
                 <span className="length-stop-name">{l.name}</span>
                 <span className="length-stop-facts">{l.time} min</span>
                 {/* What it will take from the account. With a free story to
