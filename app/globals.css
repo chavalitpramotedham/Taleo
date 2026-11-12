@@ -3248,7 +3248,7 @@ html[data-night] .canvas-wait {
   .founder-pill {
     order: 4;
     align-self: flex-start;
-    margin-top: 12px;
+    margin-top: 18px;
   }
   .hero-actions {
     order: 5;
@@ -15249,7 +15249,7 @@ html[data-night] .safety-dialog .modal-head h3 {
   justify-self: start;
   align-items: center;
   gap: 6px;
-  margin: 2px 0 6px;
+  margin: 16px 0 4px;
   padding: 4px 12px 4px 13px;
   border-radius: 999px;
   background: rgba(160, 136, 108, 0.08);
