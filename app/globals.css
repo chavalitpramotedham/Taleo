@@ -14955,3 +14955,18 @@ html[data-night] .first-steps-go {
     border-top: 2px dotted color-mix(in srgb, var(--russet) 45%, transparent);
   }
 }
+
+/* (the transaction history: a section of its own under the credits) */
+.txn-section {
+  margin-top: 6px;
+}
+.txn-panel-home {
+  margin-top: 0;
+}
+.txn-panel-home .txn-list {
+  margin-top: 0;
+}
+.txn-more {
+  margin: 12px 0 0;
+  text-align: center;
+}

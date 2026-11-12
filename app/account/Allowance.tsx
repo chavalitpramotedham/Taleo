@@ -106,6 +106,7 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
       {rights.suspended && <p className="error">This account can&apos;t make anything new at the moment. Please get in touch with us.</p>}
 
       {tab === "credits" ? (
+        <>
         <section className="panel credits-panel" aria-label="Credits">
           <div className="credits-head">
             <p className="credits-amount">
@@ -159,23 +160,32 @@ export function PlansView({ rights: first, history = [], children }: { rights: R
             <p className="meta menu-note">*NOTE: a story&apos;s credits are set aside when it begins and spent at its first choice. One dropped before that gets them back.</p>
           </div>
 
-          {/* what the credits were spent on, and when more arrived */}
-          <OrnamentRule className="home-divider menu-orn-rule" />
-          <div className="txn-head">
-            <h4 className="menu-title">Transaction history</h4>
-            {history.length > 0 && (
-              <Link className="txn-all" href="/account/transactions">
-                See all transactions
-              </Link>
-            )}
-          </div>
-          {history.length === 0 ? (
-            <p className="meta menu-note">Nothing yet. Credits you receive and spend will be listed here.</p>
-          ) : (
-            // (the ten newest; the rest are on their own page)
-            <TransactionList items={history.slice(0, HISTORY_SHOWN)} />
-          )}
         </section>
+        {/* what the credits were spent on, and when more arrived: a section
+            of its own, under a line across with its name on it - as the
+            plans are, under the quota */}
+        <div className="txn-section">
+          <OrnamentRule className="home-divider plans-rule" />
+          <header className="home-shelf-head plans-head">
+            <h2>Transaction history</h2>
+          </header>
+          <section className="panel credits-panel txn-panel-home" aria-label="Transaction history">
+            {history.length === 0 ? (
+              <p className="meta menu-note">Nothing yet. Credits you receive and spend will be listed here.</p>
+            ) : (
+              <>
+                {/* (the ten newest; the rest are on their own page) */}
+                <TransactionList items={history.slice(0, HISTORY_SHOWN)} />
+                <p className="txn-more">
+                  <Link className="txn-all" href="/account/transactions">
+                    See all transactions
+                  </Link>
+                </p>
+              </>
+            )}
+          </section>
+        </div>
+        </>
       ) : (
         <>
           {!always && (
