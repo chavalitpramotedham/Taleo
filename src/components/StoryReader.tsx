@@ -170,7 +170,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // reader is reading this one, so a turn only has to put them up. The
   // cleaner remembers what it has done; this just does it ahead of time.
   useEffect(() => {
-    const ahead = views.slice(index + 1, index + 3).flatMap((v) => (v.kind === "page" && v.page.svg ? [v.page.svg] : []));
+    const ahead = views.slice(index, index + 3).flatMap((v) => (v.kind === "page" && v.page.svg ? [v.page.svg] : []));
     if (!ahead.length) return;
     const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
     const stop = window.cancelIdleCallback ?? window.clearTimeout;
