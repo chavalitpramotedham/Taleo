@@ -25,6 +25,7 @@ export function TransactionList({ items }: { items: Transaction[] }) {
             <b>{t.label}</b>
             <small suppressHydrationWarning>
               {shortDate(t.at)}, {clock(t.at)}
+              {t.detail ? ` · ${t.detail}` : ""}
               {t.pending ? " · being made" : ""}
             </small>
           </span>

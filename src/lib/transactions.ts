@@ -9,6 +9,9 @@ export interface Transaction {
   amount: number;
   /** Set aside for something still being made (not yet settled). */
   pending?: boolean;
+  /** A few words more, under the title: how a story was paid for when
+   *  part of it was the plan's free story ("Free 5 min + 1 min"). */
+  detail?: string;
 }
 
 interface Entry {
@@ -23,8 +26,17 @@ interface Entry {
   amount?: number;
 }
 
+/** A story that was partly the plan's free story and partly credits
+ *  ("A 6-minute story: 1 minute beyond a free story"): "Free 5 min + 1 min". */
+function mixed(note: string | undefined): string {
+  const m = /(\d+)-minute story: (\d+) minutes? beyond/.exec(note ?? "");
+  return m ? `Free ${Number(m[1]) - Number(m[2])} min + ${m[2]} min` : "";
+}
+
 /** What a spend was for, from the note kept with it. */
 function spentOn(note: string | undefined): string {
+  const split = mixed(note);
+  if (split) return `Story (${split})`;
   const story = /(\d+)-minute story/.exec(note ?? "");
   if (story) return `Story (${story[1]} min)`;
   if (/character/i.test(note ?? "")) return "Character";
@@ -78,7 +90,8 @@ export function transactionsOf(ledger: Entry[]): Transaction[] {
     const line = (label: string, extra: Partial<Transaction> = {}) => out.push({ id: `${e.ref}:${e.at}`, at: e.at, label, amount: e.delta, ...extra });
     if (e.reason === "hold") {
       // (titled with the character's or the story's own name once it's made)
-      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { pending: !settled.has(e.ref) });
+      // (under a story's name, how it was paid for if part of it was free)
+      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { pending: !settled.has(e.ref), detail: named.has(e.ref) ? mixed(e.note) || undefined : undefined });
     } else if (e.reason === "spend") {
       // (a settling changes nothing more: its hold is the line. A spend
       // from before holds existed is its own line.)
