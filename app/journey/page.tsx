@@ -26,7 +26,13 @@ export default function JourneyPage() {
     <div className="container about policy journey">
       <header className="wizard-head">
         <p className="eyebrow">Built in the open</p>
-        <h1>The Taleo Product Management Journey</h1>
+        <h1>
+          The Taleo
+          <br />
+          Product Management
+          <br />
+          Journey
+        </h1>
         <p className="journey-sum">
           <b>{JOURNEY.length}</b> days · <b>{total.toLocaleString("en-GB")}</b> updates shipped
         </p>
