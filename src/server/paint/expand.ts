@@ -1,5 +1,6 @@
 import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
+import type { CharacterParts, PartView, View } from "@/lib/art/parts";
 
 /**
  * The expander: sits between a painter's stream and the reader, and turns
@@ -50,6 +51,8 @@ export interface ExpandContext {
   /** The characters' space, for the scenery painter: nothing dark is
    *  placed in it (see stageFor). */
   stage?: Box | null;
+  /** Characters painted from parts, by their id on the page. */
+  figures?: Record<string, CharacterParts>;
 }
 
 export interface ExpandStats {
@@ -59,9 +62,16 @@ export interface ExpandStats {
   moved: number;
   bareInk: number;
   kinds: Record<string, number>;
+  /** figures placed from parts, and the parts put in */
+  figs: number;
+  torsos: number;
+  heads: number;
 }
 
-export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {} });
+export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0 });
+
+type Layer = "paint" | "ink" | "detail";
+const LAYER_OF = (tag: string): Layer | "wash" | null => (tag.match(/class="(wash|paint|ink|detail)"/)?.[1] as Layer | "wash" | undefined) ?? null;
 
 const INK_ATTRS = `fill="none" stroke="#4F3A2A" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"`;
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -172,42 +182,132 @@ function scatter(tag: string, ctx: ExpandContext, stats: ExpandStats, index: num
  */
 export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandContext, stats: ExpandStats): AsyncGenerator<string> {
   let buf = "";
-  // open groups, as written, so a piece placed inside one can be laid
-  // outside it and the groups opened again after
-  const open: string[] = [];
+  // open groups, as written, each with what closes it (a figure's layer
+  // group closes its placement too), so a piece placed inside one can be
+  // laid outside it and the groups opened again after
+  const open: { tag: string; close: string; layer?: string }[] = [];
   let pieces = 0;
+  // A figure being placed from parts: where, how big, its view, and which
+  // parts have been put in which layer.
+  let fig: { id: string; t: string; s: number; tilt: number; view: PartView; put: Set<string> } | null = null;
+  const layerNow = () => [...open].reverse().find((o) => o.layer)?.layer as Layer | "wash" | undefined;
+  const inkAttrs = (sc: number) => `fill="none" stroke="#4F3A2A" stroke-width="${f(1.2 / sc)}" stroke-linecap="round" stroke-linejoin="round"`;
+  const part = (which: "torso" | "head", layer: Layer) => {
+    const shapes = fig!.view[which][layer];
+    fig!.put.add(`${which}:${layer}`);
+    return layer === "ink" ? unscaleStrokes(shapes, fig!.s) : shapes;
+  };
+  const headOpen = () => `<g transform="rotate(${f(fig!.tilt)} ${fig!.view.anchors.neck[0]} ${fig!.view.anchors.neck[1]})">`;
+  /** Ends a figure: any part the painter didn't put in some layer is laid
+   *  in after, so no nose or contour goes missing. */
+  const endFig = (): string => {
+    let out = "";
+    for (const which of ["torso", "head"] as const)
+      for (const layer of ["paint", "ink", "detail"] as Layer[]) {
+        if (!fig!.view[which][layer] || fig!.put.has(`${which}:${layer}`)) continue;
+        const open_ = layer === "ink" ? `<g class="ink" ${inkAttrs(fig!.s)}>` : `<g class="${layer}">`;
+        out += `${open_}<g transform="${fig!.t}">${which === "head" ? headOpen() : ""}${part(which, layer)}${which === "head" ? "</g>" : ""}</g></g>`;
+      }
+    fig = null;
+    return out;
+  };
   const handle = (text: string): string => {
     let out = "";
     let at = 0;
     for (const m of text.matchAll(/<[^>]*>/g)) {
       out += text.slice(at, m.index);
       at = m.index! + m[0].length;
-      const tag = m[0];
+      let tag = m[0];
+      // ---- figures from parts
+      if (/^<\s*fig\b/i.test(tag)) {
+        if (fig) out += endFig();
+        const a = attrsOf(tag);
+        const id = a.c ?? a.id ?? "";
+        const parts = ctx.figures?.[id];
+        const v = ((a.v ?? a.view ?? "front").toLowerCase() === "three" ? "three" : "front") as View;
+        if (!parts) throw new ReuseFailed(`no parts for "${id}"`);
+        const x = num(a, "x", null, -100, 500);
+        const y = num(a, "y", null, -100, 400);
+        const sc = num(a, "s", 0.6, 0.15, 2.5);
+        const flip = a.flip === "1" || a.flip === "true";
+        const lean = num(a, "lean", 0, -45, 45);
+        fig = {
+          id,
+          s: sc,
+          tilt: num(a, "tilt", 0, -40, 40),
+          view: parts.views[v],
+          put: new Set(),
+          // (feet at 100,190 on its own canvas: placed at x,y, leaned about the feet)
+          t: `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
+        };
+        stats.figs++;
+        continue;
+      }
+      if (/^<\s*\/\s*fig\s*>$/i.test(tag)) {
+        if (fig) out += endFig();
+        continue;
+      }
+      if (fig && /^<\s*(torso|head)\b/i.test(tag)) {
+        const which = /^<\s*torso/i.test(tag) ? "torso" : "head";
+        const layer = layerNow();
+        if (!layer || layer === "wash") throw new ReuseFailed(`a ${which} outside a paint, ink or detail group`);
+        stats[which === "torso" ? "torsos" : "heads"]++;
+        if (which === "torso") out += part("torso", layer);
+        else {
+          out += headOpen() + part("head", layer);
+          // (the painter's face goes inside the head, and turns with it)
+          if (!tag.endsWith("/>")) open.push({ tag: "<head>", close: "</g>" });
+          else out += "</g>";
+        }
+        continue;
+      }
+      if (/^<\s*\/\s*(torso|head)\s*>$/i.test(tag)) {
+        if (/head/i.test(tag) && open.length && open[open.length - 1].tag === "<head>") out += open.pop()!.close;
+        continue;
+      }
+      // ---- standard pieces
       if (/^<\s*(stamp|scatter)\b/i.test(tag)) {
         if (!ctx.stamps) throw new ReuseFailed("a placeholder on a page painted the ordinary way");
+        if (fig) throw new ReuseFailed("a standard piece inside a figure");
         const made = /^<\s*stamp/i.test(tag) ? stamp(tag, ctx, stats, pieces++) : scatter(tag, ctx, stats, pieces++);
         // (laid outside any layer group it was written in - but inside the
         // tap target's group, if it's part of the target)
         let keep = 0;
         for (let i = open.length - 1; i >= 0; i--)
-          if (/class="[^"]*\btarget\b/.test(open[i])) {
+          if (/class="[^"]*\btarget\b/.test(open[i].tag)) {
             keep = i + 1;
             break;
           }
         const closing = open.slice(keep);
-        out += "</g>".repeat(closing.length) + made + closing.join("");
+        out += closing.map((o) => o.close).join("") + made + closing.map((o) => o.tag).join("");
         continue;
       }
       if (/^<\s*\/\s*(stamp|scatter)\s*>$/i.test(tag)) continue;
+      // ---- ordinary markup
       if (/^<g\s+class="ink"\s*>$/.test(tag)) {
-        const full = `<g class="ink" ${INK_ATTRS}>`;
+        tag = `<g class="ink" ${fig ? inkAttrs(fig.s) : INK_ATTRS}>`;
         stats.bareInk++;
-        open.push(full);
-        out += full;
+      } else if (fig && /stroke-width="/.test(tag)) {
+        // (inside a figure everything is scaled: pen widths are divided by
+        // the scale, so the line weight matches the rest of the picture)
+        tag = unscaleStrokes(tag, fig.s);
+      }
+      if (/^<g[\s>]/.test(tag) && !tag.endsWith("/>")) {
+        const layer = LAYER_OF(tag);
+        // (a layer group inside a figure carries the figure's placement)
+        if (fig && layer && !layerNow()) {
+          open.push({ tag, close: "</g></g>", layer });
+          out += `${tag}<g transform="${fig.t}">`;
+          continue;
+        }
+        open.push({ tag, close: "</g>", layer: layer ?? undefined });
+        out += tag;
         continue;
       }
-      if (/^<g[\s>]/.test(tag) && !tag.endsWith("/>")) open.push(tag);
-      else if (/^<\/g\s*>$/.test(tag)) open.pop();
+      if (/^<\/g\s*>$/.test(tag)) {
+        out += open.pop()?.close ?? "</g>";
+        continue;
+      }
       out += tag;
     }
     return out + text.slice(at);
@@ -223,8 +323,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const out = handle(ready);
     if (out) yield out;
   }
-  if (buf) {
-    const out = handle(buf);
-    if (out) yield out;
-  }
+  let tail = buf ? handle(buf) : "";
+  if (fig) tail += endFig();
+  if (tail) yield tail;
 }
