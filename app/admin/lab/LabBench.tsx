@@ -1675,6 +1675,29 @@ type ZoomRank = { label: (slot: string) => string | null; on: (slot: string) => 
  *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
  *  a sideways swipe step through the others) - drawn as the painting
  *  itself, with its watercolour, not as a flat image. */
+/** The side-by-side's columns and picture size, fitted to the window: of
+ *  every way to lay n pictures out in columns, the one that makes them
+ *  biggest while the whole dialog - heading, prompt, pictures, captions
+ *  and rank buttons - fits the screen without scrolling. */
+function collageFit(n: number, w: number, h: number, withBrief: boolean): React.CSSProperties {
+  // (what isn't picture: the dialog's margins and padding, its heading and
+  // prompt, and each row's caption and rank button; each column's gap)
+  const chromeW = 32 + 36;
+  const chromeH = 32 + 30 + 44 + (withBrief ? 86 : 0) + 10;
+  const perRow = 24 + 46 + 12 + 8;
+  const gap = 16;
+  let best = { cols: 1, art: 0 };
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols);
+    const byWidth = (w - chromeW - gap * (cols - 1)) / cols;
+    const byHeight = ((h - chromeH - perRow * rows) / rows) * (4 / 3);
+    const art = Math.min(byWidth, byHeight);
+    if (art > best.art) best = { cols, art };
+  }
+  const art = Math.max(180, Math.floor(best.art));
+  return { gridTemplateColumns: `repeat(${best.cols}, ${art}px)` };
+}
+
 /** The page's words and its picture brief, at the top of the picture view. */
 function ZoomBrief({ brief }: { brief: { text: string; picture: string } }) {
   // (a few lines at first; tap to read it all)
@@ -1730,14 +1753,22 @@ function BenchZoom({
     return () => window.removeEventListener("keydown", key);
   }, [onClose, prev, next]);
   const swipe = useRef<{ x: number; y: number } | null>(null);
-  // (on a big screen, all four at once, 1 2 over 3 4, to compare at a glance)
+  // (on a big screen, all of them at once, to compare at a glance)
   const [wide, setWide] = useState(false);
+  const [screen, setScreen] = useState<{ w: number; h: number } | null>(null);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 900px) and (min-height: 600px)");
-    const set = () => setWide(mq.matches);
+    const set = () => {
+      setWide(mq.matches);
+      setScreen({ w: window.innerWidth, h: window.innerHeight });
+    };
     set();
     mq.addEventListener("change", set);
-    return () => mq.removeEventListener("change", set);
+    window.addEventListener("resize", set);
+    return () => {
+      mq.removeEventListener("change", set);
+      window.removeEventListener("resize", set);
+    };
   }, []);
   if (!item) return null;
   const stepping = items.length > 1;
@@ -1763,7 +1794,7 @@ function BenchZoom({
             </button>
           </div>
           {brief && <ZoomBrief brief={brief} />}
-          <div className={`lab-collage-grid${items.length > 4 ? " three" : ""}`}>
+          <div className="lab-collage-grid" style={screen ? collageFit(items.length, screen.w, screen.h, Boolean(brief)) : undefined}>
             {items.map((x, i) => (
               <figure
                 key={i}
