@@ -15744,3 +15744,37 @@ html[data-night] .lab-stat em.good {
   font-size: 0.8rem;
   color: var(--ink-soft);
 }
+.pricing-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+.pricing-plan {
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+.policy-body .pricing-plan h3 {
+  margin: 0;
+}
+.pricing-price {
+  margin: 2px 0 4px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--russet);
+}
+.pricing-plan .meta {
+  margin: 0 0 8px;
+}
+.pricing-plan ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.92rem;
+}
+.pricing-cta {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0 8px;
+}

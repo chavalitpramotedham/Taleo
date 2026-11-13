@@ -17,6 +17,8 @@ export function SiteFooter() {
         <span aria-hidden>·</span>
         <Link href="/about">About</Link>
         <span aria-hidden>·</span>
+        <Link href="/pricing">Pricing</Link>
+        <span aria-hidden>·</span>
         <Link href="/privacy">Privacy</Link>
         <span aria-hidden>·</span>
         <Link href="/about#contact">Contact us</Link>
