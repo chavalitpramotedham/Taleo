@@ -15853,3 +15853,26 @@ html[data-night] .lab-stat em.good {
   background: var(--russet);
   transition: width 0.25s linear;
 }
+.lab-zoom {
+  all: unset;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+}
+.lab-zoom:focus-visible {
+  outline: 2px solid var(--russet);
+  outline-offset: -2px;
+}
+.lab-zoom-art {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--page);
+}
+.lab-zoom-art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

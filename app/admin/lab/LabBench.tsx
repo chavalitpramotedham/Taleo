@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ESTIMATES } from "@/lib/bench-estimates";
 import { Painting } from "@/components/art/Painting";
 import type { CharacterDef, IllustrateRequest } from "@/lib/types";
@@ -257,6 +258,12 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
   const [openCaps, setOpenCaps] = useState<Record<string, boolean>>({});
   const [spec, setSpec] = useState<string | null>(null);
+  // the painting shown full size, and the others it steps through
+  const [zoom, setZoom] = useState<{ items: Shown[]; at: number } | null>(null);
+  const zoomable = (items: (Shown | null)[], svg: string) => {
+    const list = items.filter((x): x is Shown => Boolean(x));
+    return () => setZoom({ items: list, at: Math.max(0, list.findIndex((x) => x.svg === svg)) });
+  };
   const specWay = WAYS.find((w) => w.id === spec);
   const viewing = WAYS.find((w) => w.id === view);
   const paintOne = (p: LabPage) => {
@@ -376,6 +383,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
         </div>
       )}
 
+      {zoom && <BenchZoom items={zoom.items} at={zoom.at} onStep={(at) => setZoom((z) => (z ? { ...z, at } : z))} onClose={() => setZoom(null)} />}
+
       <nav className="lab-views" aria-label="Show">
         <button type="button" className={`lab-chip${view === "compare" ? " on" : ""}`} onClick={() => setView("compare")}>
           Compare all
@@ -395,6 +404,11 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             {pages.map((p) => {
               const run = runs.find((r) => r.id === runFor(p.key));
               const c = run ? cells[run.id]?.[viewing.id] : undefined;
+              const galleryShown = pages.map((q): Shown | null => {
+                const rq = runs.find((r) => r.id === runFor(q.key));
+                const svg = rq ? cells[rq.id]?.[viewing.id]?.svg : undefined;
+                return svg ? { svg, title: `${nOf(viewing.id)}. ${viewing.name}`, caption: q.label } : null;
+              });
               const saved = run?.ways[viewing.id];
               return (
                 <figure key={p.key} className={`lab-cell${run?.vote === viewing.id ? " voted" : ""}`}>
@@ -402,7 +416,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     <b>{p.label}</b>
                     {run?.vote && <span className="lab-state">★{nOf(run.vote)}</span>}
                   </figcaption>
-                  <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
+                  <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${p.label} full size`} onClick={zoomable(galleryShown, c.svg)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
                   {((c && c.state !== "painting") || saved) && numbers(c, saved)}
                 </figure>
               );
@@ -486,7 +500,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                           </b>
                           {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
                         </figcaption>
-                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
+                        <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomable(WAYS.map((x) => (live?.[x.id]?.svg ? { svg: live[x.id].svg, title: `${nOf(x.id)}. ${x.name}`, caption: p.label } : null)), c.svg)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
                         {((c && c.state !== "painting") || saved) && numbers(c, saved)}
                         {saved && !saved.ok && <p className="lab-error">Failed: {saved.error || "no reason recorded"}</p>}
                         {run && c?.state !== "painting" && !c?.svg && !saved?.ok && (c?.state === "failed" || saved || Date.now() - run.at > 6 * 60_000) && (
@@ -509,6 +523,83 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
         </>
       )}
     </div>
+  );
+}
+
+/** A painting shown full size: which way, and of which page. */
+type Shown = { svg: string; title: string; caption: string };
+
+/** The bench's paintings full size, as the activity log shows its own (the
+ *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
+ *  a sideways swipe step through the others) - drawn as the painting
+ *  itself, with its watercolour, not as a flat image. */
+function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number; onStep: (i: number) => void; onClose: () => void }) {
+  const item = items[at];
+  const prev = at > 0 ? () => onStep(at - 1) : undefined;
+  const next = at < items.length - 1 ? () => onStep(at + 1) : undefined;
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft" && prev) (e.preventDefault(), prev());
+      else if (e.key === "ArrowRight" && next) (e.preventDefault(), next());
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [onClose, prev, next]);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  if (!item) return null;
+  const stepping = items.length > 1;
+  return createPortal(
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="admin-zoom-wrap" onClick={(e) => e.stopPropagation()}>
+        {stepping && (
+          <>
+            <button type="button" className="preview-step admin-zoom-step admin-zoom-prev" onClick={prev} disabled={!prev} aria-label="Previous painting">
+              ‹
+            </button>
+            <button type="button" className="preview-step admin-zoom-step admin-zoom-next" onClick={next} disabled={!next} aria-label="Next painting">
+              ›
+            </button>
+          </>
+        )}
+        <div
+          className="modal-panel admin-zoom-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${item.title}: ${item.caption}`}
+          onTouchStart={(e) => (swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+          onTouchEnd={(e) => {
+            const from = swipe.current;
+            swipe.current = null;
+            if (!from || !stepping) return;
+            const dx = e.changedTouches[0].clientX - from.x;
+            const dy = e.changedTouches[0].clientY - from.y;
+            if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+            if (dx < 0) next?.();
+            else prev?.();
+          }}
+        >
+          <div className="modal-head">
+            <h3>{item.title}</h3>
+            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+              ✕
+            </button>
+          </div>
+          <div className="lab-zoom-art">
+            <Painting key={at} svg={item.svg} className="painting" />
+          </div>
+          <p className="admin-zoom-caption">{item.caption}</p>
+          {stepping && (
+            <p className="meta admin-zoom-more">
+              <span className="admin-zoom-count">
+                {at + 1} of {items.length}
+              </span>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
