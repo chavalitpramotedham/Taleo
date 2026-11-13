@@ -15626,13 +15626,22 @@ html[data-night] .lab-best {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid var(--rule);
-  background: none;
-  color: var(--russet);
+  border: none;
+  background: var(--russet);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(120, 60, 20, 0.3);
   cursor: pointer;
+  transition: filter 0.15s, transform 0.15s;
+}
+.lab-paint:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.lab-paint:active:not(:disabled) {
+  transform: scale(0.94);
 }
 .lab-paint:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
+  box-shadow: none;
   cursor: default;
 }
 .lab .lab-picture {
