@@ -16,12 +16,59 @@ export interface LabPage {
 }
 
 /** The four ways, from nothing reused to everything. */
+/** The four ways, and exactly what each one changes. (The ids are kept
+ *  in the saved runs, so a way that changes gets a new id.) */
 const WAYS = [
-  { id: "1", name: "Today", about: "Nothing reused: the painters draw everything, as now." },
-  { id: "2", name: "Scenery pieces", about: "Trees, clouds, grass, furniture... placed from the standard pieces." },
-  { id: "3", name: "+ Character parts", about: "And each character's head and body kept and placed; only faces, limbs and actions drawn." },
-  { id: "4", name: "Everything", about: "And each place painted once and reused under every page there, framed anew, with only the page's own foreground and changes painted." },
+  {
+    id: "1",
+    name: "Today",
+    about: "Nothing reused: the painters draw everything, as now.",
+    vars: [
+      ["Scenery", "Sonnet 5.5, low effort, no thinking - draws all of it"],
+      ["Characters", "Opus 5.5, low effort, thinks first - draws all of them"],
+      ["Pieces", "none"],
+      ["Backdrop", "none: painted afresh on every page"],
+    ],
+  },
+  {
+    id: "p",
+    name: "Parts + pieces",
+    about: "Each character's head and body kept and placed; the painter draws only faces, limbs and actions. Scenery placed from the standard pieces.",
+    vars: [
+      ["Scenery", "Sonnet 5.5, low effort, no thinking - places pieces, draws the rest"],
+      ["Characters", "Opus 5.5, low effort, thinks first - draws faces, limbs, held things"],
+      ["Pieces", "on (scenery, props, effects)"],
+      ["Backdrop", "none: painted afresh on every page"],
+    ],
+  },
+  {
+    id: "b",
+    name: "+ Backdrops, Sonnet",
+    about: "As 2, and each place is painted once and reused under every page there (framed anew); the characters' painter is the cheaper Sonnet.",
+    vars: [
+      ["Scenery", "the place's backdrop, painted once per place and light; then Sonnet 5.5 low, no thinking, paints only this page's own layer"],
+      ["Characters", "Sonnet 5.5, medium effort, thinks first - draws faces, limbs, held things"],
+      ["Pieces", "on (scenery, props, effects)"],
+      ["Backdrop", "on: reused, zoomed and panned per page"],
+    ],
+  },
+  {
+    id: "x",
+    name: "Extreme reuse",
+    about: "Almost nothing drawn: the place is reused, the page's sky and foreground are made in code, and the characters are put together entirely from the pose library - a cheap composer only writes where everyone stands, their pose, mood and what they hold.",
+    vars: [
+      ["Scenery", "the place's backdrop, painted once per place and light; this page's sky and foreground made in code (no painter)"],
+      ["Characters", "Sonnet 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn"],
+      ["Pieces", "on, including props and action effects"],
+      ["Backdrop", "on: reused, zoomed and panned per page"],
+      ["If a character has no parts", "the composer can't pose it, so it falls back to 3's way for that page"],
+    ],
+  },
 ] as const;
+const nOf = (id?: string) => {
+  const i = WAYS.findIndex((w) => w.id === id);
+  return i < 0 ? "" : String(i + 1);
+};
 type Way = (typeof WAYS)[number]["id"];
 
 interface Cell {
@@ -186,6 +233,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     const vals = board.map((b) => b[k]).filter((v): v is number => v !== null);
     return vals.length ? Math.min(...vals) : null;
   };
+  const today = board.find((x) => x.way === "1")?.usd ?? null;
+  const vsToday = (v?: number | null) => (v === undefined || v === null || !today ? "-" : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`);
 
   return (
     <div className="container lab">
@@ -204,6 +253,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 <th>Votes</th>
                 <th>Win rate</th>
                 <th>Avg cost</th>
+                <th>vs today</th>
                 <th>Avg tokens out</th>
                 <th>Avg finished</th>
                 <th>Avg first stroke</th>
@@ -217,12 +267,13 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                   <tr key={w.id}>
                     <td>
                       <b>
-                        {w.id}. {w.name}
+                        {nOf(w.id)}. {w.name}
                       </b>
                     </td>
                     <td>{b?.wins ?? 0}</td>
                     <td>{b && b.votedRuns ? `${Math.round((b.wins / b.votedRuns) * 100)}%` : "-"}</td>
                     <td className={b?.usd !== null && b?.usd === best("usd") ? "lab-best" : ""}>{usd(b?.usd)}</td>
+                    <td>{vsToday(b?.usd)}</td>
                     <td className={b?.out !== null && b?.out === best("out") ? "lab-best" : ""}>{num(b?.out)}</td>
                     <td className={b?.totalMs !== null && b?.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b?.totalMs)}</td>
                     <td>{secs(b?.firstMs)}</td>
@@ -237,9 +288,17 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           {WAYS.map((w) => (
             <li key={w.id}>
               <b>
-                {w.id}. {w.name}:
+                {nOf(w.id)}. {w.name}:
               </b>{" "}
               {w.about}
+              <dl className="lab-vars">
+                {w.vars.map(([k, v]) => (
+                  <div key={k}>
+                    <dt>{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+              </dl>
             </li>
           ))}
         </ul>
@@ -285,7 +344,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 {history.slice(0, 8).map((r, i) => (
                   <button key={r.id} type="button" className={`lab-chip${r.id === runId ? " on" : ""}`} onClick={() => setShown((s) => ({ ...s, [p.key]: r.id }))}>
                     Run {history.length - i}
-                    {r.vote ? ` · ★${r.vote}` : ""}
+                    {r.vote ? ` · ★${nOf(r.vote)}` : ""}
                   </button>
                 ))}
               </div>
@@ -298,7 +357,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                   <figure key={w.id} className={`lab-cell${voted === w.id ? " voted" : ""}`}>
                     <figcaption>
                       <b>
-                        {w.id}. {w.name}
+                        {nOf(w.id)}. {w.name}
                       </b>
                       {c && <span className={`lab-state ${c.state}`}>{c.state}</span>}
                     </figcaption>

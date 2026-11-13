@@ -15445,3 +15445,20 @@ html[data-night] .lab-best {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
+.lab-vars {
+  margin: 4px 0 10px;
+  display: grid;
+  gap: 2px;
+}
+.lab-vars > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 160px) 1fr;
+  gap: 8px;
+}
+.lab-vars dt {
+  font-weight: 600;
+  color: var(--ink);
+}
+.lab-vars dd {
+  margin: 0;
+}

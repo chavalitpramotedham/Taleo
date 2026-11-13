@@ -17,6 +17,7 @@
  * a scale and a mirror (see server/paint/expand).
  */
 import type { Palette } from "./palette";
+import { EFFECTS, MORE_STAMPS, PROPS } from "./stamps-more";
 
 export interface Piece {
   paint: string;
@@ -406,7 +407,7 @@ export interface StampKind {
   draw: (r: R, P: Palette) => Piece;
 }
 
-export const STAMPS: Record<string, StampKind> = {
+const BASE_STAMPS: Record<string, StampKind> = {
   oak: { about: "a broad leafy tree", size: "90x140", base: "ground", dark: true, draw: (r, P) => tree(r, P, "oak") },
   apple: { about: "a small apple tree with red apples", size: "85x115", base: "ground", dark: true, draw: (r, P) => tree(r, P, "apple") },
   birch: { about: "a slim pale-trunked tree", size: "70x150", base: "ground", dark: true, draw: (r, P) => tree(r, P, "birch") },
@@ -433,6 +434,10 @@ export const STAMPS: Record<string, StampKind> = {
   table: { about: "a wooden table", size: "90x56", base: "ground", dark: true, draw: table },
   chair: { about: "a wooden chair", size: "30x70", base: "ground", dark: true, draw: chair },
 };
+
+/** Every piece that can be placed: the standard scenery, the extra
+ *  scenery, held props and action effects (see stamps-more). */
+export const STAMPS: Record<string, StampKind> = { ...BASE_STAMPS, ...MORE_STAMPS, ...PROPS, ...EFFECTS };
 
 // ------------------------------------------------------------------ scatter
 
@@ -540,11 +545,13 @@ export const SCATTER: Record<string, ScatterKind> = {
 
 /** The list the painters are given: what can be placed, by name. */
 export function stampCatalogue(): string {
-  const s = Object.entries(STAMPS)
+  const s = Object.entries({ ...BASE_STAMPS, ...MORE_STAMPS })
     .map(([k, v]) => `${k} (${v.about}; about ${v.size} at s="1"; ${v.base === "ground" ? "x,y = where it stands" : v.base === "wall" ? "x,y = the middle of its bottom edge" : "x,y = its middle"})`)
     .join("\n  ");
   const c = Object.entries(SCATTER)
     .map(([k, v]) => `${k} (${v.about})`)
     .join(", ");
-  return `  ${s}\nSCATTER kinds: ${c}`;
+  const props = Object.entries(PROPS).map(([k, v]) => `${k} (${v.about})`).join(", ");
+  const fx = Object.entries(EFFECTS).map(([k, v]) => `${k} (${v.about})`).join(", ");
+  return `  ${s}\nTHINGS TO HOLD OR LEAVE ABOUT (x,y = their middle): ${props}\nWHAT AN ACTION LEAVES (x,y = their middle): ${fx}\nSCATTER kinds: ${c}`;
 }

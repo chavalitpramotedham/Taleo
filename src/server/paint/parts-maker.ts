@@ -44,7 +44,20 @@ const PartsSchema = z.object({
     eyeFar: Pt,
     mouth: Pt,
   }),
-  colours: z.array(z.object({ part: z.string(), hex: z.string() })).describe("the colours limbs, paws or hands, feet and the face are drawn in"),
+  colours: z.object({
+    limb: z.string().describe("hex: the arms and legs (fur, skin, or the sleeves and trousers they wear)"),
+    limbFar: z.string().describe("hex: the far-side limbs, a shade darker"),
+    hand: z.string().describe("hex: hands or paws"),
+    foot: z.string().describe("hex: feet, paws or shoes"),
+    footPad: z.string().describe("hex: a pale pad or the top of the foot, or the same as foot"),
+    mouth: z.string().describe("hex: the inside of the mouth"),
+    cheek: z.string().describe("hex: the cheeks' blush"),
+  }),
+  limbs: z.object({
+    arm: z.number().describe("arm length against an ordinary cute storybook figure: 1 normal, 0.8 short, 1.3 long"),
+    leg: z.number().describe("leg thickness: 1 normal, 0.8 slim, 1.3 chunky"),
+    foot: z.number().describe("foot length: 1 normal, 1.8 long rabbit feet"),
+  }),
   build: z.string().describe("one sentence: how its arms, legs, hands or paws, feet and eyes are drawn"),
 });
 
@@ -52,7 +65,7 @@ const SYSTEM = `You regroup an existing character portrait (layered watercolour 
 
 THE PARTS
 - head: everything of the head that stays the same from page to page - the skull or head shape, ears, hair, muzzle or snout and nose, beak, markings on the head, glasses, hats and anything worn on the head, and the soft shadow it casts on the chest. NOT the face: leave out the eyes and eye highlights, eyebrows, the mouth, tongue and teeth, and blush or cheeks - those are drawn afresh on every page.
-- torso: the body - body shape, belly or chest, clothing, markings on the body, anything worn on the body, and the body's form shading. NOT the arms, hands, paws, legs, feet or tail (drawn afresh in every pose), and NOT anything held.
+- torso: the body - body shape, belly or chest, clothing, markings on the body, anything worn on the body, the tail (kept as it is), and the body's form shading. NOT the arms, hands, paws, legs or feet (drawn afresh in every pose), and NOT anything held.
 - Each part has paint (fills), ink (pen lines) and detail (small crisp marks) shapes, taken from the portrait's own paint, ink and detail groups. Output plain SVG elements, no wrapping <g>.
 
 MAKE THEM JOIN WELL
@@ -61,7 +74,7 @@ MAKE THEM JOIN WELL
 - Keep everything on the 200x200 canvas exactly where it was.
 
 ANCHORS (points on the 200x200 canvas, as seen in the portrait; "near" is the side nearer the viewer, or the viewer's left for a front-on figure): the neck pivot (where the head turns), both shoulders and both hips (where arms and legs attach), the centres of both eyes, and the mouth.
-COLOURS: the exact hex values for the limbs (fur or skin, clothing on the arms and legs), hands or paws, feet or shoes, and the face (eyes, mouth, cheeks), copied from the portrait.`;
+COLOURS: the exact hex values for the limbs (fur or skin, clothing on the arms and legs), hands or paws, feet or shoes, and the face (mouth, cheeks), copied from the portrait. LIMBS: its proportions, so limbs made for it look like its own.`;
 
 /** Turns the model's answer into parts, or null if it can't be used. */
 function toParts(out: z.infer<typeof PartsSchema>): CharacterParts | null {
@@ -77,8 +90,13 @@ function toParts(out: z.infer<typeof PartsSchema>): CharacterParts | null {
     facesLeft: out.facing === "left",
     anchors: { neck: p(a.neck), shoulderL: p(a.shoulderNear), shoulderR: p(a.shoulderFar), hipL: p(a.hipNear), hipR: p(a.hipFar), eyeL: p(a.eyeNear), eyeR: p(a.eyeFar), mouth: p(a.mouth) },
   };
+  const hex = (v: string, d: string) => (/^#[0-9a-fA-F]{6}$/.test(v) ? v : d);
+  const k = out.colours;
+  const limb = hex(k.limb, "#A98463");
+  const clamp = (n: number, lo: number, hi: number) => (Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : 1);
   return {
-    colours: Object.fromEntries(out.colours.filter((c) => /^#[0-9a-fA-F]{6}$/.test(c.hex)).map((c) => [c.part.slice(0, 40), c.hex])),
+    colours: { "arms and legs": limb, "far limbs": hex(k.limbFar, limb), "hands or paws": hex(k.hand, limb), feet: hex(k.foot, limb), mouth: hex(k.mouth, "#6E3B32"), cheeks: hex(k.cheek, "#E7A99A") },
+    roles: { limb, limbFar: hex(k.limbFar, limb), hand: hex(k.hand, limb), foot: hex(k.foot, limb), footPad: hex(k.footPad, hex(k.foot, limb)), eye: "#2A1E15", mouth: hex(k.mouth, "#6E3B32"), tongue: "#C9786E", cheek: hex(k.cheek, "#E7A99A"), arm: clamp(out.limbs.arm, 0.6, 1.6), leg: clamp(out.limbs.leg, 0.6, 1.6), foot_: clamp(out.limbs.foot, 0.6, 2.2) },
     build: out.build.slice(0, 300),
     views: out.facing === "front" ? { front: view } : { three: view },
   };

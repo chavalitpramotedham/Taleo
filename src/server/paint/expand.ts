@@ -1,6 +1,8 @@
 import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
-import { viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
+import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
+import { arm, ARM_POSES, face, legs, LEG_POSES, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
+import { PROPS } from "@/lib/art/stamps-more";
 
 /**
  * The expander: sits between a painter's stream and the reader, and turns
@@ -68,9 +70,11 @@ export interface ExpandStats {
   heads: number;
   /** which characters were placed as figures */
   figIds: string[];
+  /** figures put together entirely in code (poses, face, prop) */
+  posed: number;
 }
 
-export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [] });
+export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [], posed: 0 });
 
 type Layer = "paint" | "ink" | "detail";
 const LAYER_OF = (tag: string): Layer | "wash" | null => (tag.match(/class="(wash|paint|ink|detail)"/)?.[1] as Layer | "wash" | undefined) ?? null;
@@ -179,6 +183,43 @@ function scatter(tag: string, ctx: ExpandContext, stats: ExpandStats, index: num
   return flat(kind.draw(r, ctx.palette, box, n));
 }
 
+/** A whole figure from a pose: far limbs, legs, body, near arm, what it
+ *  holds, head and face - in the three layers, placed. */
+function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view: PartView }, parts: CharacterParts, a: Record<string, string>, three: boolean, ctx: ExpandContext, stats: ExpandStats): string {
+  const roles = rolesOf(parts);
+  const [nearPose, farPose] = (a.arms ?? "down,down").split(",").map((p) => p.trim().toLowerCase());
+  const armPose = (p: string | undefined, d: ArmPose): ArmPose => ((ARM_POSES as readonly string[]).includes(p ?? "") ? (p as ArmPose) : d);
+  const legPose: LegPose = (LEG_POSES as readonly string[]).includes((a.legs ?? "").toLowerCase()) ? (a.legs!.toLowerCase() as LegPose) : "stand";
+  const mood: Mood = (MOODS as readonly string[]).includes((a.mood ?? "").toLowerCase()) ? (a.mood!.toLowerCase() as Mood) : "happy";
+  const view = fig.view;
+  const near = arm(view, roles, "near", armPose(nearPose, "down"), three);
+  const far = arm(view, roles, "far", armPose(farPose ?? nearPose, "down"), three);
+  const lg = legs(view, roles, legPose, three);
+  const fc = face(view, roles, mood);
+  // what it holds, at the near hand (or both hands, when they hold it together)
+  const holdKey = (a.hold ?? "").toLowerCase();
+  const prop = PROPS[holdKey];
+  let held: Piece = { paint: "", ink: "", detail: "" };
+  if (holdKey && !prop) throw new ReuseFailed(`nothing to hold called "${holdKey}"`);
+  if (prop) {
+    const at = nearPose === "hug" || nearPose === "hold" ? [(near.hand[0] + far.hand[0]) / 2, (near.hand[1] + far.hand[1]) / 2] : near.hand;
+    const pc = prop.draw(seeded(hashOf(`${ctx.bookSeed}:${fig.id}:${holdKey}`)), ctx.palette);
+    const tr = (s: string) => (s ? `<g transform="translate(${f(at[0])} ${f(at[1])})">${s}</g>` : "");
+    held = { paint: tr(pc.paint), ink: tr(pc.ink), detail: tr(pc.detail) };
+    stats.kinds[`hold:${holdKey}`] = (stats.kinds[`hold:${holdKey}`] ?? 0) + 1;
+  }
+  const head = `<g transform="rotate(${f(fig.tilt)} ${view.anchors.neck[0]} ${view.anchors.neck[1]})">`;
+  // stacking: the far arm behind the body on a three-quarter figure; legs
+  // under the body; the near arm and what's held in front; the head last
+  const paint = (three ? far.paint : "") + lg.far.paint + lg.near.paint + view.torso.paint + (three ? "" : far.paint) + near.paint + held.paint + head + view.head.paint + fc.paint + "</g>";
+  const ink = (three ? far.ink : "") + lg.far.ink + lg.near.ink + view.torso.ink + (three ? "" : far.ink) + near.ink + held.ink + head + view.head.ink + fc.ink + "</g>";
+  const detail = view.torso.detail + held.detail + head + view.head.detail + fc.detail + "</g>";
+  stats.posed++;
+  stats.torsos++;
+  stats.heads++;
+  return `<g class="paint"><g transform="${fig.t}">${paint}</g></g><g class="ink" fill="none" stroke="#4F3A2A" stroke-width="${f(1.2 / fig.s)}" stroke-linecap="round" stroke-linejoin="round"><g transform="${fig.t}">${unscaleStrokes(ink, fig.s)}</g></g><g class="detail"><g transform="${fig.t}">${detail}</g></g>`;
+}
+
 /**
  * Expands one painter's stream. `stats` is filled in as it goes.
  */
@@ -246,6 +287,12 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         };
         stats.figs++;
         if (!stats.figIds.includes(id)) stats.figIds.push(id);
+        // A figure given as a pose (arms, legs, mood, what it holds) is put
+        // together here, whole: nothing of it is painted.
+        if (a.arms !== undefined || a.legs !== undefined || a.mood !== undefined || tag.trim().endsWith("/>")) {
+          out += posedFigure(fig, parts!, a, view === parts!.views.three, ctx, stats);
+          fig = null;
+        }
         continue;
       }
       if (/^<\s*\/\s*fig\s*>$/i.test(tag)) {

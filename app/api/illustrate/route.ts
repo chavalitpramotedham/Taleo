@@ -11,6 +11,7 @@ import { allPages } from "@/lib/story-utils";
 import { count, withMetricsUser } from "@/server/metrics";
 import { auth } from "@/server/auth";
 import { beginGen, logDenied } from "@/server/genlog";
+import type { ReuseSettings } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -188,8 +189,17 @@ export async function POST(req: Request) {
 /** The bench's ways to paint a page: 1 as today; 2 standard scenery
  *  pieces; 3 those and characters from their kept parts; 4 everything -
  *  and each place painted once, reused under every page set there. */
-const BENCH_WAYS: Record<string, { stamps: boolean; parts: boolean; backdrops: boolean }> = {
+const BENCH_WAYS: Record<string, ReuseSettings> = {
+  // 1. today: nothing reused
   "1": { stamps: false, parts: false, backdrops: false },
+  // 2. parts + pieces, the usual painters
+  p: { stamps: true, parts: true, backdrops: false },
+  // 3. and backdrops, with the characters' painter the cheaper Sonnet
+  b: { stamps: true, parts: true, backdrops: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } },
+  // 4. extreme: posed from the library by a cheap composer, the page's own
+  // layer made in code
+  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
+  // (older names, kept for anything still using them)
   "2": { stamps: true, parts: false, backdrops: false },
   "3": { stamps: true, parts: true, backdrops: false },
   "4": { stamps: true, parts: true, backdrops: true },
@@ -212,7 +222,8 @@ function reuseNote(notes: Record<string, unknown>): string {
   const partsNote = parts
     ? ` · from parts: ${figs.length} of ${parts.from.length}${parts.from.length > figs.length ? ` (${parts.from.filter((id) => !figs.includes(id)).join(", ")} redrawn in full)` : ""}${parts.full.length ? `; no parts for ${parts.full.join(", ")}` : ""}${parts.readyMs > 1500 ? `; parts ready after ${Math.round(parts.readyMs / 1000)}s` : ""}`
     : "";
-  const place = notes.backdrop ? ` · backdrop ${notes.backdrop}, ${notes.frame}` : "";
-  if (!r) return failed + partsNote + place + split;
-  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${partsNote}${place}${failed}${split}`;
+  const place = notes.backdrop ? ` · backdrop ${notes.backdrop}, ${notes.frame}${notes.pageLayer ? `, page layer ${notes.pageLayer}` : ""}` : "";
+  const posed = notes.composer ? ` · ${notes.composer}${(notes.reuse as { posed?: number } | undefined)?.posed ? ` (${(notes.reuse as { posed: number }).posed} posed)` : ""}` : "";
+  if (!r) return failed + partsNote + posed + place + split;
+  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${partsNote}${posed}${place}${failed}${split}`;
 }

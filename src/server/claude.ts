@@ -21,9 +21,10 @@ import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { expandStream, newStats, ReuseFailed, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
-import { BACKDROP_BRIEF, characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
+import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { once } from "./paint/once";
+import { codePageLayer } from "./paint/page-layer";
 import type { CharacterParts } from "@/lib/art/parts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
@@ -706,8 +707,13 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await partsFor(c).catch(() => null)] as const))) if (p) partsOf.set(id, p);
     notes.parts = { from: [...partsOf.keys()], full: req.cast.filter((c) => !partsOf.has(c.id)).map((c) => c.id), readyMs: Date.now() - began };
   }
+  // The cheapest way: when every character has its parts, nobody is drawn
+  // at all - the composer only places and poses them from the library.
+  const posing = Boolean(reuse.poses) && req.cast.length > 0 && req.cast.every((c) => partsOf.has(c.id));
+  if (reuse.poses) notes.composer = posing ? "posed from the library" : "someone had no parts: drawn by the painter";
   const sheet = (c: CharacterDef) => {
     const parts = partsOf.get(c.id);
+    if (parts && posing) return composerSheet(c, Object.keys(parts.views));
     if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);
     return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
@@ -735,28 +741,33 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     `PAINT THIS MOMENT: ${req.page.picture}`,
     target ? `${target} Wrap it in <g class="target">.` : "",
     layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
-    partsOf.size ? PARTS_SECTION : "",
-    `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
+    partsOf.size && !posing ? PARTS_SECTION : "",
+    posing
+      ? `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the tags now.`
+      : `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
   ]
     .filter(Boolean)
     .join("\n\n");
 
   const content: Anthropic.Beta.BetaTextBlockParam[] = [
     { type: "text", text: world },
-    ...central.map((c): Anthropic.Beta.BetaTextBlockParam => ({ type: "text", text: sheet(c), cache_control: { type: "ephemeral" } })),
+    ...central.map((c): Anthropic.Beta.BetaTextBlockParam => (posing ? { type: "text", text: sheet(c) } : { type: "text", text: sheet(c), cache_control: { type: "ephemeral" } })),
     { type: "text", text: rest },
   ];
 
-  const model = req.quick ? QUICK_ART_MODEL : ART_MODEL;
+  // (who paints the characters: the page's usual painter, unless the
+  // reuse settings name another - a cheaper one for reused parts)
+  const chosen = reuse.painter && layered ? reuse.painter : null;
+  const model = chosen?.model ?? (req.quick ? QUICK_ART_MODEL : ART_MODEL);
   const main: Brush = {
     model,
-    effort: req.quick ? QUICK_ART_EFFORT : layered ? LAYER_CHARACTERS_EFFORT : ART_EFFORT,
-    label: layered ? "character painter" : req.quick ? "quick painter" : "main painter",
-    unthinking: Boolean(req.quick) && QUICK_ART_UNTHINKING,
-    clockMs: req.quick ? 0 : FIRST_STROKE_MS,
+    effort: chosen?.effort ?? (req.quick ? QUICK_ART_EFFORT : layered ? LAYER_CHARACTERS_EFFORT : ART_EFFORT),
+    label: posing ? "composer" : layered ? "character painter" : req.quick ? "quick painter" : "main painter",
+    unthinking: chosen ? chosen.unthinking : Boolean(req.quick) && QUICK_ART_UNTHINKING,
+    clockMs: req.quick || chosen ? 0 : FIRST_STROKE_MS,
     // (the standard pieces are offered to whoever paints the scenery:
     // the illustrator only when it paints the whole picture alone)
-    system: illustratorPrompt({ stamps: reuse.stamps && !layered }),
+    system: posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && !layered }),
     content,
   };
   // One line per painting in the server log: which painter, how long until
@@ -795,7 +806,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         },
       ],
     };
-    const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { measure: Boolean(req.bench) } as Record<string, unknown> };
+    const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { model, measure: Boolean(req.bench) } as Record<string, unknown> };
     notes.painters = logs;
     Object.assign(log, { layered: true, ...logs });
     // (with the pieces on, the scenery painter's placeholders are expanded
@@ -805,7 +816,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
       reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps || partsOf.size
-        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: false, figures: Object.fromEntries(partsOf) }, stats)
+        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing, figures: Object.fromEntries(partsOf) }, stats)
         : brushStrokes(main, stop, logs.characters, why);
     // With backdrops: the place is painted once (the first page set there
     // paints it, every other page reuses it), framed a little differently
@@ -841,6 +852,13 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           const dx = (((h >> 3) % 5) - 2) * 12;
           notes.frame = `zoom ${zoom}, pan ${dx}`;
           yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">${backdrop}</g>`;
+          if (reuse.codeLayer) {
+            // (this page's own sky and foreground, made in code)
+            notes.pageLayer = "made in code";
+            const layer = codePageLayer({ place: place.about || place.id, picture: req.page.picture, light, season: seasonOf(req.world), seed: `${req.storyId ?? ""}|${req.page.text}` });
+            yield* expandStream((async function* () { yield layer; })(), expandCtx(stageBox(req)), stats);
+            return;
+          }
           const pageLayer: Brush = {
             ...scenery,
             label: "page-layer painter",

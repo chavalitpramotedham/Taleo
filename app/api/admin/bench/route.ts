@@ -81,7 +81,7 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
 /** Each way's record over every run: how often it was voted best, and
  *  what it cost and took on average. */
 function leaderboard(runs: BenchRun[]) {
-  const ways = ["1", "2", "3", "4"];
+  const ways = ["1", "p", "b", "x"];
   return ways.map((w) => {
     const done = runs.filter((r) => r.ways[w]?.ok);
     const voted = runs.filter((r) => r.vote && r.ways[w]?.ok);
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
   if (!(await currentAdmin())) return nope();
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const runId = typeof b?.runId === "string" && ID.test(b.runId) ? b.runId : null;
-  const way = typeof b?.way === "string" && /^[1-4]$/.test(b.way) ? b.way : null;
+  const way = typeof b?.way === "string" && /^[1pbx]$/.test(b.way) ? b.way : null;
   if (b?.kind === "start" && runId) {
     const meta = { at: Date.now(), page: String(b.page ?? "").slice(0, 80), label: String(b.label ?? "").slice(0, 200) };
     await hset(`bench:run:${runId}`, "meta", JSON.stringify(meta));

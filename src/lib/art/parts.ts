@@ -21,6 +21,7 @@
  * limbs and draws the face, in the view's own coordinates.
  */
 import type { Piece } from "./stamps";
+import type { Build } from "./poses";
 
 export type View = "front" | "three";
 export type Pt = [number, number];
@@ -50,8 +51,30 @@ export interface CharacterParts {
   colours: Record<string, string>;
   /** a few words on how its limbs and face are drawn */
   build: string;
+  /** the colours and proportions its limbs and face are made with in code
+   *  (see poses); without it they're guessed from `colours` */
+  roles?: Build;
   /** at least one view; a missing one is stood in for by the other */
   views: Partial<Record<View, PartView>>;
+}
+
+/** The colours a character's limbs and face are made in: its own, or a
+ *  guess from the colours it was given. */
+export function rolesOf(parts: CharacterParts): Build {
+  if (parts.roles) return parts.roles;
+  const c = Object.entries(parts.colours);
+  const find = (re: RegExp, dflt: string) => c.find(([k]) => re.test(k))?.[1] ?? dflt;
+  const limb = find(/fur|skin|limb|arm|body|feather/i, c[0]?.[1] ?? "#A98463");
+  return {
+    limb,
+    limbFar: find(/far|dark/i, limb),
+    hand: find(/hand|paw|mitten|glove/i, limb),
+    foot: find(/foot|feet|shoe|boot/i, limb),
+    eye: "#2A1E15",
+    mouth: find(/mouth/i, "#6E3B32"),
+    tongue: find(/tongue/i, "#C9786E"),
+    cheek: find(/cheek|blush/i, "#E7A99A"),
+  };
 }
 
 /** The view to use: the one asked for, else whichever there is. */
@@ -75,6 +98,7 @@ const glow = (cx: number, cy: number, rx: number, ry: number) => `<ellipse cx="$
 const BEAR = { fur: "#8E6A4C", paw: "#7A5A40", pale: "#C9AC88", nose: "#3A2A20" };
 
 const bear: CharacterParts = {
+  roles: { limb: BEAR.fur, limbFar: BEAR.paw, hand: BEAR.paw, foot: BEAR.paw, footPad: BEAR.pale, eye: "#2A1E15", mouth: "#6E3B32", tongue: "#C9786E", cheek: "#E7A99A", arm: 1.05, leg: 1.15 },
   colours: { fur: BEAR.fur, "paws and feet": BEAR.paw, "paw pads, muzzle and tummy": BEAR.pale, mouth: "#6E3B32", tongue: "#C9786E", cheeks: "#E7A99A" },
   build:
     "a round cub: short thick arms (a rounded tube about 16 wide, ending in a darker round paw) and short legs (a fat oval each, with a darker foot and a pale pad); eyes are dark dots or happy arcs, brows short strokes above them",
@@ -113,6 +137,7 @@ const bear: CharacterParts = {
 const RAB = { fur: "#A98463", dark: "#9C7756", cream: "#E9DCC5", ear: "#D9B8A0", tail: "#F4EFE4", nose: "#B97E73" };
 
 const bunny: CharacterParts = {
+  roles: { limb: RAB.fur, limbFar: RAB.dark, hand: RAB.fur, foot: RAB.fur, footPad: RAB.cream, eye: "#2A1E15", mouth: "#6E3B32", tongue: "#C9786E", cheek: "#E7A99A", arm: 1.1, foot_: 1.8 },
   colours: { fur: RAB.fur, "far limbs and feet": RAB.dark, "chest, muzzle and foot tops": RAB.cream, "inner ears": RAB.ear, nose: RAB.nose, mouth: "#6E3B32", tongue: "#C9786E", cheeks: "#E7A99A" },
   build:
     "a slim young rabbit: thin arms (a tube about 10 wide, a small rounded paw) and long back feet (an oval about 36 long on the ground, a short thigh above); eyes are dark ovals with a white highlight, brows short strokes",

@@ -353,3 +353,37 @@ export const PAGE_LAYER_BRIEF = `THE PLACE IS ALREADY PAINTED (a standing backdr
 - whatever the story has changed in the place on this page (the tipped basket, the open gate, the puddle after the splash, the lamp now lit);
 - the sky's moving things in new places: a couple of clouds, a few birds, drifting leaves (standard pieces).
 No washes, no sky, no land, no landmarks, nothing in the characters' space. Usually 5-20 elements of your own plus your pieces.`;
+
+// ---------------------------------------------------------------- reuse: composing from poses (the cheapest way)
+
+/** The composer's whole brief: it paints nothing of the characters - it
+ *  places each one, posed, from the library, and adds a few pieces. */
+export function composerPrompt(): string {
+  return `You compose pages of Taleo picture books from ready-made parts. The place is already painted. The characters are already made: each one's head and body are kept, and the app makes their arms, legs, faces and what they hold from a library of poses. You decide where everyone is, how they stand, what they feel and what they hold, so the picture tells this page's moment at a glance - and you add the few things the moment needs.
+
+EACH CHARACTER: one tag (put the characters further back first)
+  <fig c="hero" v="three" x="140" y="248" s="0.62" flip="1" lean="0" tilt="0" arms="wave,down" legs="walk" mood="laugh" hold="basket"/>
+- c: the character's id. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
+- x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other (a baby much smaller than a grown-up).
+- lean: degrees the whole body leans (-25 to 25: running, stretching, staggering). tilt: degrees the head turns (-25 to 25: curious, laughing, sad).
+- arms: the near arm, then the far arm, each one of: ${["down", "wave", "up", "hip", "point", "reach", "hold", "hug"].join(", ")}. ("hold" and "hug" bring the hands together in front.)
+- legs: one of: ${["stand", "walk", "run", "jump", "sit", "kick"].join(", ")}. (For "sit", put y where the seat is.)
+- mood: one of: ${["happy", "laugh", "surprised", "worried", "sad", "sleepy", "cross", "wink", "calm"].join(", ")}.
+- hold (optional): something from the list of things to hold below; it goes in the near hand (or both hands, with "hold" or "hug").
+- A character that is the tap target: <g class="target"><fig .../></g>.
+
+AROUND THEM: standard pieces, placed with one tag each - things the moment needs (a puddle to jump in, an open gate, a fallen basket of apples) and what the action leaves in the air (a splash, motion lines, sparkles, Zzz):
+  <stamp k="splash" x="200" y="246" s="1"/>
+A thing that is the tap target: <g class="target"><stamp .../></g>.
+Only if the moment needs something that is not in any list (a story's own special object), draw it yourself as a few simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours, at most 12 shapes).
+
+THE PIECES:
+${stampCatalogue()}
+
+Write nothing else: no sky, ground, scenery, words or comments. Usually 2-8 tags in all.`;
+}
+
+/** A character as the composer sees it: who, how big, which views. */
+export function composerSheet(c: { id: string; name: string; look: string }, views: string[]): string {
+  return `CHARACTER "${c.id}": ${c.name} - ${c.look.slice(0, 160)} (views: ${views.join(", ")})`;
+}

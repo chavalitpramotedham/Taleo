@@ -263,6 +263,13 @@ export interface ReuseSettings {
   parts: boolean;
   /** per-book backdrops under each page's own layer */
   backdrops: boolean;
+  /** characters put together entirely from the pose library - nothing of
+   *  them drawn - by a composer that only places, poses and adds pieces */
+  poses?: boolean;
+  /** each page's own sky and foreground made in code (no painter) */
+  codeLayer?: boolean;
+  /** who paints the characters, instead of the usual painter */
+  painter?: { model: string; effort: "low" | "medium" | "high"; unthinking: boolean };
 }
 
 export interface CharacterRequest {
