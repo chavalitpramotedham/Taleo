@@ -409,12 +409,12 @@ export interface StampKind {
 
 const BASE_STAMPS: Record<string, StampKind> = {
   oak: { about: "a broad leafy tree", size: "90x140", base: "ground", dark: true, draw: (r, P) => tree(r, P, "oak") },
-  apple: { about: "a small apple tree with red apples", size: "85x115", base: "ground", dark: true, draw: (r, P) => tree(r, P, "apple") },
+  appletree: { about: "a small apple tree with red apples", size: "85x115", base: "ground", dark: true, draw: (r, P) => tree(r, P, "apple") },
   birch: { about: "a slim pale-trunked tree", size: "70x150", base: "ground", dark: true, draw: (r, P) => tree(r, P, "birch") },
   pine: { about: "a tall pointed fir", size: "100x140", base: "ground", dark: true, draw: pine },
   bush: { about: "a round bush, sometimes flowering", size: "64x30", base: "ground", dark: true, draw: bush },
   tuft: { about: "a little tuft of grass", size: "16x14", base: "ground", dark: false, draw: tuft },
-  flowers: { about: "a few wild flowers on stalks", size: "20x16", base: "ground", dark: false, draw: flowers },
+  wildflowers: { about: "a few wild flowers on stalks", size: "20x16", base: "ground", dark: false, draw: flowers },
   stone: { about: "a rounded stone", size: "24x10", base: "ground", dark: true, draw: stone },
   mushroom: { about: "a red-capped toadstool", size: "18x16", base: "ground", dark: false, draw: mushroom },
   fence: { about: "a short run of wooden fence", size: "60x40", base: "ground", dark: true, draw: fence },
@@ -438,6 +438,17 @@ const BASE_STAMPS: Record<string, StampKind> = {
 /** Every piece that can be placed: the standard scenery, the extra
  *  scenery, held props and action effects (see stamps-more). */
 export const STAMPS: Record<string, StampKind> = { ...BASE_STAMPS, ...MORE_STAMPS, ...PROPS, ...EFFECTS };
+// (every piece needs a name of its own: two sharing one - the apple tree
+// and an apple to hold were both "apple" - left the painters asking for
+// one and getting the other. This stops the site building if it happens.)
+{
+  const seen = new Set<string>();
+  for (const set of [BASE_STAMPS, MORE_STAMPS, PROPS, EFFECTS])
+    for (const k of Object.keys(set)) {
+      if (seen.has(k)) throw new Error(`Two standard pieces are both called "${k}"`);
+      seen.add(k);
+    }
+}
 
 // ------------------------------------------------------------------ scatter
 

@@ -39,14 +39,18 @@ export const STYLE: Record<BenchSlot, string> = {
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
   // s3 (13 Nov): on the bench, its own parts - never another variant's
-  p: "s3",
+  // s4 (13 Nov): the apple tree and the wild flowers can be placed again
+  // (an apple and a bunch of flowers to hold had taken their names)
+  p: "s4",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
-  q: "s2",
+  // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
+  q: "s3",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
-  x: "s3",
+  // s4 (13 Nov): the apple tree and wild flowers fixed, as p s4
+  x: "s4",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
