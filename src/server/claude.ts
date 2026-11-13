@@ -21,7 +21,7 @@ import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { expandStream, newStats, sizeLine, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
-import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
+import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { once } from "./paint/once";
 import { codePageLayer } from "./paint/page-layer";
@@ -766,6 +766,67 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, n
   yield* paintOnce({ ...req, reuse: reuseOf(req) }, signal, notes);
 }
 
+/** A newcomer's painting for one page: the character alone, in the pose
+ *  this moment needs, on its own 200x200 canvas (feet at 100,190, facing
+ *  right) - placed where the composer's tag puts it, like a pre-painted
+ *  pose. Painted by the scenery's model at medium effort without thinking:
+ *  more care than the composer's tags, a fraction of a full painter. It
+ *  carries on if cut off, as every painter does. */
+async function paintNewcomer(c: CharacterDef, req: IllustrateRequest, signal: AbortSignal | undefined, log: Record<string, unknown>): Promise<Sprite | null> {
+  const brush: Brush = {
+    model: SCENERY_MODEL,
+    effort: "medium",
+    label: `newcomer painter (${c.name})`,
+    unthinking: true,
+    clockMs: 0,
+    system: newcomerPrompt(),
+    content: [
+      {
+        type: "text",
+        text: [
+          `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}`,
+          `THE CHARACTER: ${c.name}${genderNote(c)}. ${c.look || "A small woodland creature."}`,
+          `THIS PAGE'S TEXT: ${req.page.text}`,
+          `THE MOMENT: ${req.page.picture}`,
+          `Paint ${c.name} alone, doing what this moment has them do. Output the three groups now.`,
+        ].join("\n\n"),
+      },
+    ],
+  };
+  let svg = "";
+  for await (const s of brushStrokes(brush, signal, log)) svg += s;
+  return splitLayers(svg);
+}
+
+/** A painter's three layer groups, gathered (any number of each, in
+ *  order) into a pose's paint, ink and detail. Null if it painted nothing. */
+function splitLayers(svg: string): Sprite | null {
+  const out = { paint: "", ink: "", detail: "" } as Record<"paint" | "ink" | "detail", string>;
+  let depth = 0;
+  let layer: "paint" | "ink" | "detail" | null = null;
+  let start = 0;
+  for (const m of svg.matchAll(/<\/?g\b[^>]*>/g)) {
+    const tag = m[0];
+    const closing = tag.startsWith("</");
+    const self = tag.endsWith("/>");
+    if (!closing && !self) {
+      if (depth === 0) {
+        layer = (tag.match(/class="(paint|ink|detail)"/)?.[1] as typeof layer) ?? "paint";
+        start = m.index! + tag.length;
+      }
+      depth++;
+    } else if (closing) {
+      depth--;
+      if (depth === 0 && layer) {
+        out[layer] += svg.slice(start, m.index);
+        layer = null;
+      }
+      if (depth < 0) depth = 0;
+    }
+  }
+  return out.paint.length > 40 ? out : null;
+}
+
 async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefined, notes: Record<string, unknown>): AsyncGenerator<string> {
   const reuse = req.reuse ?? NO_REUSE;
   // (the pieces' colours: the book's season, the page's light; their
@@ -804,11 +865,32 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   const spritesOf = new Map<string, Partial<Record<SpritePose, Sprite>>>();
   if (reuse.sprites && req.cast.length)
     for (const [id, sp] of await Promise.all(req.cast.map(async (c) => [c.id, await spritesFor(c).catch(() => ({}))] as const))) if (Object.keys(sp).length) spritesOf.set(id, sp);
-  const spriting = Boolean(reuse.sprites) && req.cast.length > 0 && req.cast.every((c) => spritesOf.has(c.id));
-  if (reuse.sprites) notes.sprites = spriting ? "placed from pre-painted poses" : `poses not ready for ${req.cast.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ") || "anyone"}: assembled from parts instead`;
-  const posing = spriting || (Boolean(reuse.poses) && req.cast.length > 0 && req.cast.every((c) => partsOf.has(c.id)));
+  // Newcomers: characters with no portrait at all (a squirrel, a bird, an
+  // alien the story brings in), so no parts and no poses can exist. They
+  // don't stop the composer: it still places everyone, and leaves each
+  // newcomer a spot, while a stronger painter paints just that newcomer, in
+  // this moment's pose, at the same time (see paintNewcomer).
+  const newcomers = req.cast.filter((c) => !characterArt(c));
+  const known = req.cast.filter((c) => characterArt(c));
+  const spriting = Boolean(reuse.sprites) && req.cast.length > 0 && known.every((c) => spritesOf.has(c.id));
+  if (reuse.sprites) notes.sprites = spriting ? "placed from pre-painted poses" : `poses not ready for ${known.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ") || "anyone"}: assembled from parts instead`;
+  const posing = spriting || (Boolean(reuse.poses) && req.cast.length > 0 && known.every((c) => partsOf.has(c.id)));
   if (reuse.poses) notes.composer = posing ? "posed from the library" : "someone had no parts: drawn by the painter";
+  if (posing && newcomers.length) notes.newcomers = `${newcomers.map((c) => c.name).join(", ")} painted for this page`;
+  // (begun at once, alongside everything else; the composer's tag says
+  // where each goes)
+  const newcomerPaintings: Record<string, Promise<Sprite | null>> = {};
+  const newcomerLogs: Record<string, Record<string, unknown>> = {};
+  if (posing)
+    for (const c of newcomers) {
+      newcomerLogs[c.id] = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
+      newcomerPaintings[c.id] = paintNewcomer(c, req, signal, newcomerLogs[c.id]).catch((e) => {
+        console.warn("painting: a newcomer couldn't be painted", c.name, e);
+        return null;
+      });
+    }
   const sheet = (c: CharacterDef) => {
+    if (posing && !characterArt(c)) return newcomerSheet(c);
     const parts = partsOf.get(c.id);
     if (spriting) return spriteSheet(c, Object.keys(spritesOf.get(c.id) ?? {}));
     if (parts && posing) return composerSheet(c, Object.keys(parts.views));
@@ -843,6 +925,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // (the size every placed character is kept to - better aimed at than
     // corrected)
     posing || partsOf.size ? sizeLine(sizingFor(req.camera, req.page.picture, req.page.characters.length)) : "",
+    posing && newcomers.length ? NEWCOMERS_SECTION : "",
     posing
       ? `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the tags now.`
       : `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
@@ -909,7 +992,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         },
       ],
     };
-    const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { model, measure: Boolean(req.bench) } as Record<string, unknown> };
+    const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { model, measure: Boolean(req.bench) } as Record<string, unknown>, ...Object.fromEntries(Object.entries(newcomerLogs).map(([id, l]) => [`newcomer ${id}`, l])) };
     notes.painters = logs;
     Object.assign(log, { layered: true, ...logs });
     // (with the pieces on, the scenery painter's placeholders are expanded
@@ -929,7 +1012,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
               // (a tag that names a character finds it; on a composed page,
               // anyone the composer leaves out is placed in code)
               ids: Object.fromEntries(req.cast.flatMap((c) => [[c.id.toLowerCase(), c.id], [c.name.toLowerCase(), c.id]])),
-              mustPlace: posing ? req.page.characters.filter((id) => partsOf.has(id) || spritesOf.has(id)) : undefined,
+              mustPlace: posing ? req.page.characters.filter((id) => partsOf.has(id) || spritesOf.has(id) || id in newcomerPaintings) : undefined,
+              newcomers: newcomerPaintings,
             },
             stats,
           )

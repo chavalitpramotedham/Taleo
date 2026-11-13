@@ -4,7 +4,7 @@ import { JOURNEY } from "@/content/journey";
 import { JourneyGallery } from "./JourneyGallery";
 
 export const metadata: Metadata = {
-  title: { absolute: "The Taleo Journey" },
+  title: { absolute: "The Taleo Product Management Journey" },
   description: "How Taleo grew, day by day: what changed, and what it means for bedtime.",
   alternates: { canonical: "/journey" },
 };
@@ -26,7 +26,7 @@ export default function JourneyPage() {
     <div className="container about policy journey">
       <header className="wizard-head">
         <p className="eyebrow">Built in the open</p>
-        <h1>The Taleo Journey</h1>
+        <h1>The Taleo Product Management Journey</h1>
         <p className="journey-sum">
           <b>{JOURNEY.length}</b> days · <b>{total.toLocaleString("en-GB")}</b> updates shipped
         </p>

@@ -7,10 +7,15 @@ import type { LabPage } from "./LabBench";
  * right (climbing, hiding, carrying, swimming, dancing, flying). Built from
  * the ready-made characters. Listed newest first among the bench's own.
  */
-type Spec = {
+/** A character the story brings in with no portrait (a squirrel, a bird,
+ *  an alien): only a name and a description, so no parts or poses can
+ *  exist for it - to see how each way copes. */
+export type Newcomer = { npc: string; look: string };
+export type Spec = {
   key: string;
   label: string;
-  cast: string[];
+  /** ready-made characters by preset key, or newcomers */
+  cast: (string | Newcomer)[];
   text: string;
   picture: string;
   place: { id: string; about: string; light: "day" | "golden" | "dusk" | "night" | "rain" };
@@ -226,9 +231,17 @@ const SPECS: Spec[] = [
 export function harderCases(preset: (key: string, id: string) => CharacterDef): LabPage[] {
   // (all added together, just after the bench's first pages: newest first,
   // in the order above)
-  const at = Date.parse("2026-11-13T12:00:00Z");
+  return buildCases(SPECS, Date.parse("2026-11-13T12:00:00Z"), preset);
+}
+
+/** Test pages from specs added together at `at` (newest first, in order). */
+export function buildCases(specs: Spec[], at: number, preset: (key: string, id: string) => CharacterDef): LabPage[] {
+  const SPECS = specs;
   return SPECS.map((s, i) => {
-    const cast = s.cast.map((k, j) => preset(k, j === 0 ? "hero" : `friend${j}`));
+    const cast = s.cast.map((k, j): CharacterDef => {
+      const id = j === 0 ? "hero" : `friend${j}`;
+      return typeof k === "string" ? preset(k, id) : { id, name: k.npc, look: k.look, preset: null, svg: null };
+    });
     const target = s.action ? (typeof s.action.target === "number" ? cast[s.action.target].id : s.action.target) : null;
     return {
       key: s.key,

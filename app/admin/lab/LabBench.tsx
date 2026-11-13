@@ -278,7 +278,7 @@ export function LabBench({
   const [prepared, setPrepared] = useState<{ parts: Ready; poses: Ready } | null>(null);
   const castKey = useMemo(() => [...new Set(pages.flatMap((p) => p.cast.map((c) => c.name)))].sort().join("|"), [pages]);
   const checkPrepared = useCallback(async () => {
-    const cast = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
+    const cast = [...new Map(pages.flatMap((p) => p.cast).filter((c) => c.preset || c.svg).map((c) => [c.name, c])).values()];
     const d = await fetch("/api/admin/bench", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -2061,7 +2061,9 @@ function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Read
   const [done, setDone] = useState<{ n: number; of: number; failed: number } | null>(null);
   const go = async () => {
     setBusy(true);
-    const chars = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
+    // (newcomers - characters with no portrait - have no poses to make:
+    // they're painted on the page itself)
+    const chars = [...new Map(pages.flatMap((p) => p.cast).filter((c) => c.preset || c.svg).map((c) => [c.name, c])).values()];
     const jobs = chars.flatMap((c) => SPRITE_POSE_IDS.map((pose) => ({ c: { ...c, id: "hero" }, pose })));
     setDone({ n: 0, of: jobs.length, failed: 0 });
     // (three at a time: each asks for a large reply, and more at once used

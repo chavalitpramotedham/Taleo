@@ -7,6 +7,7 @@ import { partsReady, prepareParts } from "@/server/paint/parts-maker";
 import { prepareSprite, spritesFor } from "@/server/paint/sprite-maker";
 import { SPRITE_POSE_IDS, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterDef } from "@/lib/types";
+import { characterArt } from "@/lib/presets";
 import { BENCH_SLOTS, legacyVariant, rankPoints, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
@@ -252,7 +253,8 @@ export async function POST(req: Request) {
   if (b?.kind === "prepared" && Array.isArray(b.characters) && Array.isArray(b.cast)) {
     const ok = (c: unknown): c is CharacterDef => Boolean(c && typeof (c as CharacterDef).name === "string");
     const chars = (b.characters as unknown[]).filter(ok).slice(0, 30);
-    const cast = (b.cast as unknown[]).filter(ok).slice(0, 60);
+    // (newcomers, with no portrait, have no poses to make)
+    const cast = (b.cast as unknown[]).filter(ok).filter((c) => characterArt(c)).slice(0, 80);
     const each = await Promise.all(chars.map(async (c) => ({ name: c.name, ready: await partsReady(c).catch(() => false) })));
     const parts = each.filter((x) => x.ready !== null);
     const poses = await Promise.all(cast.map((c) => spritesFor({ ...c, id: "hero" }).catch(() => ({}))));

@@ -4,6 +4,7 @@ import { listCharacters } from "@/server/characters";
 import { PRESETS, presetByKey, presetCharacter } from "@/lib/presets";
 import type { CharacterDef } from "@/lib/types";
 import { harderCases } from "./cases";
+import { moreCases } from "./cases-more";
 import { LabBench, type LabPage } from "./LabBench";
 
 export const dynamic = "force-dynamic";
@@ -129,5 +130,5 @@ export default async function LabPage() {
       camera: "mid",
     },
   ];
-  return <LabBench world={WORLD} pages={[...harderCases(preset), ...pages]} choices={choices} />;
+  return <LabBench world={WORLD} pages={[...moreCases(preset), ...harderCases(preset), ...pages]} choices={choices} />;
 }

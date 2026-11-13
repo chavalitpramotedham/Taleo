@@ -75,6 +75,10 @@ export interface ExpandContext {
   /** On a composed page, the characters the tags must place: any left out
    *  is placed in code at the end. */
   mustPlace?: string[];
+  /** Newcomers (characters with no portrait) being painted for this page,
+   *  by id: an <npc/> tag (or a <sprite>/<fig> for one) says where each
+   *  goes, and it is laid there once painted. */
+  newcomers?: Record<string, Promise<Sprite | null>>;
   /** How big a placed character may be, and where its feet may stand,
    *  for this page's camera (see sizingFor): what the model asks for is
    *  kept within it, so nobody comes out huge or tiny. */
@@ -98,10 +102,12 @@ export function sizingFor(camera: string | null | undefined, picture: string, ch
   if (cam === "wide") return { s: 0.42 * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
   return { s: 0.62 * crowd, lo: 0.82, hi: 1.18, yLo: 234, yHi: 262 };
 }
-const sized = (ctx: ExpandContext, sc: number, y: number) => {
+const sized = (ctx: ExpandContext, sc: number, y: number, small = false) => {
   const z = ctx.sizing;
   if (!z) return { sc, y };
-  return { sc: Math.min(z.s * z.hi, Math.max(z.s * z.lo, sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
+  // (small: a newcomer may be a squirrel or a bird, far smaller than the
+  // grown characters the band is for - only its upper bound holds)
+  return { sc: Math.min(z.s * z.hi, Math.max(z.s * (small ? 0.3 : z.lo), sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
 };
 
 export interface ExpandStats {
@@ -372,24 +378,24 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   /** A character's id from a tag's c= (or id=, or its name). */
   const idOf = (a: Record<string, string>): string => {
     const raw = (a.c ?? a.id ?? a.name ?? "").trim();
-    const known = { ...(ctx.figures ?? {}), ...(ctx.sprites ?? {}) };
+    const known = { ...(ctx.figures ?? {}), ...(ctx.sprites ?? {}), ...(ctx.newcomers ?? {}) };
     if (raw in known) return raw;
     const byName = ctx.ids?.[raw.toLowerCase()];
     if (byName) {
-      fixed(stats, `character "${raw}" found by name`);
+      if (byName !== raw) fixed(stats, `character "${raw}" found by name`);
       return byName;
     }
     return raw;
   };
   /** A character placed from its pre-painted poses. */
-  const spriteOf = (id: string, poses: Partial<Record<string, Sprite>>, a: Record<string, string>): string => {
+  const spriteOf = (id: string, poses: Partial<Record<string, Sprite>>, a: Record<string, string>, small = false): string => {
     const want = (a.pose ?? "stand").toLowerCase();
     // (a pose not painted for it: the nearest it has, standing first)
     const sp = poses[want] ?? poses[nearestKey(want, poses) ?? ""] ?? poses.stand ?? Object.values(poses)[0];
     if (!sp) return "";
     const x = num(a, "x", null, -100, 500, stats);
     // (size and footing kept to this page's camera)
-    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
+    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small);
     const flip = a.flip === "1" || a.flip === "true";
     const lean = num(a, "lean", 0, -30, 30);
     const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
@@ -426,6 +432,9 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     if (parts) return posedOf(id, parts, a);
     return "";
   };
+  // newcomers' places, as the composer gave them: laid once they're painted
+  const newcomerAt = new Map<string, Record<string, string>>();
+  const isNewcomer = (id: string) => Boolean(ctx.newcomers && id in ctx.newcomers);
   // a figure for a character that can't be placed: everything up to its
   // </fig> is left out (it would be drawn in the figure's own coordinates
   // with nowhere to put them)
@@ -443,6 +452,29 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         if (/^<\s*\/\s*fig\s*>$/i.test(tag)) skipping = false;
         continue;
       }
+      // ---- newcomers: where each goes (it's laid there once painted)
+      if (/^<\s*(npc|sprite|fig)\b/i.test(tag)) {
+        const a = attrsOf(tag);
+        const id = idOf(a);
+        if (isNewcomer(id)) {
+          if (fig) out += endFig() + afterFig, (afterFig = "");
+          if (!/^<\s*npc\b/i.test(tag)) fixed(stats, `"${id}" is new: placed as a newcomer`);
+          // (inside the tap target: laid inside a target group of its own)
+          const target = open.find((o) => /class="[^"]*\btarget\b/.test(o.tag));
+          newcomerAt.set(id, target ? { ...a, __target: target.tag } : a);
+          if (!stats.figIds.includes(id)) stats.figIds.push(id);
+          if (/^<\s*fig\b/i.test(tag) && !tag.trim().endsWith("/>")) skipping = true;
+          continue;
+        }
+        if (/^<\s*npc\b/i.test(tag)) {
+          // (an <npc/> for someone who isn't new: placed as they can be)
+          const made = placeAny(id, a);
+          fixed(stats, made ? `"${id}" isn't new: placed from what it has` : `nobody called "${id}" to place: left out`);
+          out += made;
+          continue;
+        }
+      }
+      if (/^<\s*\/\s*npc\s*>$/i.test(tag)) continue;
       // ---- characters from their pre-painted poses
       if (/^<\s*sprite\b/i.test(tag)) {
         // (a pose written inside a figure: the figure is ended first)
@@ -610,7 +642,27 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   // composer left out is placed here, spread along the ground, so nobody
   // is missing from the picture.
   const missing = (ctx.mustPlace ?? []).filter((id) => !stats.figIds.includes(id));
-  missing.forEach((id, i) => {
+  // (a newcomer the composer left out: given a place like anyone else)
+  for (const id of missing.filter(isNewcomer)) {
+    newcomerAt.set(id, { x: String(200 + 90 * (newcomerAt.size % 2 ? -1 : 1)), y: String(ctx.sizing ? Math.round((ctx.sizing.yLo + ctx.sizing.yHi) / 2) : 246), s: String((ctx.sizing?.s ?? 0.6) * 0.8) });
+    fixed(stats, `newcomer "${id}" wasn't placed: placed in code`);
+  }
+  // Newcomers, laid where the composer put them once they're painted (they
+  // come last: in front of the rest). One that couldn't be painted is noted.
+  if (newcomerAt.size) {
+    if (tail) yield tail;
+    tail = "";
+    for (const [id, a] of newcomerAt) {
+      const sp = await ctx.newcomers![id].catch(() => null);
+      if (!sp) {
+        fixed(stats, `newcomer "${id}" couldn't be painted: left out`);
+        continue;
+      }
+      const made = spriteOf(id, { stand: sp }, { ...a, pose: "stand" }, true);
+      tail += a.__target ? `${a.__target}${made}</g>` : made;
+    }
+  }
+  missing.filter((id) => !isNewcomer(id)).forEach((id, i) => {
     const x = Math.round(200 + (i - (missing.length - 1) / 2) * 70);
     const made = placeAny(id, { x: String(x), y: String(ctx.sizing ? Math.round((ctx.sizing.yLo + ctx.sizing.yHi) / 2) : 246), pose: "stand", v: "three" });
     if (made) {

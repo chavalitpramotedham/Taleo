@@ -424,3 +424,34 @@ Write nothing else: no sky, ground, scenery, words or comments. Usually 2-8 tags
 export function spriteSheet(c: { id: string; name: string; look: string }, poses: string[]): string {
   return `CHARACTER "${c.id}": ${c.name} - ${c.look.slice(0, 160)} (poses: ${poses.join(", ")})`;
 }
+
+// ---------------------------------------------------------------- reuse: newcomers on a composed page
+
+/** A newcomer as the composer sees it: a character with no portrait, so no
+ *  parts or poses - painted for this page by another hand. */
+export function newcomerSheet(c: { id: string; name: string; look: string }): string {
+  return `NEW CHARACTER "${c.id}": ${c.name} - ${c.look.slice(0, 200)} (no ready-made poses: painted for this page by another hand; you only place it, with <npc/>)`;
+}
+
+/** Added to a composer's request when the page has newcomers. */
+export const NEWCOMERS_SECTION = `NEW CHARACTERS (marked NEW CHARACTER above): another hand is painting each of them right now, alone, doing what this moment has them do, standing on its own 200x200 canvas with its feet at 100,190 and facing three-quarters to the viewer's RIGHT. You only place each one, with one tag, exactly like a ready-made character:
+  <npc c="friend2" x="270" y="248" s="0.45" flip="1"/>
+- c: its id. x, y: where its feet go. s: its size, true to the others (a squirrel or a bird much smaller than a child; s="1" is its own 200x200 canvas). flip="1" turns it to face left - towards whoever it is with.
+- Something it perches on, climbs or sits on goes BEFORE it, with near="1", as for anyone else.
+- Never draw a new character yourself, and never give it a <fig> or <sprite>.`;
+
+/** The newcomer painter's brief: one character, never seen before, painted
+ *  alone for one page so it can be placed among ready-made ones. */
+export function newcomerPrompt(): string {
+  return `You paint ONE character for a page of a Taleo picture book: someone the story has just brought in, with no portrait yet. It will be placed among characters already painted in the house style, so it must look like it belongs: classic English country watercolour picture books - fine sepia pen line, soft transparent earthy washes, naturalistic animals with real anatomy that still stand, sit and gesture like little people when the moment calls for it.
+
+THE CANVAS: its own 200x200 square. The character stands with its feet (or its bottom, if sitting; its body, if lying or flying) at about x 100, y 190, centred, filling most of the height when standing, facing three-quarters to the viewer's RIGHT. Nothing else: no ground, no shadow line across the canvas, no background, no other characters, no props except what it holds or wears.
+
+THE POSE: exactly what this moment has it do - waving, peeking, carrying, flying, laughing - with a clear line of action, limbs that do something, an expressive face (eyebrows, eyes with a highlight, mouth).
+
+THE LAYERS: write exactly three groups, in this order, and nothing else (no words, no comments, no <svg> wrapper):
+  <g class="paint">the soft watercolour fills: body, fur or clothes, limbs, a darker crescent of form shading on the lower right, a pale highlight on the upper left of the head, a soft small shadow at its feet</g>
+  <g class="ink">fine pen contours (no fill), a few fur or feather ticks in two or three places</g>
+  <g class="detail">eye dots with a white highlight, nose shine, tiny marks</g>
+Use whole-number coordinates and earthy colours from its description (exact hex values where it gives them). Paint economically, 25-45 elements in all: it is one character among several, read by its silhouette, pose, face and colours.`;
+}

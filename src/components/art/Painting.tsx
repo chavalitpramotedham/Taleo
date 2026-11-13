@@ -152,7 +152,13 @@ export const InteractivePainting = forwardRef<
   const [tapped, setTapped] = useState(false);
   const [sparks, setSparks] = useState<{ x: number; y: number; key: number; dots: { dx: number; dy: number; c: string; s: number; star: boolean }[] } | null>(null);
 
-  const targetEl = useCallback(() => box.current?.querySelector<SVGGElement>(`.${TARGET_CLASS}`) ?? null, []);
+  // (the first target with something in it: a newcomer that is the target
+  // is laid in a target group of its own once painted, leaving the one its
+  // place was marked in empty)
+  const targetEl = useCallback(() => {
+    const all = [...(box.current?.querySelectorAll<SVGGElement>(`.${TARGET_CLASS}`) ?? [])];
+    return all.find((el) => el.childElementCount > 0) ?? all[0] ?? null;
+  }, []);
 
   // Gentle idle nudge so children can see what to tap.
   const hasTarget = Boolean(target);
