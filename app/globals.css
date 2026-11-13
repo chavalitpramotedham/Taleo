@@ -16426,3 +16426,25 @@ button.admin-bar-col:focus-visible {
     letter-spacing: 0.02em;
   }
 }
+/* "Generate more cases" and "New test page" share a line on a phone; the
+   All / Uncompleted filter goes underneath */
+@media (max-width: 640px) {
+  .lab-pages-bar {
+    gap: 8px;
+  }
+  .lab-pages-bar .lab-add {
+    font-size: 0.84rem;
+    padding: 6px 12px 6px 6px;
+    gap: 7px;
+  }
+  .lab-pages-bar .lab-add-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 0.95rem;
+  }
+  .lab-pages-filter {
+    flex-basis: 100%;
+    order: 2;
+    margin-left: 0;
+  }
+}

@@ -448,9 +448,23 @@ export function LabBench({
   const [onlyOpen, setOnlyOpen] = useState(false);
   const rankOf = (run: Run | undefined): string[] =>
     run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : [];
+  /** A run's result for a slot, only if it was painted by the variant now
+   *  in that slot (a slot whose way has changed since shows nothing until
+   *  it's painted again); and its picture on the same terms (one painted
+   *  in this visit is always current). */
+  const currentResult = (run: Run | undefined, slot: string) => {
+    const x = run?.ways[slot];
+    return x && (x.variant ?? legacyVariant(slot)) === variantOf(slot as BenchSlot) ? x : undefined;
+  };
+  const staleResult = (run: Run | undefined, slot: string) => (run?.ways[slot] && !currentResult(run, slot) ? run.ways[slot] : undefined);
+  const currentCell = (run: Run | undefined, slot: string) => {
+    if (!run) return undefined;
+    const c = cells[run.id]?.[slot];
+    return c && (c.startedAt || !staleResult(run, slot)) ? c : undefined;
+  };
   const paintedWays = (run: Run) =>
     WAYS.filter(
-      (w) => run.ways[w.id]?.ok || cells[run.id]?.[w.id]?.state === "done",
+      (w) => currentResult(run, w.id)?.ok || currentCell(run, w.id)?.state === "done",
     ).map((w) => w.id);
   const tapRank = async (run: Run, way: string) => {
     const now = rankOf(run);
@@ -573,8 +587,8 @@ export function LabBench({
     const run = runs.find((r) => r.id === runId);
     const today = run?.ways["1"]?.usd ?? cells[runId]?.["1"]?.usd;
     const items = WAYS.map((x): Shown => {
-      const c = cells[runId]?.[x.id];
-      const saved = run?.ways[x.id];
+      const c = currentCell(run, x.id) ?? (run ? undefined : cells[runId]?.[x.id]);
+      const saved = currentResult(run, x.id);
       const cost = c?.usd ?? saved?.usd;
       const vs =
         x.id !== "1" && cost !== undefined && today
@@ -917,6 +931,7 @@ export function LabBench({
                                   {order.includes(w.id)
                                     ? ` · ${ORDINAL[order.indexOf(w.id)]}`
                                     : ""}
+                                  {saved ? ` · ${saved.variant ?? legacyVariant(w.id)}` : ""}
                                   {saved?.ok
                                     ? ` · ${usd(saved.usd)} · ${secs(saved.totalMs)}`
                                     : ""}
@@ -1027,8 +1042,8 @@ export function LabBench({
           <div className="lab-gallery-grid">
             {pages.map((p) => {
               const run = runs.find((r) => r.id === runFor(p.key));
-              const c = run ? cells[run.id]?.[viewing.id] : undefined;
-              const saved = run?.ways[viewing.id];
+              const c = currentCell(run, viewing.id);
+              const saved = currentResult(run, viewing.id);
               return (
                 <figure
                   key={p.key}
@@ -1239,8 +1254,9 @@ export function LabBench({
                 )}
                 <div className="lab-four">
                   {WAYS.map((w) => {
-                    const c = live?.[w.id];
-                    const saved = run?.ways[w.id];
+                    const c = run ? currentCell(run, w.id) : live?.[w.id];
+                    const saved = currentResult(run, w.id);
+                    const stale = staleResult(run, w.id);
                     return (
                       <figure
                         key={w.id}
@@ -1276,7 +1292,9 @@ export function LabBench({
                             <span className="meta">
                               {!runId
                                 ? "Not painted yet"
-                                : c?.state === "failed" || saved
+                                : stale && !c
+                                  ? `Painted by an earlier version (${stale.variant ?? legacyVariant(w.id)})`
+                                  : c?.state === "failed" || saved
                                   ? "No picture"
                                   : run && Date.now() - run.at > 6 * 60_000
                                     ? "Didn't finish"
@@ -1297,6 +1315,7 @@ export function LabBench({
                           !saved?.ok &&
                           (c?.state === "failed" ||
                             saved ||
+                            stale ||
                             Date.now() - run.at > 6 * 60_000) && (
                             <button
                               type="button"
