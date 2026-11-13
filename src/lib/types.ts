@@ -243,6 +243,9 @@ export interface IllustrateRequest {
    *  only - from its settings, or the admin's comparison bench - never
    *  taken from the request. */
   reuse?: ReuseSettings;
+  /** Painted on the admin's bench: also measure how much of each
+   *  painter's output was strokes and how much thinking (server only). */
+  bench?: boolean;
 }
 
 /** Which of the reuse savings a painting uses (see server/paint). */

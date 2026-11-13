@@ -81,7 +81,10 @@ export async function POST(req: Request) {
     return g.response;
   }
   const benched = (lab === "new" || lab === "old") && g.session.user.isAdmin;
-  if (benched) parsed.reuse = lab === "new" ? { stamps: true, parts: false, backdrops: false } : { stamps: false, parts: false, backdrops: false };
+  if (benched) {
+    parsed.reuse = lab === "new" ? { stamps: true, parts: false, backdrops: false } : { stamps: false, parts: false, backdrops: false };
+    parsed.bench = true;
+  }
   // The quick painter takes the pages a reader waits on at the start of each
   // part (the story's beginning, and after every decision) - how many is
   // set by the plan; the rest get the main painter.
@@ -179,6 +182,12 @@ export async function POST(req: Request) {
 function reuseNote(notes: Record<string, unknown>): string {
   const r = notes.reuse as { stamps: number; scatter: number; moved: number; bareInk: number } | undefined;
   const failed = typeof notes.reuseFailed === "string" ? ` · reuse failed, painted the ordinary way (${notes.reuseFailed.slice(0, 80)})` : "";
-  if (!r) return failed;
-  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${failed}`;
+  // (on the bench: each painter's output split into strokes and thinking)
+  const painters = (notes.painters ?? {}) as Record<string, { strokeTokens?: number; thinkingTokens?: number }>;
+  const split = Object.entries(painters)
+    .filter(([, l]) => typeof l?.strokeTokens === "number")
+    .map(([who, l]) => ` · ${who}: ${l.strokeTokens!.toLocaleString("en-GB")} strokes + ${(l.thinkingTokens ?? 0).toLocaleString("en-GB")} thinking`)
+    .join("");
+  if (!r) return failed + split;
+  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${failed}${split}`;
 }

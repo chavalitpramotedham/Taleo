@@ -463,6 +463,8 @@ async function* brushStrokes(
   const standIn = !model.startsWith("claude-haiku-5-5");
   const began = Date.now();
   let strokes = 0;
+  // (on the bench: everything drawn, to count it afterwards)
+  let drawn = "";
   for (;;) {
     // (this go's own switch: thrown by the reader leaving, or by the
     // first-stroke clock)
@@ -504,6 +506,7 @@ async function* brushStrokes(
             clearTimeout(clock);
             log.firstStrokeMs = Date.now() - began;
           }
+          if (log.measure) drawn += event.delta.text;
           yield event.delta.text;
         }
       }
@@ -513,6 +516,19 @@ async function* brushStrokes(
       // (a painting cut off at the token limit is not a painting: without
       // this it would be sent on as finished, half a picture)
       if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
+      // On the bench: how many of the output tokens were the strokes
+      // themselves (counted exactly, by the same tokenizer), so the rest
+      // was thinking.
+      if (log.measure) {
+        try {
+          const count = (text: string) => getClient().messages.countTokens({ model, messages: [{ role: "user", content: text }] });
+          const [all, none] = await Promise.all([count(drawn || "."), count(".")]);
+          log.strokeTokens = Math.max(0, all.input_tokens - none.input_tokens + 1);
+          log.thinkingTokens = Math.max(0, Number(log.out ?? 0) - Number(log.strokeTokens));
+        } catch (e) {
+          console.warn("painting: couldn't count the strokes", e);
+        }
+      }
       return;
     } catch (err) {
       usage.fail(err, signal?.aborted ? (stoppedBy?.() ?? "The reader left (or their page gave up waiting).") : late ? `No first stroke after ${brush.clockMs / 1000}s: given up on.` : undefined);
@@ -730,9 +746,10 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // One line per painting in the server log: which painter, how long until
   // the request was taken up, until the first stroke, and in all.
   const began = Date.now();
-  const log: Record<string, unknown> = { model, quick: Boolean(req.quick), retry: Boolean(req.retry) };
+  const log: Record<string, unknown> = { model, quick: Boolean(req.quick), retry: Boolean(req.retry), measure: Boolean(req.bench) };
   try {
     if (!layered) {
+      notes.painters = { painter: log };
       const strokes = brushStrokes(main, signal, log);
       yield* reuse.stamps ? expandStream(strokes, expandCtx(null), stats) : strokes;
       return;
@@ -762,7 +779,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         },
       ],
     };
-    const logs = { scenery: { model: scenery.model } as Record<string, unknown>, characters: {} as Record<string, unknown> };
+    const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { measure: Boolean(req.bench) } as Record<string, unknown> };
+    notes.painters = logs;
     Object.assign(log, { layered: true, ...logs });
     // (with the pieces on, the scenery painter's placeholders are expanded
     // as they come - kept out of the characters' space - and the character
