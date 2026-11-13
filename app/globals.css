@@ -16448,3 +16448,17 @@ button.admin-bar-col:focus-visible {
     margin-left: 0;
   }
 }
+.lab-card-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+.lab-card-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}

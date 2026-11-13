@@ -1,6 +1,7 @@
 import { metricsEnabled, pipeline } from "./metrics";
 import { getGen } from "./genlog";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { legacyVariant } from "@/lib/bench-ways";
 
 /**
  * The painting bench's storage (see app/api/admin/bench): runs, their
@@ -35,6 +36,11 @@ export interface BenchRun {
   vote?: string;
   /** the ways ranked best to worst (slot ids) */
   rank?: string[];
+  /** the variant in each slot when it was ranked */
+  rankVariants?: Record<string, string>;
+  /** rankings that were reset: kept, and still counted for variants no
+   *  longer in use */
+  rankOld?: { order: string[]; variants: Record<string, string> }[];
 }
 
 export const RUNS = "bench:runs";
@@ -56,6 +62,31 @@ export async function hset(key: string, field: string, value: string) {
   await pipeline([["HSET", key, field, value], ["EXPIRE", key, KEEP_S]]);
 }
 
+
+const parse = <T,>(v: string | undefined): T | undefined => {
+  try {
+    return v ? (JSON.parse(v) as T) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+/** All of a run's fields. */
+export async function runFields(runId: string): Promise<Record<string, string>> {
+  if (!metricsEnabled()) return { ...(mem().runs.get(`bench:run:${runId}`) ?? {}) };
+  const [r] = await pipeline([["HGETALL", `bench:run:${runId}`]]).catch(() => [null]);
+  const flat = Array.isArray(r) ? r.map(String) : [];
+  const o: Record<string, string> = {};
+  for (let j = 0; j + 1 < flat.length; j += 2) o[flat[j]] = flat[j + 1];
+  return o;
+}
+export async function hdel(key: string, fields: string[]) {
+  if (!metricsEnabled()) {
+    const m = mem().runs.get(key);
+    if (m) for (const f of fields) delete m[f];
+    return;
+  }
+  await pipeline([["HDEL", key, ...fields]]);
+}
 
 /** The model calls that are one-off set-up, paid once and reused by the
  *  pages after (see paintOnce): not part of a page's own cost. */
@@ -80,6 +111,34 @@ export async function saveBenchResult(runId: string, way: string, o: { variant: 
     summary: String(got?.record.summary ?? "").slice(0, 600),
     ...(o.ok ? {} : { error: String(got?.record.error ?? got?.record.status ?? "it didn't finish").slice(0, 300) }),
   };
+  // A result an earlier version painted in this slot is kept, under its
+  // own name, so that version keeps its numbers. And if the page had been
+  // ranked with it, that ranking is put away (as a reset does) with who
+  // was in each slot, so its points stay with the versions it ranked -
+  // never passed to the new one - and the page can be ranked afresh.
+  const fields = await runFields(runId);
+  const prev = fields[`w${way}`];
+  if (prev) {
+    try {
+      const old = JSON.parse(prev) as WayResult;
+      const oldVariant = old.variant ?? legacyVariant(way);
+      if (oldVariant !== o.variant) {
+        await hset(`bench:run:${runId}`, `w${way}@${oldVariant}`, JSON.stringify({ ...old, variant: oldVariant }));
+        const order = parse<string[]>(fields.rank) ?? (fields.vote ? [fields.vote] : []);
+        if (order.length) {
+          const given = parse<Record<string, string>>(fields.rankv) ?? {};
+          const variants: Record<string, string> = {};
+          for (const slot of order) {
+            const r = parse<WayResult>(fields[`w${slot}`]);
+            variants[slot] = given[slot] ?? r?.variant ?? legacyVariant(slot);
+          }
+          const kept = parse<{ order: string[]; variants: Record<string, string> }[]>(fields.rankold) ?? [];
+          await hset(`bench:run:${runId}`, "rankold", JSON.stringify([...kept, { order, variants }].slice(-20)));
+          await hdel(`bench:run:${runId}`, ["rank", "rankv", "vote"]);
+        }
+      }
+    } catch {}
+  }
   await hset(`bench:run:${runId}`, `w${way}`, JSON.stringify(result));
   const svg = o.ok ? sanitizeSvg(o.svg, 400_000) : "";
   if (!svg) return;

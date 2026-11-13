@@ -1347,14 +1347,30 @@ export function LabBench({
                     );
                   })}
                 </div>
-                {history.length > 1 && (
-                  <button
-                    type="button"
-                    className="link-btn lab-past-link"
-                    onClick={() => openPast(p.key)}
-                  >
-                    Past generations ({history.length})
-                  </button>
+                {(history.length > 1 || Boolean(run?.rank?.length || run?.vote)) && (
+                  <div className="lab-card-links">
+                    {run && Boolean(run.rank?.length || run.vote) && (
+                      <button
+                        type="button"
+                        className="link-btn"
+                        onClick={async () => {
+                          // (put away, not lost: it still counts for variants no
+                          // longer in use - see the bench route)
+                          setPicking((pk) => ({ ...pk, [run.id]: [] }));
+                          setRuns((rs) => rs.map((r) => (r.id === run.id ? { ...r, rank: undefined, vote: undefined } : r)));
+                          await api({ kind: "reset-rank", runId: run.id });
+                          await load();
+                        }}
+                      >
+                        Reset ranking
+                      </button>
+                    )}
+                    {history.length > 1 && (
+                      <button type="button" className="link-btn" onClick={() => openPast(p.key)}>
+                        Past generations ({history.length})
+                      </button>
+                    )}
+                  </div>
                 )}
               </details>
             );

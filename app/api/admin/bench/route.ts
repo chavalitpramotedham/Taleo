@@ -43,11 +43,24 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
         const meta = JSON.parse(o.meta ?? "{}") as { at?: number; page?: string; label?: string };
         const ways: Record<string, WayResult> = {};
         for (const [k, v] of Object.entries(o)) if (k.startsWith("w")) ways[k.slice(1)] = JSON.parse(v) as WayResult;
-        let rank: string[] | undefined;
-        try {
-          rank = o.rank ? (JSON.parse(o.rank) as string[]) : undefined;
-        } catch {}
-        return { id, at: meta.at ?? 0, page: meta.page ?? "", label: meta.label ?? "", ways, vote: o.vote || undefined, rank };
+        const json = <T,>(v: string | undefined): T | undefined => {
+          try {
+            return v ? (JSON.parse(v) as T) : undefined;
+          } catch {
+            return undefined;
+          }
+        };
+        return {
+          id,
+          at: meta.at ?? 0,
+          page: meta.page ?? "",
+          label: meta.label ?? "",
+          ways,
+          vote: o.vote || undefined,
+          rank: json<string[]>(o.rank),
+          rankVariants: json<Record<string, string>>(o.rankv),
+          rankOld: json<{ order: string[]; variants: Record<string, string> }[]>(o.rankold),
+        };
       } catch {
         return null;
       }
@@ -62,32 +75,60 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
  *  it was voted best, and its averages. The current variant of each slot
  *  first, in slot order; then earlier ones, kept for comparison. */
 function leaderboard(runs: BenchRun[]) {
+  const baseSlot = (key: string) => key.split("@")[0];
   const rows = new Map<string, { slot: string; results: { r: BenchRun; x: WayResult }[] }>();
+  const row = (variant: string, slot: string) => {
+    if (!rows.has(variant)) rows.set(variant, { slot, results: [] });
+    return rows.get(variant)!;
+  };
+  // (results: each slot's, and any an earlier version painted there before
+  // it was painted again - kept under "slot@variant")
   for (const r of runs)
-    for (const [slot, x] of Object.entries(r.ways)) {
-      const variant = x.variant ?? legacyVariant(slot);
-      if (!rows.has(variant)) rows.set(variant, { slot, results: [] });
-      rows.get(variant)!.results.push({ r, x });
-    }
+    for (const [key, x] of Object.entries(r.ways)) row(x.variant ?? legacyVariant(baseSlot(key)), baseSlot(key)).results.push({ r, x });
   const current = new Set(BENCH_SLOTS.map((s) => variantOf(s)));
-  for (const s of BENCH_SLOTS) if (!rows.has(variantOf(s))) rows.set(variantOf(s), { slot: s, results: [] });
+  for (const s of BENCH_SLOTS) row(variantOf(s), s);
+  // Scores, from rankings. A ranking gives points by place (RANK_POINTS)
+  // to the variant that was in each slot when it was ranked (a vote from
+  // before rankings counts as a first place). A ranking that was reset is
+  // kept: it still counts for variants no longer in use, so they keep the
+  // score they earned, but not for current ones, which are ranked afresh.
+  const score = new Map<string, { points: number; ranked: number; first: number }>();
+  const give = (variant: string, place: number) => {
+    const t = score.get(variant) ?? { points: 0, ranked: 0, first: 0 };
+    t.points += RANK_POINTS[place] ?? 0;
+    t.ranked += 1;
+    if (place === 0) t.first += 1;
+    score.set(variant, t);
+  };
+  const variantIn = (r: BenchRun, slot: string) => r.ways[slot]?.variant ?? (r.ways[slot] ? legacyVariant(slot) : null);
+  for (const r of runs) {
+    const order = r.rank?.length ? r.rank : r.vote ? [r.vote] : [];
+    if (order.length) {
+      // (the other painted slots of a run with only a vote: ranked, no points)
+      const slots = r.rank?.length ? order : Object.keys(r.ways).filter((k) => !k.includes("@") && r.ways[k].ok);
+      for (const slot of slots) {
+        const v = r.rankVariants?.[slot] ?? variantIn(r, slot);
+        if (v) give(v, order.indexOf(slot) < 0 ? 99 : order.indexOf(slot));
+      }
+    }
+    for (const old of r.rankOld ?? [])
+      old.order.forEach((slot, place) => {
+        const v = old.variants[slot];
+        if (v && !current.has(v)) give(v, place);
+      });
+  }
   const out = [...rows.entries()].map(([variant, { slot, results }]) => {
     const done = results.filter(({ x }) => x.ok);
     const avg = (pick: (x: WayResult) => number) => (done.length ? done.reduce((t, { x }) => t + pick(x), 0) / done.length : null);
-    // (a page's ranking gives points by place - RANK_POINTS; a vote from
-    // before rankings counts as first place)
-    const placeOf = (r: BenchRun) => (r.rank?.length ? r.rank.indexOf(slot) : r.vote ? (r.vote === slot ? 0 : -1) : -1);
-    const ranked = done.filter(({ r }) => r.rank?.length || r.vote);
-    const score = ranked.reduce((t, { r }) => t + (placeOf(r) >= 0 ? (RANK_POINTS[placeOf(r)] ?? 0) : 0), 0);
-    const voted = ranked;
+    const sc = score.get(variant) ?? { points: 0, ranked: 0, first: 0 };
     return {
       way: slot,
       variant,
       current: current.has(variant),
       painted: done.length,
-      wins: done.filter(({ r }) => placeOf(r) === 0).length,
-      score,
-      votedRuns: voted.length,
+      wins: sc.first,
+      score: sc.points,
+      votedRuns: sc.ranked,
       usd: avg((x) => x.usd),
       out: avg((x) => x.out),
       totalMs: avg((x) => x.totalMs),
@@ -181,7 +222,30 @@ export async function POST(req: Request) {
   }
   if (b?.kind === "rank" && runId && Array.isArray(b.order)) {
     const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && /^[1pqx]$/.test(x)))];
+    // (which variant was in each slot when it was ranked: the slot's way may
+    // change later)
+    const variants: Record<string, string> = {};
+    const given = (b.variants ?? {}) as Record<string, unknown>;
+    for (const slot of order) variants[slot] = typeof given[slot] === "string" && /^[\w-]{1,20}$/.test(given[slot] as string) ? (given[slot] as string) : variantOf(slot as BenchSlot);
     await hset(`bench:run:${runId}`, "rank", JSON.stringify(order));
+    await hset(`bench:run:${runId}`, "rankv", JSON.stringify(variants));
+    return NextResponse.json({ ok: true });
+  }
+  // A ranking reset: put away (it still counts for variants no longer in
+  // use), and the page can be ranked afresh.
+  if (b?.kind === "reset-rank" && runId) {
+    const run = (await readRuns()).find((r) => r.id === runId);
+    if (!run) return NextResponse.json({ ok: false });
+    const order = run.rank?.length ? run.rank : run.vote ? [run.vote] : [];
+    if (order.length) {
+      const variants: Record<string, string> = {};
+      for (const slot of order) variants[slot] = run.rankVariants?.[slot] ?? run.ways[slot]?.variant ?? legacyVariant(slot);
+      await hset(`bench:run:${runId}`, "rankold", JSON.stringify([...(run.rankOld ?? []), { order, variants }].slice(-20)));
+    }
+    if (!metricsEnabled()) {
+      const m = mem().runs.get(`bench:run:${runId}`);
+      if (m) for (const f of ["rank", "rankv", "vote"]) delete m[f];
+    } else await pipeline([["HDEL", `bench:run:${runId}`, "rank", "rankv", "vote"]]);
     return NextResponse.json({ ok: true });
   }
   if (b?.kind === "vote" && runId && way) {
