@@ -17082,3 +17082,13 @@ html[data-night] .lab-board .lab-bad {
     text-align: left;
   }
 }
+
+/* Full books: the book's title leads each row */
+.admin-table tbody th.admin-book-name {
+  color: var(--ink);
+  max-width: 34ch;
+}
+.admin-untitled {
+  color: var(--ink-faint);
+  font-style: italic;
+}

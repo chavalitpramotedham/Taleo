@@ -11,6 +11,7 @@ import { Segmented } from "@/components/Segmented";
 import { FindUser } from "./FindUser";
 import { ZoomList, ZoomPicture, type ZoomItem } from "./Zoom";
 import { fuzzyPeople } from "@/lib/fuzzy";
+import { listGallery } from "@/server/gallery";
 
 const HERE = "/admin/activity";
 const KIND_NAME: Record<GenKind, string> = { story: "Stories", painting: "Paintings", character: "Characters", voice: "Voice" };
@@ -237,7 +238,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
           <FilteredList>
           {books ? (
-            <BookList records={all} users={byId} now={now} />
+            <BookList records={all} users={byId} titles={await bookTitles()} />
           ) : subjectId && !kind ? (
             GEN_KINDS.map((k) => {
               const rows = list.filter((r) => r.kind === k);
@@ -580,11 +581,28 @@ function tally(records: GenRecord[]) {
   };
 }
 /** A book's name, as its first part asked for it. */
-const bookName = (records: GenRecord[]) => records.find((r) => r.kind === "story")?.what || records[0]?.what || "a book";
+/** The books' titles, from the library (a book is there once it's been
+ *  made; one still being written, or abandoned, isn't). */
+async function bookTitles(): Promise<Map<string, string>> {
+  const entries = await listGallery().catch(() => []);
+  return new Map(entries.map((e) => [e.id, e.title]));
+}
+/** A book's name: its title; else, marked as untitled, its first words. */
+function BookName({ id, records, titles }: { id: string; records: GenRecord[]; titles: Map<string, string> }) {
+  const title = titles.get(id);
+  if (title) return <>{title}</>;
+  const words = records.find((r) => r.kind === "story")?.what || records[0]?.what || "";
+  const short = words.length > 70 ? `${words.slice(0, 68).trimEnd()}...` : words;
+  return (
+    <span className="admin-untitled" title={words || undefined}>
+      Not in the library{short ? `: ${short}` : ""}
+    </span>
+  );
+}
 
 /** Every book made lately (everything with a story's id, but the bench's
  *  own), newest first: what it cost in all, and how much of it there is. */
-function BookList({ records, users, now }: { records: GenRecord[]; users: Map<string, UserProfile>; now: number }) {
+function BookList({ records, users, titles }: { records: GenRecord[]; users: Map<string, UserProfile>; titles: Map<string, string> }) {
   const byBook = new Map<string, GenRecord[]>();
   for (const r of records) if (r.storyId && !/^lab/.test(r.storyId)) byBook.set(r.storyId, [...(byBook.get(r.storyId) ?? []), r]);
   const list = [...byBook.entries()].map(([id, rs]) => ({ id, rs, t: tally(rs) })).sort((a, b) => b.t.last - a.t.last);
@@ -599,9 +617,9 @@ function BookList({ records, users, now }: { records: GenRecord[]; users: Map<st
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Last made</th>
                 <th>Book</th>
                 <th>Who</th>
+                <th>Last made</th>
                 <th>Parts</th>
                 <th>Paintings</th>
                 <th>Voice</th>
@@ -612,15 +630,15 @@ function BookList({ records, users, now }: { records: GenRecord[]; users: Map<st
             <tbody>
               {list.map(({ id, rs, t }) => (
                 <tr key={id}>
-                  <td>
+                  <th scope="row" className="admin-book-name">
                     <Link href={`${HERE}?book=${encodeURIComponent(id)}`}>
-                      <When at={t.last} />
+                      <BookName id={id} records={rs} titles={titles} />
                     </Link>
-                  </td>
-                  <td>
-                    <Link href={`${HERE}?book=${encodeURIComponent(id)}`}>{bookName(rs)}</Link>
-                  </td>
+                  </th>
                   <td>{who(users.get(rs[0].userId ?? ""), rs[0].userId)}</td>
+                  <td>
+                    <When at={t.last} />
+                  </td>
                   <td>{n(t.parts)}</td>
                   <td>{n(t.paintings)}</td>
                   <td>{n(t.voice)}</td>
@@ -673,7 +691,9 @@ async function Book({ id, now }: { id: string; now: number }) {
         <p className="meta">
           <Link href={`${HERE}?view=books`}>All books</Link>
         </p>
-        <h2>{bookName(records)}</h2>
+        <h2>
+          <BookName id={id} records={records} titles={await bookTitles()} />
+        </h2>
         <p className="meta">
           {who(user, records[0].userId)} · begun <When at={t.first} /> · {dur(t.last - t.first)} from first to last
         </p>
