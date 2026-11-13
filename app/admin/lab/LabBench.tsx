@@ -245,6 +245,19 @@ export function LabBench({
   const [runs, setRuns] = useState<Run[]>([]);
   const [board, setBoard] = useState<Board[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
+  // Which ways paint test pages (the rest are paused - e.g. v0, once it's
+  // clearly not a contender and too dear to keep painting): saved on the
+  // server, so it holds on every device.
+  const [active, setActive] = useState<string[] | null>(null);
+  const isActive = (id: string) => !active || active.includes(id);
+  const ACTIVE_WAYS = WAYS.filter((w) => isActive(w.id));
+  const toggleWay = async (id: string) => {
+    const now = active ?? WAYS.map((w) => w.id);
+    const next = now.includes(id) ? now.filter((x) => x !== id) : [...now, id];
+    if (!next.length) return;
+    setActive(next);
+    await api({ kind: "active-ways", ways: next });
+  };
   // live cells: run id -> way -> cell
   const [cells, setCells] = useState<Record<string, Record<string, Cell>>>({});
   // the run shown for each page (the latest, unless one is painting)
@@ -258,6 +271,7 @@ export function LabBench({
     setRuns(d.runs);
     setBoard(d.leaderboard);
     setUsage(d.usage ?? null);
+    if (Array.isArray(d.activeWays)) setActive(d.activeWays);
     setOwn((d.pages as LabPage[]).map((p) => ({ ...p, own: true })));
     setArchived(new Set((d.archived as string[] | undefined) ?? []));
   }, []);
@@ -525,7 +539,8 @@ export function LabBench({
     const runId = newId(p.key);
     setShown((s) => ({ ...s, [p.key]: runId }));
     await api({ kind: "start", runId, page: p.key, label: p.label });
-    await Promise.all(WAYS.map((w) => paintWay(p, w.id, runId, book)));
+    // (only the ways switched on: a paused one isn't painted, or paid for)
+    await Promise.all(ACTIVE_WAYS.map((w) => paintWay(p, w.id, runId, book)));
     await load();
   };
   // Ranking a page's ways, best first: tapped in order, saved once every
@@ -538,13 +553,16 @@ export function LabBench({
     run: Run | undefined,
     painting: boolean,
   ): "none" | "some" | "all" | "ranked" => {
-    const done = run ? paintedWays(run).length : 0;
+    // (counted over the ways switched on: a paused one isn't waited for)
+    const need = ACTIVE_WAYS;
+    const painted = run ? paintedWays(run) : [];
+    const done = need.filter((w) => painted.includes(w.id)).length;
     const ranked =
       Boolean(run?.rank?.length) &&
-      done === WAYS.length &&
-      WAYS.every((w) => run!.rank!.includes(w.id));
-    if (!run || done === 0) return painting ? "some" : "none";
-    if (done < WAYS.length || painting) return "some";
+      done === need.length &&
+      need.every((w) => run!.rank!.includes(w.id));
+    if (!run || painted.length === 0) return painting ? "some" : "none";
+    if (done < need.length || painting) return "some";
     return ranked ? "ranked" : "all";
   };
   // A test page's past generations, in a list (its key), and their pictures
@@ -826,6 +844,48 @@ export function LabBench({
       </header>
 
       <BenchUsage usage={usage} />
+      <details className="panel lab-settings">
+        <summary>
+          <b>Bench settings</b>
+          <span className="meta">
+            {ACTIVE_WAYS.length === WAYS.length
+              ? "every way paints"
+              : `${ACTIVE_WAYS.map((w) => nOf(w.id)).join(", ")} paint · ${WAYS.filter((w) => !isActive(w.id)).map((w) => `${nOf(w.id)}. ${w.name}`).join(", ")} paused`}
+          </span>
+        </summary>
+        <p className="meta">
+          Which ways paint the test pages. A paused way isn&apos;t painted or paid for; its results so far stay on the leaderboard, and v0&apos;s still serve as the baseline for &quot;vs v0&quot;. Saved for every device.
+        </p>
+        <ul className="lab-settings-list">
+          {WAYS.map((w) => {
+            const est = w.id === "1" ? null : estimateFor(variantOf(w.id as BenchSlot));
+            const on = isActive(w.id);
+            return (
+              <li key={w.id} className={on ? "" : "off"}>
+                <label>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={on}
+                    disabled={on && ACTIVE_WAYS.length === 1}
+                    onChange={() => void toggleWay(w.id)}
+                  />
+                  <span className="lab-switch" aria-hidden="true" />
+                  <span className="lab-settings-name">
+                    <b>
+                      {nOf(w.id)}. {w.name}
+                    </b>
+                    <small className="lab-variant">{variantOf(w.id as BenchSlot)}</small>
+                  </span>
+                  <span className="meta lab-settings-est">
+                    {w.id === "1" ? "the baseline" : est ? `expected ${usd(est.usd)}, ${secs(est.ms)} (-${est.costPc}% cost, -${est.timePc}% time)` : ""}
+                  </span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </details>
       <section className="panel lab-board" aria-label="Leaderboard">
         <div
           className="lab-rank"
@@ -923,6 +983,7 @@ export function LabBench({
                                   now slot {nOf(b.way)}
                                 </span>
                               ) : null}
+                              {b.current && !isActive(b.way) ? <span className="lab-paused">paused</span> : null}
                             </small>
                           </b>
                           {b.current && w && (
@@ -1439,7 +1500,7 @@ export function LabBench({
                   </button>
                 )}
                 <div className="lab-four">
-                  {WAYS.map((w) => {
+                  {WAYS.filter((w) => isActive(w.id) || (run && (currentResult(run, w.id) || currentCell(run, w.id)))).map((w) => {
                     const c = run ? currentCell(run, w.id) : live?.[w.id];
                     const saved = currentResult(run, w.id);
                     const stale = staleResult(run, w.id);

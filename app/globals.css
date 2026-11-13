@@ -16828,3 +16828,103 @@ html[data-night] .lab-board .lab-good {
 html[data-night] .lab-board .lab-bad {
   color: #f0a39b;
 }
+/* Bench settings: which ways paint */
+.lab-settings {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+}
+.lab-settings > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  cursor: pointer;
+}
+.lab-settings > p {
+  margin: 8px 0;
+  font-size: 0.85rem;
+}
+.lab-settings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.lab-settings-list label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 4px;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+.lab-settings-list input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.lab-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  transition: background 0.15s;
+}
+.lab-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--page);
+  transition: transform 0.15s;
+}
+.lab-settings-list input:checked + .lab-switch {
+  background: var(--russet);
+}
+.lab-settings-list input:checked + .lab-switch::after {
+  transform: translateX(16px);
+}
+.lab-settings-list input:focus-visible + .lab-switch {
+  outline: 2px solid var(--russet);
+  outline-offset: 2px;
+}
+.lab-settings-list input:disabled + .lab-switch {
+  opacity: 0.6;
+}
+.lab-settings-list li.off .lab-settings-name {
+  opacity: 0.55;
+}
+.lab-settings-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+.lab-settings-est {
+  font-size: 0.78rem;
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .lab-settings-list label {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .lab-settings-est {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+.lab-paused {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-soft);
+  font-size: 0.66rem;
+}

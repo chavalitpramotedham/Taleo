@@ -172,6 +172,22 @@ const nope = () => new NextResponse(null, { status: 404 });
 /** Archived test pages' keys (a list kept on its own). */
 const ARCHIVED = "bench:archived";
 let memArchived: string[] = [];
+/** Which ways paint the bench's test pages (the others are paused, e.g. v0
+ *  when it isn't worth paying for again): all, unless set. */
+const ACTIVE = "bench:active";
+let memActive: string[] | null = null;
+async function activeWays(): Promise<string[]> {
+  let v: unknown = memActive;
+  if (metricsEnabled()) [v] = await pipeline([["GET", ACTIVE]]).catch(() => [null]);
+  try {
+    const list = (typeof v === "string" ? JSON.parse(v) : v) as unknown;
+    if (Array.isArray(list)) {
+      const ok = list.filter((x): x is string => typeof x === "string" && SLOT_RE.test(x));
+      if (ok.length) return ok;
+    }
+  } catch {}
+  return [...BENCH_SLOTS];
+}
 const noStore = { "cache-control": "no-store" };
 
 export async function GET(req: Request) {
@@ -213,7 +229,7 @@ export async function GET(req: Request) {
   // (the bench's own use: over the last day, the last week, and all time -
   // every run, not just those sent)
   const all = await readRuns(20_000);
-  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all) }, { headers: noStore });
+  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all), activeWays: await activeWays() }, { headers: noStore });
 }
 
 const ID = /^[\w-]{3,80}$/;
@@ -337,6 +353,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
   // Archive a test page (or bring it back): hidden from the main list
+  // Which ways paint (at least one always does).
+  if (b?.kind === "active-ways" && Array.isArray(b.ways)) {
+    const ways = [...new Set((b.ways as unknown[]).filter((x): x is string => typeof x === "string" && SLOT_RE.test(x)))];
+    if (!ways.length) return NextResponse.json({ ok: false, error: "At least one way must paint." }, { status: 400 });
+    if (metricsEnabled()) await pipeline([["SET", ACTIVE, JSON.stringify(ways)]]);
+    else memActive = ways;
+    return NextResponse.json({ ok: true, activeWays: ways });
+  }
   if (b?.kind === "archive" && typeof b.key === "string" && ID.test(b.key)) {
     let list: string[] = [];
     if (!metricsEnabled()) list = memArchived;
