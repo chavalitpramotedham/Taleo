@@ -814,6 +814,22 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, n
   yield* paintOnce({ ...req, reuse: reuseOf(req) }, signal, notes);
 }
 
+/** How big a character is against the page's grown characters, from its
+ *  kind (a ladybird, a squirrel), added to its sheet - so a painter or
+ *  composer doesn't paint a squirrel bigger than a rabbit (lesson 1, see
+ *  docs/painting-lessons.md). Nothing for ordinary-sized characters. */
+export function relativeSize(c: Pick<CharacterDef, "name" | "look">): string | null {
+  const t = `${c.name} ${c.look}`.toLowerCase();
+  if (/\b(ladybird|ladybug|ant|ants|bee|bumblebee|butterfly|dragonfly|snail|beetle|caterpillar|firefly|spider|fairy|fly)\b/.test(t)) return "TINY: about a tenth of a grown character's height - it fits on a hand or a leaf";
+  if (/\b(mouse|mice|frog|toad|crab|bird|robin|sparrow|blackbird|wren|chick|duckling|hedgehog|mole|squirrel|vole|shrew|gosling|kitten|lizard|newt)\b/.test(t)) return "SMALL: smaller than the grown characters, about two thirds of their height";
+  if (/\b(goose|duck|hen|chicken|puppy|tortoise|otter|badger|seal pup|lamb)\b/.test(t)) return "a little smaller than a grown character (about three quarters of the height)";
+  return null;
+}
+const withSize = (c: CharacterDef, sheet: string) => {
+  const r = relativeSize(c);
+  return r ? `${sheet}\nSIZE AGAINST THE OTHERS: ${r}.` : sheet;
+};
+
 /** Where a place's prepared backdrop is kept: by the place itself (its id
  *  and description), its light and the book's season - shared by every
  *  page and way set there, as a character's prepared parts are. */
@@ -1044,7 +1060,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         return null;
       });
     }
-  const sheet = (c: CharacterDef) => {
+  const sheet = (c: CharacterDef) => withSize(c, sheetOf(c));
+  const sheetOf = (c: CharacterDef) => {
     if (newcomers.includes(c)) return newcomerSheet(c);
     const parts = partsOf.get(c.id);
     // (with no poses yet but its parts: any pose word, made from its parts)

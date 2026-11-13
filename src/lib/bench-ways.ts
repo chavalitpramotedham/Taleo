@@ -47,7 +47,10 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
 /** How each way works beyond its settings. Bump (and say why) whenever a
  *  way's prompts or assembly change. */
 export const STYLE: Record<BenchSlot, string> = {
-  "1": "s1",
+  // s2 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
+  // character's size against the others on its sheet; the main action's
+  // object always shown, at the action
+  "1": "s2",
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
   // s3 (13 Nov): on the bench, its own parts - never another variant's
@@ -61,7 +64,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // sized to fit
   // s8 (13 Nov): characters bigger - a mid shot about half the
   // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
-  p: "s8",
+  // s9 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
+  // character's size against the others on its sheet; the main action's
+  // object always shown, at the action
+  p: "s9",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -73,7 +79,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // painter; replies sized to fit; nothing thrown away when cut off
   // s7 (13 Nov): characters bigger - a mid shot about half the
   // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
-  q: "s7",
+  // s8 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
+  // character's size against the others on its sheet; the main action's
+  // object always shown, at the action
+  q: "s8",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -92,7 +101,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and leg poses and moods); the composer is Sonnet (a setting)
   // s10 (13 Nov): characters bigger - a mid shot about half the
   // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
-  x: "s10",
+  // s11 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
+  // character's size against the others on its sheet; the main action's
+  // object always shown, at the action
+  x: "s11",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -101,7 +113,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // parts with way 4's new arms, hands, legs and faces
   // s5 (13 Nov): characters bigger - a mid shot about half the
   // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
-  s: "s5",
+  // s6 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
+  // character's size against the others on its sheet; the main action's
+  // object always shown, at the action
+  s: "s6",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
@@ -129,6 +144,6 @@ export function variantOf(slot: BenchSlot): string {
 
 /** Results saved before variant codes existed: one code per slot (and the
  *  retired first way 3, "b"). */
-export const legacyVariant = (slot: string) => (slot === "1" ? variantOf("1") : `${slot === "b" ? "3" : slotNumber(slot)}-OLD${slot === "b" ? "B" : ""}`);
-// (today's way has never changed, so its earlier results are its current
-// variant's)
+// (v0's results from before variant codes were painted by its first
+// version, 1-SV11 - it has changed since)
+export const legacyVariant = (slot: string) => (slot === "1" ? "1-SV11" : `${slot === "b" ? "3" : slotNumber(slot)}-OLD${slot === "b" ? "B" : ""}`);

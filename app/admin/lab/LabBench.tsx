@@ -612,7 +612,13 @@ export function LabBench({
       .filter((v): v is number => v !== null);
     return vals.length ? Math.min(...vals) : null;
   };
-  const today = board.find((x) => x.way === "1" && x.current)?.usd ?? null;
+  // (v0, the baseline: its current version once it has paintings, else
+  // its latest version that has - so savings still show just after it
+  // changes)
+  const baseRow =
+    board.find((x) => x.way === "1" && x.current && x.painted > 0) ??
+    [...board].filter((x) => x.way === "1" && x.painted > 0).sort((a, b) => (b.firstAt ?? 0) - (a.firstAt ?? 0))[0];
+  const today = baseRow?.usd ?? null;
   // The leaderboard's order: by code - the order the variants were first
   // tried (#1, #2...; one not tried yet is "new", last) - or by votes.
   const [rankBy, setRankBy] = useState<"code" | "score" | "avg">("code");
@@ -642,7 +648,7 @@ export function LabBench({
             (x.n ?? 1e9) - (y.n ?? 1e9),
         );
   const todayMs =
-    board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
+    baseRow?.totalMs ?? null;
   /** How a variant measures up to its estimate, on cost and on time (each
    *  as a saving against today, in percentage points):
    *  - "off" (red): either falls short by more than 25 points, or costs or
@@ -1884,7 +1890,9 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         (x): x is Run["ways"][string] =>
           Boolean(x?.ok) &&
           !x!.fellBack &&
-          (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot),
+          // (v0, the baseline, over all its versions: it changes rarely, and
+          // only in its instructions)
+          (w === "1" || (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot)),
       );
     const costed = done.filter((x) => x.usd > 0);
     const cost = costed.reduce((t, x) => t + x.usd, 0);
