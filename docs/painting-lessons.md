@@ -157,3 +157,27 @@ side; a figure whose build says "thin ink-line arms and legs" got pen-line
 limbs with dark boots.
 
 New codes: 1-UUK6, 2-IR7G, 3-ANDK, 4-6NMN, 5-2XOL.
+
+## 13 Nov 2026 - way 4: characters fine, context and named things missing
+
+Seen (the user): way 4's characters look fine, but its pictures lack the
+moment's context and often leave out things the prompt names.
+
+**Lesson 9 - composers check the brief thing by thing; way 4 thinks
+harder.** Both composers now end with a checklist step: go through every
+concrete thing the picture brief and the text name (objects, what the
+place has in it for this moment, what the weather or action leaves) and
+make sure each is in the picture, where the brief puts it - a standard
+piece where one fits, else a few simple drawn shapes - before finishing.
+Way 4's composer moves from Sonnet at low effort to medium (about twice
+the thinking, ~6 cents a page against ~3), since its gaps are in
+composition, not drawing. Its reply room goes from 8,000 to 12,000 tokens
+to fit the thinking.
+Where: rule 4 of both composers' "THINK FIRST" (`src/server/prompts.ts`);
+way 4's settings (`src/lib/bench-ways.ts`); `replyRoom`
+(`src/server/claude.ts`).
+
+Watch: if way 4 at ~6 cents isn't clearly better than way 3 at ~5, it
+loses its reason to exist.
+
+New codes: 4-TG6T, 5-3BZM.

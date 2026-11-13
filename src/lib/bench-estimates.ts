@@ -144,6 +144,16 @@ const X9: Estimate = {
   why: "The composer is now Sonnet, thinking at low effort (~9k tokens in, mostly its cached brief and the pieces' list; ~2k out with its thinking): about 3 cents, ten times the Haiku composer, for a much better arrangement. The figures' arms, hands, legs and faces are drawn in code, as before: free. A newcomer adds ~$0.03 and ~15 s.",
 };
 
+// Written 13 Nov 2026 (late), before any run: way 4's composer thinking
+// harder.
+const X14: Estimate = {
+  usd: 0.06,
+  ms: 25_000,
+  costPc: 57,
+  timePc: 40,
+  why: "The composer is Sonnet at medium effort: about twice the thinking of low (~4-6k tokens out with its thinking, ~10k in, mostly its cached brief), about 6 cents - around way 3's cost, for placement, context and every named thing checked off. Figures still drawn in code (free). A newcomer adds ~$0.03 and ~15 s.",
+};
+
 /** Each variant code's estimate. Add the new code's here whenever a way
  *  changes (see variantOf). */
 export const ESTIMATES: Record<string, Estimate> = {
@@ -194,6 +204,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-5V0L": X9,
   "4-71XO": X9,
   "4-6NMN": X9,
+  "4-TG6T": X14,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
@@ -203,6 +214,8 @@ export const ESTIMATES: Record<string, Estimate> = {
   "5-252J": S3,
   "5-2JDK": S3,
   "5-2XOL": S3,
+  // (13 Nov: lesson 9 - a checklist step, about the same cost)
+  "5-3BZM": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

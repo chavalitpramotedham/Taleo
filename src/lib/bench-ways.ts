@@ -37,7 +37,7 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   // (its composer is Sonnet, thinking at low effort: the arrangement of
   // the figures - who stands where, doing what, facing whom - is the whole
   // picture here, and worth a stronger hand than way 5's)
-  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: false } },
+  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } },
   // 5. pre-painted poses: each character painted once in ten poses, ahead;
   // a composer picks a pose for each, places them and adds pieces (the
   // place reused, its sky and foreground made in code)
@@ -138,7 +138,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s13 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
   // go in front as pieces); characters eased apart as they're placed;
   // food and object characters' code-made limbs thin pen lines
-  x: "s13",
+  // s14 (13 Nov): lesson 9 - the composer thinks harder (Sonnet at medium,
+  // a setting) and checks off every thing the brief names
+  x: "s14",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -157,7 +159,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s8 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
   // go in front as pieces); characters eased apart as they're placed;
   // food and object characters' code-made limbs thin pen lines
-  s: "s8",
+  // s9 (13 Nov): lesson 9 - the composer checks off every thing the brief
+  // names
+  s: "s9",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

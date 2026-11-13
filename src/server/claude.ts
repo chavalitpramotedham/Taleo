@@ -487,7 +487,7 @@ interface Brush {
 function replyRoom(brush: Pick<Brush, "label" | "unthinking">): number {
   const l = brush.label;
   // (a handful of tags; with thinking now on for placement)
-  if (/composer/.test(l)) return 8_000;
+  if (/composer/.test(l)) return 12_000;
   // (one character, alone, ~25-45 shapes)
   if (/newcomer/.test(l)) return 8_000;
   // (a page's own small layer over a backdrop)
