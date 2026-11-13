@@ -16651,3 +16651,101 @@ html[data-night] .lab-count.done {
     z-index: 1;
   }
 }
+/* ---------- the bench on a phone ----------
+   A test page's header in two lines: its name (whole, wrapping if need
+   be) with its buttons beside it; underneath, who and where, then how it
+   was ranked. */
+@media (max-width: 640px) {
+  .lab-row {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .lab-row-sum {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 8px;
+    row-gap: 2px;
+  }
+  .lab-row-sum::before {
+    flex: none;
+    width: 12px;
+    margin-top: 2px;
+  }
+  .lab-row-title b.lab-row-name {
+    white-space: normal;
+    align-items: flex-start;
+    line-height: 1.25;
+  }
+  .lab-row-label {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .lab-row-name .lab-dot {
+    margin-top: 3px;
+  }
+  /* (the ranking on a line of its own, under the name and tags) */
+  .lab-row-status {
+    order: 5;
+    flex-basis: 100%;
+    padding-left: 20px;
+    white-space: normal;
+  }
+}
+.lab-short {
+  display: none;
+}
+@media (max-width: 640px) {
+  /* (the bench sits inside the admin page's own margins: no second set) */
+  .admin .container.lab {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  /* (a column, not a grid: the grid sized the tags line as if it wrapped,
+     leaving a gap under it) */
+  .lab-row-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .lab-row-title > * {
+    margin: 0;
+  }
+  .lab-row-status {
+    font-size: 0.74rem;
+  }
+  /* the tools: "+" and Generate on one line, the two Prepare buttons
+     (shorter) on the next; the dot between them isn't needed here */
+  .lab-bar-dot {
+    display: none;
+  }
+  .lab-pages-bar .lab-prepare + .lab-prepare {
+    margin-left: -2px;
+  }
+  .lab-pages-bar .lab-new.closed + .lab-prepare,
+  .lab-pages-bar .lab-bar-dot + .lab-prepare {
+    flex-basis: auto;
+  }
+  .lab-pages-bar .lab-count {
+    font-size: 0.72rem;
+    padding: 0 6px;
+  }
+  .lab-long {
+    display: none;
+  }
+  .lab-short {
+    display: inline;
+  }
+}
+/* (a test page's tags line: no margin of its own under it - it left a gap
+   above the ranking) */
+.lab .lab-row-sum .lab-tags {
+  margin: 0;
+}
+@media (max-width: 640px) {
+  /* (the ways' buttons scroll sideways: their right edge fades, to say so) */
+  .lab-views {
+    -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
+    mask-image: linear-gradient(to right, #000 82%, transparent);
+    padding-right: 24px;
+  }
+}

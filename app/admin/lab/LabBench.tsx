@@ -2052,7 +2052,10 @@ function PrepareCharacters({ choices, ready, onDone }: { choices: CharacterDef[]
     <span className="lab-prepare">
       <button type="button" className="lab-add" onClick={() => void go()} disabled={busy} title={busy ? undefined : missing}>
         <PrepIcon ready={ready} busy={busy} icon="◐" />
-        {busy ? "Preparing characters" : "Prepare characters"}
+        <span>
+          {busy ? "Preparing" : "Prepare"} <span className="lab-long">characters</span>
+          <span className="lab-short">chars</span>
+        </span>
         <PrepCount ready={busy && done ? { ready: done.n, of: done.of } : ready} />
       </button>
     </span>
