@@ -608,7 +608,7 @@ export function LabBench({
   const [openCaps, setOpenCaps] = useState<Record<string, boolean>>({});
   const [spec, setSpec] = useState<string | null>(null);
   // the painting shown full size, and the others it steps through
-  const [zoom, setZoom] = useState<{ items: Shown[]; at: number } | null>(null);
+  const [zoom, setZoom] = useState<{ items: Shown[]; at: number; runId?: string } | null>(null);
   // (always a page's four ways, in order, so ‹ › steps 1, 2, 3, 4)
   const zoomWays = (p: LabPage, runId: string, way: string) => () => {
     const run = runs.find((r) => r.id === runId);
@@ -630,13 +630,15 @@ export function LabBench({
       const place = rankOf(run).indexOf(x.id);
       return {
         svg: c?.svg ?? "",
-        title: `${nOf(x.id)}. ${x.name}${place >= 0 ? ` · ${ORDINAL[place]}` : ""}`,
+        title: `${nOf(x.id)}. ${x.name}`,
         caption: p.label,
         info,
         voted: place === 0,
+        slot: x.id,
       };
     });
     setZoom({
+      runId,
       items,
       at: Math.max(
         0,
@@ -1030,6 +1032,24 @@ export function LabBench({
 
       {zoom && (
         <BenchZoom
+          rank={(() => {
+            // (ranked from the full-size views too, read live from the run)
+            const run = runs.find((r) => r.id === zoom.runId);
+            if (!run) return undefined;
+            const order = rankOf(run);
+            const painted = paintedWays(run);
+            const n = Math.max(order.length, painted.length);
+            return {
+              label: (slot: string) => {
+                if (!(painted as string[]).includes(slot)) return null;
+                const at = order.indexOf(slot);
+                return at >= 0 ? `${ORDINAL[at]} · ${rankPoints(at, n)} ${rankPoints(at, n) === 1 ? "pt" : "pts"}` : `Rank ${ORDINAL[order.length] ?? ""}`;
+              },
+              on: (slot: string) => order.includes(slot),
+              first: order[0],
+              tap: (slot: string) => void tapRank(run, slot),
+            };
+          })()}
           items={zoom.items}
           at={zoom.at}
           onStep={(at) => setZoom((z) => (z ? { ...z, at } : z))}
@@ -1431,7 +1451,12 @@ type Shown = {
   caption: string;
   info?: string;
   voted?: boolean;
+  /** which way it is (for ranking from the full-size views) */
+  slot?: string;
 };
+/** Ranking from the full-size views: each way's button label (null: not
+ *  rankable, e.g. not painted), whether it's placed, and the tap. */
+type ZoomRank = { label: (slot: string) => string | null; on: (slot: string) => boolean; first?: string; tap: (slot: string) => void };
 
 /** The bench's paintings full size, as the activity log shows its own (the
  *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
@@ -1442,12 +1467,23 @@ function BenchZoom({
   at,
   onStep,
   onClose,
+  rank,
 }: {
   items: Shown[];
   at: number;
   onStep: (i: number) => void;
   onClose: () => void;
+  rank?: ZoomRank;
 }) {
+  const rankButton = (slot?: string) => {
+    const label = slot && rank ? rank.label(slot) : null;
+    if (!slot || !rank || !label) return null;
+    return (
+      <button type="button" className={`btn ${rank.on(slot) ? "btn-primary" : "btn-soft"} lab-vote lab-zoom-rank`} onClick={() => rank.tap(slot)}>
+        {label}
+      </button>
+    );
+  };
   const item = items[at];
   const prev = at > 0 ? () => onStep(at - 1) : undefined;
   const next = at < items.length - 1 ? () => onStep(at + 1) : undefined;
@@ -1497,7 +1533,7 @@ function BenchZoom({
             {items.map((x, i) => (
               <figure
                 key={i}
-                className={`lab-collage-cell${x.voted ? " voted" : ""}${i === at ? " picked" : ""}`}
+                className={`lab-collage-cell${(rank ? rank.first === x.slot : x.voted) ? " voted" : ""}${i === at ? " picked" : ""}`}
               >
                 <div className="lab-collage-art">
                   {x.svg ? (
@@ -1510,6 +1546,7 @@ function BenchZoom({
                   <b>{x.title}</b>
                   {x.info && <span>{x.info}</span>}
                 </figcaption>
+                {rankButton(x.slot)}
               </figure>
             ))}
           </div>
@@ -1584,6 +1621,7 @@ function BenchZoom({
             )}
           </div>
           <p className="admin-zoom-caption">{item.caption}</p>
+          {rankButton(item.slot)}
           {stepping && (
             <p className="meta admin-zoom-more">
               <span className="admin-zoom-count">

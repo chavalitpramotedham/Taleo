@@ -16542,3 +16542,16 @@ html.in-app body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }
+.lab-zoom-rank {
+  margin-top: 4px;
+  min-height: 0;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+.lab-collage-cell .lab-zoom-rank {
+  width: 100%;
+}
+.admin-zoom-panel .lab-zoom-rank {
+  width: 100%;
+  margin: 6px 0 2px;
+}
