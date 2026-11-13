@@ -124,7 +124,6 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [cells, setCells] = useState<Record<string, Record<string, Cell>>>({});
   // the run shown for each page (the latest, unless one is painting)
   const [shown, setShown] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     const d = await fetch("/api/admin/bench", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
@@ -233,14 +232,6 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     await Promise.all(WAYS.map((w) => paintWay(p, w.id, runId, book)));
     await load();
   };
-  const paintAll = async () => {
-    setBusy(true);
-    const book = `b${Date.now().toString(36)}`;
-    // (two pages at a time: eight paintings at once)
-    for (let i = 0; i < pages.length; i += 2) await Promise.all(pages.slice(i, i + 2).map((p) => paintPage(p, book)));
-    await load();
-    setBusy(false);
-  };
   const vote = async (runId: string, way: string) => {
     setRuns((rs) => rs.map((r) => (r.id === runId ? { ...r, vote: way } : r)));
     await api({ kind: "vote", runId, way });
@@ -347,9 +338,6 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             </tbody>
           </table>
         </div>
-        <button type="button" className="btn btn-primary lab-all" onClick={paintAll} disabled={busy}>
-          {busy ? "Painting..." : `Paint every page four ways (${pages.length * 4})`}
-        </button>
       </section>
 
       {specWay && (
@@ -449,7 +437,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     className="lab-paint"
                     aria-label="Paint this page four ways"
                     title="Paint four ways"
-                    disabled={busy || painting}
+                    disabled={painting}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
