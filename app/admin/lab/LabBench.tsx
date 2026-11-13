@@ -715,6 +715,26 @@ export function LabBench({
   const meanUsd = meanOf("usd");
   const meanMs = meanOf("totalMs");
   const vsMean = (v: number | null, mean: number | null) => (v === null || !mean ? "" : v <= mean * 0.95 ? "lab-good" : v >= mean * 1.05 ? "lab-bad" : "");
+  /** How strong a contender a version is on cost and time together,
+   *  against the average of every version with paintings:
+   *  - the two are combined as the geometric mean of their ratios to the
+   *    average (so 50% cheaper and 50% slower cancel out);
+   *  - strong (green row): combined at least 20% better than average, and
+   *    neither more than 25% worse;
+   *  - weak (red row): combined at least 20% worse, or either more than 60%
+   *    worse;
+   *  - otherwise average (no colour). v0, the baseline, isn't judged. */
+  const contender = (b: Board): { kind: "strong" | "weak"; why: string } | null => {
+    if (b.way === "1" || !b.painted || b.usd === null || b.totalMs === null || !meanUsd || !meanMs) return null;
+    const rc = b.usd / meanUsd;
+    const rt = b.totalMs / meanMs;
+    const both = Math.sqrt(rc * rt);
+    const pc = (r: number) => (r <= 1 ? `${Math.round((1 - r) * 100)}% better` : `${Math.round((r - 1) * 100)}% worse`);
+    const why = `Against the average of all versions: cost ${pc(rc)}, time ${pc(rt)}; together ${pc(both)}.`;
+    if (both <= 0.8 && rc <= 1.25 && rt <= 1.25) return { kind: "strong", why: `A strong contender. ${why}` };
+    if (both >= 1.2 || rc > 1.6 || rt > 1.6) return { kind: "weak", why: `Not a strong contender. ${why}` };
+    return null;
+  };
 
   const [view, setView] = useState<string>("compare");
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
@@ -875,6 +895,7 @@ export function LabBench({
                 .map(({ b, n }) => {
                   const w = WAYS.find((x) => x.id === b.way);
                   const verdict = judge(b);
+                  const strength = contender(b);
                   const name =
                     b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
                   return (
@@ -883,16 +904,12 @@ export function LabBench({
                       className={
                         [
                           b.current ? "" : "lab-earlier",
-                          verdict
-                            ? verdict.kind === "off"
-                              ? "lab-off"
-                              : "lab-ahead"
-                            : "",
+                          strength?.kind === "weak" ? "lab-off" : strength?.kind === "strong" ? "lab-ahead" : "",
                         ]
                           .filter(Boolean)
                           .join(" ") || undefined
                       }
-                      title={verdict?.why}
+                      title={strength?.why}
                     >
                       <td className="lab-way">
                         <span className="lab-way-name">
@@ -932,7 +949,7 @@ export function LabBench({
                         {usd(b.usd)}
                       </td>
                       <td>{b.way === "1" ? "-" : vsBase(b.usd, today)}</td>
-                      <td className="lab-est">
+                      <td className={`lab-est${verdict ? (verdict.kind === "off" ? " lab-bad" : " lab-good") : ""}`} title={verdict?.why}>
                         {b.way !== "1" && estimateFor(b.variant)
                           ? `-${estimateFor(b.variant)!.costPc}%`
                           : "-"}
