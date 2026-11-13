@@ -72,7 +72,9 @@ async function paintSprite(c: CharacterDef, pose: SpritePose): Promise<Sprite | 
 export async function prepareSprite(c: CharacterDef, pose: SpritePose): Promise<boolean> {
   const art = characterArt(c);
   if (!art) return false;
-  const made = await once(spriteKey(art, pose), () => paintSprite(c, pose), { ttlS: 365 * 86_400, waitMs: 120_000, nothingTtlS: 600 });
+  // (a failure is remembered only briefly: pressing Prepare again tries it
+  // again)
+  const made = await once(spriteKey(art, pose), () => paintSprite(c, pose), { ttlS: 365 * 86_400, waitMs: 120_000, nothingTtlS: 20 });
   return Boolean(made);
 }
 

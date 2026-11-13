@@ -250,10 +250,11 @@ export async function POST(req: Request) {
     const ok = (c: unknown): c is CharacterDef => Boolean(c && typeof (c as CharacterDef).name === "string");
     const chars = (b.characters as unknown[]).filter(ok).slice(0, 30);
     const cast = (b.cast as unknown[]).filter(ok).slice(0, 60);
-    const parts = (await Promise.all(chars.map((c) => partsReady(c).catch(() => false)))).filter((x) => x !== null);
+    const each = await Promise.all(chars.map(async (c) => ({ name: c.name, ready: await partsReady(c).catch(() => false) })));
+    const parts = each.filter((x) => x.ready !== null);
     const poses = await Promise.all(cast.map((c) => spritesFor({ ...c, id: "hero" }).catch(() => ({}))));
     return NextResponse.json({
-      parts: { ready: parts.filter(Boolean).length, of: parts.length },
+      parts: { ready: parts.filter((x) => x.ready).length, of: parts.length, missing: parts.filter((x) => !x.ready).map((x) => x.name) },
       poses: { ready: poses.reduce<number>((t, x) => t + Object.keys(x).length, 0), of: cast.length * SPRITE_POSE_IDS.length },
     });
   }

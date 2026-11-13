@@ -1921,7 +1921,39 @@ function caseToPage(
 }
 
 /** How much of something is prepared: so many ready of so many. */
-type Ready = { ready: number; of: number };
+type Ready = { ready: number; of: number; missing?: string[] };
+
+/** A Prepare request, given up on after 4 minutes (the server stops at 5):
+ *  null if it failed or took too long. */
+async function prepareCall(body: object): Promise<Record<string, unknown> | null> {
+  const stop = new AbortController();
+  const t = setTimeout(() => stop.abort(), 240_000);
+  try {
+    const r = await fetch("/api/admin/bench", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: stop.signal });
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** Runs jobs a few at a time, counting them off as they finish. */
+async function inTurn<J>(jobs: J[], at: number, run: (j: J) => Promise<boolean>, tick: (n: number, failed: number) => void) {
+  const queue = [...jobs];
+  let n = 0;
+  let failed = 0;
+  const next = async (): Promise<void> => {
+    const job = queue.shift();
+    if (job === undefined) return;
+    const ok = await run(job).catch(() => false);
+    n++;
+    if (!ok) failed++;
+    tick(n, failed);
+    return next();
+  };
+  await Promise.all(Array.from({ length: at }, next));
+}
 
 /** A Prepare button's icon: orange while there's something to prepare (or
  *  it isn't known yet), a green tick once everything is. */
@@ -1951,30 +1983,22 @@ function PrepCount({ ready }: { ready?: Ready }) {
 /** "Prepare poses" (way 5): every test page's characters painted in each
  *  pose, ahead and kept - one pose per request, a few at once, with the
  *  count shown as they're done. Poses already made are found at once. */
-function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Ready; onDone: () => void }) {
+function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Ready; onDone: () => Promise<void> | void }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ n: number; of: number; failed: number } | null>(null);
   const go = async () => {
     setBusy(true);
     const chars = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
     const jobs = chars.flatMap((c) => SPRITE_POSE_IDS.map((pose) => ({ c: { ...c, id: "hero" }, pose })));
-    let n = 0;
-    let failed = 0;
     setDone({ n: 0, of: jobs.length, failed: 0 });
-    const next = async (): Promise<void> => {
-      const job = jobs.shift();
-      if (!job) return;
-      const r = await fetch("/api/admin/bench", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "prepare-pose", character: job.c, pose: job.pose }) })
-        .then((x) => x.json())
-        .catch(() => null);
-      n++;
-      if (!r?.ok) failed++;
-      setDone({ n, of: n + jobs.length, failed });
-      return next();
-    };
-    await Promise.all(Array.from({ length: 6 }, next));
+    await inTurn(
+      jobs,
+      6,
+      async (job) => Boolean((await prepareCall({ kind: "prepare-pose", character: job.c, pose: job.pose }))?.ok),
+      (n, failed) => setDone({ n, of: jobs.length, failed }),
+    );
+    await onDone();
     setBusy(false);
-    onDone();
   };
   return (
     <span className="lab-prepare">
@@ -1997,30 +2021,36 @@ function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Read
  *  once for all ways and pages - so no page waits on them, and every way
  *  paints from the same. (A family's character gets its parts as it's
  *  made, once painting from parts is switched on for everyone.) */
-function PrepareCharacters({ choices, ready, onDone }: { choices: CharacterDef[]; ready?: Ready; onDone: () => void }) {
+function PrepareCharacters({ choices, ready, onDone }: { choices: CharacterDef[]; ready?: Ready; onDone: () => Promise<void> | void }) {
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState("");
+  const [done, setDone] = useState<{ n: number; of: number; failed: string[] } | null>(null);
   const go = async () => {
     setBusy(true);
-    setNote("");
-    const res = await fetch("/api/admin/bench", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "prepare", characters: choices }),
-    }).catch(() => null);
-    const d = (await res?.json().catch(() => null)) as { results?: { name: string; ok: boolean }[] } | null;
-    const r = d?.results ?? [];
-    const failed = r.filter((x) => !x.ok).map((x) => x.name);
-    setNote(r.length ? `${r.length - failed.length} of ${r.length} ready${failed.length ? ` (not: ${failed.join(", ")})` : ""}` : "Couldn't prepare them just now.");
+    // (one character a request, a few at once: one slow character holds up
+    // nothing else, and the count moves as each is done)
+    const failed: string[] = [];
+    setDone({ n: 0, of: choices.length, failed });
+    await inTurn(
+      choices,
+      4,
+      async (c) => {
+        const d = (await prepareCall({ kind: "prepare", characters: [c] })) as { results?: { ok: boolean }[] } | null;
+        const ok = Boolean(d?.results?.[0]?.ok);
+        if (!ok) failed.push(c.name);
+        return ok;
+      },
+      (n) => setDone({ n, of: choices.length, failed: [...failed] }),
+    );
+    await onDone();
     setBusy(false);
-    onDone();
   };
+  const missing = ready?.missing?.length ? `Not ready: ${ready.missing.join(", ")}` : undefined;
   return (
     <span className="lab-prepare">
-      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy} title={note || undefined}>
+      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy} title={busy ? undefined : missing}>
         <PrepIcon ready={ready} busy={busy} icon="◐" />
         {busy ? "Preparing characters" : "Prepare characters"}
-        {busy ? <span className="lab-count">...</span> : <PrepCount ready={ready} />}
+        <PrepCount ready={busy && done ? { ready: done.n, of: done.of } : ready} />
       </button>
     </span>
   );

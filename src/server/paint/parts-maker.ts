@@ -157,7 +157,9 @@ export async function prepareParts(c: CharacterDef): Promise<{ ok: boolean; pres
   if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return { ok: true, preset: true };
   const art = characterArt(c);
   if (!art) return { ok: false, preset: false };
-  const made = await once(partsKey(art), () => regroup(c), { ttlS: 365 * 86_400, waitMs: 120_000, nothingTtlS: 600 });
+  // (a failure is remembered only briefly: pressing Prepare again tries it
+  // again)
+  const made = await once(partsKey(art), () => regroup(c), { ttlS: 365 * 86_400, waitMs: 120_000, nothingTtlS: 20 });
   return { ok: Boolean(made), preset: false };
 }
 
