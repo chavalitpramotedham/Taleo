@@ -247,3 +247,43 @@ front, Berry beside) came out with Avo resized to 1.06, the frog to a
 frog's share, all three eased apart and drawn back to front.
 
 New codes: 2-JJTI, 3-9URI, 4-U8SV, 5-H8F5.
+
+## 13 Nov 2026 - "The biggest pumpkin" (c31): things in front of characters
+
+Seen: the autumn colours now come through in every way (lesson 5 working).
+Way 4 - the one the user is rooting for - had good directions but the
+wrong order: the giant pumpkin was drawn over Bobo, who stood inside it.
+There's no pumpkin piece, so the composer drew it, after the characters;
+and the depth sort only moved characters, carrying any piece written just
+after one along with it as if held.
+
+**Lesson 14 - things have depth too.** The layout pass (ways 4-5) now
+orders big pieces and the shapes a composer draws by their own depth,
+with the characters: further back first; at the same depth a thing before
+the characters beside it (so paws on the pumpkin show). Only small things
+(props, effects) still travel with the character they follow; seats and
+covers (near="1") keep the composer's order. A character standing inside
+a big thing at its depth is moved to the thing's nearer edge, just
+touching it. A drawing's extent is read from its own shapes.
+Where: `itemsOf`, `extentOf`, `pieceExtent` and `byDepth` in
+`src/server/paint/layout.ts`.
+
+**Lesson 15 - spatial awareness.** In the layout pass: everyone other than
+the main action's target is turned towards it, and looks at it - a
+character, or the thing the child taps - unless running or flying away;
+characters standing at about the same depth (within 14) share one ground
+line. And both composers are given the footprint numbers to place with: a
+character at size s is about 110*s wide and 170*s tall, the top of its
+head at y - 170*s, its eyes at y - 130*s, its hands in front at
+x + 30*s, y - 75*s; side by side needs 110*s between them, touching about
+80*s.
+Where: step 2b of `layoutComposed`, `targetX`; "SIZES ON THE PAGE" in the
+composers' rules (`src/server/prompts.ts`).
+
+Checked: the pumpkin page re-created (three pushers written, then the
+pumpkin drawn over Bobo) came out pumpkin first, Bobo moved to its left
+edge; a basket as the tap target turned two characters towards it and
+gave them a gaze, left a runner facing away, and put three sets of feet
+(246, 250, 255) on one line.
+
+New codes: 4-UN3W, 5-IFC8.

@@ -383,6 +383,7 @@ INTERACTIONS - make the picture say it:
 - TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
+SIZES ON THE PAGE, for working out where things go: a character at size s is about 110*s wide and 170*s tall, its feet at its y; the top of its head is at about y - 170*s, its eyes at about y - 130*s, its hands (arms out in front) at about x + 30*s, y - 75*s when facing right (x - 30*s facing left). Two characters side by side need their x at least 110*s apart; touching (a hug, holding hands, pushing the same thing) about 80*s apart.
 DEPTH: someone further back is higher up (smaller y), a little smaller, and written first; nearer ones after, so they're in front; at the same depth a small character after a big one beside it. (The app also sorts characters this way, each with the pieces that belong to it.)
 BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
 SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.
@@ -436,6 +437,7 @@ INTERACTIONS - make the picture say it:
 - TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
+SIZES ON THE PAGE, for working out where things go: a character at size s is about 110*s wide and 170*s tall, its feet at its y; the top of its head is at about y - 170*s, its eyes at about y - 130*s, its hands (arms out in front) at about x + 30*s, y - 75*s when facing right (x - 30*s facing left). Two characters side by side need their x at least 110*s apart; touching (a hug, holding hands, pushing the same thing) about 80*s apart.
 DEPTH: someone further back is higher up (smaller y), a little smaller, and written first; nearer ones after, so they're in front; at the same depth a small character after a big one beside it. (The app also sorts characters this way, each with the pieces that belong to it.)
 BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
 SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.

@@ -154,7 +154,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // in front (composed pages sorted in code; painters told)
   // s16 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
   // sizes kept true to each other by kind; the brief's arrangement kept
-  x: "s16",
+  // s17 (13 Nov): lessons 14-15 - big things and drawn shapes ordered by
+  // depth too, characters moved out of them to their edge; everyone
+  // turned towards the main action; one ground line; footprint numbers
+  x: "s17",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -179,7 +182,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // in front (composed pages sorted in code; painters told)
   // s11 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
   // sizes kept true to each other by kind; the brief's arrangement kept
-  s: "s11",
+  // s12 (13 Nov): lessons 14-15 - big things and drawn shapes ordered by
+  // depth too, characters moved out of them to their edge; everyone
+  // turned towards the main action; one ground line; footprint numbers
+  s: "s12",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
