@@ -70,3 +70,48 @@ the sheet in `paintOnce` (`src/server/claude.ts`).
 
 New codes: 2-HYLE, 3-VMVL (ways 4 and 5 unchanged: they place newcomers
 separately).
+
+## 13 Nov 2026 - an audit after the missing squirrel, and the autumn colours
+
+Seen: after way 3 lost the squirrel, the whole pipeline was gone through
+for every way a character or a required element can go missing. And in
+"The squirrel's acorn stash", only v0 had the warm autumn colours the
+place ("an autumn wood of copper beeches") calls for; ways 2-5 came out in
+summer greens.
+
+The audit, path by path:
+- composed pages (ways 4-5): a character the composer leaves out is placed
+  in code; one with no parts or poses is painted for the page - covered;
+- the translator's mends: lesson 3 fixed the one that dropped a character;
+  the others only skip a piece or fill in a number;
+- one of two painters failing: the other's work is kept and the failure
+  reported - covered;
+- **a painter (v0, ways 2-3) that simply forgets a character: nothing
+  checked** - lesson 4;
+- **a newcomer whose painting comes out empty: quietly left out** -
+  lesson 4.
+
+**Lesson 4 - every character on the page is checked for.** Painters mark
+each character they paint with <who c="id"/> (taken out before the page is
+sent); figures and poses count too. When the painter finishes, anyone on
+the page it left out is asked for: it carries on, shown what it painted,
+to paint ONLY them. Nothing extra unless someone is missing; a painter
+that marked no one at all isn't second-guessed (that could paint everyone
+twice). A newcomer whose painting comes out empty is painted once more.
+Where: `everyone()` and `paintNewcomer` in `src/server/claude.ts`; the
+marker in `LAYERED_CHARACTERS` and the character painter's instruction.
+
+**Lesson 5 - the place's own season wins over the book's.** The bench's
+books say "late summer", and the reuse ways took their season (the
+colours of code-made trees and leaves, and the backdrop painter's brief)
+from the book alone. Now a season named or plainly implied by the place
+("an autumn wood") or the page ("orange and gold leaves falling", "a
+snowman", "blossom") decides the colours, and the backdrop painter is told
+the season and its colours outright. Prepared places are kept by their own
+season (new keys), so autumn places are painted again in autumn.
+Where: `seasonFor` and `SEASON_LOOK` in `src/server/claude.ts`.
+
+Checked with a stand-in that "forgot" two of three characters: v0 and
+ways 2-3 each asked for exactly those two again.
+
+New codes: 1-TNN3, 2-HKAD, 3-A92J, 4-71XO, 5-2JDK.

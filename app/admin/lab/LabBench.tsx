@@ -612,9 +612,10 @@ export function LabBench({
     board.find((x) => x.way === "1" && x.current && x.painted > 0) ??
     [...board].filter((x) => x.way === "1" && x.painted > 0).sort((a, b) => (b.firstAt ?? 0) - (a.firstAt ?? 0))[0];
   const today = baseRow?.usd ?? null;
-  // The leaderboard's order: by code - the order the variants were first
-  // tried (#1, #2...; one not tried yet is "new", last) - or by votes.
-  const [rankBy, setRankBy] = useState<"code" | "score" | "avg">("code");
+  // The leaderboard's order: by slot (1. v0, 2, 3...: the versions in use
+  // now first, each slot's older versions after it, newest first) - or by
+  // average score.
+  const [rankBy, setRankBy] = useState<"slot" | "avg">("slot");
   // (just the four in use now, unless all variants are asked for)
   const [showAll, setShowAll] = useState(false);
   const numbered = [...board]
@@ -628,18 +629,14 @@ export function LabBench({
   // ranked fewer times than today's, which is in every ranking; unranked
   // ones last)
   const avgOf = (b: Board) => (b.votedRuns ? b.score / b.votedRuns : -1);
+  const bySlot = (x: { b: Board }, y: { b: Board }) =>
+    (x.b.current ? 0 : 1) - (y.b.current ? 0 : 1) ||
+    SLOT_ORDER.indexOf(x.b.way) - SLOT_ORDER.indexOf(y.b.way) ||
+    (y.b.firstAt ?? Infinity) - (x.b.firstAt ?? Infinity);
   const ranked =
-    rankBy === "code"
-      ? numbered
-      : rankBy === "avg"
-        ? [...numbered].sort((x, y) => avgOf(y.b) - avgOf(x.b) || y.b.votedRuns - x.b.votedRuns || (x.n ?? 1e9) - (y.n ?? 1e9))
-        : [...numbered].sort(
-          (x, y) =>
-            y.b.score - x.b.score ||
-            (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) -
-              (x.b.votedRuns ? x.b.score / x.b.votedRuns : 0) ||
-            (x.n ?? 1e9) - (y.n ?? 1e9),
-        );
+    rankBy === "slot"
+      ? [...numbered].sort(bySlot)
+      : [...numbered].sort((x, y) => avgOf(y.b) - avgOf(x.b) || y.b.votedRuns - x.b.votedRuns || bySlot(x, y));
   const todayMs =
     baseRow?.totalMs ?? null;
   /** How a variant measures up to its estimate, on cost and on time (each
@@ -819,17 +816,10 @@ export function LabBench({
             <span className="meta">Rank by</span>
             <button
               type="button"
-              className={`lab-chip${rankBy === "code" ? " on" : ""}`}
-              onClick={() => setRankBy("code")}
+              className={`lab-chip${rankBy === "slot" ? " on" : ""}`}
+              onClick={() => setRankBy("slot")}
             >
-              Index
-            </button>
-            <button
-              type="button"
-              className={`lab-chip${rankBy === "score" ? " on" : ""}`}
-              onClick={() => setRankBy("score")}
-            >
-              Score
+              Slot
             </button>
             <button
               type="button"
@@ -907,7 +897,7 @@ export function LabBench({
                       <td className="lab-way">
                         <span className="lab-way-name">
                           <b>
-                            <span className="lab-order">#{n ?? "new"}</span>{" "}
+                            <span className="lab-order">{nOf(b.way)}.</span>{" "}
                             {name}
                             <small className="lab-variant">
                               {b.variant}
@@ -1576,7 +1566,7 @@ export function LabBench({
 const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
 /** Slots in bench order, the retired first way 3 ("b") where it stood. */
-const SLOT_ORDER = ["1", "p", "b", "q", "x"];
+const SLOT_ORDER = ["1", "p", "b", "q", "x", "s"];
 
 /** The "book" a test page is painted in. Every page set in the same
  *  place shares one, as the pages of a real story do: the first painting

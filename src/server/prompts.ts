@@ -235,7 +235,8 @@ export const LAYERED_CHARACTERS = `THE SCENERY IS BEING PAINTED BY ANOTHER HAND,
 - what the action does: splashes, flying leaves, dust puffs, motion ticks and trails;
 - a soft ground shadow under each of them, and a last few foreground ink strokes over their feet (grass tufts, a rug's fringe) so they sit IN the place rather than on it.
 Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Keep to the economy the character rules ask for: usually 50-150 elements in all, depending on how many characters are on the page - a single character rarely needs more than 65.
-- THE MAIN ACTION'S OBJECT: if the main action is done to or with a thing (the hollow full of acorns, the basket carried, the kite, the cake), that thing is the most important thing in the picture after the characters: show it clearly, at the action, never leave it out.`;
+- THE MAIN ACTION'S OBJECT: if the main action is done to or with a thing (the hollow full of acorns, the basket carried, the kite, the cake), that thing is the most important thing in the picture after the characters: show it clearly, at the action, never leave it out.
+- Begin each character with its marker, <who c="ID"/> (its id), written once just before its strokes: the app checks that everyone on the page was painted.`;
 
 /** Turns a parent's description of a character - a few words, or a long,
  *  loosely ordered paragraph - into a clear design brief the character

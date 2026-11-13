@@ -23,7 +23,7 @@ import { layoutComposed, type LayoutOptions } from "./paint/layout";
 import { keepNewcomer, newcomerPortrait, sawNewcomerAgain } from "./paint/newcomers";
 import { expandStream, newStats, sizeLine, type ExpandStats, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
-import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
+import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/art/palette";
 import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { kept, once } from "./paint/once";
@@ -834,7 +834,31 @@ const withSize = (c: CharacterDef, sheet: string) => {
  *  and description), its light and the book's season - shared by every
  *  page and way set there, as a character's prepared parts are. */
 const placeKey = (place: { id: string; about?: string }, light: Light, world: string) =>
-  `bd:place:v1:${hashOf(`${place.id}|${place.about ?? ""}|${light}|${seasonOf(world)}`)}`;
+  `bd:place:v2:${hashOf(`${place.id}|${place.about ?? ""}|${light}|${seasonFor(place.about, "", world)}`)}`;
+
+/** A scene's season: the place's own if it names one ("an autumn wood"),
+ *  else the page's ("orange and gold leaves falling"), else the book's.
+ *  (The book's alone had autumn places painted in summer greens.) */
+function seasonFor(placeAbout: string | undefined, picture: string, world: string): Season {
+  // (a season named, or plainly implied: falling leaves are autumn, a
+  // snowman winter, blossom spring)
+  const said = (t: string): Season | null => {
+    if (!t) return null;
+    if (/\b(autumn|fall|harvest|pumpkins?|conkers?|copper beech|russet|falling leaves|fallen leaves|leaf pile|(orange|gold|golden|red) (and \w+ )?leaves)\b/i.test(t)) return "autumn";
+    if (/\b(winter|snow\w*|frost\w*|frozen|icicles?|sledg\w*|christmas)\b/i.test(t)) return "winter";
+    if (/\b(spring|blossom\w*|bluebells?|daffodils?|lambs?|easter)\b/i.test(t)) return "spring";
+    if (/\bsummer\b/i.test(t)) return "summer";
+    return null;
+  };
+  return said(placeAbout ?? "") ?? said(picture) ?? seasonOf(world);
+}
+/** The season said plainly, for a painter whose book says otherwise. */
+const SEASON_LOOK: Record<Season, string> = {
+  autumn: "autumn: trees in copper, orange, gold and russet with a few still green, warm ochre ground, fallen leaves",
+  winter: "winter: bare or snow-laden trees, white ground, cool blue-grey shadows",
+  spring: "spring: fresh light greens, blossom, bright young grass and flowers",
+  summer: "summer: full deep greens, warm light, flowers in the grass",
+};
 const lightFor = (place: { about?: string; light?: string }, extra = ""): Light =>
   (["day", "golden", "dusk", "night", "rain"] as const).find((l) => l === place.light) ?? lightOf(`${place.light ?? ""} ${place.about ?? ""} ${extra}`);
 
@@ -866,9 +890,10 @@ async function paintBackdropSvg(place: { id: string; about?: string }, light: Li
     unthinking: QUICK_ART_UNTHINKING,
     clockMs: 0,
     system: sceneryPrompt({ stamps: true }),
-    content: [{ type: "text", text: [`BOOK ART DIRECTION: ${world || "a gentle English countryside in late summer, soft golden light"}`, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, BACKDROP_BRIEF, stageFor({ page: { characters: ["a", "b"] } } as unknown as IllustrateRequest), "Output the SVG markup now."].join("\n\n") }],
+    content: [{ type: "text", text: [`BOOK ART DIRECTION: ${world || "a gentle English countryside in late summer, soft golden light"}`, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, `THE SEASON HERE (this place's own, which wins over the book's art direction): ${SEASON_LOOK[seasonFor(place.about, "", world)]}`, BACKDROP_BRIEF, stageFor({ page: { characters: ["a", "b"] } } as unknown as IllustrateRequest), "Output the SVG markup now."].join("\n\n") }],
   };
-  const ctx: ExpandContext = { bookSeed: hashOf(key), pageSeed: hashOf(key), palette: paletteFor(seasonOf(world), light), stamps: true, stage: { x0: 85, x1: 315, y0: 75, y1: 250 } };
+  const season = seasonFor(place.about, "", world);
+  const ctx: ExpandContext = { bookSeed: hashOf(key), pageSeed: hashOf(key), palette: paletteFor(season, light), stamps: true, stage: { x0: 85, x1: 315, y0: 75, y1: 250 } };
   let svg = "";
   for await (const c of expandStream(brushStrokes(painter, signal, log, why), ctx, newStats())) {
     svg += c;
@@ -889,6 +914,48 @@ export async function readyNewcomer(c: CharacterDef, world: string): Promise<voi
   const req = { world, cast: [c], page: { text: "", picture: `${c.name} standing, relaxed and smiling, as in a model sheet.`, characters: [c.id] } } as unknown as IllustrateRequest;
   const sp = await paintNewcomer(c, req, undefined, {});
   if (sp) await keepNewcomer(c, sp, world);
+}
+
+/** A character painter's strokes, checked for everyone: each character
+ *  it paints begins with a marker, <who c="id"/> (taken out here), or is a
+ *  <fig> or <sprite> for them. When it has finished, anyone on the page it
+ *  left out is asked for - it carries on, shown what it painted, to paint
+ *  ONLY them - so nobody goes missing (lesson 4). Costs nothing when
+ *  everyone is there. */
+async function* everyone(brush: Brush, signal: AbortSignal | undefined, log: Record<string, unknown>, why: (() => string | undefined) | undefined, onPage: { id: string; name: string }[], notes: Record<string, unknown>): AsyncGenerator<string> {
+  let raw = "";
+  const seen = new Set<string>();
+  const look = (text: string) => {
+    for (const m of text.matchAll(/<\s*(?:who|fig|sprite|npc)\b[^>]*\bc\s*=\s*"([^"]+)"/gi)) seen.add(m[1].trim());
+  };
+  const strip = (text: string) => text.replace(/<\s*who\b[^>]*\/?>\s*/gi, "").replace(/<\s*\/\s*who\s*>/gi, "");
+  for await (const s of brushStrokes(brush, signal, log, why)) {
+    raw += s;
+    look(s);
+    const out = strip(s);
+    if (out) yield out;
+  }
+  // (a painter that marked nobody didn't follow the markers at all: that
+  // proves nothing, and asking again could paint everyone twice)
+  if (!seen.size) {
+    notes.missing = "not checked: the painter marked no one";
+    return;
+  }
+  // (by id or by name: a painter may mark a character either way)
+  const missing = onPage.filter((c) => !seen.has(c.id) && ![...seen].some((x) => x.toLowerCase() === c.name.toLowerCase()));
+  if (!missing.length || signal?.aborted) return;
+  const names = missing.map((c) => `${c.name} ("${c.id}")`).join(" and ");
+  notes.missing = `${missing.map((c) => c.name).join(", ")} left out at first: asked for again`;
+  const again: Brush = {
+    ...brush,
+    label: `${brush.label} (missing characters)`,
+    clockMs: 0,
+    content: [...brush.content, { type: "text", text: `${carryOn(raw)}\n\nSTILL MISSING: you have not painted ${names}, and the page needs them. Paint ONLY ${missing.length > 1 ? "them" : "that character"} now, in the right place for the moment, each starting with its <who c="ID"/> marker - nothing else, and never anything again.` }],
+  };
+  for await (const s of brushStrokes(again, signal, log, why)) {
+    const out = strip(s);
+    if (out) yield out;
+  }
 }
 
 /** A composer's tags, whole, through the layout pass (see layoutComposed);
@@ -934,7 +1001,12 @@ async function paintNewcomer(c: CharacterDef, req: IllustrateRequest, signal: Ab
   };
   let svg = "";
   for await (const s of brushStrokes(brush, signal, log)) svg += s;
-  return splitLayers(svg);
+  // (nothing usable: one more try, rather than leaving them out)
+  const sp = splitLayers(svg);
+  if (sp || signal?.aborted) return sp;
+  let again = "";
+  for await (const s of brushStrokes({ ...brush, label: `${brush.label} (again)` }, signal, log)) again += s;
+  return splitLayers(again);
 }
 
 /** A painter's three layer groups, gathered (any number of each, in
@@ -996,10 +1068,13 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   const stats = newStats();
   if (reuse.stamps || reuse.parts) notes.reuse = stats;
   const light: Light = (["day", "golden", "dusk", "night", "rain"] as const).find((l) => l === req.place?.light) ?? lightOf(`${req.place?.light ?? ""} ${req.page.picture} ${req.page.text}`);
+  // (the place's or page's own season over the book's: an autumn wood in a
+  // late-summer book is still an autumn wood)
+  const season = seasonFor(req.place?.about, `${req.page.picture} ${req.page.text}`, req.world);
   const expandCtx = (stage: Box | null): ExpandContext => ({
     bookSeed: hashOf(req.storyId || req.world || "taleo"),
     pageSeed: hashOf(`${req.storyId ?? ""}|${req.page.text}`),
-    palette: paletteFor(seasonOf(req.world), light),
+    palette: paletteFor(season, light),
     stamps: reuse.stamps,
     stage,
     // (characters placed from parts or poses kept to the page's camera)
@@ -1109,7 +1184,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     reuse.backdrops && reuse.codeLayer && req.place?.id && layered ? MOMENT_DETAILS : "",
     posing
       ? `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the tags now.`
-      : `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
+      : `Characters in the picture: ${req.page.characters.join(", ") || "none"} - every one of them must be in it. Start each character's strokes with its marker, <who c="ID"/> (its id), once, so the app can check everyone is there. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -1173,6 +1248,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         },
       ],
     };
+    // (who must be in the picture: the page's characters that are in its cast)
+    const onPage = req.page.characters.filter((id) => req.cast.some((c) => c.id === id)).map((id) => ({ id, name: req.cast.find((c) => c.id === id)!.name }));
     const logs = { scenery: { model: scenery.model, measure: Boolean(req.bench) } as Record<string, unknown>, characters: { model, measure: Boolean(req.bench) } as Record<string, unknown>, ...Object.fromEntries(Object.entries(newcomerLogs).map(([id, l]) => [`newcomer ${id}`, l])) };
     notes.painters = logs;
     Object.assign(log, { layered: true, ...logs });
@@ -1186,7 +1263,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s }, stats) : brushStrokes(main, stop, logs.characters, why),
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),
@@ -1200,7 +1277,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
             },
             stats,
           )
-        : brushStrokes(main, stop, logs.characters, why);
+        : everyone(main, stop, logs.characters, why, onPage, notes);
     // With backdrops: the place is painted once (the first page set there
     // paints it, every other page reuses it), framed a little differently
     // for each page, and the scenery painter adds only this page's own
@@ -1209,7 +1286,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const under = place
       ? async function* (stop: AbortSignal, why: () => string | undefined): AsyncGenerator<string> {
           // (on the bench, each variant paints and keeps its own)
-          const key = `bd:v1:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonOf(req.world)}`)}${req.benchVariant ? `:bench:${req.benchVariant}` : ""}`;
+          const key = `bd:v2:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonFor(place.about, "", req.world)}`)}${req.benchVariant ? `:bench:${req.benchVariant}` : ""}`;
           const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)
@@ -1270,7 +1347,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           if (reuse.codeLayer) {
             // (this page's own sky and foreground, made in code)
             notes.pageLayer = "made in code";
-            const layer = codePageLayer({ place: place.about || place.id, picture: req.page.picture, light, season: seasonOf(req.world), seed: `${req.storyId ?? ""}|${req.page.text}` });
+            const layer = codePageLayer({ place: place.about || place.id, picture: req.page.picture, light, season, seed: `${req.storyId ?? ""}|${req.page.text}` });
             yield* expandStream((async function* () { yield layer; })(), expandCtx(stageBox(req)), stats);
             return;
           }

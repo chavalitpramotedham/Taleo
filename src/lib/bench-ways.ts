@@ -50,7 +50,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s2 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
   // character's size against the others on its sheet; the main action's
   // object always shown, at the action
-  "1": "s2",
+  // s3 (13 Nov): lessons 4-5 - every character on the page checked for
+  // and asked for again if left out (painters mark each one); a newcomer
+  // that comes out empty painted once more; the place's or page's own
+  // season (an autumn wood in a summer book) for the colours
+  "1": "s3",
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
   // s3 (13 Nov): on the bench, its own parts - never another variant's
@@ -70,7 +74,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s10 (13 Nov): lesson 3 - a character with no parts is marked DRAWN
   // IN FULL on its sheet, and if it's drawn inside a <fig> anyway that
   // drawing is kept and placed, never dropped
-  p: "s10",
+  // s11 (13 Nov): lessons 4-5 - every character on the page checked for
+  // and asked for again if left out (painters mark each one); a newcomer
+  // that comes out empty painted once more; the place's or page's own
+  // season (an autumn wood in a summer book) for the colours
+  p: "s11",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -88,7 +96,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s9 (13 Nov): lesson 3 - a character with no parts is marked DRAWN
   // IN FULL on its sheet, and if it's drawn inside a <fig> anyway that
   // drawing is kept and placed, never dropped
-  q: "s9",
+  // s10 (13 Nov): lessons 4-5 - every character on the page checked for
+  // and asked for again if left out (painters mark each one); a newcomer
+  // that comes out empty painted once more; the place's or page's own
+  // season (an autumn wood in a summer book) for the colours
+  q: "s10",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -110,7 +122,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s11 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
   // character's size against the others on its sheet; the main action's
   // object always shown, at the action
-  x: "s11",
+  // s12 (13 Nov): lessons 4-5 - every character on the page checked for
+  // and asked for again if left out (painters mark each one); a newcomer
+  // that comes out empty painted once more; the place's or page's own
+  // season (an autumn wood in a summer book) for the colours
+  x: "s12",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -122,7 +138,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s6 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
   // character's size against the others on its sheet; the main action's
   // object always shown, at the action
-  s: "s6",
+  // s7 (13 Nov): lessons 4-5 - every character on the page checked for
+  // and asked for again if left out (painters mark each one); a newcomer
+  // that comes out empty painted once more; the place's or page's own
+  // season (an autumn wood in a summer book) for the colours
+  s: "s7",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
