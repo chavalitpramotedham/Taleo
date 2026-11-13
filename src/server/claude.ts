@@ -19,6 +19,7 @@ import type {
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { layoutComposed, type LayoutOptions } from "./paint/layout";
+import { keepNewcomer, newcomerPortrait, sawNewcomerAgain } from "./paint/newcomers";
 import { expandStream, newStats, sizeLine, type ExpandStats, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
@@ -27,7 +28,7 @@ import { partsFor } from "./paint/parts-maker";
 import { kept, once } from "./paint/once";
 import { codePageLayer } from "./paint/page-layer";
 import { spritesFor } from "./paint/sprite-maker";
-import { SPRITE_POSES, type Sprite, type SpritePose } from "@/lib/art/sprites";
+import { SPRITE_POSES, SPRITE_POSE_IDS, type Sprite, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterParts } from "@/lib/art/parts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
@@ -838,6 +839,20 @@ async function paintBackdropSvg(place: { id: string; about?: string }, light: Li
   return svg || null;
 }
 
+/** Readies a character the storyteller has just brought in with no
+ *  portrait, before any page is painted: its portrait is painted (standing,
+ *  in its own look) and kept for the book, and its parts made, so every
+ *  page it's on paints it the same and the reuse ways place it cheaply.
+ *  (Its poses follow when it comes back - see paint/newcomers.) Nothing if
+ *  it already has a portrait or art. */
+export async function readyNewcomer(c: CharacterDef, world: string): Promise<void> {
+  if (characterArt(c) || !world || !c.name) return;
+  if (await newcomerPortrait(c, world)) return;
+  const req = { world, cast: [c], page: { text: "", picture: `${c.name} standing, relaxed and smiling, as in a model sheet.`, characters: [c.id] } } as unknown as IllustrateRequest;
+  const sp = await paintNewcomer(c, req, undefined, {});
+  if (sp) await keepNewcomer(c, sp, world);
+}
+
 /** A composer's tags, whole, through the layout pass (see layoutComposed);
  *  its changes are noted with the page's other mends. */
 async function* laidOut(src: AsyncIterable<string>, opts: LayoutOptions, stats: ExpandStats): AsyncGenerator<string> {
@@ -868,10 +883,14 @@ async function paintNewcomer(c: CharacterDef, req: IllustrateRequest, signal: Ab
         text: [
           `BOOK ART DIRECTION: ${req.world || "a gentle English countryside in late summer, soft golden light"}`,
           `THE CHARACTER: ${c.name}${genderNote(c)}. ${c.look || "A small woodland creature."}`,
+          // (painted before, in this book: the very same character again)
+          characterArt(c) ? `ITS PORTRAIT (200x200) - paint exactly this character: the same colours (same hex values), markings, shape and face; only the pose changes:\n${characterArt(c)}` : "",
           `THIS PAGE'S TEXT: ${req.page.text}`,
           `THE MOMENT: ${req.page.picture}`,
           `Paint ${c.name} alone, doing what this moment has them do. Output the three groups now.`,
-        ].join("\n\n"),
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       },
     ],
   };
@@ -911,6 +930,29 @@ function splitLayers(svg: string): Sprite | null {
 
 async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefined, notes: Record<string, unknown>): AsyncGenerator<string> {
   const reuse = req.reuse ?? NO_REUSE;
+  // A newcomer already painted in this book (see paint/newcomers) has its
+  // first painting as its portrait: from here on it's like anyone else -
+  // painted from that portrait, placed from its parts and poses once
+  // they're ready - and each page it's on is counted (its poses are
+  // prepared when it comes back).
+  // (a book is known by its art direction - the same on every page and
+  // when the storyteller first brings a character in - else its id)
+  const book = req.world || req.storyId || "";
+  if (reuse.parts && book) {
+    const cast = await Promise.all(
+      req.cast.map(async (c) => {
+        if (characterArt(c)) return c;
+        const portrait = await newcomerPortrait(c, book, req.benchVariant);
+        if (!portrait) return c;
+        const known = { ...c, preset: null, svg: portrait };
+        sawNewcomerAgain(known, book, req.benchVariant);
+        return known;
+      }),
+    );
+    const promoted = cast.filter((c, i) => c !== req.cast[i]).map((c) => c.name);
+    if (promoted.length) notes.portraits = `${promoted.join(", ")} painted from their portrait in this book`;
+    req = { ...req, cast };
+  }
   // (the pieces' colours: the book's season, the page's light; their
   // seeds: the book, and the page)
   const stats = newStats();
@@ -952,13 +994,17 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // don't stop the composer: it still places everyone, and leaves each
   // newcomer a spot, while a stronger painter paints just that newcomer, in
   // this moment's pose, at the same time (see paintNewcomer).
-  const newcomers = req.cast.filter((c) => !characterArt(c));
-  const known = req.cast.filter((c) => characterArt(c));
-  const spriting = Boolean(reuse.sprites) && req.cast.length > 0 && known.every((c) => spritesOf.has(c.id));
-  if (reuse.sprites) notes.sprites = spriting ? "placed from pre-painted poses" : `poses not ready for ${known.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ") || "anyone"}: assembled from parts instead`;
-  const posing = spriting || (Boolean(reuse.poses) && req.cast.length > 0 && known.every((c) => partsOf.has(c.id)));
-  if (reuse.poses) notes.composer = posing ? "posed from the library" : "someone had no parts: drawn by the painter";
-  if (posing && newcomers.length) notes.newcomers = `${newcomers.map((c) => c.name).join(", ")} painted for this page`;
+  // (on a composed page, anyone who can't be placed from poses or parts -
+  // a newcomer, or a character whose parts aren't ready - is painted for
+  // the page the same way, from its portrait when it has one: the
+  // composer still places everyone)
+  const placeable = (c: CharacterDef) => partsOf.has(c.id) || (Boolean(reuse.sprites) && spritesOf.has(c.id));
+  const posing = Boolean(reuse.poses) && req.cast.length > 0;
+  const spriting = posing && Boolean(reuse.sprites);
+  const newcomers = posing ? req.cast.filter((c) => !placeable(c)) : [];
+  if (reuse.sprites) notes.sprites = req.cast.every((c) => spritesOf.has(c.id)) ? "placed from pre-painted poses" : `poses not ready for ${req.cast.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ")}: from parts, or painted for the page`;
+  if (reuse.poses) notes.composer = "posed from the library";
+  if (newcomers.length) notes.newcomers = `${newcomers.map((c) => c.name).join(", ")} painted for this page`;
   // (begun at once, alongside everything else; the composer's tag says
   // where each goes)
   const newcomerPaintings: Record<string, Promise<Sprite | null>> = {};
@@ -966,15 +1012,21 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   if (posing)
     for (const c of newcomers) {
       newcomerLogs[c.id] = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
-      newcomerPaintings[c.id] = paintNewcomer(c, req, signal, newcomerLogs[c.id]).catch((e) => {
+      newcomerPaintings[c.id] = paintNewcomer(c, req, signal, newcomerLogs[c.id]).then((sp) => {
+        // (a true newcomer's first painting: kept as its portrait for the
+        // book, and made ready for reuse in the background)
+        if (sp && !characterArt(c) && book) void keepNewcomer(c, sp, book, req.benchVariant).catch(() => {});
+        return sp;
+      }).catch((e) => {
         console.warn("painting: a newcomer couldn't be painted", c.name, e);
         return null;
       });
     }
   const sheet = (c: CharacterDef) => {
-    if (posing && !characterArt(c)) return newcomerSheet(c);
+    if (newcomers.includes(c)) return newcomerSheet(c);
     const parts = partsOf.get(c.id);
-    if (spriting) return spriteSheet(c, Object.keys(spritesOf.get(c.id) ?? {}));
+    // (with no poses yet but its parts: any pose word, made from its parts)
+    if (spriting) return spriteSheet(c, spritesOf.has(c.id) ? Object.keys(spritesOf.get(c.id)!) : SPRITE_POSE_IDS);
     if (parts && posing) return composerSheet(c, Object.keys(parts.views));
     if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);

@@ -176,3 +176,9 @@ export async function partsReady(c: CharacterDef): Promise<boolean | null> {
  *  this to after(), so they're finished and kept for the next page. */
 const inFlight = new Set<Promise<unknown>>();
 export const partsInFlight = (): Promise<unknown> => Promise.allSettled([...inFlight]);
+/** Other preparing to see through after the page has gone (a newcomer
+ *  made ready for reuse): finished in the same after() as parts. */
+export function keepGoing(p: Promise<unknown>): void {
+  inFlight.add(p);
+  void p.finally(() => inFlight.delete(p)).catch(() => {});
+}

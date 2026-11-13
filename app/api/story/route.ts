@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { hasApiKey, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
+import { hasApiKey, readyNewcomer, reuseOf, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
@@ -164,6 +164,8 @@ export async function POST(req: Request) {
   // model straight away: nobody will receive the rest, so finishing it
   // would only spend tokens on a result that's thrown away.
   const stop = new AbortController();
+  // (new characters readied for reuse while the pages are read: see below)
+  const readying: Promise<unknown>[] = [];
   req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
   const body = withMetricsUser(userId, () => gen.run(() => new ReadableStream<Uint8Array>({
@@ -206,6 +208,12 @@ export async function POST(req: Request) {
             send(event);
             if (event.type === "done") {
               const pages = event.response.segment.pages;
+              // (characters brought in with no portrait: readied for reuse
+              // straight away, while the pages are read - only when pages
+              // are painted from parts)
+              const fresh = event.response.newCharacters.filter((c) => !c.preset && !c.svg);
+              const world = event.response.world || (parsed.kind === "continue" ? parsed.story.world : "");
+              if (fresh.length && world && reuseOf({}).parts) readying.push(...fresh.map((c) => readyNewcomer(c, world).catch(() => {})));
               count({
                 stories_started: parsed.kind === "start" ? 1 : 0,
                 segments: 1,
@@ -240,7 +248,9 @@ export async function POST(req: Request) {
     },
   })));
   // (the log's last line is written even if the reader has gone)
-  after(() => gen.done);
+  // (and any new characters being readied for reuse, finished after the
+  // reader has their pages)
+  after(() => gen.done.then(() => Promise.allSettled(readying)));
   return new Response(body, {
     headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
   });
