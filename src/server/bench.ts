@@ -18,6 +18,8 @@ export interface WayResult {
   ok: boolean;
   genId?: string;
   summary?: string;
+  /** why it failed, from the painting's record */
+  error?: string;
 }
 export interface BenchRun {
   id: string;
@@ -62,6 +64,7 @@ export async function saveBenchResult(runId: string, way: string, o: { genId: st
     ok: o.ok,
     genId: o.genId,
     summary: String(got?.record.summary ?? "").slice(0, 600),
+    ...(o.ok ? {} : { error: String(got?.record.error ?? got?.record.status ?? "it didn't finish").slice(0, 300) }),
   };
   await hset(`bench:run:${runId}`, `w${way}`, JSON.stringify(result));
   const svg = o.ok ? sanitizeSvg(o.svg, 400_000) : "";

@@ -647,6 +647,9 @@ export function reuseOf(req: Pick<IllustrateRequest, "reuse">): ReuseSettings {
 }
 const NO_REUSE: ReuseSettings = { stamps: false, parts: false, backdrops: false };
 
+/** How long a page waits for a character's parts to be made (see paintOnce). */
+const PARTS_WAIT_MS = 20_000;
+
 /** Sent down the painting's stream when a page painted from reused pieces
  *  went wrong part-way: everything sent so far is to be thrown away, and
  *  the page is painted again, the ordinary way, from the start. */
@@ -676,9 +679,13 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, n
   try {
     yield* paintOnce({ ...req, reuse }, signal, notes);
   } catch (err) {
-    if (!(err instanceof ReuseFailed) || signal?.aborted) throw err;
-    console.warn("painting: reuse failed, painting the ordinary way", err.message);
-    notes.reuseFailed = err.message;
+    // (any failure along the reused-pieces path - not only a placeholder
+    // it couldn't read - gives the page the ordinary way; a painter too
+    // slow to begin, or a refusal, is handled as for any page)
+    if (signal?.aborted || err instanceof SlowPainter || err instanceof StoryRefusal) throw err;
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn("painting: reuse failed, painting the ordinary way", err instanceof ReuseFailed ? message : err);
+    notes.reuseFailed = err instanceof ReuseFailed ? message : `unexpected: ${message}`;
     yield RESTART;
     yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, {});
   }
@@ -704,7 +711,12 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   const partsOf = new Map<string, CharacterParts>();
   if (reuse.parts && req.cast.length) {
     const began = Date.now();
-    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await partsFor(c).catch(() => null)] as const))) if (p) partsOf.set(id, p);
+    // (a character's parts are made once, the first time it's needed -
+    // which can take a minute or two. A page doesn't wait long for them:
+    // past PARTS_WAIT_MS that character is painted in full this time, and
+    // its parts go on being made for the pages after.)
+    const inTime = <T,>(p: Promise<T>) => Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), PARTS_WAIT_MS))]);
+    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await inTime(partsFor(c).catch(() => null))] as const))) if (p) partsOf.set(id, p);
     notes.parts = { from: [...partsOf.keys()], full: req.cast.filter((c) => !partsOf.has(c.id)).map((c) => c.id), readyMs: Date.now() - began };
   }
   // The cheapest way: when every character has its parts, nobody is drawn

@@ -135,5 +135,13 @@ export async function partsFor(c: CharacterDef): Promise<CharacterParts | null> 
   if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return PRESET_PARTS[c.preset];
   const art = characterArt(c);
   if (!art) return null;
-  return once(`parts:v1:${hashOf(art)}:${art.length}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
+  const p = once(`parts:v1:${hashOf(art)}:${art.length}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
+  inFlight.add(p);
+  void p.finally(() => inFlight.delete(p)).catch(() => {});
+  return p;
 }
+
+/** Parts still being made: a page that stopped waiting for them hands
+ *  this to after(), so they're finished and kept for the next page. */
+const inFlight = new Set<Promise<unknown>>();
+export const partsInFlight = (): Promise<unknown> => Promise.allSettled([...inFlight]);

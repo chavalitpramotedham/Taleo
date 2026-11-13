@@ -13,6 +13,7 @@ import { auth } from "@/server/auth";
 import { beginGen, logDenied } from "@/server/genlog";
 import type { ReuseSettings } from "@/lib/types";
 import { saveBenchResult } from "@/server/bench";
+import { partsInFlight } from "@/server/paint/parts-maker";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -187,6 +188,8 @@ export async function POST(req: Request) {
     },
   })));
   // (the log's last line is written even if the reader has gone)
+  // (and any character's parts still being made, so they're kept)
+  after(() => partsInFlight());
   after(() =>
     gen.done.then(async () => {
       if (!benchSaves) return;

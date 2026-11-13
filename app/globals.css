@@ -15825,3 +15825,31 @@ html[data-night] .lab-stat em.good {
   font-size: 0.85rem;
   margin: 0 0 14px;
 }
+.lab-error {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #c4554d;
+  overflow-wrap: anywhere;
+}
+.lab-wait {
+  width: 78%;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.lab-wait-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+.lab-wait-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--russet);
+  transition: width 0.25s linear;
+}

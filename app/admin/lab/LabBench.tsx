@@ -82,12 +82,14 @@ interface Cell {
   summary?: string;
   calls?: { label: string; out: number; in: number; cacheRead: number; totalMs: number }[];
   genId?: string;
+  /** when it was asked for (Date.now()), for the wait bar */
+  startedAt?: number;
 }
 interface Run {
   id: string;
   at: number;
   page: string;
-  ways: Record<string, { usd: number; out: number; totalMs: number; firstMs?: number; ok: boolean; genId?: string; summary?: string }>;
+  ways: Record<string, { usd: number; out: number; totalMs: number; firstMs?: number; ok: boolean; genId?: string; summary?: string; error?: string }>;
   vote?: string;
 }
 interface Board {
@@ -169,7 +171,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   /** One way of one page. */
   const paintWay = async (p: LabPage, way: Way, runId: string, book: string) => {
     const began = performance.now();
-    setCell(runId, way, { svg: "", state: "painting" });
+    setCell(runId, way, { svg: "", state: "painting", startedAt: Date.now() });
     let finalSvg = "";
     let result = { usd: 0, out: 0, totalMs: 0, firstMs: 0, ok: false, genId: undefined as string | undefined, summary: "" };
     try {
@@ -189,6 +191,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
         if (done) break;
         text += dec.decode(value, { stream: true });
         first ||= performance.now() - began;
+        text = text.replace("<!--taleo:error-->", "");
         const again = text.lastIndexOf(RESTART);
         if (again >= 0) text = text.slice(again + RESTART.length);
         setCell(runId, way, { svg: text.replace(DONE, ""), firstMs: first });
@@ -399,8 +402,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     <b>{p.label}</b>
                     {run?.vote && <span className="lab-state">★{nOf(run.vote)}</span>}
                   </figcaption>
-                  <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
-                  {(c || saved) && numbers(c, saved)}
+                  <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
+                  {((c && c.state !== "painting") || saved) && numbers(c, saved)}
                 </figure>
               );
             })}
@@ -483,8 +486,9 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                           </b>
                           {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
                         </figcaption>
-                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
-                        {(c || saved) && numbers(c, saved)}
+                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
+                        {((c && c.state !== "painting") || saved) && numbers(c, saved)}
+                        {saved && !saved.ok && <p className="lab-error">Failed: {saved.error || "no reason recorded"}</p>}
                         {run && c?.state !== "painting" && !c?.svg && !saved?.ok && (c?.state === "failed" || saved || Date.now() - run.at > 6 * 60_000) && (
                           <button type="button" className="btn btn-soft lab-vote" onClick={() => void paintWay(p, w.id, run.id, `b${Date.now().toString(36)}`).then(load)}>
                             Paint this way
@@ -504,6 +508,37 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           })}
         </>
       )}
+    </div>
+  );
+}
+
+/** Until a way usually shows its first strokes, when nothing's measured
+ *  yet (ways 3 and 4 wait for the place's backdrop, and the first time a
+ *  character is used, up to 20 s for its parts). */
+const FIRST_GUESS_MS: Record<string, number> = { "1": 25_000, p: 25_000, b: 50_000, x: 45_000 };
+
+/** A painting that hasn't shown anything yet: how long it's been, against
+ *  how long this way usually takes to show its first strokes. */
+function WaitBar({ since, way, board }: { since: number; way: string; board: Board[] }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, []);
+  const measured = board.find((b) => b.way === way)?.firstMs;
+  const usual = measured && measured > 1000 ? measured : FIRST_GUESS_MS[way] ?? 30_000;
+  const gone = now - since;
+  // (fills to the usual time, then creeps on towards the end without
+  // reaching it)
+  const frac = gone <= usual ? (gone / usual) * 0.9 : 0.9 + 0.1 * (1 - Math.exp(-(gone - usual) / usual));
+  return (
+    <div className="lab-wait" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(frac * 100)} aria-label="Waiting for the first strokes">
+      <div className="lab-wait-track">
+        <div className="lab-wait-fill" style={{ width: `${(frac * 100).toFixed(1)}%` }} />
+      </div>
+      <span>
+        {Math.floor(gone / 1000)}s · {gone > usual ? "taking longer than usual" : `first strokes in ~${Math.max(1, Math.round((usual - gone) / 1000))}s`}
+      </span>
     </div>
   );
 }
