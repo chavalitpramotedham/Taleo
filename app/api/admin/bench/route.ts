@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
+import { sanitizeSvg } from "@/lib/svg-sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,11 @@ export interface BenchRun {
 const RUNS = "bench:runs";
 const PAGES = "bench:pages";
 const KEEP_S = 180 * 86_400;
-const mem = () => ((globalThis as { __bench?: { runs: Map<string, Record<string, string>>; pages: Map<string, string> } }).__bench ??= { runs: new Map(), pages: new Map() });
+const mem = () => ((globalThis as { __bench?: { runs: Map<string, Record<string, string>>; pages: Map<string, string>; pics: Map<string, string> } }).__bench ??= { runs: new Map(), pages: new Map(), pics: new Map() });
+/** Each painting's picture, kept as long as its run's numbers (the
+ *  painting's own record, where it otherwise comes from, goes after two
+ *  weeks). Its own key, so listing the runs never loads the pictures. */
+const picKey = (runId: string, way: string) => `bench:pic:${runId}:${way}`;
 
 async function hset(key: string, field: string, value: string) {
   if (!metricsEnabled()) {
@@ -93,8 +98,21 @@ function leaderboard(runs: BenchRun[]) {
 const nope = () => new NextResponse(null, { status: 404 });
 const noStore = { "cache-control": "no-store" };
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!(await currentAdmin())) return nope();
+  const q = new URL(req.url).searchParams;
+  const pr = q.get("picture") ?? "";
+  const pw = q.get("way") ?? "";
+  if (pr) {
+    if (!ID.test(pr) || !/^[1pbx]$/.test(pw)) return NextResponse.json({ svg: null }, { headers: noStore });
+    let svg: string | null = null;
+    if (!metricsEnabled()) svg = mem().pics.get(picKey(pr, pw)) ?? null;
+    else {
+      const [v] = await pipeline([["GET", picKey(pr, pw)]]).catch(() => [null]);
+      svg = typeof v === "string" ? v : null;
+    }
+    return NextResponse.json({ svg }, { headers: noStore });
+  }
   const runs = await readRuns();
   let pages: unknown[] = [];
   if (!metricsEnabled()) pages = [...mem().pages.values()].map((v) => JSON.parse(v));
@@ -127,6 +145,13 @@ export async function POST(req: Request) {
     const r = (b.result ?? {}) as Partial<WayResult>;
     const clean: WayResult = { usd: Number(r.usd) || 0, out: Number(r.out) || 0, totalMs: Number(r.totalMs) || 0, firstMs: Number(r.firstMs) || 0, ok: Boolean(r.ok), genId: typeof r.genId === "string" && ID.test(r.genId) ? r.genId : undefined, summary: String(r.summary ?? "").slice(0, 600) };
     await hset(`bench:run:${runId}`, `w${way}`, JSON.stringify(clean));
+    return NextResponse.json({ ok: true });
+  }
+  if (b?.kind === "picture" && runId && way && typeof b.svg === "string") {
+    const svg = sanitizeSvg(b.svg, 400_000);
+    if (!svg) return NextResponse.json({ ok: false });
+    if (!metricsEnabled()) mem().pics.set(picKey(runId, way), svg);
+    else await pipeline([["SET", picKey(runId, way), svg, "EX", KEEP_S]]);
     return NextResponse.json({ ok: true });
   }
   if (b?.kind === "vote" && runId && way) {

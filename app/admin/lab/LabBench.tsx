@@ -143,9 +143,15 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     async (run: Run) => {
       for (const w of Object.keys(run.ways)) {
         const r = run.ways[w];
-        if (!r.genId || cells[run.id]?.[w]) continue;
-        const d = await fetch(`/api/admin/gen?id=${encodeURIComponent(r.genId)}&picture=1`, { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).catch(() => null);
-        setCells((all) => ({ ...all, [run.id]: { ...all[run.id], [w]: { svg: d?.svg ?? "", state: r.ok ? "done" : "failed", usd: r.usd, out: r.out, totalMs: r.totalMs, firstMs: r.firstMs, summary: r.summary, calls: d?.calls, genId: r.genId } } }));
+        if (cells[run.id]?.[w]) continue;
+        // (the bench's own copy of the picture first - kept as long as the
+        // run; the painting's record has the painters' detail, and is
+        // gone after two weeks)
+        const [kept, d] = await Promise.all([
+          fetch(`/api/admin/bench?picture=${encodeURIComponent(run.id)}&way=${w}`, { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).catch(() => null),
+          r.genId ? fetch(`/api/admin/gen?id=${encodeURIComponent(r.genId)}&picture=1`, { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).catch(() => null) : null,
+        ]);
+        setCells((all) => ({ ...all, [run.id]: { ...all[run.id], [w]: { svg: kept?.svg || d?.svg || "", state: r.ok ? "done" : "failed", usd: r.usd, out: r.out, totalMs: r.totalMs, firstMs: r.firstMs, summary: r.summary, calls: d?.calls, genId: r.genId } } }));
       }
     },
     [cells],
@@ -164,6 +170,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const paintWay = async (p: LabPage, way: Way, runId: string, book: string) => {
     const began = performance.now();
     setCell(runId, way, { svg: "", state: "painting" });
+    let finalSvg = "";
     let result = { usd: 0, out: 0, totalMs: 0, firstMs: 0, ok: false, genId: undefined as string | undefined, summary: "" };
     try {
       const res = await fetch("/api/illustrate", {
@@ -189,6 +196,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
       const ok = text.includes(DONE);
       const totalMs = performance.now() - began;
       setCell(runId, way, { svg: text.replace(DONE, ""), state: ok ? "done" : "failed", totalMs });
+      finalSvg = text.replace(DONE, "");
       result = { ...result, ok, totalMs, firstMs: first, genId: gen };
       if (gen)
         for (let i = 0; i < 25; i++) {
@@ -206,6 +214,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
       result.totalMs = performance.now() - began;
     }
     await api({ kind: "result", runId, way, result });
+    // (and the picture itself, so it outlives the painting's record)
+    if (result.ok && finalSvg) await api({ kind: "picture", runId, way, svg: finalSvg });
   };
 
   /** A page, all four ways at once. `book`: pages painted together share
