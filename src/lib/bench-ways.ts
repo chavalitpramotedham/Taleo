@@ -88,7 +88,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // food and object characters' code-made limbs thin pen lines
   // s13 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
   // in front (composed pages sorted in code; painters told)
-  p: "s13",
+  // s14 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
+  // sizes kept true to each other by kind; the brief's arrangement kept
+  p: "s14",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -115,7 +117,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // food and object characters' code-made limbs thin pen lines
   // s12 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
   // in front (composed pages sorted in code; painters told)
-  q: "s12",
+  // s13 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
+  // sizes kept true to each other by kind; the brief's arrangement kept
+  q: "s13",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -148,7 +152,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // a setting) and checks off every thing the brief names
   // s15 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
   // in front (composed pages sorted in code; painters told)
-  x: "s15",
+  // s16 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
+  // sizes kept true to each other by kind; the brief's arrangement kept
+  x: "s16",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -171,7 +177,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // names
   // s10 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
   // in front (composed pages sorted in code; painters told)
-  s: "s10",
+  // s11 (13 Nov): lessons 11-13 - overlap allowed only for true depth;
+  // sizes kept true to each other by kind; the brief's arrangement kept
+  s: "s11",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

@@ -207,3 +207,43 @@ Checked: a nearer character written first was moved after a further one
 came after it; a target in its group moved as one.
 
 New codes: 1-UG95, 2-ICWF, 3-9GGH, 4-TUHU, 5-HMQ6.
+
+## 13 Nov 2026 - "The frog's lily pad" (c29), repainted
+
+Seen: way 2 kept the brief best (Hop at the front of the pad, Berry and
+Avo behind, the dragonfly). Way 3 had the frog lying off to the right and
+the three overlapping. Way 4 was tidy, with the pad, but had all three
+standing in a row - nobody sitting at the front or holding on. Way 5 was
+still a pile-up: the frog almost covering Avo, and Avo far bigger than
+Berry.
+
+**Lesson 11 - overlapping is allowed only for true depth.** Two
+characters were let overlap whenever one stood more than 40 higher up the
+page, so way 5's Avo, placed a little higher but just as big, was piled
+behind the frog. Now they may overlap only if the further one is higher up
+AND clearly smaller (under 80% of the nearer one's size); otherwise
+they're side by side and are eased apart.
+Where: `apartInDepth` (`src/server/paint/layout.ts`), used by the layout
+pass and by `spaceOut` (`src/server/paint/expand.ts`).
+
+**Lesson 12 - sizes true to each other.** The composer gave an avocado and
+a strawberry very different sizes. Now each character is kept within 20%
+of the page's usual size times its own share (1 for a grown character,
+about two thirds for a squirrel or a frog, from lesson 1's kinds) - in the
+layout pass, and in the translator's size band, which now scales by the
+same share (it had pushed small characters back up to grown size).
+Where: step 0 of `layoutComposed`; `sized` and `ExpandContext.sizeOf`
+(`src/server/paint/expand.ts`); `sizeShare` (`src/server/claude.ts`).
+
+**Lesson 13 - the arrangement the brief describes is kept.** "At the
+front", "behind him", "sitting on", "holding on" were treated as optional.
+The composers' main-action rule now says the arrangement is part of the
+action and is kept exactly, with the poses that say it (sit, hold,
+reach) - never all standing in a row.
+Where: rule 1 of both composers' "THINK FIRST" (`src/server/prompts.ts`).
+
+Checked: way 5's pile-up re-created (Avo higher up but bigger, the frog in
+front, Berry beside) came out with Avo resized to 1.06, the frog to a
+frog's share, all three eased apart and drawn back to front.
+
+New codes: 2-JJTI, 3-9URI, 4-U8SV, 5-H8F5.

@@ -21,7 +21,18 @@ export interface LayoutOptions {
   targetId?: string | null;
   /** the usual size of a grown character on this page (sizingFor().s) */
   usualS?: number;
+  /** each character's size against a grown one (1; a squirrel 0.67; a
+   *  ladybird 0.1): sizes on the page are kept to usualS times this */
+  sizeOf?: Record<string, number>;
 }
+
+/** Whether two characters stand at truly different depths: the further
+ *  one is both higher up the page AND clearly smaller (perspective). Only
+ *  then may they overlap; otherwise they're side by side and must not. */
+export const apartInDepth = (a: { y: number; s: number }, b: { y: number; s: number }) => {
+  const [far, near] = a.y < b.y ? [a, b] : [b, a];
+  return near.y - far.y > 40 && far.s < near.s * 0.8;
+};
 
 interface Placed {
   /** where the tag sits in the markup */
@@ -112,6 +123,13 @@ function byDepth(markup: string, notes: string[]): string {
   return out;
 }
 
+/** Just the size changes written in (a page with one character). */
+function writeSizes(markup: string, placed: { start: number; end: number; tag: string }[]): string {
+  let out = markup;
+  for (const p of [...placed].sort((a, b) => b.start - a.start)) out = out.slice(0, p.start) + p.tag + out.slice(p.end);
+  return out;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
   const placed: Placed[] = [];
@@ -140,7 +158,23 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       turns: !/^<\s*fig\b/i.test(tag) || (attr(tag, "v") ?? attr(tag, "view") ?? "front").toLowerCase() === "three",
     });
   }
-  if (placed.length < 2) return { markup, notes };
+  if (!placed.length) return { markup, notes };
+
+  // 0. Sizes kept true to each other (lesson 12): each character is kept
+  // within 20% of the page's usual size times its own (a squirrel smaller,
+  // an avocado as big as a strawberry) - the composer's choice stands
+  // within that, so a nearer one can still be a little bigger.
+  if (opts.usualS)
+    for (const p of placed) {
+      const want = opts.usualS * (opts.sizeOf?.[p.id] ?? 1);
+      const kept = Math.min(want * 1.2, Math.max(want * 0.8, p.s));
+      if (Math.abs(kept - p.s) > 0.01) {
+        notes.push(`${p.id} resized from ${p.s.toFixed(2)} to ${kept.toFixed(2)}, true to the others`);
+        p.s = kept;
+        p.tag = setAttr(p.tag, "s", kept.toFixed(2));
+      }
+    }
+  if (placed.length < 2) return { markup: writeSizes(markup, placed), notes };
 
   // 1. Ease apart anyone overlapping more than a touch, left to right,
   // keeping their order across the picture.
@@ -149,8 +183,9 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     for (let i = 0; i + 1 < byX.length; i++) {
       const a = byX[i];
       const b = byX[i + 1];
-      // (well apart in depth - one far behind, much smaller - they may cross)
-      if (Math.abs(a.y - b.y) > 40 || Math.max(a.s, b.s) / Math.min(a.s, b.s) > 1.8) continue;
+      // (well apart in depth - one higher up AND clearly smaller - they may
+      // cross; higher up alone isn't depth, it's a clump: lesson 11)
+      if (apartInDepth(a, b)) continue;
       const interacting = a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId;
       // how close their middles may be: half of each body, less the
       // overlap allowed (a hand's width when they interact, a whisker else)
@@ -185,7 +220,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   let out = markup;
   const edits = placed
     .map((p) => ({ p, tag: setAttr(setAttr(p.tag, "x", String(Math.round(p.x))), "flip", p.flip ? "1" : "0") }))
-    .filter(({ p, tag }) => tag !== p.tag)
     .sort((a, b) => b.p.start - a.p.start);
   for (const { p, tag } of edits) out = out.slice(0, p.start) + tag + out.slice(p.end);
 

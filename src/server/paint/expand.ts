@@ -4,6 +4,7 @@ import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "
 import type { Sprite } from "@/lib/art/sprites";
 import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, LOOKS, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
 import { PROPS } from "@/lib/art/stamps-more";
+import { apartInDepth } from "./layout";
 
 /**
  * The expander: sits between a painter's stream and the reader, and turns
@@ -75,6 +76,9 @@ export interface ExpandContext {
   /** On a composed page, the characters the tags must place: any left out
    *  is placed in code at the end. */
   mustPlace?: string[];
+  /** Each character's size against a grown one, by id (1 unless a
+   *  squirrel, a ladybird...): its size band is scaled by it. */
+  sizeOf?: Record<string, number>;
   /** Newcomers (characters with no portrait) being painted for this page,
    *  by id: an <npc/> tag (or a <sprite>/<fig> for one) says where each
    *  goes, and it is laid there once painted. */
@@ -110,12 +114,14 @@ export function sizingFor(camera: string | null | undefined, picture: string, ch
   if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
   return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 238, yHi: 270 };
 }
-const sized = (ctx: ExpandContext, sc: number, y: number, small = false) => {
+const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share = 1) => {
   const z = ctx.sizing;
   if (!z) return { sc, y };
-  // (small: a newcomer may be a squirrel or a bird, far smaller than the
-  // grown characters the band is for - only its upper bound holds)
-  return { sc: Math.min(z.s * z.hi, Math.max(z.s * (small ? 0.3 : z.lo), sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
+  // (share: the character's size against a grown one - a squirrel 0.67 -
+  // so its band is its own; small: a newcomer may be far smaller than the
+  // grown characters, so only the upper bound holds)
+  const u = z.s * share;
+  return { sc: Math.min(u * z.hi, Math.max(small ? z.s * 0.1 : u * z.lo, sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
 };
 
 export interface ExpandStats {
@@ -419,7 +425,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     for (let pass = 0; pass < 3; pass++) {
       let moved = false;
       for (const q of placedAt) {
-        if (Math.abs(q.y - y) > 40 || Math.max(q.s, sc) / Math.min(q.s, sc) > 1.8) continue;
+        if (apartInDepth(q, { y, s: sc })) continue;
         const need = (w(sc) + w(q.s)) / 2 - Math.min(w(sc), w(q.s)) * 0.25;
         const d = nx - q.x;
         if (Math.abs(d) >= need) continue;
@@ -454,7 +460,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     if (!sp) return "";
     const x = num(a, "x", null, -100, 500, stats);
     // (size and footing kept to this page's camera)
-    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small);
+    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small, ctx.sizeOf?.[id] ?? 1);
     const flip = a.flip === "1" || a.flip === "true";
     const lean = num(a, "lean", 0, -30, 30);
     const t = `translate(${f(spaceOut(id, x, y, sc))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
@@ -469,7 +475,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const view = viewOf(parts, v);
     if (!view) return "";
     const x = num(a, "x", null, -100, 500, stats);
-    const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
+    const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1);
     const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
     const lean = num(a, "lean", 0, -45, 45);
     // (a sprite's pose word, turned into arms, legs and mood)
@@ -580,7 +586,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
           }
           fixed(stats, `no parts for "${id}": its drawing inside the figure kept and placed`);
           const x = num(a, "x", null, -100, 500, stats);
-          const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), true);
+          const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), true, ctx.sizeOf?.[id] ?? 1);
           const flip = a.flip === "1" || a.flip === "true";
           fig = {
             id,
@@ -598,7 +604,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         // (size and footing kept to this page's camera - except sitting,
         // whose y is the seat's)
         const seated = (a.legs ?? "").toLowerCase() === "sit";
-        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
+        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1);
         const sc = fit.sc;
         const y = seated ? num(a, "y", null, -100, 400, stats) : fit.y;
         // (a view drawn facing left is mirrored to face right first)

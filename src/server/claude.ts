@@ -825,6 +825,11 @@ export function relativeSize(c: Pick<CharacterDef, "name" | "look">): string | n
   if (/\b(goose|duck|hen|chicken|puppy|tortoise|otter|badger|seal pup|lamb)\b/.test(t)) return "a little smaller than a grown character (about three quarters of the height)";
   return null;
 }
+/** A character's size against a grown one, as a number (see relativeSize). */
+function sizeShare(c: Pick<CharacterDef, "name" | "look">): number {
+  const r = relativeSize(c);
+  return !r ? 1 : r.startsWith("TINY") ? 0.15 : r.startsWith("SMALL") ? 0.67 : 0.75;
+}
 const withSize = (c: CharacterDef, sheet: string) => {
   const r = relativeSize(c);
   return r ? `${sheet}\nSIZE AGAINST THE OTHERS: ${r}.` : sheet;
@@ -1263,7 +1268,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])) }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),
@@ -1273,6 +1278,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
               // anyone the composer leaves out is placed in code)
               ids: Object.fromEntries(req.cast.flatMap((c) => [[c.id.toLowerCase(), c.id], [c.name.toLowerCase(), c.id]])),
               mustPlace: posing ? req.page.characters.filter((id) => partsOf.has(id) || spritesOf.has(id) || id in newcomerPaintings) : undefined,
+              sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])),
               newcomers: newcomerPaintings,
             },
             stats,
