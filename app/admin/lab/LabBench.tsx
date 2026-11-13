@@ -1783,7 +1783,9 @@ function BenchZoom({
   }, []);
   if (!item) return null;
   const stepping = items.length > 1;
-  if (wide && items.length >= 4) {
+  // (side by side whenever there are two or more to compare - with some
+  // ways paused there can be fewer than four)
+  if (wide && items.length >= 2) {
     return createPortal(
       <div className="modal-backdrop lab-collage-backdrop" onClick={onClose}>
         <div
