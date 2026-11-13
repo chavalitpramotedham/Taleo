@@ -252,6 +252,14 @@ function reuseNote(notes: Record<string, unknown>): string {
     : ""));
   const place = notes.backdrop ? ` · backdrop ${notes.backdrop}, ${notes.frame}${notes.pageLayer ? `, page layer ${notes.pageLayer}` : ""}` : "";
   const posed = notes.composer ? ` · ${notes.composer}${(notes.reuse as { posed?: number } | undefined)?.posed ? ` (${(notes.reuse as { posed: number }).posed} posed)` : ""}` : "";
-  if (!r) return failed + partsNote + posed + place + split;
-  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${partsNote}${posed}${place}${failed}${split}`;
+  // (a painter's slips mended on the way, and painters that were cut off
+  // and carried on: nothing thrown away)
+  const fixes = (notes.reuse as { fixes?: string[] } | undefined)?.fixes ?? [];
+  const mended = fixes.length ? ` · mended ${fixes.length}: ${fixes.slice(0, 4).join("; ")}${fixes.length > 4 ? "; ..." : ""}` : "";
+  const resumed = Object.entries(painters as Record<string, { resumes?: number }>)
+    .filter(([, l]) => l?.resumes)
+    .map(([who, l]) => ` · ${who} cut off and carried on ${l.resumes}x`)
+    .join("");
+  if (!r) return failed + partsNote + posed + place + resumed + split;
+  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${partsNote}${posed}${place}${failed}${mended}${resumed}${split}`;
 }

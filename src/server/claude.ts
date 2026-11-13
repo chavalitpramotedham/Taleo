@@ -18,7 +18,7 @@ import type {
   StoryRequest,
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
-import { expandStream, newStats, ReuseFailed, sizeLine, sizingFor, type Box, type ExpandContext } from "./paint/expand";
+import { expandStream, newStats, sizeLine, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
 import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
@@ -454,7 +454,37 @@ interface Brush {
   content: Anthropic.Beta.BetaTextBlockParam[];
 }
 
-/** Streams one painter's strokes. What happened is noted on `log`. */
+/** Times a painter cut off part-way is asked to carry on (see brushStrokes)
+ *  - when the connection dropped, it broke, or it ran out of room. */
+const MAX_RESUMES = 3;
+/** How long, in all, a painter waits on a busy service (429 too many
+ *  requests, 529 overloaded) before giving up: such limits last up to a
+ *  minute, so it waits them out rather than counting tries. */
+const BUSY_PATIENCE_MS = 120_000;
+
+/** Whether a painter's failure is worth trying again: the service busy or
+ *  briefly unwell, the connection dropping, the reply running out of room.
+ *  Not a refusal, a request it rejected as wrong, or a missing key. */
+function resumable(err: unknown): boolean {
+  if (err instanceof StoryRefusal || err instanceof SlowPainter) return false;
+  if (err instanceof Anthropic.APIError) {
+    const st = err.status as number | undefined;
+    return st === undefined || st === 408 || st === 409 || st === 429 || st >= 500;
+  }
+  return true;
+}
+
+/** What a painter cut off part-way is told, after its own brief. */
+const carryOn = (soFar: string) =>
+  `YOUR PICTURE SO FAR. You were cut off part-way through painting it. Everything below is kept, exactly as you wrote it, and is already on the page:\n${soFar}\n\nCarry on from exactly where it stops: write ONLY what comes next. Never repeat any of it and never start again. Close any groups it leaves open when you are done with them.`;
+
+/** Streams one painter's strokes. What happened is noted on `log`.
+ *
+ *  Nothing it paints is ever thrown away. Strokes go on only as whole tags
+ *  (never half of one), and if the painter is cut off part-way - the
+ *  service busy, the connection dropped, the reply out of room - it is
+ *  asked again, shown everything it has painted so far, to carry on from
+ *  there (up to MAX_RESUMES times, after the wait the service asks for). */
 async function* brushStrokes(
   brush: Brush,
   signal: AbortSignal | undefined,
@@ -469,8 +499,13 @@ async function* brushStrokes(
   const standIn = !model.startsWith("claude-haiku-5-5");
   const began = Date.now();
   let strokes = 0;
-  // (on the bench: everything drawn, to count it afterwards)
-  let drawn = "";
+  // everything sent on so far (whole tags), and the start of a tag not yet
+  // finished, held back
+  let kept = "";
+  let pending = "";
+  let resumes = 0;
+  let broken = 0;
+  let busyWaited = 0;
   for (;;) {
     // (this go's own switch: thrown by the reader leaving, or by the
     // first-stroke clock)
@@ -479,14 +514,17 @@ async function* brushStrokes(
     signal?.addEventListener("abort", leave, { once: true });
     if (signal?.aborted) go.abort();
     let late = false;
-    const clock = brush.clockMs
-      ? setTimeout(() => {
-          late = true;
-          go.abort();
-        }, brush.clockMs)
-      : undefined;
+    // (the first-stroke clock is for the first go only: a painter carrying
+    // on has already shown it can paint)
+    const clock =
+      brush.clockMs && !resumes
+        ? setTimeout(() => {
+            late = true;
+            go.abort();
+          }, brush.clockMs)
+        : undefined;
     const usage = streamUsageTracker("painting", model, {
-      label: brush.label,
+      label: resumes ? `${brush.label} (carrying on)` : brush.label,
       effort: brush.effort,
       thinking: unthinking ? (unthinking.type === "disabled" ? "off" : "off (between tools only)") : "the model's own",
     });
@@ -497,7 +535,7 @@ async function* brushStrokes(
           max_tokens: 32000,
           ...(standIn ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
           system: [{ type: "text", text: brush.system, cache_control: { type: "ephemeral" } }],
-          messages: [{ role: "user", content: brush.content }],
+          messages: [{ role: "user", content: kept ? [...brush.content, { type: "text", text: carryOn(kept) }] : brush.content }],
           ...(unthinking ? { thinking: unthinking } : {}),
           output_config: { effort: brush.effort },
         },
@@ -506,22 +544,32 @@ async function* brushStrokes(
       for await (const event of stream) {
         usage.see(event);
         if (event.type === "message_start") log.acceptedMs ??= Date.now() - began;
-        else if (event.type === "message_delta") log.out = event.usage.output_tokens;
+        else if (event.type === "message_delta") log.out = Number(log.outBefore ?? 0) + event.usage.output_tokens;
         else if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
           if (!strokes++) {
             clearTimeout(clock);
             log.firstStrokeMs = Date.now() - began;
           }
-          if (log.measure) drawn += event.delta.text;
-          yield event.delta.text;
+          pending += event.delta.text;
+          const cut = pending.lastIndexOf(">");
+          if (cut >= 0) {
+            const whole = pending.slice(0, cut + 1);
+            pending = pending.slice(cut + 1);
+            kept += whole;
+            yield whole;
+          }
         }
       }
       const final = await stream.finalMessage();
       log.stop = final.stop_reason;
       if (final.stop_reason === "refusal") throw new StoryRefusal("The illustrator couldn't paint that one.");
-      // (a painting cut off at the token limit is not a painting: without
-      // this it would be sent on as finished, half a picture)
+      // (cut off at the token limit: not finished - it carries on, below)
       if (final.stop_reason === "max_tokens") throw new Error("The painting ran out of room before it was finished.");
+      if (pending) {
+        kept += pending;
+        yield pending;
+        pending = "";
+      }
       // On the bench: how many of the output tokens were the strokes
       // themselves (counted exactly, by the same tokenizer), so the rest
       // was thinking.
@@ -529,7 +577,7 @@ async function* brushStrokes(
       // count put a second or so on every painter's time - and held back
       // the characters, which wait for the scenery to finish)
       if (log.measure) {
-        const text = drawn;
+        const text = kept;
         log.measuring = (async () => {
           try {
             const count = (t: string) => getClient().messages.countTokens({ model, messages: [{ role: "user", content: t }] });
@@ -553,6 +601,30 @@ async function* brushStrokes(
         log.thinkingOffRefused = true;
         continue;
       }
+      // Cut off: everything painted is kept, and the painter carries on
+      // from there (after the wait the service asks for, if it was busy).
+      const busy = busyFor(err);
+      const again = busy ? busyWaited + busy <= BUSY_PATIENCE_MS : broken < MAX_RESUMES;
+      if (!signal?.aborted && again && resumable(err)) {
+        resumes++;
+        if (!busy) broken++;
+        // (the start of a tag it hadn't finished is dropped: it writes the
+        // tag again, whole)
+        pending = "";
+        log.resumes = resumes;
+        log.outBefore = Number(log.out ?? 0);
+        // (busy: the wait asked for, plus a little at random so painters
+        // turned away together don't all come back together)
+        const wait = busy ? busy + Math.round(Math.random() * 2000) : 1500 * broken;
+        if (busy) busyWaited += wait;
+        console.warn(`painting: ${brush.label} cut off (${err instanceof Error ? err.message.slice(0, 120) : String(err)}); carrying on in ${wait} ms, ${kept.length} characters kept`);
+        await new Promise<void>((r) => {
+          const t = setTimeout(r, wait);
+          signal?.addEventListener("abort", () => (clearTimeout(t), r()), { once: true });
+        });
+        if (signal?.aborted) throw err;
+        continue;
+      }
       throw err;
     } finally {
       clearTimeout(clock);
@@ -566,19 +638,21 @@ async function* brushStrokes(
  *  on as it comes; what the second paints is held until the first has
  *  finished and then follows it, so the second's work always lies on top.
  *  The picture takes as long as the slower of the two, not both together.
- *  If either fails the other is stopped and the failure is the picture's. */
+ *  If one fails (after carrying on as far as it can), the other is NOT
+ *  stopped: it finishes, everything both painted is sent, and the failure
+ *  is reported after - nothing painted is thrown away. */
 type Layer = (stop: AbortSignal, why: () => string | undefined) => AsyncGenerator<string>;
 async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): AsyncGenerator<string> {
   const stop = new AbortController();
   const leave = () => stop.abort();
   signal?.addEventListener("abort", leave, { once: true });
   if (signal?.aborted) stop.abort();
-  let failed = false;
   let failure: unknown;
-  // (a painter stopped because the other failed, not because anyone left)
-  const why = () => (failed && !signal?.aborted ? "Stopped: the picture's other layer failed." : undefined);
+  let failed = false;
+  const why = () => undefined;
   const down: string[] = [];
   const held: string[] = [];
+  // (a layer that failed has ended too: what it painted stays)
   const ended = { under: false, over: false };
   let wake = () => {};
   const work = async (layer: Layer, into: string[], which: "under" | "over") => {
@@ -587,14 +661,13 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
         into.push(strokes);
         wake();
       }
-      ended[which] = true;
     } catch (err) {
       if (!failed) {
         failed = true;
         failure = err;
-        stop.abort();
       }
     } finally {
+      ended[which] = true;
       wake();
     }
   };
@@ -604,18 +677,16 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
       // (made before looking, so nothing that happens while strokes are
       // being sent on is missed)
       const more = new Promise<void>((r) => (wake = r));
-      if (failed) throw failure;
       while (down.length) yield down.shift()!;
       if (ended.under) {
         while (held.length) yield held.shift()!;
-        if (ended.over && !down.length && !held.length) return;
+        if (ended.over && !down.length && !held.length) break;
       }
-      if (failed) throw failure;
       await more;
     }
+    if (failed) throw failure;
   } finally {
-    // (the reader's page stopped listening, or one layer failed: neither
-    // painter goes on alone)
+    // (the reader's page stopped listening: neither painter goes on)
     stop.abort();
     signal?.removeEventListener("abort", leave);
     await both;
@@ -658,9 +729,10 @@ const NO_REUSE: ReuseSettings = { stamps: false, parts: false, backdrops: false 
 /** How long a page waits for a character's parts to be made (see paintOnce). */
 const PARTS_WAIT_MS = 20_000;
 
-/** Sent down the painting's stream when a page painted from reused pieces
- *  went wrong part-way: everything sent so far is to be thrown away, and
- *  the page is painted again, the ordinary way, from the start. */
+/** Once sent down the painting's stream when a page painted from reused
+ *  pieces went wrong part-way, to throw away what was sent and paint the
+ *  page again the ordinary way. No longer sent (nothing painted is thrown
+ *  away now); still understood, for pages already open. */
 export const RESTART = "\u0000restart\u0000";
 
 /** Where the characters stand, worked out the same way for both painters:
@@ -688,32 +760,10 @@ function busyFor(err: unknown): number {
 /** Streams the SVG markup of one painted page. `notes`: what the reuse
  *  did, for the activity log. */
 export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, notes: Record<string, unknown> = {}): AsyncGenerator<string> {
-  const reuse = reuseOf(req);
-  if (!reuse.stamps && !reuse.parts && !reuse.backdrops) {
-    yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, notes);
-    return;
-  }
-  // From reused pieces - and should anything about that go wrong, the
-  // page is painted again the ordinary way, so it never fails for it.
-  try {
-    yield* paintOnce({ ...req, reuse }, signal, notes);
-  } catch (err) {
-    // (any failure along the reused-pieces path - not only a placeholder
-    // it couldn't read - gives the page the ordinary way; a painter too
-    // slow to begin, or a refusal, is handled as for any page)
-    if (signal?.aborted || err instanceof SlowPainter || err instanceof StoryRefusal) throw err;
-    const message = err instanceof Error ? err.message : String(err);
-    console.warn("painting: reuse failed, painting the ordinary way", err instanceof ReuseFailed ? message : err);
-    notes.reuseFailed = err instanceof ReuseFailed ? message : `unexpected: ${message}`;
-    // (turned away for too many requests at once, or the service busy:
-    // trying again at once only gets turned away again - wait as asked,
-    // up to 20 s)
-    const busy = busyFor(err);
-    if (busy) await new Promise((r) => setTimeout(r, busy));
-    if (signal?.aborted) throw err;
-    yield RESTART;
-    yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, {});
-  }
+  // (no second, ordinary painting if something goes wrong part-way: every
+  // stage mends or carries on instead, and what's painted is kept - see
+  // expandStream, brushStrokes and inLayers)
+  yield* paintOnce({ ...req, reuse: reuseOf(req) }, signal, notes);
 }
 
 async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefined, notes: Record<string, unknown>): AsyncGenerator<string> {
@@ -869,7 +919,20 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
       reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps || partsOf.size || spriting
-        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing || (reuse.stamps && partsOf.size > 0), figures: Object.fromEntries(partsOf), sprites: Object.fromEntries(spritesOf) }, stats)
+        ? expandStream(
+            brushStrokes(main, stop, logs.characters, why),
+            {
+              ...expandCtx(null),
+              stamps: posing || (reuse.stamps && partsOf.size > 0),
+              figures: Object.fromEntries(partsOf),
+              sprites: Object.fromEntries(spritesOf),
+              // (a tag that names a character finds it; on a composed page,
+              // anyone the composer leaves out is placed in code)
+              ids: Object.fromEntries(req.cast.flatMap((c) => [[c.id.toLowerCase(), c.id], [c.name.toLowerCase(), c.id]])),
+              mustPlace: posing ? req.page.characters.filter((id) => partsOf.has(id) || spritesOf.has(id)) : undefined,
+            },
+            stats,
+          )
         : brushStrokes(main, stop, logs.characters, why);
     // With backdrops: the place is painted once (the first page set there
     // paints it, every other page reuses it), framed a little differently

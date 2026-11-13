@@ -1,4 +1,5 @@
 import { stampCatalogue } from "@/lib/art/stamps";
+import { ARM_POSES, LEG_POSES, MOODS } from "@/lib/art/poses";
 import { AGES } from "@/lib/ages";
 import { PRESETS } from "@/lib/presets";
 import { MOTIONS, SOUNDS } from "@/lib/actions";
@@ -112,7 +113,7 @@ export function stampsSection(): string {
   return `STANDARD PIECES (placed, not drawn)
 The app keeps a library of house-style scenery pieces, already in this book's colours and light. Place one with a single short tag instead of drawing it: it looks right, matches the rest of the book, and leaves your strokes for what is special about this picture.
   <stamp k="oak" x="70" y="242" s="1" flip="1" v="2"/>
-- k: which piece (the list is below). x, y: where it stands (for most pieces, the point where it meets the ground). s: its scale, 0.3 to 2.5 (1 is the size listed; smaller for things further away). flip="1" mirrors it.
+- k: which piece, spelled exactly as in the list below (only those exist: anything else must be drawn). x, y: where it stands (for most pieces, the point where it meets the ground). s: its scale, 0.3 to 2.5 (1 is the size listed; smaller for things further away). flip="1" mirrors it.
 - A tree, fence or other dark piece put in the characters' space is moved out to its edge automatically, to keep them clear - unless it's something a character touches (climbs, sits on, leans on, hides behind): then add near="1" and it stays where you put it.
 - v: optional. The same k and v give the very same piece again: give a landmark tree or fence a v so it stays the same on every page of the book. Leave v out for ordinary pieces and each varies by itself.
   <scatter k="grass" x="0" y="250" w="400" h="45" n="18"/>
@@ -317,7 +318,7 @@ Write each such character as one figure:
     <g class="ink">pen lines of the limbs and held things <torso/> <head>closed or laughing eyes as arcs, eyebrows, mouth</head></g>
     <g class="detail"><head>eye dots with a white highlight, tongue</head></g>
   </fig>
-- c: the character's id. v: one of its views ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually 0.55-0.8, a close-up 1.3-1.8, far away 0.3). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
+- c: the character's id, exactly as its sheet gives it - and only for a character marked PAINTED FROM PARTS (any other is drawn in full, never as a figure). v: one of the views its sheet lists ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually 0.55-0.8, a close-up 1.3-1.8, far away 0.3). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
 - Inside a figure you draw in the character's OWN 200x200 coordinates, from the anchors its sheet gives: arms start at the shoulders, legs at the hips, the face sits on the eye and mouth points. <torso/> and <head>...</head> mark where the kept parts go in the stacking order: far limbs before <torso/>, near limbs and held things after it, and the face inside <head>...</head> so it turns with the head. Write them in each of your paint, ink and detail groups.
 - Use the exact colours each sheet gives, so limbs match the body. Limbs overlap the body where they join; never leave a gap at a shoulder or hip.
 - A figure that is the tap target sits inside it: <g class="target"><fig ...>...</fig></g>.
@@ -365,12 +366,12 @@ export function composerPrompt(): string {
 
 EACH CHARACTER: one tag (put the characters further back first)
   <fig c="hero" v="three" x="140" y="248" s="0.62" flip="1" lean="0" tilt="0" arms="wave,down" legs="walk" mood="laugh" hold="basket"/>
-- c: the character's id. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
+- c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
 - x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other (a baby much smaller than a grown-up).
 - lean: degrees the whole body leans (-25 to 25: running, stretching, staggering). tilt: degrees the head turns (-25 to 25: curious, laughing, sad).
-- arms: the near arm, then the far arm, each one of: ${["down", "wave", "up", "hip", "point", "reach", "hold", "hug"].join(", ")}. ("hold" and "hug" bring the hands together in front.)
-- legs: one of: ${["stand", "walk", "run", "jump", "sit", "kick"].join(", ")}. (For "sit", put y where the seat is.)
-- mood: one of: ${["happy", "laugh", "surprised", "worried", "sad", "sleepy", "cross", "wink", "calm"].join(", ")}.
+- arms: the near arm, then the far arm, each one of: ${ARM_POSES.join(", ")}. ("hold" and "hug" bring the hands together in front.)
+- legs: one of: ${LEG_POSES.join(", ")}. (For "sit", put y where the seat is.)
+- mood: one of: ${MOODS.join(", ")}.
 - hold (optional): something from the list of things to hold below; it goes in the near hand (or both hands, with "hold" or "hug").
 - A character that is the tap target: <g class="target"><fig .../></g>.
 
@@ -400,7 +401,7 @@ export function spriteComposerPrompt(poses: Record<string, string>): string {
 
 EACH CHARACTER: one tag (characters further back first)
   <sprite c="hero" pose="wave" x="140" y="248" s="0.62" flip="1" lean="0"/>
-- c: the character's id. pose: one of the poses listed for it (below). Poses face three-quarters to the viewer's RIGHT; flip="1" turns one to face left - turn characters towards what they look at, or to each other.
+- c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. pose: one of the poses listed for it on its sheet (and below). Poses face three-quarters to the viewer's RIGHT; flip="1" turns one to face left - turn characters towards what they look at, or to each other.
 - x, y: where its feet stand (the ground is at about y 240-250). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other.
 - lean: degrees the whole figure tilts (-20 to 20), for a little extra energy.
 - A character that is the tap target: <g class="target"><sprite .../></g>.

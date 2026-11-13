@@ -24,8 +24,19 @@ import { PROPS } from "@/lib/art/stamps-more";
  * page and where the piece is in the page's markup, so a picture is the
  * same every time it's expanded.
  *
- * Anything it can't do - a piece it doesn't know, a number it can't read -
- * throws ReuseFailed: the page is then painted again the ordinary way.
+ * It never gives up on a picture. A painter's slip is mended where it
+ * stands, and nothing already painted is thrown away:
+ * - a piece name it doesn't know becomes the nearest piece it does (plural,
+ *   spacing, a near spelling), or, if none is near, is left out;
+ * - a number it can't read takes a sensible default;
+ * - a character named rather than given by id is found by name;
+ * - a pose for a character without poses is made from its parts, and a
+ *   figure for one without parts is placed from its poses;
+ * - a piece written inside a figure is laid just after it;
+ * - on a composed page, a character the composer forgot is placed in code.
+ * Each mend is noted in stats.fixes, for the activity log.
+ * (ReuseFailed is kept for anything that calls it, but nothing here throws
+ * it any more.)
  */
 
 export class ReuseFailed extends Error {
@@ -58,6 +69,12 @@ export interface ExpandContext {
   figures?: Record<string, CharacterParts>;
   /** Characters' pre-painted poses, by their id on the page. */
   sprites?: Record<string, Partial<Record<string, Sprite>>>;
+  /** The page's characters by name as well as id (lower case), so a tag
+   *  that names one still finds it. */
+  ids?: Record<string, string>;
+  /** On a composed page, the characters the tags must place: any left out
+   *  is placed in code at the end. */
+  mustPlace?: string[];
   /** How big a placed character may be, and where its feet may stand,
    *  for this page's camera (see sizingFor): what the model asks for is
    *  kept within it, so nobody comes out huge or tiny. */
@@ -102,9 +119,49 @@ export interface ExpandStats {
   figIds: string[];
   /** figures put together entirely in code (poses, face, prop) */
   posed: number;
+  /** a painter's slips mended on the way (see above) */
+  fixes: string[];
 }
 
-export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [], posed: 0 });
+export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [], posed: 0, fixes: [] });
+const fixed = (stats: ExpandStats, what: string) => {
+  if (stats.fixes.length < 40) stats.fixes.push(what);
+};
+
+/** The name in a table nearest to what was asked for: the same once case,
+ *  spacing and a plural are set aside; else one that starts with it or it
+ *  starts with; else the closest spelling (two letters off at most). Null
+ *  if nothing is near enough. */
+export function nearestKey(asked: string, table: Record<string, unknown>): string | null {
+  const keys = Object.keys(table);
+  const norm = (k: string) => k.toLowerCase().replace(/[\s_-]+/g, "");
+  const a = norm(asked);
+  if (!a) return null;
+  const byNorm = new Map(keys.map((k) => [norm(k), k]));
+  for (const c of [a, a.replace(/ies$/, "y"), a.replace(/es$/, ""), a.replace(/s$/, ""), `${a}s`]) if (byNorm.has(c)) return byNorm.get(c)!;
+  const starts = keys.filter((k) => norm(k).startsWith(a) || a.startsWith(norm(k)));
+  if (starts.length === 1) return starts[0];
+  let best: string | null = null;
+  let bestD = 3;
+  for (const k of keys) {
+    const d = editDistance(a, norm(k));
+    if (d < bestD) {
+      bestD = d;
+      best = k;
+    }
+  }
+  return bestD <= (a.length <= 4 ? 1 : 2) ? best : null;
+}
+function editDistance(x: string, y: string): number {
+  if (Math.abs(x.length - y.length) > 2) return 9;
+  let prev = Array.from({ length: y.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= x.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= y.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[y.length];
+}
 
 type Layer = "paint" | "ink" | "detail";
 const LAYER_OF = (tag: string): Layer | "wash" | null => (tag.match(/class="(wash|paint|ink|detail)"/)?.[1] as Layer | "wash" | undefined) ?? null;
@@ -117,14 +174,21 @@ function attrsOf(tag: string): Record<string, string> {
   for (const m of tag.matchAll(/([a-zA-Z_:-]+)\s*=\s*"([^"]*)"/g)) out[m[1].toLowerCase()] = m[2];
   return out;
 }
-function num(a: Record<string, string>, key: string, dflt: number | null, lo: number, hi: number): number {
+/** A number from a tag, kept within lo-hi. Missing or unreadable, it takes
+ *  the default (for a position with none given: the middle of the page
+ *  across, the ground line down), and the mend is noted. */
+function num(a: Record<string, string>, key: string, dflt: number | null, lo: number, hi: number, stats?: ExpandStats): number {
   const raw = a[key];
+  const fallback = dflt ?? (key === "y" ? 244 : 200);
   if (raw === undefined || raw === "") {
-    if (dflt === null) throw new ReuseFailed(`"${key}" is missing`);
-    return dflt;
+    if (dflt === null && stats) fixed(stats, `"${key}" missing: ${fallback} used`);
+    return fallback;
   }
-  const v = Number(raw);
-  if (!Number.isFinite(v)) throw new ReuseFailed(`"${key}" isn't a number ("${raw.slice(0, 12)}")`);
+  const v = parseFloat(raw);
+  if (!Number.isFinite(v)) {
+    if (stats) fixed(stats, `"${key}" unreadable ("${raw.slice(0, 12)}"): ${fallback} used`);
+    return fallback;
+  }
   return Math.max(lo, Math.min(hi, v));
 }
 
@@ -154,11 +218,16 @@ function flat(p: Piece): string {
 
 function stamp(tag: string, ctx: ExpandContext, stats: ExpandStats, index: number): string {
   const a = attrsOf(tag);
-  const k = (a.k ?? a.kind ?? "").toLowerCase();
+  const asked = (a.k ?? a.kind ?? a.name ?? "").toLowerCase();
+  const k = STAMPS[asked] ? asked : nearestKey(asked, STAMPS);
+  if (!k) {
+    fixed(stats, `no piece called "${asked}": left out`);
+    return "";
+  }
+  if (k !== asked) fixed(stats, `piece "${asked}" read as "${k}"`);
   const kind = STAMPS[k];
-  if (!kind) throw new ReuseFailed(`no piece called "${k}"`);
-  let x = num(a, "x", null, -100, 500);
-  const y = num(a, "y", null, -100, 400);
+  let x = num(a, "x", null, -100, 500, stats);
+  const y = num(a, "y", null, -100, 400, stats);
   const s = num(a, "s", 1, 0.2, 3);
   const flip = a.flip === "1" || a.flip === "true";
   // (a numbered piece is the same wherever it's used in the book; an
@@ -183,9 +252,14 @@ function stamp(tag: string, ctx: ExpandContext, stats: ExpandStats, index: numbe
 
 function scatter(tag: string, ctx: ExpandContext, stats: ExpandStats, index: number): string {
   const a = attrsOf(tag);
-  const k = (a.k ?? a.kind ?? "").toLowerCase();
+  const asked = (a.k ?? a.kind ?? a.name ?? "").toLowerCase();
+  const k = SCATTER[asked] ? asked : nearestKey(asked, SCATTER);
+  if (!k) {
+    fixed(stats, `no scatter called "${asked}": left out`);
+    return "";
+  }
+  if (k !== asked) fixed(stats, `scatter "${asked}" read as "${k}"`);
   const kind = SCATTER[k];
-  if (!kind) throw new ReuseFailed(`no scatter called "${k}"`);
   const box = { x: num(a, "x", 0, -50, 450), y: num(a, "y", 0, -50, 350), w: num(a, "w", 400, 1, 500), h: num(a, "h", 40, 1, 400) };
   const n = Math.round(num(a, "n", 12, 1, 60));
   const r = seeded(hashOf(`${ctx.pageSeed}:scatter:${k}:${index}`));
@@ -221,19 +295,27 @@ function scatter(tag: string, ctx: ExpandContext, stats: ExpandStats, index: num
 function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view: PartView }, parts: CharacterParts, a: Record<string, string>, three: boolean, ctx: ExpandContext, stats: ExpandStats): string {
   const roles = rolesOf(parts);
   const [nearPose, farPose] = (a.arms ?? "down,down").split(",").map((p) => p.trim().toLowerCase());
-  const armPose = (p: string | undefined, d: ArmPose): ArmPose => ((ARM_POSES as readonly string[]).includes(p ?? "") ? (p as ArmPose) : d);
-  const legPose: LegPose = (LEG_POSES as readonly string[]).includes((a.legs ?? "").toLowerCase()) ? (a.legs!.toLowerCase() as LegPose) : "stand";
-  const mood: Mood = (MOODS as readonly string[]).includes((a.mood ?? "").toLowerCase()) ? (a.mood!.toLowerCase() as Mood) : "happy";
+  // (a pose word not in the library: the nearest one that is)
+  const pick = <T extends string>(list: readonly T[], p: string | undefined, d: T): T => {
+    const w = (p ?? "").toLowerCase();
+    if (!w) return d;
+    if ((list as readonly string[]).includes(w)) return w as T;
+    return (nearestKey(w, Object.fromEntries(list.map((x) => [x, 1]))) as T | null) ?? d;
+  };
+  const armPose = (p: string | undefined, d: ArmPose): ArmPose => pick(ARM_POSES, p, d);
+  const legPose: LegPose = pick(LEG_POSES, a.legs, "stand");
+  const mood: Mood = pick(MOODS, a.mood, "happy");
   const view = fig.view;
   const near = arm(view, roles, "near", armPose(nearPose, "down"), three);
   const far = arm(view, roles, "far", armPose(farPose ?? nearPose, "down"), three);
   const lg = legs(view, roles, legPose, three);
   const fc = face(view, roles, mood);
   // what it holds, at the near hand (or both hands, when they hold it together)
-  const holdKey = (a.hold ?? "").toLowerCase();
+  const asked = (a.hold ?? "").toLowerCase();
+  const holdKey = !asked || PROPS[asked] ? asked : (nearestKey(asked, PROPS) ?? "");
+  if (asked && holdKey !== asked) fixed(stats, holdKey ? `held "${asked}" read as "${holdKey}"` : `nothing to hold called "${asked}": hands left empty`);
   const prop = PROPS[holdKey];
   let held: Piece = { paint: "", ink: "", detail: "" };
-  if (holdKey && !prop) throw new ReuseFailed(`nothing to hold called "${holdKey}"`);
   if (prop) {
     const at = nearPose === "hug" || nearPose === "hold" ? [(near.hand[0] + far.hand[0]) / 2, (near.hand[1] + far.hand[1]) / 2] : near.hand;
     const pc = prop.draw(seeded(hashOf(`${ctx.bookSeed}:${fig.id}:${holdKey}`)), ctx.palette);
@@ -287,6 +369,69 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     fig = null;
     return out;
   };
+  /** A character's id from a tag's c= (or id=, or its name). */
+  const idOf = (a: Record<string, string>): string => {
+    const raw = (a.c ?? a.id ?? a.name ?? "").trim();
+    const known = { ...(ctx.figures ?? {}), ...(ctx.sprites ?? {}) };
+    if (raw in known) return raw;
+    const byName = ctx.ids?.[raw.toLowerCase()];
+    if (byName) {
+      fixed(stats, `character "${raw}" found by name`);
+      return byName;
+    }
+    return raw;
+  };
+  /** A character placed from its pre-painted poses. */
+  const spriteOf = (id: string, poses: Partial<Record<string, Sprite>>, a: Record<string, string>): string => {
+    const want = (a.pose ?? "stand").toLowerCase();
+    // (a pose not painted for it: the nearest it has, standing first)
+    const sp = poses[want] ?? poses[nearestKey(want, poses) ?? ""] ?? poses.stand ?? Object.values(poses)[0];
+    if (!sp) return "";
+    const x = num(a, "x", null, -100, 500, stats);
+    // (size and footing kept to this page's camera)
+    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
+    const flip = a.flip === "1" || a.flip === "true";
+    const lean = num(a, "lean", 0, -30, 30);
+    const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    stats.figs++;
+    stats.posed++;
+    if (!stats.figIds.includes(id)) stats.figIds.push(id);
+    return `<g class="paint"><g transform="${t}">${sp.paint}</g></g><g class="ink" ${inkAttrs(sc)}><g transform="${t}">${unscaleStrokes(sp.ink, sc)}</g></g><g class="detail"><g transform="${t}">${sp.detail}</g></g>`;
+  };
+  /** A character put together whole from its parts, in a pose. */
+  const posedOf = (id: string, parts: CharacterParts, a: Record<string, string>): string => {
+    const v = ((a.v ?? a.view ?? "three").toLowerCase() === "front" ? "front" : "three") as View;
+    const view = viewOf(parts, v);
+    if (!view) return "";
+    const x = num(a, "x", null, -100, 500, stats);
+    const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
+    const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
+    const lean = num(a, "lean", 0, -45, 45);
+    // (a sprite's pose word, turned into arms, legs and mood)
+    const pose = (a.pose ?? "").toLowerCase();
+    const extra: Record<string, string> = { wave: "wave,down", point: "point,down", hold: "hold,hold", surprised: "up,up" };
+    const b = { ...a, arms: a.arms ?? extra[pose] ?? "down,down", legs: a.legs ?? (["walk", "run", "jump", "sit"].includes(pose) ? pose : "stand"), mood: a.mood ?? (pose === "sleep" ? "sleepy" : pose === "surprised" ? "surprised" : "happy") };
+    stats.figs++;
+    if (!stats.figIds.includes(id)) stats.figIds.push(id);
+    const sc = fit.sc;
+    const t = `translate(${f(x)} ${f(fit.y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    return posedFigure({ id, t, s: sc, tilt: num(a, "tilt", 0, -40, 40), view }, parts, b, view === parts.views.three, ctx, stats);
+  };
+  /** Any way of placing a character that it has: its poses, else its
+   *  parts. Empty if it has neither. */
+  const placeAny = (id: string, a: Record<string, string>): string => {
+    const poses = ctx.sprites?.[id];
+    if (poses && Object.keys(poses).length) return spriteOf(id, poses, a);
+    const parts = ctx.figures?.[id];
+    if (parts) return posedOf(id, parts, a);
+    return "";
+  };
+  // a figure for a character that can't be placed: everything up to its
+  // </fig> is left out (it would be drawn in the figure's own coordinates
+  // with nowhere to put them)
+  let skipping = false;
+  // pieces written inside a figure: laid just after it
+  let afterFig = "";
   const handle = (text: string): string => {
     let out = "";
     let at = 0;
@@ -294,45 +439,50 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       out += text.slice(at, m.index);
       at = m.index! + m[0].length;
       let tag = m[0];
+      if (skipping) {
+        if (/^<\s*\/\s*fig\s*>$/i.test(tag)) skipping = false;
+        continue;
+      }
       // ---- characters from their pre-painted poses
       if (/^<\s*sprite\b/i.test(tag)) {
-        if (fig) throw new ReuseFailed("a pose inside a figure");
+        // (a pose written inside a figure: the figure is ended first)
+        if (fig) out += endFig() + afterFig, (afterFig = "");
         const a = attrsOf(tag);
-        const id = a.c ?? a.id ?? "";
+        const id = idOf(a);
         const poses = ctx.sprites?.[id];
-        if (!poses) throw new ReuseFailed(`no poses for "${id}"`);
-        const want = (a.pose ?? "stand").toLowerCase();
-        // (a pose not painted for it: the nearest it has, standing first)
-        const sp = poses[want] ?? poses.stand ?? Object.values(poses)[0];
-        if (!sp) throw new ReuseFailed(`no poses for "${id}"`);
-        const x = num(a, "x", null, -100, 500);
-        // (size and footing kept to this page's camera)
-        const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400));
-        const flip = a.flip === "1" || a.flip === "true";
-        const lean = num(a, "lean", 0, -30, 30);
-        const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
-        stats.figs++;
-        stats.posed++;
-        if (!stats.figIds.includes(id)) stats.figIds.push(id);
-        out += `<g class="paint"><g transform="${t}">${sp.paint}</g></g><g class="ink" ${inkAttrs(sc)}><g transform="${t}">${unscaleStrokes(sp.ink, sc)}</g></g><g class="detail"><g transform="${t}">${sp.detail}</g></g>`;
+        if (poses && Object.keys(poses).length) out += spriteOf(id, poses, a);
+        else {
+          // (no poses for it: made from its parts instead, if it has them)
+          const made = placeAny(id, a);
+          fixed(stats, made ? `no poses for "${id}": put together from its parts` : `nobody called "${id}" to place: left out`);
+          out += made;
+        }
         continue;
       }
       // ---- figures from parts
       if (/^<\s*fig\b/i.test(tag)) {
-        if (fig) out += endFig();
+        if (fig) out += endFig() + afterFig, (afterFig = "");
         const a = attrsOf(tag);
-        const id = a.c ?? a.id ?? "";
+        const id = idOf(a);
         const parts = ctx.figures?.[id];
         const v = ((a.v ?? a.view ?? "front").toLowerCase() === "three" ? "three" : "front") as View;
         const view = parts ? viewOf(parts, v) : null;
-        if (!parts || !view) throw new ReuseFailed(`no parts for "${id}"`);
-        const x = num(a, "x", null, -100, 500);
+        if (!parts || !view) {
+          // (no parts for it: placed from its poses if it has them; what the
+          // painter drew inside the figure is left out either way)
+          const made = placeAny(id, a);
+          fixed(stats, made ? `no parts for "${id}": placed from its poses` : `no parts for "${id}": left out`);
+          out += made;
+          if (!tag.trim().endsWith("/>")) skipping = true;
+          continue;
+        }
+        const x = num(a, "x", null, -100, 500, stats);
         // (size and footing kept to this page's camera - except sitting,
         // whose y is the seat's)
         const seated = (a.legs ?? "").toLowerCase() === "sit";
-        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400));
+        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats));
         const sc = fit.sc;
-        const y = seated ? num(a, "y", null, -100, 400) : fit.y;
+        const y = seated ? num(a, "y", null, -100, 400, stats) : fit.y;
         // (a view drawn facing left is mirrored to face right first)
         const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
         const lean = num(a, "lean", 0, -45, 45);
@@ -357,12 +507,19 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       }
       if (/^<\s*\/\s*fig\s*>$/i.test(tag)) {
         if (fig) out += endFig();
+        out += afterFig;
+        afterFig = "";
         continue;
       }
       if (fig && /^<\s*(torso|head)\b/i.test(tag)) {
         const which = /^<\s*torso/i.test(tag) ? "torso" : "head";
         const layer = layerNow();
-        if (!layer || layer === "wash") throw new ReuseFailed(`a ${which} outside a paint, ink or detail group`);
+        // (outside a paint, ink or detail group: left for the figure's end,
+        // which lays in any part not yet put)
+        if (!layer || layer === "wash") {
+          fixed(stats, `a ${which} outside a layer group: laid in at the figure's end`);
+          continue;
+        }
         stats[which === "torso" ? "torsos" : "heads"]++;
         if (which === "torso") out += part("torso", layer);
         else {
@@ -379,9 +536,17 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       }
       // ---- standard pieces
       if (/^<\s*(stamp|scatter)\b/i.test(tag)) {
-        if (!ctx.stamps) throw new ReuseFailed("a placeholder on a page painted the ordinary way");
-        if (fig) throw new ReuseFailed("a standard piece inside a figure");
+        if (!ctx.stamps) {
+          fixed(stats, "a piece where pieces aren't offered: left out");
+          continue;
+        }
         const made = /^<\s*stamp/i.test(tag) ? stamp(tag, ctx, stats, pieces++) : scatter(tag, ctx, stats, pieces++);
+        // (written inside a figure, which is in its own coordinates: laid
+        // just after the figure, at the page's)
+        if (fig) {
+          afterFig += made;
+          continue;
+        }
         // (laid outside any layer group it was written in - but inside the
         // tap target's group, if it's part of the target)
         let keep = 0;
@@ -437,6 +602,22 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   }
   let tail = buf ? handle(buf) : "";
   if (fig) tail += endFig();
+  tail += afterFig;
+  // (an unclosed group left by a painter cut short: closed, so the
+  // picture's markup is whole)
+  while (open.length) tail += open.pop()!.close;
+  // On a composed page every character is placed by a tag: one the
+  // composer left out is placed here, spread along the ground, so nobody
+  // is missing from the picture.
+  const missing = (ctx.mustPlace ?? []).filter((id) => !stats.figIds.includes(id));
+  missing.forEach((id, i) => {
+    const x = Math.round(200 + (i - (missing.length - 1) / 2) * 70);
+    const made = placeAny(id, { x: String(x), y: String(ctx.sizing ? Math.round((ctx.sizing.yLo + ctx.sizing.yHi) / 2) : 246), pose: "stand", v: "three" });
+    if (made) {
+      fixed(stats, `"${id}" wasn't placed: placed in code`);
+      tail += made;
+    }
+  });
   if (tail) yield tail;
 }
 
