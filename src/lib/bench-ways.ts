@@ -57,7 +57,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s4 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
   // go in front as pieces); characters eased apart as they're placed;
   // food and object characters' code-made limbs thin pen lines
-  "1": "s4",
+  // s5 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
+  // in front (composed pages sorted in code; painters told)
+  "1": "s5",
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
   // s3 (13 Nov): on the bench, its own parts - never another variant's
@@ -84,7 +86,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s12 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
   // go in front as pieces); characters eased apart as they're placed;
   // food and object characters' code-made limbs thin pen lines
-  p: "s12",
+  // s13 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
+  // in front (composed pages sorted in code; painters told)
+  p: "s13",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -109,7 +113,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s11 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
   // go in front as pieces); characters eased apart as they're placed;
   // food and object characters' code-made limbs thin pen lines
-  q: "s11",
+  // s12 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
+  // in front (composed pages sorted in code; painters told)
+  q: "s12",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -140,7 +146,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // food and object characters' code-made limbs thin pen lines
   // s14 (13 Nov): lesson 9 - the composer thinks harder (Sonnet at medium,
   // a setting) and checks off every thing the brief names
-  x: "s14",
+  // s15 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
+  // in front (composed pages sorted in code; painters told)
+  x: "s15",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -161,7 +169,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // food and object characters' code-made limbs thin pen lines
   // s9 (13 Nov): lesson 9 - the composer checks off every thing the brief
   // names
-  s: "s9",
+  // s10 (13 Nov): lesson 10 - back to front: nearer and smaller drawn
+  // in front (composed pages sorted in code; painters told)
+  s: "s10",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

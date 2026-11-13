@@ -237,7 +237,8 @@ export const LAYERED_CHARACTERS = `THE SCENERY IS BEING PAINTED BY ANOTHER HAND,
 Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Keep to the economy the character rules ask for: usually 50-150 elements in all, depending on how many characters are on the page - a single character rarely needs more than 65.
 - THE MAIN ACTION'S OBJECT: if the main action is done to or with a thing (the hollow full of acorns, the basket carried, the kite, the cake), that thing is the most important thing in the picture after the characters: show it clearly, at the action, never leave it out.
 - Begin each character with its marker, <who c="ID"/> (its id), written once just before its strokes: the app checks that everyone on the page was painted.
-- Every character is drawn whole, legs and feet included: the scenery lies BEHIND all the characters, so nothing in it will ever cover them. If a character should be behind something (a table, a counter, a fence, a bush), place that thing as a standard piece AFTER the character, with near="1", so it is in front.`;
+- Every character is drawn whole, legs and feet included: the scenery lies BEHIND all the characters, so nothing in it will ever cover them. If a character should be behind something (a table, a counter, a fence, a bush), place that thing as a standard piece AFTER the character, with near="1", so it is in front.
+- Paint BACK TO FRONT, because what is written later lies on top: characters further back (higher up the picture, smaller) first, nearer ones (lower down, bigger) after; at the same depth, a small character after a big one beside it, so it isn't hidden; things in front of a character (what it holds, a table it stands behind) after the character.`;
 
 /** Turns a parent's description of a character - a few words, or a long,
  *  loosely ordered paragraph - into a clear design brief the character
@@ -382,7 +383,7 @@ INTERACTIONS - make the picture say it:
 - TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
-DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
+DEPTH: someone further back is higher up (smaller y), a little smaller, and written first; nearer ones after, so they're in front; at the same depth a small character after a big one beside it. (The app also sorts characters this way, each with the pieces that belong to it.)
 BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
 SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.
 
@@ -435,7 +436,7 @@ INTERACTIONS - make the picture say it:
 - TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
-DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
+DEPTH: someone further back is higher up (smaller y), a little smaller, and written first; nearer ones after, so they're in front; at the same depth a small character after a big one beside it. (The app also sorts characters this way, each with the pieces that belong to it.)
 BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
 SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.
 

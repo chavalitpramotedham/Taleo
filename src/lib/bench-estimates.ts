@@ -179,6 +179,8 @@ export const ESTIMATES: Record<string, Estimate> = {
   "2-HKAD": P7,
   // (13 Nov: lessons 6-8 - placement and drawing, the same cost)
   "2-IR7G": P7,
+  // (13 Nov: lesson 10 - drawing order, the same cost)
+  "2-ICWF": P7,
   // way 3
   "3-YTBT": Q1,
   "3-008W": Q1,
@@ -191,6 +193,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "3-VMVL": Q6,
   "3-A92J": Q6,
   "3-ANDK": Q6,
+  "3-9GGH": Q6,
   // way 4
   "4-YG44": X1,
   "4-Y1T3": X1,
@@ -205,6 +208,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-71XO": X9,
   "4-6NMN": X9,
   "4-TG6T": X14,
+  "4-TUHU": X14,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
@@ -216,6 +220,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "5-2XOL": S3,
   // (13 Nov: lesson 9 - a checklist step, about the same cost)
   "5-3BZM": S3,
+  "5-HMQ6": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

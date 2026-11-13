@@ -48,6 +48,70 @@ const setAttr = (tag: string, k: string, v: string) =>
  *  is air around it, so about 110 of it is body. */
 const widthAt = (s: number) => 110 * s;
 
+/** One character's part of the markup: its tag (with a target group
+ *  around it, if any), the near="1" pieces just before it, and the pieces
+ *  just after it - moved together. */
+interface Unit {
+  start: number;
+  end: number;
+  y: number;
+  s: number;
+  id: string;
+}
+function byDepth(markup: string, notes: string[]): string {
+  const tags = [...markup.matchAll(CHAR_TAG)].filter((m) => !(/^<\s*fig\b/i.test(m[0]) && !m[0].trim().endsWith("/>")));
+  if (tags.length < 2) return markup;
+  const xOf = (t: string) => Number(attr(t, "x")) || 200;
+  const units: Unit[] = tags.map((m, k) => {
+    const nextTag = tags[k + 1];
+    let start = m.index!;
+    let end = start + m[0].length;
+    // (inside a target group that holds only it: the group moves too)
+    const before = markup.slice(0, start);
+    const g = before.match(/<g\s+class="target"\s*>\s*$/);
+    if (g) {
+      const close = markup.slice(end).match(/^\s*<\/g>/);
+      if (close) {
+        start -= g[0].length;
+        end += close[0].length;
+      }
+    }
+    // (the near="1" pieces just before it: what it sits on, climbs, leans on)
+    for (;;) {
+      const prev = markup.slice(0, start).match(/<stamp\b[^>]*\bnear\s*=\s*"(?:1|true)"[^>]*\/>\s*$/i);
+      if (!prev) break;
+      start -= prev[0].length;
+    }
+    // (the pieces just after it: what it holds, hides behind, looks
+    // through - but a near="1" piece closer to the next character is that
+    // one's seat or tree, and stays with it)
+    for (;;) {
+      const next = markup.slice(end).match(/^\s*<(?:stamp|scatter)\b[^>]*\/>/i);
+      if (!next) break;
+      if (nextTag && /\bnear\s*=\s*"(?:1|true)"/i.test(next[0])) {
+        const px = Number(attr(next[0], "x"));
+        if (Number.isFinite(px) && Math.abs(px - xOf(nextTag[0])) < Math.abs(px - xOf(m[0]))) break;
+      }
+      end += next[0].length;
+    }
+    return { start, end, y: Number(attr(m[0], "y")) || 246, s: Number(attr(m[0], "s")) || 0.6, id: attr(m[0], "c") ?? attr(m[0], "id") ?? "" };
+  });
+  // (overlapping units - a piece claimed by two - can't be told apart: left)
+  for (let i = 1; i < units.length; i++) if (units[i].start < units[i - 1].end) return markup;
+  const want = [...units].sort((a, b) => a.y - b.y || b.s - a.s);
+  if (want.every((u, i) => u === units[i])) return markup;
+  // the k-th character's place in the markup gets the k-th by depth
+  let out = "";
+  let at = 0;
+  units.forEach((u, i) => {
+    out += markup.slice(at, u.start) + markup.slice(want[i].start, want[i].end);
+    at = u.end;
+  });
+  out += markup.slice(at);
+  notes.push(`drawn back to front: ${want.map((u) => u.id).join(", ")}`);
+  return out;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
   const placed: Placed[] = [];
@@ -125,7 +189,15 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     .sort((a, b) => b.p.start - a.p.start);
   for (const { p, tag } of edits) out = out.slice(0, p.start) + tag + out.slice(p.end);
 
-  // 3. The target is never hidden: a character written after it (so drawn
+  // 3. Back to front: further back first (higher up the page, a smaller
+  // y), then, at the same depth, bigger before smaller - so whoever is
+  // nearer, or smaller beside a bigger one, is drawn in front. Each
+  // character moves with what belongs to it: the seat or tree it touches
+  // (near="1" pieces just before it) and what it holds or hides behind
+  // (the pieces just after it). Everything else stays where it was.
+  out = byDepth(out, notes);
+
+  // 4. The target is never hidden: a character written after it (so drawn
   // over it) that overlaps it is moved to just before it.
   const target = opts.targetId;
   if (target) {

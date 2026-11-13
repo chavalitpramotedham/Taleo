@@ -181,3 +181,29 @@ Watch: if way 4 at ~6 cents isn't clearly better than way 3 at ~5, it
 loses its reason to exist.
 
 New codes: 4-TG6T, 5-3BZM.
+
+## 13 Nov 2026 - back and front
+
+Asked (the user): care about what's drawn in front of what - things that
+are nearer, or smaller, must be drawn in front.
+
+**Lesson 10 - back to front.** What's written later lies on top, so:
+- on composed pages (ways 4-5) the layout pass now sorts the characters
+  by depth - further back (higher up the picture) first, nearer after;
+  at the same depth, bigger before smaller, so a small character isn't
+  hidden by a big one beside it. Each moves with what belongs to it: the
+  near="1" seat or tree just before it, and what it holds or hides behind
+  just after it (a near="1" piece between two characters goes with the
+  one it's closer to across the picture). The main action's target still
+  can't be drawn under anyone;
+- the painters (v0, ways 2-3), which draw as they go, are told to paint
+  back to front, smaller after bigger, and things in front of a
+  character after it; the composers' DEPTH rule says the same.
+Where: `byDepth` in `src/server/paint/layout.ts`; `LAYERED_CHARACTERS`
+and the composers' DEPTH rule (`src/server/prompts.ts`).
+
+Checked: a nearer character written first was moved after a further one
+(each keeping its log and its basket); a small mouse beside a big bear
+came after it; a target in its group moved as one.
+
+New codes: 1-UG95, 2-ICWF, 3-9GGH, 4-TUHU, 5-HMQ6.
