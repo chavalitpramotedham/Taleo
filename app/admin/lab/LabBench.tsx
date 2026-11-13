@@ -236,28 +236,56 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const today = board.find((x) => x.way === "1")?.usd ?? null;
   const vsToday = (v?: number | null) => (v === undefined || v === null || !today ? "-" : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`);
 
+  const [view, setView] = useState<string>("compare");
+  const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
+  const viewing = WAYS.find((w) => w.id === view);
+  const paintOne = (p: LabPage) => {
+    setOpenRows((o) => ({ ...o, [p.key]: true }));
+    void paintPage(p);
+  };
+
+  /** One painting's numbers, and the painters' detail folded away. */
+  const numbers = (c: Cell | undefined, saved: Run["ways"][string] | undefined) => (
+    <div className="lab-numbers">
+      <span>
+        <b>{usd(c?.usd ?? saved?.usd)}</b> · {secs(c?.totalMs ?? saved?.totalMs)} · {num(c?.out ?? saved?.out)} out
+      </span>
+      {(c?.calls?.length || c?.summary || saved?.summary) && (
+        <details className="lab-more">
+          <summary>Details</summary>
+          <span>first stroke {secs(c?.firstMs ?? saved?.firstMs)}</span>
+          {c?.calls?.map((k, i) => (
+            <span key={i} className="lab-call">
+              {k.label}: {k.out.toLocaleString()} out, {k.in.toLocaleString()} in ({k.cacheRead.toLocaleString()} cached), {secs(k.totalMs)}
+            </span>
+          ))}
+          {(c?.summary ?? saved?.summary) && <span className="lab-call">{c?.summary ?? saved?.summary}</span>}
+        </details>
+      )}
+    </div>
+  );
+
   return (
     <div className="container lab">
-      <header className="wizard-head">
+      <header className="lab-head">
         <h1>Painting bench</h1>
-        <p className="meta">Every page is painted four ways - from nothing reused to everything - by the same painters. Vote for the one you like best; the board adds it up. Each painting is real and costs real money (about $0.10-0.25).</p>
+        <p className="meta">Each page painted four ways, from nothing reused to the most. Vote for the best; each painting costs real money.</p>
       </header>
 
       <section className="panel lab-board" aria-label="Leaderboard">
-        <h3>Leaderboard</h3>
         <div className="lab-board-scroll">
           <table>
             <thead>
               <tr>
                 <th>Way</th>
                 <th>Votes</th>
-                <th>Win rate</th>
                 <th>Avg cost</th>
                 <th>vs today</th>
-                <th>Avg tokens out</th>
-                <th>Avg finished</th>
-                <th>Avg first stroke</th>
-                <th>Painted</th>
+                <th>Avg time</th>
+                <th className="lab-wide">Win rate</th>
+                <th className="lab-wide">Tokens out</th>
+                <th className="lab-wide">First stroke</th>
+                <th className="lab-wide">Painted</th>
               </tr>
             </thead>
             <tbody>
@@ -265,32 +293,35 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 const b = board.find((x) => x.way === w.id);
                 return (
                   <tr key={w.id}>
-                    <td>
+                    <td className="lab-way">
                       <b>
                         {nOf(w.id)}. {w.name}
                       </b>
                     </td>
                     <td>{b?.wins ?? 0}</td>
-                    <td>{b && b.votedRuns ? `${Math.round((b.wins / b.votedRuns) * 100)}%` : "-"}</td>
                     <td className={b?.usd !== null && b?.usd === best("usd") ? "lab-best" : ""}>{usd(b?.usd)}</td>
                     <td>{vsToday(b?.usd)}</td>
-                    <td className={b?.out !== null && b?.out === best("out") ? "lab-best" : ""}>{num(b?.out)}</td>
                     <td className={b?.totalMs !== null && b?.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b?.totalMs)}</td>
-                    <td>{secs(b?.firstMs)}</td>
-                    <td>{b?.painted ?? 0}</td>
+                    <td className="lab-wide">{b && b.votedRuns ? `${Math.round((b.wins / b.votedRuns) * 100)}%` : "-"}</td>
+                    <td className="lab-wide">{num(b?.out)}</td>
+                    <td className="lab-wide">{secs(b?.firstMs)}</td>
+                    <td className="lab-wide">{b?.painted ?? 0}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <ul className="lab-ways">
+        <details className="lab-specs">
+          <summary>What each way changes</summary>
           {WAYS.map((w) => (
-            <li key={w.id}>
-              <b>
-                {nOf(w.id)}. {w.name}:
-              </b>{" "}
-              {w.about}
+            <details key={w.id} className="lab-spec">
+              <summary>
+                <b>
+                  {nOf(w.id)}. {w.name}
+                </b>
+              </summary>
+              <p>{w.about}</p>
               <dl className="lab-vars">
                 {w.vars.map(([k, v]) => (
                   <div key={k}>
@@ -299,97 +330,121 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                   </div>
                 ))}
               </dl>
-            </li>
+            </details>
           ))}
-        </ul>
-        <button type="button" className="btn btn-primary" onClick={paintAll} disabled={busy}>
-          {busy ? "Painting..." : `Paint every page four ways (${pages.length * 4} paintings)`}
+        </details>
+        <button type="button" className="btn btn-primary lab-all" onClick={paintAll} disabled={busy}>
+          {busy ? "Painting..." : `Paint every page four ways (${pages.length * 4})`}
         </button>
       </section>
 
-      <NewPage choices={choices} onSaved={load} />
+      <nav className="lab-views" aria-label="Show">
+        <button type="button" className={`lab-chip${view === "compare" ? " on" : ""}`} onClick={() => setView("compare")}>
+          Compare all
+        </button>
+        {WAYS.map((w) => (
+          <button key={w.id} type="button" className={`lab-chip${view === w.id ? " on" : ""}`} onClick={() => setView(w.id)}>
+            {nOf(w.id)}. {w.name}
+          </button>
+        ))}
+      </nav>
 
-      {pages.map((p) => {
-        const runId = runFor(p.key);
-        const run = runs.find((r) => r.id === runId);
-        const live = runId ? cells[runId] : undefined;
-        const voted = run?.vote;
-        const history = runs.filter((r) => r.page === p.key);
-        return (
-          <section key={p.key} className="panel lab-row">
-            <div className="lab-row-head">
-              <div>
-                <h3>{p.label}</h3>
-                <p className="meta">{p.page.picture}</p>
-                <p className="meta lab-tags">
-                  {p.cast.map((c) => c.name).join(", ") || "nobody"}
-                  {p.place ? ` · place: ${p.place.id}` : ""}
-                  {p.camera ? ` · ${p.camera} shot` : ""}
-                  {history.length > 1 ? ` · ${history.length} runs` : ""}
-                </p>
-              </div>
-              <div className="lab-row-btns">
-                <button type="button" className="btn btn-soft" onClick={() => void paintPage(p)} disabled={busy}>
-                  Paint four ways
-                </button>
-                {p.own && (
-                  <button type="button" className="link-btn" onClick={() => void api({ kind: "forget-page", key: p.key }).then(load)}>
-                    Remove
+      {viewing ? (
+        <section className="lab-gallery" aria-label={`Every page, ${viewing.name}`}>
+          <p className="meta lab-gallery-note">Every page&apos;s latest painting, way {nOf(viewing.id)} only.</p>
+          <div className="lab-gallery-grid">
+            {pages.map((p) => {
+              const run = runs.find((r) => r.id === runFor(p.key));
+              const c = run ? cells[run.id]?.[viewing.id] : undefined;
+              const saved = run?.ways[viewing.id];
+              return (
+                <figure key={p.key} className={`lab-cell${run?.vote === viewing.id ? " voted" : ""}`}>
+                  <figcaption>
+                    <b>{p.label}</b>
+                    {run?.vote && <span className="lab-state">★{nOf(run.vote)}</span>}
+                  </figcaption>
+                  <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
+                  {(c || saved) && numbers(c, saved)}
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+      ) : (
+        <>
+          <NewPage choices={choices} onSaved={load} />
+          {pages.map((p) => {
+            const runId = runFor(p.key);
+            const run = runs.find((r) => r.id === runId);
+            const live = runId ? cells[runId] : undefined;
+            const voted = run?.vote;
+            const history = runs.filter((r) => r.page === p.key);
+            const painting = Boolean(live && Object.values(live).some((c) => c?.state === "painting"));
+            return (
+              <details key={p.key} className="panel lab-row" open={Boolean(openRows[p.key])} onToggle={(e) => {
+                const isOpen = (e.currentTarget as HTMLDetailsElement).open;
+                setOpenRows((o) => (Boolean(o[p.key]) === isOpen ? o : { ...o, [p.key]: isOpen }));
+              }}>
+                <summary className="lab-row-sum">
+                  <span className="lab-row-title">
+                    <b>{p.label}</b>
+                    <span className="meta lab-tags">
+                      {p.cast.map((c) => c.name).join(", ") || "nobody"}
+                      {p.place ? ` · ${p.place.id}` : ""}
+                      {p.camera ? ` · ${p.camera}` : ""}
+                    </span>
+                  </span>
+                  <span className="lab-row-status">{painting ? "painting..." : voted ? `★ ${nOf(voted)}` : run ? "not voted" : "not painted"}</span>
+                </summary>
+                <p className="meta lab-picture">{p.page.picture}</p>
+                <div className="lab-row-btns">
+                  <button type="button" className="btn btn-soft" onClick={() => paintOne(p)} disabled={busy}>
+                    Paint four ways
                   </button>
-                )}
-              </div>
-            </div>
-            {history.length > 1 && (
-              <div className="lab-history">
-                {history.slice(0, 8).map((r, i) => (
-                  <button key={r.id} type="button" className={`lab-chip${r.id === runId ? " on" : ""}`} onClick={() => setShown((s) => ({ ...s, [p.key]: r.id }))}>
-                    Run {history.length - i}
-                    {r.vote ? ` · ★${nOf(r.vote)}` : ""}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="lab-four">
-              {WAYS.map((w) => {
-                const c = live?.[w.id];
-                const saved = run?.ways[w.id];
-                return (
-                  <figure key={w.id} className={`lab-cell${voted === w.id ? " voted" : ""}`}>
-                    <figcaption>
-                      <b>
-                        {nOf(w.id)}. {w.name}
-                      </b>
-                      {c && <span className={`lab-state ${c.state}`}>{c.state}</span>}
-                    </figcaption>
-                    <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{runId ? "..." : "Not painted yet"}</span>}</div>
-                    {(c || saved) && (
-                      <div className="lab-numbers">
-                        <span>
-                          <b>{usd(c?.usd ?? saved?.usd)}</b> · {num(c?.out ?? saved?.out)} tokens out
-                        </span>
-                        <span>
-                          first {secs(c?.firstMs ?? saved?.firstMs)} · finished {secs(c?.totalMs ?? saved?.totalMs)}
-                        </span>
-                        {c?.calls?.map((k, i) => (
-                          <span key={i} className="lab-call">
-                            {k.label}: {k.out.toLocaleString()} out, {k.in.toLocaleString()} in ({k.cacheRead.toLocaleString()} cached), {secs(k.totalMs)}
-                          </span>
-                        ))}
-                        {(c?.summary ?? saved?.summary) && <span className="lab-call">{c?.summary ?? saved?.summary}</span>}
-                      </div>
-                    )}
-                    {run && (c?.state === "done" || saved?.ok) && (
-                      <button type="button" className={`btn ${voted === w.id ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void vote(run.id, w.id)}>
-                        {voted === w.id ? "★ Best" : "Vote best"}
+                  {p.own && (
+                    <button type="button" className="link-btn" onClick={() => void api({ kind: "forget-page", key: p.key }).then(load)}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {history.length > 1 && (
+                  <div className="lab-history">
+                    {history.slice(0, 8).map((r, i) => (
+                      <button key={r.id} type="button" className={`lab-chip${r.id === runId ? " on" : ""}`} onClick={() => setShown((s) => ({ ...s, [p.key]: r.id }))}>
+                        Run {history.length - i}
+                        {r.vote ? ` · ★${nOf(r.vote)}` : ""}
                       </button>
-                    )}
-                  </figure>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+                    ))}
+                  </div>
+                )}
+                <div className="lab-four">
+                  {WAYS.map((w) => {
+                    const c = live?.[w.id];
+                    const saved = run?.ways[w.id];
+                    return (
+                      <figure key={w.id} className={`lab-cell${voted === w.id ? " voted" : ""}`}>
+                        <figcaption>
+                          <b>
+                            {nOf(w.id)}. {w.name}
+                          </b>
+                          {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
+                        </figcaption>
+                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{runId ? "..." : "Not painted yet"}</span>}</div>
+                        {(c || saved) && numbers(c, saved)}
+                        {run && (c?.state === "done" || saved?.ok) && (
+                          <button type="button" className={`btn ${voted === w.id ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void vote(run.id, w.id)}>
+                            {voted === w.id ? "★ Best" : "Vote best"}
+                          </button>
+                        )}
+                      </figure>
+                    );
+                  })}
+                </div>
+              </details>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 }
