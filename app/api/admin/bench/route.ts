@@ -3,12 +3,14 @@ import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { generateBenchCases } from "@/server/bench-cases";
+import { prepareParts } from "@/server/paint/parts-maker";
+import type { CharacterDef } from "@/lib/types";
 import { BENCH_SLOTS, legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
 // (writing a batch of test pages can take a minute)
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /**
  * The painting bench's records (admin only): each run of a page - its four
@@ -219,6 +221,13 @@ export async function POST(req: Request) {
       console.warn("bench: couldn't generate test pages", e);
       return NextResponse.json({ error: "Couldn't write new test pages just now." }, { status: 502 });
     }
+  }
+  // Characters' parts made ahead, once for all ways and pages ("Prepare
+  // characters"): no page then waits on them, and every way uses the same.
+  if (b?.kind === "prepare" && Array.isArray(b.characters)) {
+    const list = (b.characters as CharacterDef[]).filter((c) => c && typeof c.name === "string").slice(0, 30);
+    const results = await Promise.all(list.map(async (c) => ({ name: c.name, ...(await prepareParts(c).catch(() => ({ ok: false, preset: false }))) })));
+    return NextResponse.json({ results });
   }
   if (b?.kind === "rank" && runId && Array.isArray(b.order)) {
     const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && /^[1pqx]$/.test(x)))];

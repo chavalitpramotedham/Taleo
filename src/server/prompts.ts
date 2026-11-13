@@ -113,6 +113,7 @@ export function stampsSection(): string {
 The app keeps a library of house-style scenery pieces, already in this book's colours and light. Place one with a single short tag instead of drawing it: it looks right, matches the rest of the book, and leaves your strokes for what is special about this picture.
   <stamp k="oak" x="70" y="242" s="1" flip="1" v="2"/>
 - k: which piece (the list is below). x, y: where it stands (for most pieces, the point where it meets the ground). s: its scale, 0.3 to 2.5 (1 is the size listed; smaller for things further away). flip="1" mirrors it.
+- A tree, fence or other dark piece put in the characters' space is moved out to its edge automatically, to keep them clear - unless it's something a character touches (climbs, sits on, leans on, hides behind): then add near="1" and it stays where you put it.
 - v: optional. The same k and v give the very same piece again: give a landmark tree or fence a v so it stays the same on every page of the book. Leave v out for ordinary pieces and each varies by itself.
   <scatter k="grass" x="0" y="250" w="400" h="45" n="18"/>
 - Scatters n marks of a kind over a box (x, y is its top left; w, h its size).
@@ -320,6 +321,7 @@ Write each such character as one figure:
 - Inside a figure you draw in the character's OWN 200x200 coordinates, from the anchors its sheet gives: arms start at the shoulders, legs at the hips, the face sits on the eye and mouth points. <torso/> and <head>...</head> mark where the kept parts go in the stacking order: far limbs before <torso/>, near limbs and held things after it, and the face inside <head>...</head> so it turns with the head. Write them in each of your paint, ink and detail groups.
 - Use the exact colours each sheet gives, so limbs match the body. Limbs overlap the body where they join; never leave a gap at a shoulder or hip.
 - A figure that is the tap target sits inside it: <g class="target"><fig ...>...</fig></g>.
+- THINGS THEY TOUCH: the place is painted by another hand, and keeps the characters' space clear. If a character climbs, leans on, sits on, hides behind or hangs from something (the apple tree, a fence, a log, a bench), place that standard piece right where they are, with near="1" so it stays there, BEFORE the figure: <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>. Outside any <fig>. Only for what the moment needs them to touch.
 - If a pose truly can't be made from the kept head and body (curled up asleep, seen from behind, bent right over, looking straight up), draw that character in full the ordinary way instead, without a <fig>, keeping its colours from its model sheet. Use this only when you must.`;
 
 /** A character's sheet when it's painted from parts: its views, anchors
@@ -375,6 +377,7 @@ EACH CHARACTER: one tag (put the characters further back first)
 AROUND THEM: standard pieces, placed with one tag each - things the moment needs (a puddle to jump in, an open gate, a fallen basket of apples) and what the action leaves in the air (a splash, motion lines, sparkles, Zzz):
   <stamp k="splash" x="200" y="246" s="1"/>
 A thing that is the tap target: <g class="target"><stamp .../></g>.
+Something a character climbs, sits on, leans on or hides behind (the apple tree, a log, a fence) goes right where they are, BEFORE their tag, with near="1": <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>. (For "sit", put the character's y on its seat.)
 Only if the moment needs something that is not in any list (a story's own special object), draw it yourself as a few simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours, at most 12 shapes).
 
 THE PIECES:

@@ -523,15 +523,21 @@ async function* brushStrokes(
       // On the bench: how many of the output tokens were the strokes
       // themselves (counted exactly, by the same tokenizer), so the rest
       // was thinking.
+      // (counted after the painting, not before it's done: waiting for the
+      // count put a second or so on every painter's time - and held back
+      // the characters, which wait for the scenery to finish)
       if (log.measure) {
-        try {
-          const count = (text: string) => getClient().messages.countTokens({ model, messages: [{ role: "user", content: text }] });
-          const [all, none] = await Promise.all([count(drawn || "."), count(".")]);
-          log.strokeTokens = Math.max(0, all.input_tokens - none.input_tokens + 1);
-          log.thinkingTokens = Math.max(0, Number(log.out ?? 0) - Number(log.strokeTokens));
-        } catch (e) {
-          console.warn("painting: couldn't count the strokes", e);
-        }
+        const text = drawn;
+        log.measuring = (async () => {
+          try {
+            const count = (t: string) => getClient().messages.countTokens({ model, messages: [{ role: "user", content: t }] });
+            const [all, none] = await Promise.all([count(text || "."), count(".")]);
+            log.strokeTokens = Math.max(0, all.input_tokens - none.input_tokens + 1);
+            log.thinkingTokens = Math.max(0, Number(log.out ?? 0) - Number(log.strokeTokens));
+          } catch (e) {
+            console.warn("painting: couldn't count the strokes", e);
+          }
+        })();
       }
       return;
     } catch (err) {
@@ -779,7 +785,9 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     clockMs: req.quick || chosen ? 0 : FIRST_STROKE_MS,
     // (the standard pieces are offered to whoever paints the scenery:
     // the illustrator only when it paints the whole picture alone)
-    system: posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && !layered }),
+    // (and to the characters' painter when it paints from parts: for the
+    // things the characters touch - the tree climbed, the bench sat on)
+    system: posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && (!layered || partsOf.size > 0) }),
     content,
   };
   // One line per painting in the server log: which painter, how long until
@@ -828,7 +836,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
       reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps || partsOf.size
-        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing, figures: Object.fromEntries(partsOf) }, stats)
+        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing || (reuse.stamps && partsOf.size > 0), figures: Object.fromEntries(partsOf) }, stats)
         : brushStrokes(main, stop, logs.characters, why);
     // With backdrops: the place is painted once (the first page set there
     // paints it, every other page reuses it), framed a little differently
@@ -843,8 +851,12 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)
           const h = hashOf(req.page.text);
-          const zoom = req.camera === "close" ? 1.4 : req.camera === "wide" ? 1 : [1, 1.06, 1.12, 1.18, 1.25][h % 5];
-          const dx = (((h >> 3) % 5) - 2) * 12;
+          // (gentle enough that a landmark at either side - where the
+          // backdrop puts them, about x 30-370 - stays in the picture: at
+          // up to 1.25 and a 24-pixel pan, a tree on the right bank was
+          // cut off)
+          const zoom = req.camera === "close" ? 1.12 : req.camera === "wide" ? 1 : [1, 1.04, 1.08][h % 3];
+          const dx = zoom > 1.05 ? 0 : (((h >> 3) % 3) - 1) * 8;
           notes.frame = `zoom ${zoom}, pan ${dx}`;
           // The page that paints the place shows it stroke by stroke as it
           // is painted (not blank until it's done); a page that reuses it

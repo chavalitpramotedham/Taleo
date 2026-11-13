@@ -41,16 +41,22 @@ export const STYLE: Record<BenchSlot, string> = {
   // s3 (13 Nov): on the bench, its own parts - never another variant's
   // s4 (13 Nov): the apple tree and the wild flowers can be placed again
   // (an apple and a bunch of flowers to hold had taken their names)
-  p: "s4",
+  // s5 (13 Nov): characters' parts prepared ahead and shared; token
+  // counts off the clock; a tree a character touches can stand among them
+  p: "s5",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
-  q: "s3",
+  // s4 (13 Nov): as p s5, and its painter may place standard pieces for
+  // what the characters touch; gentler backdrop framing; a place's
+  // backdrop reused across its pages
+  q: "s4",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
   // s4 (13 Nov): the apple tree and wild flowers fixed, as p s4
-  x: "s4",
+  // s5 (13 Nov): as q s4
+  x: "s5",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

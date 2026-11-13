@@ -68,3 +68,19 @@ export async function once<T>(key: string, make: () => Promise<T>, opts: { ttlS:
   if (memory.size > 500) memory.delete(memory.keys().next().value!);
   return p;
 }
+
+/** What's kept under a key, if anything - without making it or waiting
+ *  for it (null: nothing kept, or "made, nothing"). */
+export async function kept<T>(key: string): Promise<T | null> {
+  const have = memory.get(key) as Promise<T> | undefined;
+  if (have) return have.catch(() => null);
+  if (!metricsEnabled()) return null;
+  const [v] = await pipeline([["GET", key]]).catch(() => [null]);
+  if (v === null || v === undefined) return null;
+  try {
+    const got = (typeof v === "string" ? JSON.parse(v) : v) as { v?: T };
+    return got && typeof got === "object" && "v" in got ? (got.v ?? null) : null;
+  } catch {
+    return null;
+  }
+}

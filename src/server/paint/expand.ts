@@ -138,7 +138,10 @@ function stamp(tag: string, ctx: ExpandContext, stats: ExpandStats, index: numbe
   // Nothing dark in the characters' space: a tree or a fence planted
   // there is moved out to the nearer side.
   const st = ctx.stage;
-  if (st && kind.dark && kind.base !== "middle" && x > st.x0 && x < st.x1 && y > st.y0 && y < st.y1 + 12) {
+  // (unless it's marked as something the characters touch - the tree one
+  // climbs, the log one sits on: near="1" keeps it where it was put)
+  const near = a.near === "1" || a.near === "true";
+  if (st && !near && kind.dark && kind.base !== "middle" && x > st.x0 && x < st.x1 && y > st.y0 && y < st.y1 + 12) {
     const half = (Number(kind.size.split("x")[0]) / 2) * s;
     x = x - st.x0 < st.x1 - x ? st.x0 - half * 0.6 : st.x1 + half * 0.6;
     stats.moved++;

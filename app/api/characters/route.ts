@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { prepareParts } from "@/server/paint/parts-maker";
+import { reuseOf } from "@/server/claude";
 import { auth } from "@/server/auth";
 import { errorResponse } from "@/server/errors";
 import { CharacterLimitError, listCharacters, reorderCharacters, saveCharacter } from "@/server/characters";
@@ -53,6 +55,10 @@ export async function POST(req: Request) {
 
   try {
     const character = await saveCharacter(session.user.id, { name, look, svg, notes, relationships, gender, prompt }, replaceId, limit);
+    // With characters painted from their parts switched on, a new or
+    // repainted character's parts are made now, in the background - not
+    // on the first page that needs them, where they'd hold the picture up.
+    if (reuseOf({}).parts && svg) after(() => prepareParts({ id: "hero", name, look, svg, preset: null }).catch(() => {}));
     return NextResponse.json({ character });
   } catch (err) {
     if (err instanceof CharacterLimitError) return NextResponse.json({ error: err.message, limitReached: true }, { status: 409 });

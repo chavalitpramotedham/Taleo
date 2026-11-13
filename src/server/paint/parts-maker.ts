@@ -7,7 +7,7 @@ import { hashOf } from "@/lib/art/stamps";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import type { CharacterDef } from "@/lib/types";
 import { streamUsageTracker } from "../metrics";
-import { once } from "./once";
+import { kept, once } from "./once";
 
 /**
  * A character's parts (see lib/art/parts), for one without hand-made ones:
@@ -131,16 +131,34 @@ async function regroup(c: CharacterDef): Promise<CharacterParts | null> {
 
 /** A character's parts: hand-made for the presets that have them, else
  *  regrouped from its portrait (once, then kept). Null: paint it in full. */
+const partsKey = (art: string) => `parts:v1:${hashOf(art)}:${art.length}`;
+
 export async function partsFor(c: CharacterDef, benchVariant?: string): Promise<CharacterParts | null> {
   if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return PRESET_PARTS[c.preset];
   const art = characterArt(c);
   if (!art) return null;
-  // (on the bench, each variant makes and keeps its own: none waits on, or
-  // gets for nothing, what another variant made)
-  const p = once(`parts:v1:${hashOf(art)}:${art.length}${benchVariant ? `:bench:${benchVariant}` : ""}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
+  // Prepared ahead (see prepareParts): the same parts for every page and
+  // every way - made once, before any painting, as they will be for a
+  // family's characters.
+  const ready = await kept<CharacterParts>(partsKey(art));
+  if (ready) return ready;
+  // (on the bench, a character not prepared ahead is made by each variant
+  // for itself: none waits on, or gets for nothing, what another made)
+  const p = once(`${partsKey(art)}${benchVariant ? `:bench:${benchVariant}` : ""}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
   inFlight.add(p);
   void p.finally(() => inFlight.delete(p)).catch(() => {});
   return p;
+}
+
+/** Makes and keeps a character's parts ahead of any painting (a new
+ *  character, or the bench's "Prepare characters"). Null if it can't be
+ *  regrouped (it is then painted in full). */
+export async function prepareParts(c: CharacterDef): Promise<{ ok: boolean; preset: boolean }> {
+  if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return { ok: true, preset: true };
+  const art = characterArt(c);
+  if (!art) return { ok: false, preset: false };
+  const made = await once(partsKey(art), () => regroup(c), { ttlS: 365 * 86_400, waitMs: 120_000, nothingTtlS: 600 });
+  return { ok: Boolean(made), preset: false };
 }
 
 /** Parts still being made: a page that stopped waiting for them hands

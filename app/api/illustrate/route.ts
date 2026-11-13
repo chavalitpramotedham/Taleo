@@ -165,6 +165,9 @@ export async function POST(req: Request) {
         const left = stop.signal.aborted;
         if (!left) finished = Date.now() - began;
         send("\n<!--taleo:done-->");
+        // (the bench's token counts, made after the painting finished, are
+        // waited for only now, for the record)
+        await Promise.all(Object.values((notes.painters ?? {}) as Record<string, { measuring?: Promise<void> }>).map((l) => l?.measuring)).catch(() => {});
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
         // (a reader who left got no picture, whatever was painted)
         await gen.end(left ? "left" : "ok", { summary: `${left ? `${shapes()} painted before the reader left` : shapes()}${reuseNote(notes)}`, result: svg });

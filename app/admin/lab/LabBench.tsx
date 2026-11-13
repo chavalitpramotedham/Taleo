@@ -72,7 +72,11 @@ const WAYS = [
       ],
       [
         "Characters",
-        "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies",
+        "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies; places standard pieces for what they touch (the tree climbed, the log sat on)",
+      ],
+      [
+        "Prepared ahead",
+        "characters' parts (Prepare characters); each place's backdrop, painted by the first page set there and reused by the rest",
       ],
       ["Pieces", "on (scenery, props, effects)"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
@@ -410,7 +414,7 @@ export function LabBench({
    *  one book (so a place's backdrop is painted once among them). */
   const paintPage = async (
     p: LabPage,
-    book = `b${Date.now().toString(36)}`,
+    book = bookFor(p),
   ) => {
     const runId = newId(p.key);
     setShown((s) => ({ ...s, [p.key]: runId }));
@@ -1090,6 +1094,7 @@ export function LabBench({
         <>
           <div className="lab-pages-bar">
             <GenerateCases choices={choices} pages={pages} onSaved={load} />
+            <PrepareCharacters choices={choices} />
             <NewPage choices={choices} onSaved={load} />
             <span
               className="lab-pages-filter"
@@ -1325,7 +1330,7 @@ export function LabBench({
                                   p,
                                   w.id,
                                   run.id,
-                                  `b${Date.now().toString(36)}`,
+                                  bookFor(p),
                                 ).then(load)
                               }
                             >
@@ -1385,6 +1390,12 @@ const ORDINAL = ["1st", "2nd", "3rd", "4th"];
 
 /** Slots in bench order, the retired first way 3 ("b") where it stood. */
 const SLOT_ORDER = ["1", "p", "b", "q", "x"];
+
+/** The "book" a test page is painted in. Every page set in the same
+ *  place shares one, as the pages of a real story do: the first painting
+ *  there pays for the place's backdrop and the rest reuse it (each variant
+ *  its own - see the illustrate route). */
+const bookFor = (p: LabPage) => `lab${(p.place?.id ?? p.key).replace(/[^a-z0-9]/gi, "").slice(0, 36)}`;
 
 /** One-off set-up calls (as server/bench counts them). */
 const SETUP_LABELS = ["backdrop painter", "parts maker"];
@@ -1779,6 +1790,40 @@ function caseToPage(
     },
     camera: c.camera,
   };
+}
+
+/** "Prepare characters": every character's parts made ahead and kept,
+ *  once for all ways and pages - so no page waits on them, and every way
+ *  paints from the same. (A family's character gets its parts as it's
+ *  made, once painting from parts is switched on for everyone.) */
+function PrepareCharacters({ choices }: { choices: CharacterDef[] }) {
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  const go = async () => {
+    setBusy(true);
+    setNote("");
+    const res = await fetch("/api/admin/bench", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "prepare", characters: choices }),
+    }).catch(() => null);
+    const d = (await res?.json().catch(() => null)) as { results?: { name: string; ok: boolean }[] } | null;
+    const r = d?.results ?? [];
+    const failed = r.filter((x) => !x.ok).map((x) => x.name);
+    setNote(r.length ? `${r.length - failed.length} of ${r.length} ready${failed.length ? ` (not: ${failed.join(", ")})` : ""}` : "Couldn't prepare them just now.");
+    setBusy(false);
+  };
+  return (
+    <span className="lab-prepare">
+      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
+        <span className="lab-add-icon" aria-hidden="true">
+          ◐
+        </span>
+        {busy ? "Preparing characters..." : "Prepare characters"}
+      </button>
+      {note && <span className="meta">{note}</span>}
+    </span>
+  );
 }
 
 /** "Generate more cases": the model writes a number of new, varied test
