@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ESTIMATES } from "@/lib/bench-estimates";
+import { estimateFor } from "@/lib/bench-estimates";
 import { SPRITE_POSE_IDS } from "@/lib/art/sprites";
 import {
   legacyVariant,
@@ -573,7 +573,7 @@ export function LabBench({
   const judge = (
     b: Board | undefined,
   ): { kind: "off" | "ahead"; why: string } | null => {
-    const est = b && b.way !== "1" ? ESTIMATES[b.way] : undefined;
+    const est = b && b.way !== "1" ? estimateFor(b.variant) : undefined;
     if (!b || !est || !b.painted) return null;
     const pc = (v: number | null, base: number | null) =>
       v === null || !base ? null : (1 - v / base) * 100;
@@ -855,8 +855,8 @@ export function LabBench({
                       </td>
                       <td>{b.way === "1" ? "-" : vsToday(b.usd)}</td>
                       <td className="lab-est">
-                        {b.way !== "1" && ESTIMATES[b.way]
-                          ? `-${ESTIMATES[b.way].costPc}%`
+                        {b.way !== "1" && estimateFor(b.variant)
+                          ? `-${estimateFor(b.variant)!.costPc}%`
                           : "-"}
                       </td>
                       <td
@@ -1041,15 +1041,21 @@ export function LabBench({
                 </div>
               ))}
             </dl>
-            {specWay.id !== "1" && ESTIMATES[specWay.id] && (
-              <p className="meta lab-spec-est">
-                <b>Expected:</b> {usd(ESTIMATES[specWay.id].usd)} and{" "}
-                {secs(ESTIMATES[specWay.id].ms)} a page (
-                {ESTIMATES[specWay.id].costPc}% cheaper,{" "}
-                {ESTIMATES[specWay.id].timePc}% faster than v0).{" "}
-                {ESTIMATES[specWay.id].why}
-              </p>
-            )}
+            {specWay.id !== "1" &&
+              (() => {
+                const e = estimateFor(variantOf(specWay.id as BenchSlot));
+                return e ? (
+                  <p className="meta lab-spec-est">
+                    <b>Expected:</b> {usd(e.usd)} and {secs(e.ms)} a page (
+                    {e.costPc}% cheaper, {e.timePc}% faster than v0). {e.why}
+                  </p>
+                ) : (
+                  <p className="meta lab-spec-est">
+                    <b>Expected:</b> no estimate written for this variant
+                    yet.
+                  </p>
+                );
+              })()}
             <button
               type="button"
               className="btn btn-primary btn-block"
@@ -1348,7 +1354,7 @@ export function LabBench({
                         className={`lab-cell${voted === w.id ? " voted" : ""}`}
                       >
                         <figcaption>
-                          <b>
+                          <b title={`${nOf(w.id)}. ${w.name}`}>
                             {nOf(w.id)}. {w.name}
                           </b>
                           {c && c.state !== "done" && (
@@ -1771,7 +1777,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       : secs(ms);
   const costSave = saving(me.avgCost, base?.avgCost);
   const timeSave = saving(me.avgTime, base?.avgTime);
-  const est = way === "1" ? null : ESTIMATES[way];
+  const est = way === "1" ? null : estimateFor(variantOf(way as BenchSlot));
   return (
     <div className="lab-summary">
       <div className="lab-stat">

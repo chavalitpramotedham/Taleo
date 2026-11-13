@@ -13,7 +13,8 @@ import type { ReuseSettings } from "./types";
  * how it works that isn't a setting (its prompts, how pieces and figures
  * are assembled, how the backdrop is shown). Change a setting and the code
  * changes by itself. Change how a way works without changing a setting,
- * and bump its STYLE: that changes the code too.
+ * and bump its STYLE: that changes the code too. Either way, write the
+ * new code's estimate in bench-estimates.ts.
  */
 export const BENCH_SLOTS = ["1", "p", "q", "x", "s"] as const;
 /** A slot id, as the bench's requests carry it. */

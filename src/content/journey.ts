@@ -82,7 +82,7 @@ export const JOURNEY: JourneyDay[] = [
       "Make a character from a photo, and rearrange your characters by dragging.",
       "Pictures arrive much sooner: the scenery and the characters are painted at the same time.",
     ],
-    shots: [shot("10", "home-signed-in", "Your own home page, with a reading chart"), shot("10", "bookshelf", "My bookshelf"), shot("10", "admin", "Behind the scenes: the owner's dashboard (details hidden)", true)],
+    shots: [shot("10", "home-signed-in", "Your own home page, with a reading chart"), shot("10", "bookshelf", "My bookshelf"), shot("10", "admin", "Behind the scenes: the owner's dashboard (costs hidden)", true)],
   },
   {
     date: "2026-11-11",
@@ -94,7 +94,7 @@ export const JOURNEY: JourneyDay[] = [
       "A new home-screen icon, and day or night chosen by the clock.",
       "Read-aloud reworked to start sooner and sound more natural.",
     ],
-    shots: [shot("11", "plans", "Plan and credits: a free story every week"), shot("11", "privacy", "A plain-words privacy page"), { ...shot("11", "icon", "The new home-screen icon"), square: true }, shot("11", "activity", "Behind the scenes: a log of what's made (details hidden)", true)],
+    shots: [shot("11", "plans", "Plan and credits: a free story every week"), shot("11", "privacy", "A plain-words privacy page"), { ...shot("11", "icon", "The new home-screen icon"), square: true }, shot("11", "activity", "Behind the scenes: a log of what's made (costs hidden)", true)],
   },
   {
     date: "2026-11-12",
@@ -117,6 +117,6 @@ export const JOURNEY: JourneyDay[] = [
       "Smoother home page, story set-up and page turns; the first page's picture is ready sooner.",
       "Behind the scenes: trying new ways of painting that reuse characters and places, for quicker pictures.",
     ],
-    shots: [shot("13", "pricing", "A clear page on pricing and the plans"), shot("13", "bench", "Behind the scenes: testing new ways to paint (details hidden)", true)],
+    shots: [shot("13", "pricing", "A clear page on pricing and the plans"), shot("13", "bench", "Behind the scenes: testing new ways to paint (costs hidden)", true)],
   },
 ];
