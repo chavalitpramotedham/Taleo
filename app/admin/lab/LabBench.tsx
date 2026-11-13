@@ -21,6 +21,10 @@ export interface LabPage {
   camera?: "close" | "mid" | "wide" | null;
   /** one of the admin's own test pages (can be removed) */
   own?: boolean;
+  /** when it was added (own and generated pages), for newest first */
+  createdAt?: number;
+  /** written by the model ("Generate more cases") */
+  generated?: boolean;
 }
 
 /** The four ways, from nothing reused to everything. */
@@ -215,7 +219,12 @@ export function LabBench({
     void load();
   }, [load]);
 
-  const pages = useMemo(() => [...own, ...fixed], [own, fixed]);
+  // (newest first: the pages added or generated, by when, then the
+  // bench's own fixed ones)
+  const pages = useMemo(() => {
+    const at = (p: LabPage) => p.createdAt ?? (parseInt(p.key.split("-")[1] ?? "", 36) || 0);
+    return [...[...own].sort((a, b) => at(b) - at(a)), ...fixed];
+  }, [own, fixed]);
   const latest = (key: string) => runs.find((r) => r.page === key);
   const runFor = (key: string) => shown[key] ?? latest(key)?.id;
 
@@ -412,6 +421,17 @@ export function LabBench({
   // painted way has its place (a vote from before rankings reads as a
   // first place).
   const [picking, setPicking] = useState<Record<string, string[]>>({});
+  /** How far a page has got: nothing painted, some ways, all four, or all
+   *  four and ranked. */
+  const stageOf = (run: Run | undefined, painting: boolean): "none" | "some" | "all" | "ranked" => {
+    const done = run ? paintedWays(run).length : 0;
+    const ranked = Boolean(run?.rank?.length) && done === WAYS.length && WAYS.every((w) => run!.rank!.includes(w.id));
+    if (!run || done === 0) return painting ? "some" : "none";
+    if (done < WAYS.length || painting) return "some";
+    return ranked ? "ranked" : "all";
+  };
+  // (all test pages, or just those not yet painted all four ways and ranked)
+  const [onlyOpen, setOnlyOpen] = useState(false);
   const rankOf = (run: Run | undefined): string[] =>
     run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : [];
   const paintedWays = (run: Run) =>
@@ -464,32 +484,28 @@ export function LabBench({
         );
   const todayMs =
     board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
-  /** Has this variant broken its estimate - costing or taking more than
-   *  today where a saving was expected, or falling more than 25 points
-   *  short of the saving expected? (Said why, for the row's tooltip.) */
-  const broke = (b: Board | undefined): string | null => {
+  /** How a variant measures up to its estimate, on cost and on time (each
+   *  as a saving against today, in percentage points):
+   *  - "off" (red): either falls short by more than 25 points, or costs or
+   *    takes more than today where a saving was expected;
+   *  - "ahead" (green): neither falls short by more than 10 points, and at
+   *    least one beats its estimate by 10 points or more;
+   *  - otherwise nothing: near enough to what was expected. */
+  const judge = (b: Board | undefined): { kind: "off" | "ahead"; why: string } | null => {
     const est = b && b.way !== "1" ? ESTIMATES[b.way] : undefined;
     if (!b || !est || !b.painted) return null;
-    const pc = (v: number | null, base: number | null) =>
-      v === null || !base ? null : (1 - v / base) * 100;
-    const cost = pc(b.usd, today);
-    const time = pc(b.totalMs, todayMs);
-    const why: string[] = [];
-    if (
-      cost !== null &&
-      ((est.costPc > 0 && cost < 0) || est.costPc - cost > 25)
-    )
-      why.push(
-        `cost ${cost < 0 ? `${Math.round(-cost)}% more` : `${Math.round(cost)}% less`} than today, expected ${est.costPc}% less`,
-      );
-    if (
-      time !== null &&
-      ((est.timePc > 0 && time < 0) || est.timePc - time > 25)
-    )
-      why.push(
-        `time ${time < 0 ? `${Math.round(-time)}% longer` : `${Math.round(time)}% shorter`} than today, expected ${est.timePc}% shorter`,
-      );
-    return why.length ? `Far off its estimate: ${why.join("; ")}` : null;
+    const pc = (v: number | null, base: number | null) => (v === null || !base ? null : (1 - v / base) * 100);
+    const parts = [
+      { what: "cost", got: pc(b.usd, today), want: est.costPc, more: "more", less: "less" },
+      { what: "time", got: pc(b.totalMs, todayMs), want: est.timePc, more: "longer", less: "shorter" },
+    ].filter((x): x is { what: string; got: number; want: number; more: string; less: string } => x.got !== null);
+    if (!parts.length) return null;
+    const say = (x: (typeof parts)[number]) => `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than today, expected ${x.want}% ${x.less}`;
+    const short = parts.filter((x) => (x.want > 0 && x.got < 0) || x.want - x.got > 25);
+    if (short.length) return { kind: "off", why: `Far off its estimate: ${short.map(say).join("; ")}` };
+    const ahead = parts.filter((x) => x.got - x.want >= 10);
+    if (ahead.length && parts.every((x) => x.want - x.got <= 10)) return { kind: "ahead", why: `Better than its estimate: ${ahead.map(say).join("; ")}` };
+    return null;
   };
   const vsToday = (v?: number | null) =>
     v === undefined || v === null || !today
@@ -646,18 +662,18 @@ export function LabBench({
                 .filter(({ b }) => showAll || b.current)
                 .map(({ b, n }) => {
                   const w = WAYS.find((x) => x.id === b.way);
-                  const off = broke(b);
+                  const verdict = judge(b);
                   const name =
                     b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
                   return (
                     <tr
                       key={b.variant}
                       className={
-                        [b.current ? "" : "lab-earlier", off ? "lab-off" : ""]
+                        [b.current ? "" : "lab-earlier", verdict ? (verdict.kind === "off" ? "lab-off" : "lab-ahead") : ""]
                           .filter(Boolean)
                           .join(" ") || undefined
                       }
-                      title={off ?? undefined}
+                      title={verdict?.why}
                     >
                       <td className="lab-way">
                         <span className="lab-way-name">
@@ -877,7 +893,18 @@ export function LabBench({
         </section>
       ) : (
         <>
-          <NewPage choices={choices} onSaved={load} />
+          <div className="lab-pages-bar">
+            <GenerateCases choices={choices} pages={pages} onSaved={load} />
+            <NewPage choices={choices} onSaved={load} />
+            <span className="lab-pages-filter" role="group" aria-label="Which test pages">
+              <button type="button" className={`lab-chip${!onlyOpen ? " on" : ""}`} onClick={() => setOnlyOpen(false)}>
+                All ({pages.length})
+              </button>
+              <button type="button" className={`lab-chip${onlyOpen ? " on" : ""}`} onClick={() => setOnlyOpen(true)}>
+                Uncompleted ({pages.filter((q) => stageOf(runs.find((r) => r.id === runFor(q.key)), false) !== "ranked").length})
+              </button>
+            </span>
+          </div>
           {pages.map((p) => {
             const runId = runFor(p.key);
             const run = runs.find((r) => r.id === runId);
@@ -888,6 +915,7 @@ export function LabBench({
             const painting = Boolean(
               live && Object.values(live).some((c) => c?.state === "painting"),
             );
+            if (onlyOpen && stageOf(run, painting) === "ranked") return null;
             return (
               <details
                 key={p.key}
@@ -906,23 +934,7 @@ export function LabBench({
                   <span className="lab-row-title">
                     <b className="lab-row-name">
                       {(() => {
-                        // (how far this page has got: nothing painted, some ways,
-                        // all four, or all four and ranked)
-                        const done = run ? paintedWays(run).length : 0;
-                        const ranked =
-                          Boolean(run?.rank?.length) &&
-                          done === WAYS.length &&
-                          WAYS.every((w) => run!.rank!.includes(w.id));
-                        const stage =
-                          !run || done === 0
-                            ? painting
-                              ? "some"
-                              : "none"
-                            : done < WAYS.length || painting
-                              ? "some"
-                              : ranked
-                                ? "ranked"
-                                : "all";
+                        const stage = stageOf(run, painting);
                         const label = {
                           none: "Not painted",
                           some: "Partly painted",
@@ -1486,6 +1498,123 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   );
 }
 
+/** One generated case as a bench page: its characters matched by name
+ *  to the bench's own (the first is the hero, the rest friends). */
+type GenCase = {
+  label: string;
+  text: string;
+  picture: string;
+  characters: string[];
+  place: { id: string; about: string; light: string };
+  camera: "close" | "mid" | "wide";
+  action: { word: string; target: string } | null;
+};
+function caseToPage(c: GenCase, choices: CharacterDef[], key: string, createdAt: number): LabPage {
+  const byName = (n: string) => choices.find((x) => x.name.toLowerCase() === n.trim().toLowerCase());
+  const cast = [...new Set(c.characters)]
+    .map(byName)
+    .filter((x): x is CharacterDef => Boolean(x))
+    .slice(0, 3)
+    .map((x, i) => ({ ...x, id: i === 0 ? "hero" : `friend${i}` }));
+  const target = c.action ? (cast.find((x) => x.name.toLowerCase() === c.action!.target.trim().toLowerCase())?.id ?? c.action.target.trim().slice(0, 40)) : "";
+  return {
+    key,
+    createdAt,
+    generated: true,
+    label: c.label.slice(0, 80),
+    cast,
+    page: {
+      text: c.text,
+      picture: c.picture,
+      characters: cast.map((x) => x.id),
+      action: c.action && target ? { word: c.action.word.slice(0, 30), target, sound: "pop", motion: "bounce" } : null,
+    },
+    place: { id: c.place.id.replace(/[^\w-]/g, "-").slice(0, 40) || "place", about: c.place.about, light: c.place.light },
+    camera: c.camera,
+  };
+}
+
+/** "Generate more cases": the model writes a number of new, varied test
+ *  pages, which are saved like the admin's own. */
+function GenerateCases({ choices, pages, onSaved }: { choices: CharacterDef[]; pages: LabPage[]; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState("5");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  const n = Math.max(1, Math.min(20, Math.round(Number(count) || 0)));
+  const go = async () => {
+    setBusy(true);
+    setNote("");
+    try {
+      const res = await fetch("/api/admin/bench", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          kind: "generate",
+          count: n,
+          characters: choices.map((c) => ({ name: c.name, look: c.look })),
+          existing: pages.map((p) => ({ label: p.label, picture: p.page.picture })),
+        }),
+      });
+      const d = (await res.json().catch(() => null)) as { cases?: GenCase[]; error?: string } | null;
+      if (!res.ok || !d?.cases?.length) throw new Error(d?.error || "Nothing came back.");
+      // (saved newest first in the order written: the first case gets the
+      // latest time)
+      const now = Date.now();
+      const batch = now.toString(36);
+      await Promise.all(d.cases.map((c, i) => api({ kind: "page", page: caseToPage(c, choices, `gen-${batch}${i.toString(36)}`, now - i) })));
+      onSaved();
+      setOpen(false);
+    } catch (e) {
+      setNote(e instanceof Error ? e.message : "Couldn't write new test pages just now.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <button type="button" className="lab-add" onClick={() => setOpen(true)}>
+        <span className="lab-add-icon" aria-hidden="true">
+          ✦
+        </span>
+        Generate more cases
+      </button>
+      {open && (
+        <div className="modal-backdrop" onClick={() => !busy && setOpen(false)}>
+          <div className="modal-panel draft-prompt lab-gen-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-gen-title">
+            <div className="modal-head">
+              <h3 id="lab-gen-title">Generate more cases</h3>
+              <button type="button" className="icon-btn" onClick={() => setOpen(false)} disabled={busy} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <p className="meta">New test pages written by Claude, as different as possible from each other and from the ones here: places, light and seasons, camera, how many characters, what they do and feel, and whether there&apos;s a word to tap.</p>
+            <label className="lab-gen-count">
+              How many? (1 to 20)
+              <input
+                className="input"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={20}
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !busy && void go()}
+                disabled={busy}
+                autoFocus
+              />
+            </label>
+            {note && <p className="lab-error">{note}</p>}
+            <button type="button" className="btn btn-primary btn-block" onClick={() => void go()} disabled={busy}>
+              {busy ? `Writing ${n} test ${n === 1 ? "page" : "pages"}...` : `Generate ${n} ${n === 1 ? "case" : "cases"}`}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 /** A test page of the admin's own. */
 function NewPage({
   choices,
@@ -1530,6 +1659,7 @@ function NewPage({
       : ids[0];
     const page: LabPage = {
       key: `own-${Date.now().toString(36)}`,
+      createdAt: Date.now(),
       label: label.trim() || text.trim().slice(0, 50),
       cast,
       page: {

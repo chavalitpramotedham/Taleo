@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { generateBenchCases } from "@/server/bench-cases";
 import { BENCH_SLOTS, legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
+// (writing a batch of test pages can take a minute)
+export const maxDuration = 120;
 
 /**
  * The painting bench's records (admin only): each run of a page - its four
@@ -157,6 +160,24 @@ export async function POST(req: Request) {
     if (!metricsEnabled()) mem().pics.set(picKey(runId, way), svg);
     else await pipeline([["SET", picKey(runId, way), svg, "EX", KEEP_S]]);
     return NextResponse.json({ ok: true });
+  }
+  // New test pages written by the model (the bench turns them into pages
+  // with its own characters, and saves them)
+  if (b?.kind === "generate") {
+    const characters = (Array.isArray(b.characters) ? b.characters : [])
+      .filter((c): c is { name: string; look: string } => Boolean(c) && typeof (c as { name?: unknown }).name === "string")
+      .slice(0, 40)
+      .map((c) => ({ name: String(c.name).slice(0, 60), look: String(c.look ?? "").slice(0, 300) }));
+    const existing = (Array.isArray(b.existing) ? b.existing : [])
+      .slice(0, 80)
+      .map((e) => ({ label: String((e as { label?: unknown })?.label ?? "").slice(0, 80), picture: String((e as { picture?: unknown })?.picture ?? "").slice(0, 200) }));
+    try {
+      const cases = await generateBenchCases({ count: Number(b.count) || 5, characters, existing });
+      return NextResponse.json({ cases });
+    } catch (e) {
+      console.warn("bench: couldn't generate test pages", e);
+      return NextResponse.json({ error: "Couldn't write new test pages just now." }, { status: 502 });
+    }
   }
   if (b?.kind === "rank" && runId && Array.isArray(b.order)) {
     const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && /^[1pqx]$/.test(x)))];

@@ -16187,3 +16187,48 @@ html[data-night] .policy-body a.btn:hover {
     padding: 10px 4px;
   }
 }
+.lab-pages-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.lab-pages-bar .lab-new.closed {
+  margin: 0;
+}
+.lab-pages-bar .lab-new.panel {
+  flex-basis: 100%;
+  order: 3;
+  margin: 0;
+}
+.lab-pages-filter {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.lab-gen-dialog {
+  max-width: 440px;
+  text-align: left;
+}
+.lab-gen-count {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+/* a variant doing better than its estimate */
+.lab-board tr.lab-ahead td {
+  background: color-mix(in srgb, #5f8a45 15%, transparent);
+  color: #3f6a2c;
+  opacity: 1;
+}
+.lab-board tr.lab-ahead td.lab-est,
+.lab-board tr.lab-ahead .lab-variant {
+  color: #3f6a2c;
+}
+html[data-night] .lab-board tr.lab-ahead td,
+html[data-night] .lab-board tr.lab-ahead td.lab-est,
+html[data-night] .lab-board tr.lab-ahead .lab-variant {
+  color: #b9d197;
+}
