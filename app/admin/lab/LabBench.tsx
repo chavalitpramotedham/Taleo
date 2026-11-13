@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ESTIMATES } from "@/lib/bench-estimates";
 import { Painting } from "@/components/art/Painting";
 import type { CharacterDef, IllustrateRequest } from "@/lib/types";
 
@@ -282,6 +283,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 <th>Votes</th>
                 <th>Avg cost</th>
                 <th>vs today</th>
+                <th>Expected</th>
                 <th>Avg time</th>
                 <th className="lab-wide">Win rate</th>
                 <th className="lab-wide">Tokens out</th>
@@ -301,7 +303,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     </td>
                     <td>{b?.wins ?? 0}</td>
                     <td className={b?.usd !== null && b?.usd === best("usd") ? "lab-best" : ""}>{usd(b?.usd)}</td>
-                    <td>{vsToday(b?.usd)}</td>
+                    <td>{w.id === "1" ? "-" : vsToday(b?.usd)}</td>
+                    <td className="lab-est">{w.id === "1" ? "-" : `-${ESTIMATES[w.id]?.costPc ?? 0}%`}</td>
                     <td className={b?.totalMs !== null && b?.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b?.totalMs)}</td>
                     <td className="lab-wide">{b && b.votedRuns ? `${Math.round((b.wins / b.votedRuns) * 100)}%` : "-"}</td>
                     <td className="lab-wide">{num(b?.out)}</td>
@@ -488,6 +491,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   const totalTime = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : secs(ms));
   const costSave = saving(me.avgCost, base?.avgCost);
   const timeSave = saving(me.avgTime, base?.avgTime);
+  const est = way === "1" ? null : ESTIMATES[way];
   return (
     <div className="lab-summary">
       <div className="lab-stat">
@@ -498,6 +502,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <span>Cost per painting</span>
         <b>{usd(me.avgCost)}</b>
         {base && <em className={costSave?.endsWith("less") ? "good" : ""}>{costSave ? `${costSave} than today` : "no baseline yet"}</em>}
+        {est && <em className="lab-est">expected {usd(est.usd)}, {est.costPc}% less</em>}
       </div>
       <div className="lab-stat">
         <span>Total cost</span>
@@ -507,6 +512,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <span>Time per painting</span>
         <b>{secs(me.avgTime)}</b>
         {base && <em className={timeSave?.endsWith("less") ? "good" : ""}>{timeSave ? `${timeSave} than today` : "no baseline yet"}</em>}
+        {est && <em className="lab-est">expected {secs(est.ms)}, {est.timePc}% less</em>}
       </div>
       <div className="lab-stat">
         <span>Total painting time</span>
@@ -520,6 +526,11 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
           </b>
           <em>per painting, over {base.n}</em>
         </div>
+      )}
+      {est && (
+        <p className="lab-est-why">
+          <b>Why we expected this:</b> {est.why}
+        </p>
       )}
     </div>
   );

@@ -15734,3 +15734,13 @@ html[data-night] .lab-stat em.good {
 .lab-add.open .lab-add-icon {
   transform: rotate(45deg);
 }
+.lab .lab-est {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.lab-est-why {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
