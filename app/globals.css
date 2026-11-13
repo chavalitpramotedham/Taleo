@@ -15779,9 +15779,11 @@ html[data-night] .lab-stat em.good {
   margin: 28px 0 8px;
 }
 .lab-way-name {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
 }
 .lab-info {
   flex: none;
