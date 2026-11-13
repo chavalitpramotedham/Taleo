@@ -175,7 +175,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     try {
       const res = await fetch("/api/illustrate", {
         method: "POST",
-        headers: { "content-type": "application/json", "x-taleo-paint-lab": way },
+        headers: { "content-type": "application/json", "x-taleo-paint-lab": way, "x-taleo-bench-run": runId },
         body: JSON.stringify({ world, cast: p.cast, page: p.page, previous: p.previous ?? null, storyId: book, place: p.place ?? null, camera: p.camera ?? null }),
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
@@ -213,9 +213,11 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
       setCell(runId, way, { state: "failed", totalMs: performance.now() - began });
       result.totalMs = performance.now() - began;
     }
-    await api({ kind: "result", runId, way, result });
-    // (and the picture itself, so it outlives the painting's record)
-    if (result.ok && finalSvg) await api({ kind: "picture", runId, way, svg: finalSvg });
+    // (the server saves the result and the picture to the run itself, when
+    // the painting finishes - even if this page has gone away; reading
+    // the runs again picks them up)
+    void result;
+    void finalSvg;
   };
 
   /** A page, all four ways at once. `book`: pages painted together share
@@ -225,6 +227,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     setShown((s) => ({ ...s, [p.key]: runId }));
     await api({ kind: "start", runId, page: p.key, label: p.label });
     await Promise.all(WAYS.map((w) => paintWay(p, w.id, runId, book)));
+    await load();
   };
   const paintAll = async () => {
     setBusy(true);
@@ -480,8 +483,13 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                           </b>
                           {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
                         </figcaption>
-                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{runId ? "..." : "Not painted yet"}</span>}</div>
+                        <div className="lab-art">{c?.svg ? <Painting svg={c.svg} className="painting" /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
                         {(c || saved) && numbers(c, saved)}
+                        {run && c?.state !== "painting" && !c?.svg && !saved?.ok && (c?.state === "failed" || saved || Date.now() - run.at > 6 * 60_000) && (
+                          <button type="button" className="btn btn-soft lab-vote" onClick={() => void paintWay(p, w.id, run.id, `b${Date.now().toString(36)}`).then(load)}>
+                            Paint this way
+                          </button>
+                        )}
                         {run && (c?.state === "done" || saved?.ok) && (
                           <button type="button" className={`btn ${voted === w.id ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void vote(run.id, w.id)}>
                             {voted === w.id ? "★ Best" : "Vote best"}

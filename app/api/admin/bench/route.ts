@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
 
@@ -15,42 +16,6 @@ export const dynamic = "force-dynamic";
  * four paintings finishing at once never write over each other; without
  * Redis, in memory.
  */
-export interface WayResult {
-  usd: number;
-  out: number;
-  totalMs: number;
-  firstMs?: number;
-  ok: boolean;
-  genId?: string;
-  summary?: string;
-}
-export interface BenchRun {
-  id: string;
-  at: number;
-  page: string;
-  label: string;
-  ways: Record<string, WayResult>;
-  vote?: string;
-}
-
-const RUNS = "bench:runs";
-const PAGES = "bench:pages";
-const KEEP_S = 180 * 86_400;
-const mem = () => ((globalThis as { __bench?: { runs: Map<string, Record<string, string>>; pages: Map<string, string>; pics: Map<string, string> } }).__bench ??= { runs: new Map(), pages: new Map(), pics: new Map() });
-/** Each painting's picture, kept as long as its run's numbers (the
- *  painting's own record, where it otherwise comes from, goes after two
- *  weeks). Its own key, so listing the runs never loads the pictures. */
-const picKey = (runId: string, way: string) => `bench:pic:${runId}:${way}`;
-
-async function hset(key: string, field: string, value: string) {
-  if (!metricsEnabled()) {
-    const m = mem();
-    if (key === PAGES) m.pages.set(field, value);
-    else m.runs.set(key, { ...(m.runs.get(key) ?? {}), [field]: value });
-    return;
-  }
-  await pipeline([["HSET", key, field, value], ["EXPIRE", key, KEEP_S]]);
-}
 
 async function readRuns(limit = 400): Promise<BenchRun[]> {
   let raw: [string, Record<string, string>][];

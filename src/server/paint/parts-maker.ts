@@ -109,7 +109,10 @@ async function regroup(c: CharacterDef): Promise<CharacterParts | null> {
   try {
     const res = await getClient().beta.messages.parse({
       model: MODEL,
-      max_tokens: 24000,
+      // (under the SDK's ceiling for a reply that isn't streamed - about
+      // 21,000: above it the request is refused before it's sent. A
+      // portrait's parts are well under this.)
+      max_tokens: 16000,
       system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: `CHARACTER: ${c.name}. Model sheet: ${c.look}\n\nTHE PORTRAIT (200x200):\n${art}\n\nRegroup it into parts.` }],
       thinking: { type: "between_tools" } as never,

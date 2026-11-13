@@ -12,6 +12,7 @@ import { count, withMetricsUser } from "@/server/metrics";
 import { auth } from "@/server/auth";
 import { beginGen, logDenied } from "@/server/genlog";
 import type { ReuseSettings } from "@/lib/types";
+import { saveBenchResult } from "@/server/bench";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -105,20 +106,32 @@ export async function POST(req: Request) {
   // If the reader leaves (closes the tab, moves to another page), stop the
   // model straight away: nobody will receive the rest, so finishing it
   // would only spend tokens on a result that's thrown away.
+  // A bench painting is the exception: it finishes, and saves its own
+  // result to its run (below), even if the bench page is closed or the
+  // phone sleeps - its result is the point of painting it.
+  const benchRun = benched ? (req.headers.get("x-taleo-bench-run") ?? "") : "";
+  const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && /^[1pbx]$/.test(lab ?? "");
   const stop = new AbortController();
-  req.signal.addEventListener("abort", () => stop.abort(), { once: true });
+  if (!benchSaves) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
+  let firstSent = 0;
+  let finished = 0;
+  const began = Date.now();
   const encoder = new TextEncoder();
   const gen = beginGen(logged(g.session.user, tierFor(g.session.user).name));
   let svg = "";
   const body = withMetricsUser(g.session.user.id, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
-      stop.abort();
+      if (!benchSaves) stop.abort();
     },
     async start(controller) {
       const send = (s: string) => {
         if (stop.signal.aborted) return;
-        controller.enqueue(encoder.encode(s));
+        firstSent ||= Date.now() - began;
         gen.sent(s.length);
+        // (a bench page that has gone away: the painting goes on regardless)
+        try {
+          controller.enqueue(encoder.encode(s));
+        } catch {}
       };
       const paint = (s: string) => {
         // (painted from reused pieces, it went wrong part-way: what was
@@ -146,6 +159,7 @@ export async function POST(req: Request) {
           for await (const delta of paintPage(parsed, stop.signal, notes)) paint(delta);
         }
         const left = stop.signal.aborted;
+        if (!left) finished = Date.now() - began;
         send("\n<!--taleo:done-->");
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
         // (a reader who left got no picture, whatever was painted)
@@ -173,7 +187,12 @@ export async function POST(req: Request) {
     },
   })));
   // (the log's last line is written even if the reader has gone)
-  after(() => gen.done);
+  after(() =>
+    gen.done.then(async () => {
+      if (!benchSaves) return;
+      await saveBenchResult(benchRun, lab!, { genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg }).catch((e) => console.warn("bench: couldn't save the result", e));
+    }),
+  );
 
   return new Response(body, {
     headers: {
