@@ -351,7 +351,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
         <div className="lab-rank" role="group" aria-label="Rank the leaderboard">
           <span className="meta">Rank by</span>
           <button type="button" className={`lab-chip${rankBy === "code" ? " on" : ""}`} onClick={() => setRankBy("code")}>
-            Order tested
+            Index
           </button>
           <button type="button" className={`lab-chip${rankBy === "score" ? " on" : ""}`} onClick={() => setRankBy("score")}>
             Score
