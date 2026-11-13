@@ -1938,6 +1938,16 @@ function PrepIcon({ ready, busy, icon }: { ready?: Ready; busy: boolean; icon: s
   );
 }
 
+/** How many are ready, as a small count inside a Prepare button. */
+function PrepCount({ ready }: { ready?: Ready }) {
+  if (!ready || !ready.of) return null;
+  return (
+    <span className={`lab-count${ready.ready >= ready.of ? " done" : ""}`}>
+      {ready.ready}/{ready.of}
+    </span>
+  );
+}
+
 /** "Prepare poses" (way 5): every test page's characters painted in each
  *  pose, ahead and kept - one pose per request, a few at once, with the
  *  count shown as they're done. Poses already made are found at once. */
@@ -1968,15 +1978,17 @@ function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Read
   };
   return (
     <span className="lab-prepare">
-      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
+      <button
+        type="button"
+        className="lab-add"
+        onClick={() => void go()}
+        disabled={busy}
+        title={done?.failed ? `${done.failed} couldn't be painted last time` : undefined}
+      >
         <PrepIcon ready={ready} busy={busy} icon="✎" />
-        {busy ? "Preparing poses..." : "Prepare poses"}
+        {busy ? "Preparing poses" : "Prepare poses"}
+        <PrepCount ready={busy && done ? { ready: done.n, of: done.of } : ready} />
       </button>
-      {done && (
-        <span className="meta">
-          {done.n} of {done.of} ready{done.failed ? `, ${done.failed} failed` : ""}
-        </span>
-      )}
     </span>
   );
 }
@@ -2005,11 +2017,11 @@ function PrepareCharacters({ choices, ready, onDone }: { choices: CharacterDef[]
   };
   return (
     <span className="lab-prepare">
-      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
+      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy} title={note || undefined}>
         <PrepIcon ready={ready} busy={busy} icon="◐" />
-        {busy ? "Preparing characters..." : "Prepare characters"}
+        {busy ? "Preparing characters" : "Prepare characters"}
+        {busy ? <span className="lab-count">...</span> : <PrepCount ready={ready} />}
       </button>
-      {note && <span className="meta">{note}</span>}
     </span>
   );
 }

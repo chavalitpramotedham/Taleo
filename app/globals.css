@@ -16620,3 +16620,21 @@ html.in-app body {
     padding: 5px;
   }
 }
+/* a Prepare button's count, inside it: "12/16" */
+.lab-count {
+  margin-left: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+.lab-count.done {
+  background: color-mix(in srgb, #5f8a45 18%, transparent);
+  color: #4f7a38;
+}
+html[data-night] .lab-count.done {
+  color: #a9c98f;
+}
