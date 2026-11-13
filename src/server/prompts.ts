@@ -236,7 +236,8 @@ export const LAYERED_CHARACTERS = `THE SCENERY IS BEING PAINTED BY ANOTHER HAND,
 - a soft ground shadow under each of them, and a last few foreground ink strokes over their feet (grass tufts, a rug's fringe) so they sit IN the place rather than on it.
 Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup is laid straight over the finished scenery. Stand the characters on the stage's ground line, inside its space. Keep to the economy the character rules ask for: usually 50-150 elements in all, depending on how many characters are on the page - a single character rarely needs more than 65.
 - THE MAIN ACTION'S OBJECT: if the main action is done to or with a thing (the hollow full of acorns, the basket carried, the kite, the cake), that thing is the most important thing in the picture after the characters: show it clearly, at the action, never leave it out.
-- Begin each character with its marker, <who c="ID"/> (its id), written once just before its strokes: the app checks that everyone on the page was painted.`;
+- Begin each character with its marker, <who c="ID"/> (its id), written once just before its strokes: the app checks that everyone on the page was painted.
+- Every character is drawn whole, legs and feet included: the scenery lies BEHIND all the characters, so nothing in it will ever cover them. If a character should be behind something (a table, a counter, a fence, a bush), place that thing as a standard piece AFTER the character, with near="1", so it is in front.`;
 
 /** Turns a parent's description of a character - a few words, or a long,
  *  loosely ordered paragraph - into a clear design brief the character
@@ -323,6 +324,7 @@ Write each such character as one figure:
   </fig>
 - c: the character's id, exactly as its sheet gives it - and only for a character marked PAINTED FROM PARTS (any other is drawn in full, never as a figure). v: one of the views its sheet lists ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually ${SIZES.mid}, a wide shot ${SIZES.wide}, a close-up ${SIZES.close}; the page's SIZE line gives this page's exact range). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
 - Inside a figure you draw in the character's OWN 200x200 coordinates, from the anchors its sheet gives: arms start at the shoulders, legs at the hips, the face sits on the eye and mouth points. <torso/> and <head>...</head> mark where the kept parts go in the stacking order: far limbs before <torso/>, near limbs and held things after it, and the face inside <head>...</head> so it turns with the head. Write them in each of your paint, ink and detail groups.
+- Always draw each figure's legs and feet (and both arms): the scenery lies behind every character, so nothing in it covers them. A table or counter they stand behind is placed AFTER the figure as a piece with near="1", in front of them.
 - Use the exact colours each sheet gives, so limbs match the body. Limbs overlap the body where they join; never leave a gap at a shoulder or hip.
 - A figure that is the tap target sits inside it: <g class="target"><fig ...>...</fig></g>.
 - THINGS THEY TOUCH: the place is painted by another hand, and keeps the characters' space clear. If a character climbs, leans on, sits on, hides behind or hangs from something (the apple tree, a fence, a log, a bench), place that standard piece right where they are, with near="1" so it stays there, BEFORE the figure: <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>. Outside any <fig>. Only for what the moment needs them to touch.
@@ -380,6 +382,8 @@ INTERACTIONS - make the picture say it:
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
 DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
+BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
+SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.
 
 EACH CHARACTER: one tag (put the characters further back first)
   <fig c="hero" v="three" x="140" y="248" s="0.62" flip="1" lean="0" tilt="0" arms="wave,down" legs="walk" mood="laugh" hold="basket"/>
@@ -430,6 +434,8 @@ INTERACTIONS - make the picture say it:
 - MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
 FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
 DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
+BEHIND THINGS: the place is laid behind everyone, so a character "at the table" stands in front of it. If they should be behind a table, counter or fence, write that piece AFTER them with near="1".
+SPACE: three or more characters spread across the stage, each with room; only those touching (a hug, holding something together) overlap, and then by no more than a hand.
 
 EACH CHARACTER: one tag (characters further back first)
   <sprite c="hero" pose="wave" x="140" y="248" s="0.62" flip="1" lean="0"/>

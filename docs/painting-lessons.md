@@ -115,3 +115,45 @@ Checked with a stand-in that "forgot" two of three characters: v0 and
 ways 2-3 each asked for exactly those two again.
 
 New codes: 1-TNN3, 2-HKAD, 3-A92J, 4-71XO, 5-2JDK.
+
+## 13 Nov 2026 - "Baking day" (c24): legs, crowding, the cupcake's arms
+
+Seen (v0 paused): way 2's bear had no legs; way 3 was messy; way 4's
+cupcake had thick dark mismatched arms; way 5 was hard to read. In all of
+them Bobo, Sprinkles and Tilly were crowded into one overlapping clump.
+
+**Lesson 6 - legs are always drawn; what's in front is a piece.** Way 2's
+bear stood "at the table" and its painter left the legs out as if the
+table hid them - but with a reused backdrop the table lies behind every
+character, so the bear floated. The scenery is always behind the
+characters: every character is drawn whole, legs and feet included, and
+a table, counter or fence a character should be behind is placed AFTER it
+as a piece with near="1", in front.
+Where: `LAYERED_CHARACTERS`, `PARTS_SECTION`, both composers' rules
+(`src/server/prompts.ts`).
+
+**Lesson 7 - characters are eased apart as they're placed.** The layout
+pass only ran on composed pages, after the composer finished; the
+painters of ways 2-3 placed figures on top of each other. Now every
+character placed as a figure or a pose, in any way, is checked against
+those already placed: one overlapping another by more than a hand's width
+(a quarter of the narrower body) is eased sideways, and kept in the
+picture. Characters far apart in depth may still cross. The composers
+are also told to spread three or more across the stage.
+Where: `spaceOut` in `expandStream` (`src/server/paint/expand.ts`);
+"SPACE" in the composers' rules.
+
+**Lesson 8 - code-made limbs follow the character's build.** The new
+tapering limbs suit animals, but food and object characters (a cupcake, a
+strawberry, a teapot) move with thin pen-line arms and legs, little round
+hands and small dark boots - as their portraits and the house style draw
+them. A character whose parts' build mentions ink-line, stick or thin
+pen limbs now gets exactly that.
+Where: `Build.thin` and `thinLimb` in `src/lib/art/poses.ts`; detected in
+`posedFigure` (`src/server/paint/expand.ts`).
+
+Checked: three figures written at x 190, 200 and 215 came out side by
+side; a figure whose build says "thin ink-line arms and legs" got pen-line
+limbs with dark boots.
+
+New codes: 1-UUK6, 2-IR7G, 3-ANDK, 4-6NMN, 5-2XOL.

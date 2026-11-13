@@ -316,7 +316,10 @@ const DRAWN_VIEW: PartView = {
 /** A whole figure from a pose: far limbs, legs, body, near arm, what it
  *  holds, head and face - in the three layers, placed. */
 function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view: PartView }, parts: CharacterParts, a: Record<string, string>, three: boolean, ctx: ExpandContext, stats: ExpandStats): string {
-  const roles = rolesOf(parts);
+  // (food and object characters move with thin pen-line limbs, as their
+  // portraits draw them: lesson 8)
+  const base = rolesOf(parts);
+  const roles = { ...base, thin: base.thin ?? /ink[- ]?line|stick (arms|legs|limbs)|thin (pen|ink|line|black|dark)|(pen|line)[- ](arms|legs)|wire (arms|legs)/i.test(parts.build ?? "") };
   const [nearPose, farPose] = (a.arms ?? "down,down").split(",").map((p) => p.trim().toLowerCase());
   // (a pose word not in the library: the nearest one that is)
   const pick = <T extends string>(list: readonly T[], p: string | undefined, d: T): T => {
@@ -404,6 +407,33 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     fig = null;
     return out;
   };
+  // Where characters have been placed so far on this page: one placed so
+  // it overlaps another by more than a hand's width is eased sideways, as
+  // it comes (lesson 7) - in every way that places characters as figures
+  // or poses. (Well apart in depth - one far behind, much smaller - they
+  // may cross.)
+  const placedAt: { x: number; y: number; s: number }[] = [];
+  const spaceOut = (id: string, x: number, y: number, sc: number): number => {
+    const w = (k: number) => 110 * k;
+    let nx = x;
+    for (let pass = 0; pass < 3; pass++) {
+      let moved = false;
+      for (const q of placedAt) {
+        if (Math.abs(q.y - y) > 40 || Math.max(q.s, sc) / Math.min(q.s, sc) > 1.8) continue;
+        const need = (w(sc) + w(q.s)) / 2 - Math.min(w(sc), w(q.s)) * 0.25;
+        const d = nx - q.x;
+        if (Math.abs(d) >= need) continue;
+        nx = q.x + (d >= 0 ? 1 : -1) * need;
+        moved = true;
+      }
+      if (!moved) break;
+    }
+    // (kept in the picture)
+    nx = Math.max(20 + w(sc) / 2, Math.min(380 - w(sc) / 2, nx));
+    if (Math.abs(nx - x) > 1) fixed(stats, `${id} overlapped another character: eased to x ${Math.round(nx)}`);
+    placedAt.push({ x: nx, y, s: sc });
+    return nx;
+  };
   /** A character's id from a tag's c= (or id=, or its name). */
   const idOf = (a: Record<string, string>): string => {
     const raw = (a.c ?? a.id ?? a.name ?? "").trim();
@@ -427,7 +457,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small);
     const flip = a.flip === "1" || a.flip === "true";
     const lean = num(a, "lean", 0, -30, 30);
-    const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    const t = `translate(${f(spaceOut(id, x, y, sc))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
     stats.figs++;
     stats.posed++;
     if (!stats.figIds.includes(id)) stats.figIds.push(id);
@@ -450,7 +480,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     stats.figs++;
     if (!stats.figIds.includes(id)) stats.figIds.push(id);
     const sc = fit.sc;
-    const t = `translate(${f(x)} ${f(fit.y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    const t = `translate(${f(spaceOut(id, x, fit.y, sc))} ${f(fit.y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
     return posedFigure({ id, t, s: sc, tilt: num(a, "tilt", 0, -40, 40), view }, parts, b, view === parts.views.three, ctx, stats);
   };
   /** Any way of placing a character that it has: its poses, else its
@@ -558,7 +588,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
             tilt: 0,
             view: DRAWN_VIEW,
             put: new Set(),
-            t: `translate(${f(x)} ${f(fit.y)}) rotate(${f(num(a, "lean", 0, -45, 45))}) scale(${f(flip ? -fit.sc : fit.sc)} ${f(fit.sc)}) translate(-100 -190)`,
+            t: `translate(${f(spaceOut(id, x, fit.y, fit.sc))} ${f(fit.y)}) rotate(${f(num(a, "lean", 0, -45, 45))}) scale(${f(flip ? -fit.sc : fit.sc)} ${f(fit.sc)}) translate(-100 -190)`,
           };
           stats.figs++;
           if (!stats.figIds.includes(id)) stats.figIds.push(id);
@@ -581,7 +611,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
           view,
           put: new Set(),
           // (feet at 100,190 on its own canvas: placed at x,y, leaned about the feet)
-          t: `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
+          t: `translate(${f(spaceOut(id, x, y, sc))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
         };
         stats.figs++;
         if (!stats.figIds.includes(id)) stats.figIds.push(id);

@@ -54,7 +54,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and asked for again if left out (painters mark each one); a newcomer
   // that comes out empty painted once more; the place's or page's own
   // season (an autumn wood in a summer book) for the colours
-  "1": "s3",
+  // s4 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
+  // go in front as pieces); characters eased apart as they're placed;
+  // food and object characters' code-made limbs thin pen lines
+  "1": "s4",
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
   // s3 (13 Nov): on the bench, its own parts - never another variant's
@@ -78,7 +81,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and asked for again if left out (painters mark each one); a newcomer
   // that comes out empty painted once more; the place's or page's own
   // season (an autumn wood in a summer book) for the colours
-  p: "s11",
+  // s12 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
+  // go in front as pieces); characters eased apart as they're placed;
+  // food and object characters' code-made limbs thin pen lines
+  p: "s12",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -100,7 +106,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and asked for again if left out (painters mark each one); a newcomer
   // that comes out empty painted once more; the place's or page's own
   // season (an autumn wood in a summer book) for the colours
-  q: "s10",
+  // s11 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
+  // go in front as pieces); characters eased apart as they're placed;
+  // food and object characters' code-made limbs thin pen lines
+  q: "s11",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -126,7 +135,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and asked for again if left out (painters mark each one); a newcomer
   // that comes out empty painted once more; the place's or page's own
   // season (an autumn wood in a summer book) for the colours
-  x: "s12",
+  // s13 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
+  // go in front as pieces); characters eased apart as they're placed;
+  // food and object characters' code-made limbs thin pen lines
+  x: "s13",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -142,7 +154,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // and asked for again if left out (painters mark each one); a newcomer
   // that comes out empty painted once more; the place's or page's own
   // season (an autumn wood in a summer book) for the colours
-  s: "s7",
+  // s8 (13 Nov): lessons 6-8 - legs always drawn (things to be behind
+  // go in front as pieces); characters eased apart as they're placed;
+  // food and object characters' code-made limbs thin pen lines
+  s: "s8",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

@@ -56,7 +56,24 @@ export interface Build {
   arm?: number;
   leg?: number;
   foot_?: number;
+  /** thin pen-line limbs (food and object characters: a strawberry, a
+   *  teapot), with small dark hands and boots, not full animal limbs */
+  thin?: boolean;
 }
+
+/** A thin pen-line limb (see Build.thin): one curved dark line. */
+function thinLimb(a: Pt, b: Pt, bendDir: Pt, bend: number, colour: string): Piece & { mid: Pt; dir: Pt } {
+  const mid = add(lerp(a, b, 0.5), mul(unit(bendDir), bend));
+  const c = sub(mul(mid, 2), mul(add(a, b), 0.5));
+  return {
+    paint: `<path d="M${f(a[0])} ${f(a[1])}Q${f(c[0])} ${f(c[1])} ${f(b[0])} ${f(b[1])}" fill="none" stroke="${colour}" stroke-width="2.4" stroke-linecap="round"/>`,
+    ink: "",
+    detail: "",
+    mid,
+    dir: unit(sub(b, c)),
+  };
+}
+const THIN_INK = "#3B2A20";
 
 const f = (n: number) => (Math.round(n * 10) / 10).toString();
 const add = (a: Pt, b: Pt): Pt => [a[0] + b[0], a[1] + b[1]];
@@ -164,11 +181,12 @@ export function arm(view: PartView, build: Build, side: "near" | "far", pose: Ar
   if (pose === "cover") hand = add(side === "near" ? a.eyeL : a.eyeR, [0, 1]);
   const bendDir: Pt = three ? [-0.45, 1] : [out, 0.3];
   const colour = side === "far" && three ? build.limbFar : build.limb;
-  const l = limb(sh, hand, bendDir, bend * L, w0, w1, colour);
-  const r = w1 * 0.78;
+  const l = build.thin ? thinLimb(sh, hand, bendDir, bend * L, THIN_INK) : limb(sh, hand, bendDir, bend * L, w0, w1, colour);
+  // (a little round hand on a thin limb, a paw on a full one)
+  const r = build.thin ? 3.4 : w1 * 0.78;
   const ang = (Math.atan2(l.dir[1], l.dir[0]) * 180) / Math.PI;
   const tip = add(hand, mul(l.dir, r * 0.9));
-  const handPaint = `<ellipse cx="${f(hand[0])}" cy="${f(hand[1])}" rx="${f(r * 1.12)}" ry="${f(r * 0.9)}" transform="rotate(${f(ang)} ${f(hand[0])} ${f(hand[1])})" fill="${build.hand}"/>`;
+  const handPaint = `<ellipse cx="${f(hand[0])}" cy="${f(hand[1])}" rx="${f(r * 1.12)}" ry="${f(r * 0.9)}" transform="rotate(${f(ang)} ${f(hand[0])} ${f(hand[1])})" fill="${build.thin ? THIN_INK : build.hand}"/>`;
   const fan = (n: number, spread: number) =>
     Array.from({ length: n }, (_, i) => {
       const t = ((i - (n - 1) / 2) * spread * Math.PI) / 180;
@@ -211,10 +229,11 @@ export function bodyOf(pose: LegPose): { lift: number; lean: number } {
 export function legs(view: PartView, build: Build, pose: LegPose, three: boolean): { far: Piece; near: Piece } {
   const a = view.anchors;
   const hipW = Math.max(18, Math.abs(a.hipR[0] - a.hipL[0]));
-  const lw = Math.max(10, hipW * 0.6) * (build.leg ?? 1);
+  const lw = build.thin ? 4 : Math.max(10, hipW * 0.6) * (build.leg ?? 1);
   const hipY = (a.hipL[1] + a.hipR[1]) / 2;
   const LL = Math.max(18, 190 - hipY);
-  const fw = lw * 0.9 * (build.foot_ ?? 1);
+  // (thin legs end in small dark boots)
+  const fw = build.thin ? 6.5 : lw * 0.9 * (build.foot_ ?? 1);
   const fwd = three ? 1 : 0;
   const ground = 189;
   // each foot: [dx from its hip, y, the foot's tilt in degrees (toes down +), knee bend]
@@ -232,13 +251,13 @@ export function legs(view: PartView, build: Build, pose: LegPose, three: boolean
   const one = (hip: Pt, [dx, y, tilt, kb]: Foot, colour: string): Piece => {
     const ankle: Pt = [hip[0] + dx, y - lw * 0.3];
     // (knees bend forward on a three-quarter figure, outward from the front)
-    const l = limb(hip, ankle, three ? [1, 0.15] : [hip[0] < 100 ? -1 : 1, 0.1], LL * kb, lw, lw * 0.74, colour);
+    const l = build.thin ? thinLimb(hip, ankle, three ? [1, 0.15] : [hip[0] < 100 ? -1 : 1, 0.1], LL * kb, THIN_INK) : limb(hip, ankle, three ? [1, 0.15] : [hip[0] < 100 ? -1 : 1, 0.1], LL * kb, lw, lw * 0.74, colour);
     const fx = ankle[0] + (fwd ? fw * 0.35 : 0);
     const rot = `rotate(${f(three ? tilt : tilt * 0.3)} ${f(ankle[0])} ${f(ankle[1])})`;
     return {
       paint:
         l.paint +
-        `<ellipse cx="${f(fx)}" cy="${f(ankle[1] + lw * 0.22)}" rx="${f(fw)}" ry="${f(lw * 0.4)}" transform="${rot}" fill="${build.foot}"/>` +
+        `<ellipse cx="${f(fx)}" cy="${f(ankle[1] + (build.thin ? 2 : lw * 0.22))}" rx="${f(fw)}" ry="${f(build.thin ? 3.6 : lw * 0.4)}" transform="${rot}" fill="${build.thin ? THIN_INK : build.foot}"/>` +
         (build.footPad ? `<ellipse cx="${f(fx + (fwd ? fw * 0.25 : 0))}" cy="${f(ankle[1] + lw * 0.26)}" rx="${f(fw * 0.45)}" ry="${f(lw * 0.2)}" transform="${rot}" fill="${build.footPad}"/>` : ""),
       ink: l.ink + `<path d="M${f(fx - fw)} ${f(ankle[1] + lw * 0.3)}C${f(fx - fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] + lw * 0.3)}" transform="${rot}" stroke-width="0.9"/>`,
       detail: "",
