@@ -123,6 +123,9 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const gen = beginGen(logged(g.session.user, tierFor(g.session.user).name));
   let svg = "";
+  // (why the reused-pieces painting was given up part-way, if it was: the
+  // page was then painted the ordinary way)
+  let fellBack: string | undefined;
   const body = withMetricsUser(g.session.user.id, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
       if (!benchSaves) stop.abort();
@@ -143,6 +146,7 @@ export async function POST(req: Request) {
         // ordinary way)
         if (s === RESTART) {
           svg = "";
+          fellBack = typeof notes.reuseFailed === "string" ? notes.reuseFailed : "it went wrong part-way";
           send("\n<!--taleo:restart-->\n");
           return;
         }
@@ -199,7 +203,7 @@ export async function POST(req: Request) {
   after(() =>
     gen.done.then(async () => {
       if (!benchSaves) return;
-      await saveBenchResult(benchRun, lab!, { variant: variantOf(lab as BenchSlot), genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg }).catch((e) => console.warn("bench: couldn't save the result", e));
+      await saveBenchResult(benchRun, lab!, { variant: variantOf(lab as BenchSlot), genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg, fellBack }).catch((e) => console.warn("bench: couldn't save the result", e));
     }),
   );
 

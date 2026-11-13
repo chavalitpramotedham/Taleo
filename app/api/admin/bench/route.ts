@@ -122,7 +122,9 @@ function leaderboard(runs: BenchRun[]) {
       });
   }
   const out = [...rows.entries()].map(([variant, { slot, results }]) => {
-    const done = results.filter(({ x }) => x.ok);
+    // (a painting that fell back to the ordinary way isn't this variant's
+    // work: counted apart, not in its averages)
+    const done = results.filter(({ x }) => x.ok && !x.fellBack);
     const avg = (pick: (x: WayResult) => number) => (done.length ? done.reduce((t, { x }) => t + pick(x), 0) / done.length : null);
     const sc = score.get(variant) ?? { points: 0, ranked: 0, first: 0 };
     return {
@@ -130,6 +132,7 @@ function leaderboard(runs: BenchRun[]) {
       variant,
       current: current.has(variant),
       painted: done.length,
+      fellBack: results.filter(({ x }) => x.fellBack).length,
       wins: sc.first,
       score: sc.points,
       votedRuns: sc.ranked,

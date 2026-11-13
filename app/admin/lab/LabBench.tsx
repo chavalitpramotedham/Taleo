@@ -159,6 +159,8 @@ interface Cell {
   /** the connection dropped: the server paints on and saves it, and the
    *  bench is waiting for that */
   reconnecting?: boolean;
+  /** it fell back to the ordinary way part-way (see paintPage) */
+  fellBack?: boolean;
 }
 /** The painting's stream stopped without its ending (the connection
  *  dropped); `gen` says the server had taken the request up. */
@@ -184,6 +186,8 @@ interface Run {
       error?: string;
       setupUsd?: number;
       variant?: string;
+      /** fell back to the ordinary way part-way (why): not this way's work */
+      fellBack?: string;
     }
   >;
   vote?: string;
@@ -200,6 +204,8 @@ interface Board {
   totalMs: number | null;
   firstMs: number | null;
   setupUsd?: number;
+  /** paintings that fell back to the ordinary way (left out of the rest) */
+  fellBack?: number;
   variant: string;
   /** a slot's variant as it paints now (the others are earlier ones) */
   current: boolean;
@@ -428,7 +434,10 @@ export function LabBench({
         if (text.includes("<!--taleo:error-->")) serverFailed = true;
         text = text.replace("<!--taleo:error-->", "");
         const again = text.lastIndexOf(RESTART);
-        if (again >= 0) text = text.slice(again + RESTART.length);
+        if (again >= 0) {
+          text = text.slice(again + RESTART.length);
+          setCell(runId, way, { fellBack: true });
+        }
         setCell(runId, way, { svg: text.replace(DONE, ""), firstMs: first });
       }
       const ok = text.includes(DONE);
@@ -944,7 +953,10 @@ export function LabBench({
                       <td className="lab-wide">
                         {b.firstMs ? secs(b.firstMs) : "-"}
                       </td>
-                      <td className="lab-wide">{b.painted}</td>
+                      <td className="lab-wide" title={b.fellBack ? `${b.fellBack} more fell back to the ordinary way, and aren't counted` : undefined}>
+                        {b.painted}
+                        {b.fellBack ? <small className="lab-fell"> +{b.fellBack} fell back</small> : null}
+                      </td>
                       <td className="lab-wide">
                         {b.setupUsd ? usd(b.setupUsd) : "-"}
                       </td>
@@ -1463,6 +1475,13 @@ export function LabBench({
                             </span>
                           )}
                         </div>
+                        {(c?.fellBack || saved?.fellBack) && (
+                          <p className="meta lab-fell-note" title={saved?.fellBack}>
+                            Fell back to v0&apos;s way part-way
+                            {saved?.fellBack ? `: ${saved.fellBack.slice(0, 90)}` : ""}. Not
+                            counted for this way.
+                          </p>
+                        )}
                         {c?.reconnecting && c.state === "painting" && (
                           <p className="meta lab-reconnect">
                             Connection dropped: still painting, waiting for
@@ -1825,6 +1844,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       .filter(
         (x): x is Run["ways"][string] =>
           Boolean(x?.ok) &&
+          !x!.fellBack &&
           (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot),
       );
     const costed = done.filter((x) => x.usd > 0);

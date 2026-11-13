@@ -26,6 +26,10 @@ export interface WayResult {
   variant?: string;
   /** why it failed, from the painting's record */
   error?: string;
+  /** its own way went wrong part-way and the page was painted again the
+   *  ordinary way (as v0): why. Not that way's work, so left out of its
+   *  averages. */
+  fellBack?: string;
 }
 export interface BenchRun {
   id: string;
@@ -101,7 +105,7 @@ function failedWhy(calls: { label?: string; error?: string }[], end: unknown): s
 /** A benched painting has finished (on the server, whether or not the
  *  bench page is still open): its cost, times and picture, from its own
  *  record, saved to its run. */
-export async function saveBenchResult(runId: string, way: string, o: { variant: string; genId: string; ok: boolean; firstMs?: number; totalMs: number; svg: string }): Promise<void> {
+export async function saveBenchResult(runId: string, way: string, o: { variant: string; genId: string; ok: boolean; firstMs?: number; totalMs: number; svg: string; fellBack?: string }): Promise<void> {
   const got = await getGen(o.genId).catch(() => null);
   const calls = got?.record.calls ?? [];
   const setup = calls.filter((c) => SETUP_CALLS.has(c.label)).reduce((t, c) => t + (c.usdMicro || 0), 0);
@@ -117,6 +121,7 @@ export async function saveBenchResult(runId: string, way: string, o: { variant: 
     summary: String(got?.record.summary ?? "").slice(0, 600),
     // (a failure names the first painter that failed and why - e.g. the
     // service saying too many requests - before the painting's own end)
+    ...(o.fellBack ? { fellBack: o.fellBack.slice(0, 300) } : {}),
     ...(o.ok ? {} : { error: failedWhy(calls, got?.record.error ?? got?.record.status) }),
   };
   // A result an earlier version painted in this slot is kept, under its

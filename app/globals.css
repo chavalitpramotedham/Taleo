@@ -16754,3 +16754,16 @@ html[data-night] .lab-count.done {
   font-size: 0.74rem;
   font-style: italic;
 }
+/* a painting that fell back to the ordinary way part-way */
+.lab-fell-note {
+  margin: 4px 0 0;
+  font-size: 0.74rem;
+  color: #a5671a;
+}
+html[data-night] .lab-fell-note {
+  color: #e2b46a;
+}
+.lab-fell {
+  color: #a5671a;
+  font-size: 0.72rem;
+}
