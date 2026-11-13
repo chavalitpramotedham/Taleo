@@ -241,6 +241,7 @@ export function LabBench({
     setRuns(d.runs);
     setBoard(d.leaderboard);
     setOwn((d.pages as LabPage[]).map((p) => ({ ...p, own: true })));
+    setArchived(new Set((d.archived as string[] | undefined) ?? []));
   }, []);
   useEffect(() => {
     void load();
@@ -251,7 +252,9 @@ export function LabBench({
   const pages = useMemo(() => {
     const at = (p: LabPage) =>
       p.createdAt ?? (parseInt(p.key.split("-")[1] ?? "", 36) || 0);
-    return [...[...own].sort((a, b) => at(b) - at(a)), ...fixed];
+    // (every page by when it was added - the bench's earliest fixed ones,
+    // which have no date, keep their order at the end)
+    return [...own, ...fixed].map((p, i) => ({ p, i })).sort((a, b) => at(b.p) - at(a.p) || a.i - b.i).map((x) => x.p);
   }, [own, fixed]);
   const latest = (key: string) => runs.find((r) => r.page === key);
   const runFor = (key: string) => shown[key] ?? latest(key)?.id;
@@ -467,12 +470,27 @@ export function LabBench({
   // A test page's past generations, in a list (its key), and their pictures
   // fetched as the list opens
   const [past, setPast] = useState<string | null>(null);
+  // test pages put away (hidden unless "All")
+  const [archived, setArchived] = useState<Set<string>>(new Set());
+  const toggleArchive = async (key: string) => {
+    const now = !archived.has(key);
+    setArchived((a) => {
+      const n = new Set(a);
+      if (now) n.add(key);
+      else n.delete(key);
+      return n;
+    });
+    await api({ kind: "archive", key, archived: now });
+  };
   const openPast = (key: string) => {
     setPast(key);
     for (const r of runs.filter((x) => x.page === key)) void opened(r);
   };
   // (all test pages, or just those not yet painted all four ways and ranked)
-  const [onlyOpen, setOnlyOpen] = useState(false);
+  // which test pages show: the current ones (not archived), only those
+  // still to finish, or all - archived too
+  const [listing, setListing] = useState<"current" | "open" | "all">("current");
+  const onlyOpen = listing === "open";
   const rankOf = (run: Run | undefined): string[] =>
     run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : [];
   /** A run's result for a slot, only if it was painted by the variant now
@@ -1158,29 +1176,14 @@ export function LabBench({
               role="group"
               aria-label="Which test pages"
             >
-              <button
-                type="button"
-                className={`lab-chip${!onlyOpen ? " on" : ""}`}
-                onClick={() => setOnlyOpen(false)}
-              >
-                All ({pages.length})
+              <button type="button" className={`lab-chip${listing === "current" ? " on" : ""}`} onClick={() => setListing("current")}>
+                Current ({pages.filter((q) => !archived.has(q.key)).length})
               </button>
-              <button
-                type="button"
-                className={`lab-chip${onlyOpen ? " on" : ""}`}
-                onClick={() => setOnlyOpen(true)}
-              >
-                Uncompleted (
-                {
-                  pages.filter(
-                    (q) =>
-                      stageOf(
-                        runs.find((r) => r.id === runFor(q.key)),
-                        false,
-                      ) !== "ranked",
-                  ).length
-                }
-                )
+              <button type="button" className={`lab-chip${listing === "open" ? " on" : ""}`} onClick={() => setListing("open")}>
+                Uncompleted ({pages.filter((q) => !archived.has(q.key) && stageOf(runs.find((r) => r.id === runFor(q.key)), false) !== "ranked").length})
+              </button>
+              <button type="button" className={`lab-chip${listing === "all" ? " on" : ""}`} onClick={() => setListing("all")}>
+                All ({pages.length})
               </button>
             </span>
           </div>
@@ -1195,6 +1198,8 @@ export function LabBench({
               live && Object.values(live).some((c) => c?.state === "painting"),
             );
             if (onlyOpen && stageOf(run, painting) === "ranked") return null;
+            if (listing !== "all" && archived.has(p.key)) return null;
+            const isArchived = archived.has(p.key);
             return (
               <details
                 key={p.key}
@@ -1265,7 +1270,25 @@ export function LabBench({
                           : run
                             ? "not ranked"
                             : "not painted"}
+                    {isArchived ? " · archived" : ""}
                   </span>
+                  <button
+                    type="button"
+                    className={`lab-archive${isArchived ? " on" : ""}`}
+                    aria-label={isArchived ? "Bring this test page back" : "Archive this test page"}
+                    title={isArchived ? "Unarchive" : "Archive"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void toggleArchive(p.key);
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="5" rx="1.5" />
+                      <path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9" />
+                      {isArchived ? <path d="M12 17v-5m-2.5 2.5L12 12l2.5 2.5" /> : <path d="M10 13h4" />}
+                    </svg>
+                  </button>
                   <button
                     type="button"
                     className="lab-paint"

@@ -16555,3 +16555,32 @@ html.in-app body {
   width: 100%;
   margin: 6px 0 2px;
 }
+/* archive a test page: a quiet round button beside its paint button */
+.lab-archive {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.lab-archive:hover {
+  color: var(--russet);
+  border-color: var(--russet);
+}
+.lab-archive.on {
+  color: var(--russet);
+  border-color: var(--russet);
+}
+/* the Journey's "Tell us": more room around the question and the button */
+.journey-ask {
+  gap: 16px;
+  margin: 8px auto 40px;
+}
+.journey-ask p {
+  line-height: 1.4;
+}

@@ -148,6 +148,9 @@ function leaderboard(runs: BenchRun[]) {
 }
 
 const nope = () => new NextResponse(null, { status: 404 });
+/** Archived test pages' keys (a list kept on its own). */
+const ARCHIVED = "bench:archived";
+let memArchived: string[] = [];
 const noStore = { "cache-control": "no-store" };
 
 export async function GET(req: Request) {
@@ -177,7 +180,16 @@ export async function GET(req: Request) {
       } catch {}
     }
   }
-  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages }, { headers: noStore });
+  // (test pages put away: hidden from the bench's main list, kept)
+  let archived: string[] = [];
+  if (!metricsEnabled()) archived = [...memArchived];
+  else {
+    const [v] = await pipeline([["GET", ARCHIVED]]).catch(() => [null]);
+    try {
+      archived = typeof v === "string" ? (JSON.parse(v) as string[]) : [];
+    } catch {}
+  }
+  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived }, { headers: noStore });
 }
 
 const ID = /^[\w-]{3,80}$/;
@@ -274,6 +286,24 @@ export async function POST(req: Request) {
     const id = typeof p.key === "string" && ID.test(p.key) ? p.key : null;
     if (!id) return NextResponse.json({ error: "No page id." }, { status: 400 });
     await hset(PAGES, id, JSON.stringify(p).slice(0, 20000));
+    return NextResponse.json({ ok: true });
+  }
+  // Archive a test page (or bring it back): hidden from the main list
+  if (b?.kind === "archive" && typeof b.key === "string" && ID.test(b.key)) {
+    let list: string[] = [];
+    if (!metricsEnabled()) list = memArchived;
+    else {
+      const [v] = await pipeline([["GET", ARCHIVED]]).catch(() => [null]);
+      try {
+        list = typeof v === "string" ? (JSON.parse(v) as string[]) : [];
+      } catch {}
+    }
+    const set = new Set(list);
+    if (b.archived === false) set.delete(b.key);
+    else set.add(b.key);
+    const json = JSON.stringify([...set].slice(-500));
+    if (!metricsEnabled()) memArchived = JSON.parse(json) as string[];
+    else await pipeline([["SET", ARCHIVED, json]]);
     return NextResponse.json({ ok: true });
   }
   if (b?.kind === "forget-page" && typeof b.key === "string" && ID.test(b.key)) {
