@@ -16480,7 +16480,8 @@ button.admin-bar-col:focus-visible {
    - the bar grows by the screen's top inset (zero in an ordinary
      browser tab), so its contents sit below the status bar;
    - its colour runs on upward, well past its top edge, so anything
-     above it is the bar's colour, day or night. */
+     above it is the bar's colour, day or night. (Telegram's in-app
+     browser, for one, lets the page run under its own bar.) */
 .topbar {
   padding-top: calc(14px + env(safe-area-inset-top, 0px));
 }
@@ -16494,9 +16495,12 @@ button.admin-bar-col:focus-visible {
     padding-top: calc(6px + env(safe-area-inset-top, 0px));
   }
 }
-.topbar::before {
+/* (its own layer: the bar's ::before is the day/night switch's fade,
+   pinned over the bar itself - sharing it kept this from reaching up) */
+.topbar::after {
   content: "";
   position: absolute;
+  top: auto;
   left: 0;
   right: 0;
   bottom: 100%;
