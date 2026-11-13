@@ -13172,6 +13172,12 @@ main:has(.reader) + .site-footer {
   color: var(--russet);
   text-underline-offset: 3px;
 }
+/* (a button set among the text keeps its own colours, not a link's) */
+.policy-body a.btn,
+.policy-body a.btn:hover {
+  color: #fbf4e6;
+  text-decoration: none;
+}
 .policy-note {
   padding: 12px 16px;
   border-left: 3px solid var(--russet);
@@ -16046,4 +16052,8 @@ html[data-night] .lab-board tr.lab-off .lab-variant {
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+}
+html[data-night] .policy-body a.btn,
+html[data-night] .policy-body a.btn:hover {
+  color: #fff4e2;
 }
