@@ -16471,3 +16471,39 @@ button.admin-bar-col:focus-visible {
   margin: 0;
   font-size: 0.8rem;
 }
+
+/* ---------- Nothing shows through above the menu bar ----------
+   Some phone browsers float their address bar over the page and let it
+   scroll underneath, and a page added to the home screen draws under the
+   status bar. The menu bar is pinned to the top of the page's viewport,
+   so the strip above it showed whatever was scrolling by. Now:
+   - the bar grows by the screen's top inset (zero in an ordinary
+     browser tab), so its contents sit below the status bar;
+   - its colour runs on upward, well past its top edge, so anything
+     above it is the bar's colour, day or night. */
+.topbar {
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 640px) {
+  .topbar {
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .topbar {
+    padding-top: calc(6px + env(safe-area-inset-top, 0px));
+  }
+}
+.topbar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 100vh;
+  /* (the bar's own background, whatever this page gives it, mirrored so
+     its top colour is the one that meets the bar - no seam) */
+  background: inherit;
+  transform: scaleY(-1);
+  pointer-events: none;
+}
