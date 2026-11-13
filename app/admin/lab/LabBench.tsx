@@ -260,9 +260,10 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [spec, setSpec] = useState<string | null>(null);
   // the painting shown full size, and the others it steps through
   const [zoom, setZoom] = useState<{ items: Shown[]; at: number } | null>(null);
-  const zoomable = (items: (Shown | null)[], svg: string) => {
-    const list = items.filter((x): x is Shown => Boolean(x));
-    return () => setZoom({ items: list, at: Math.max(0, list.findIndex((x) => x.svg === svg)) });
+  // (always a page's four ways, in order, so ‹ › steps 1, 2, 3, 4)
+  const zoomWays = (p: LabPage, runId: string, way: string) => () => {
+    const items = WAYS.map((x): Shown => ({ svg: cells[runId]?.[x.id]?.svg ?? "", title: `${nOf(x.id)}. ${x.name}`, caption: p.label }));
+    setZoom({ items, at: Math.max(0, WAYS.findIndex((x) => x.id === way)) });
   };
   const specWay = WAYS.find((w) => w.id === spec);
   const viewing = WAYS.find((w) => w.id === view);
@@ -404,11 +405,6 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             {pages.map((p) => {
               const run = runs.find((r) => r.id === runFor(p.key));
               const c = run ? cells[run.id]?.[viewing.id] : undefined;
-              const galleryShown = pages.map((q): Shown | null => {
-                const rq = runs.find((r) => r.id === runFor(q.key));
-                const svg = rq ? cells[rq.id]?.[viewing.id]?.svg : undefined;
-                return svg ? { svg, title: `${nOf(viewing.id)}. ${viewing.name}`, caption: q.label } : null;
-              });
               const saved = run?.ways[viewing.id];
               return (
                 <figure key={p.key} className={`lab-cell${run?.vote === viewing.id ? " voted" : ""}`}>
@@ -416,7 +412,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     <b>{p.label}</b>
                     {run?.vote && <span className="lab-state">★{nOf(run.vote)}</span>}
                   </figcaption>
-                  <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${p.label} full size`} onClick={zoomable(galleryShown, c.svg)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
+                  <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${p.label} full size`} onClick={zoomWays(p, run!.id, viewing.id)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
                   {((c && c.state !== "painting") || saved) && numbers(c, saved)}
                 </figure>
               );
@@ -500,7 +496,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                           </b>
                           {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
                         </figcaption>
-                        <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomable(WAYS.map((x) => (live?.[x.id]?.svg ? { svg: live[x.id].svg, title: `${nOf(x.id)}. ${x.name}`, caption: p.label } : null)), c.svg)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
+                        <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomWays(p, runId!, w.id)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
                         {((c && c.state !== "painting") || saved) && numbers(c, saved)}
                         {saved && !saved.ok && <p className="lab-error">Failed: {saved.error || "no reason recorded"}</p>}
                         {run && c?.state !== "painting" && !c?.svg && !saved?.ok && (c?.state === "failed" || saved || Date.now() - run.at > 6 * 60_000) && (
@@ -586,7 +582,7 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
             </button>
           </div>
           <div className="lab-zoom-art">
-            <Painting key={at} svg={item.svg} className="painting" />
+            {item.svg ? <Painting key={at} svg={item.svg} className="painting" /> : <span className="meta">Not painted yet</span>}
           </div>
           <p className="admin-zoom-caption">{item.caption}</p>
           {stepping && (

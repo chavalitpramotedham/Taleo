@@ -15876,3 +15876,7 @@ html[data-night] .lab-stat em.good {
   height: 100%;
   display: block;
 }
+.lab-zoom-art {
+  display: grid;
+  place-items: center;
+}
