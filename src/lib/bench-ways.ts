@@ -157,7 +157,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // s17 (13 Nov): lessons 14-15 - big things and drawn shapes ordered by
   // depth too, characters moved out of them to their edge; everyone
   // turned towards the main action; one ground line; footprint numbers
-  x: "s17",
+  // s18 (14 Nov): lesson 16 - huggers brought together, the main action
+  // kept in frame, sitters set on their seats, the tap target always
+  // there and marked; a phrasebook of action words into poses
+  x: "s18",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
@@ -185,7 +188,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // s12 (13 Nov): lessons 14-15 - big things and drawn shapes ordered by
   // depth too, characters moved out of them to their edge; everyone
   // turned towards the main action; one ground line; footprint numbers
-  s: "s12",
+  // s13 (14 Nov): lesson 16 - huggers brought together, the main action
+  // kept in frame, sitters set on their seats, the tap target always
+  // there and marked; a phrasebook of action words into poses
+  s: "s13",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
@@ -210,6 +216,38 @@ const canonical = (v: unknown): string =>
 export function variantOf(slot: BenchSlot): string {
   return `${slotNumber(slot)}-${fnv(`${canonical(BENCH_WAYS[slot])}|${STYLE[slot]}`)}`;
 }
+
+/**
+ * What readers' pages are painted with: a bench version, PINNED - its own
+ * copy of the settings and style, so the bench can keep trying things on
+ * its slot without changing what readers get. To move readers to another
+ * version, copy that version's settings and style here (its code is
+ * checked against the expected one below, so a slip shows at once).
+ * The prompts and code they share are the same for both.
+ * Switched off (back to the env's TALEO_PAINT_* settings) with
+ * TALEO_PAINT_LIVE=0.
+ */
+export const LIVE = {
+  /** the code it has on the bench */
+  // (4-UN3W was made live on 14 Nov; moved to 4-RUYP the same night - the
+  // same settings, with lesson 16's layout and phrasebook, which it shares)
+  code: "4-RUYP",
+  slot: "x" as BenchSlot,
+  name: "Extreme reuse",
+  settings: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } } as ReuseSettings,
+  style: "s18",
+};
+/** The versions that were live before, newest first: the baseline falls
+ *  back to them until the live one has paintings of its own. */
+export const LIVE_EARLIER = ["4-UN3W"];
+
+/** The live version's code, from its own settings and style (it must
+ *  match LIVE.code). */
+export const liveVariant = () => `${slotNumber(LIVE.slot)}-${fnv(`${canonical(LIVE.settings)}|${LIVE.style}`)}`;
+
+// (a slip in the pinned copy - settings or style not those of its code -
+// stops the site building, rather than quietly painting something else)
+if (liveVariant() !== LIVE.code) throw new Error(`LIVE is pinned as ${LIVE.code} but its settings make ${liveVariant()}`);
 
 /** Results saved before variant codes existed: one code per slot (and the
  *  retired first way 3, "b"). */

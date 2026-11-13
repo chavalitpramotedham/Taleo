@@ -17,6 +17,8 @@ export type LiveStatus = "live" | "update" | "offline";
 export interface Deployment {
   /** (set in the browser: see DeploymentMarker) */
   status?: LiveStatus;
+  /** What readers' pages are painted with: the live bench version. */
+  painting?: { code: string; name: string } | null;
   /** package.json's version. */
   version: string;
   /** The commit the live site was built from. */

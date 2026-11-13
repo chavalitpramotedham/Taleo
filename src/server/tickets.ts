@@ -51,6 +51,15 @@ export function pageIsSigned(userId: string, page: Pick<Page, "text" | "picture"
   return page.picture === page.text && same(signPage(userId, { text: page.text, picture: "" }), sig);
 }
 
+// ---- places ----
+
+// (a story's place, as the storyteller named it: signed for the account,
+// so a page can carry it to the painter and nobody can swap in a place of
+// their own - its description goes into the painter's brief)
+const placeParts = (p: { id: string; about?: string; light?: string }) => [String(p.id ?? "").slice(0, 40), String(p.about ?? "").slice(0, 400), String(p.light ?? "").slice(0, 20)];
+export const signPlace = (userId: string, place: { id: string; about?: string; light?: string }) => mac("place", [userId, ...placeParts(place)]);
+export const placeIsSigned = (userId: string, place: { id: string; about?: string; light?: string }, sig: unknown) => same(signPlace(userId, place), sig);
+
 // ---- stories ----
 
 interface StorySoFar {

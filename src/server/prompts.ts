@@ -398,6 +398,32 @@ EACH CHARACTER: one tag (put the characters further back first)
 - mood: one of: ${MOODS.join(", ")}. Choose the feeling of this moment for each character, not just "happy".
 - look: where the eyes look, one of ${LOOKS.join(", ")} - towards whoever or whatever they're attending to (on a flipped figure, "right" is still the picture's right).
 - hold (optional): something from the list of things to hold below; it goes in the near hand (or both hands, with "hold" or "hug").
+- look (optional): where the eyes go, towards what they attend to.
+ACTION WORDS INTO POSES - a phrasebook (combine, and always add the feeling):
+  push, pull, roll: arms="reach,reach" legs="walk" lean="15" (pulling: lean="-12"), mood="determined", touching the thing
+  carry, lift: arms="carry,carry" legs="walk" mood="determined" (heavy: lean="-6") hold="..." if it's in the list
+  give, offer, show: arms="reach,down" facing the one receiving, hold="..." the thing, mood="happy"
+  wave, greet: arms="wave,down" mood="happy" look at them
+  point, notice: arms="point,down" look the same way, mood="surprised" or "excited"
+  cheer, celebrate, jump for joy: arms="up,up" legs="jump" mood="laugh"
+  dance: arms="up,wave" legs="kick" (or "jump") mood="laugh", partners facing
+  run, chase, hurry: arms="down,down" legs="run" lean="12", motion lines behind
+  walk, stroll: legs="walk", arms swing by themselves
+  hug, cuddle: arms="hug,hug" for both, facing each other, close
+  hide: legs="crouch" arms="cover,down" with the cover written after them (near="1")
+  peek, spy: arms="cover,reach" or "reach,down", tilt="10", look at what they peek at, half behind something
+  think, wonder: arms="chin,hip" mood="calm", tilt="8"
+  shrug, don't know: arms="shrug,shrug" mood="worried"
+  laugh, giggle: arms="clap,clap" or "hip,hip" mood="laugh"
+  cry, sad: arms="hold,hold" mood="sad" tilt="-10"
+  scared, startled: arms="up,up" legs="crouch" mood="scared" lean="-8"
+  sleepy, asleep: legs="sit" mood="sleepy" tilt="10"
+  sit, rest, ride: legs="sit", y on the seat (the seat written before them, near="1")
+  climb, reach high: arms="up,reach" legs="tiptoe", the tree or ladder written before them (near="1")
+  tiptoe, sneak: legs="tiptoe" lean="6" mood="excited"
+  stir, cook, paint, write: arms="hold,reach" facing the bowl, easel or page, look="down"
+  talk, tell, sing: mood="talk" facing who they talk to
+  listen: mood="calm" tilt="8" facing the speaker
 - A character that is the tap target: <g class="target"><fig .../></g>.
 
 AROUND THEM: standard pieces, placed with one tag each - things the moment needs (a puddle to jump in, an open gate, a fallen basket of apples) and what the action leaves in the air (a splash, motion lines, sparkles, Zzz):

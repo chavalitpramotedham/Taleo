@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import { hasApiKey, paintPage, paintsInLayers, RESTART, reuseOf, SlowPainter, StoryRefusal } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
+import { placeIsSigned } from "@/server/tickets";
 import { composePainting } from "@/lib/art/compose";
 import { guard } from "@/server/limits";
 import { limitsFor, tierFor } from "@/lib/tiers";
@@ -93,10 +94,11 @@ export async function POST(req: Request) {
     // (a current way's own variant; an older name keeps its own name)
     parsed.benchVariant = SLOT_RE.test(lab ?? "") ? variantOf(lab as BenchSlot) : `old-${lab}`;
   } else {
-    // (where a page is set steers its painting: until that's part of a
-    // page's signature, only the bench may say)
-    parsed.place = null;
-    parsed.camera = null;
+    // (where a page is set steers its painting, and its description goes
+    // into the painter's brief: kept only when the storyteller named it
+    // for this account - its signature checks. The camera, only close,
+    // mid or wide, is kept as it is.)
+    if (parsed.place && !placeIsSigned(g.session.user.id, parsed.place, parsed.place.sig)) parsed.place = null;
   }
   // The quick painter takes the pages a reader waits on at the start of each
   // part (the story's beginning, and after every decision) - how many is

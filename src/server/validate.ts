@@ -129,5 +129,5 @@ function placeOf(v: unknown): IllustrateRequest["place"] {
   const p = (v ?? null) as { id?: unknown; about?: unknown; light?: unknown } | null;
   const id = p && typeof p.id === "string" ? p.id.trim().toLowerCase().replace(/[^a-z0-9 -]/g, "").slice(0, 40) : "";
   if (!id) return null;
-  return { id, about: str(p!.about, 400) || undefined, light: str(p!.light, 20) || undefined };
+  return { id, about: str(p!.about, 400) || undefined, light: str(p!.light, 20) || undefined, sig: str((p as { sig?: unknown }).sig, 100) || undefined };
 }

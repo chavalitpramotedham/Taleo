@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { dataKeyStatus, rekeyPrivateFiles, sweepPlainFiles } from "@/server/account-data";
 import { currentAdmin } from "@/server/entitlements";
 import type { DeployedCommit, Deployment } from "@/lib/deployment";
+import { LIVE, liveVariant } from "@/lib/bench-ways";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export async function GET() {
     region: process.env.VERCEL_REGION || null,
     dataKey: await dataKeyStatus().catch(() => undefined),
     fresh: before > 0 ? before : null,
+    painting: process.env.TALEO_PAINT_LIVE === "0" ? null : { code: liveVariant(), name: LIVE.name },
     commits,
   };
   return NextResponse.json(info, { headers: { "cache-control": "private, no-store" } });

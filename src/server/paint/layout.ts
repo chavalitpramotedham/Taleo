@@ -27,6 +27,9 @@ export interface LayoutOptions {
   /** each character's size against a grown one (1; a squirrel 0.67; a
    *  ladybird 0.1): sizes on the page are kept to usualS times this */
   sizeOf?: Record<string, number>;
+  /** the page's tap target when it's a thing, not a character ("kite",
+   *  "the pumpkin"): made sure of (lesson 16) */
+  targetThing?: string | null;
 }
 
 /** Whether two characters stand at truly different depths: the further
@@ -297,6 +300,41 @@ function targetX(markup: string, targetId: string | null | undefined, placed: { 
   return ext ? (ext.x0 + ext.x1) / 2 : null;
 }
 
+/** The page's tap target is always there and marked (lesson 16): a
+ *  target character's tag wrapped in the target group if the composer
+ *  didn't; a target thing that's missing added from the library (between
+ *  the characters, on the ground) and marked; one there but unmarked,
+ *  marked. */
+function ensureTarget(markup: string, opts: LayoutOptions, notes: string[]): string {
+  if (/<g\s+class="target"/.test(markup)) return markup;
+  if (opts.targetId) {
+    const m = [...markup.matchAll(CHAR_TAG)].find((t) => (attr(t[0], "c") ?? attr(t[0], "id")) === opts.targetId && t[0].trim().endsWith("/>"));
+    if (m) {
+      notes.push(`${opts.targetId} marked as the tap target`);
+      return markup.slice(0, m.index!) + `<g class="target">${m[0]}</g>` + markup.slice(m.index! + m[0].length);
+    }
+    return markup;
+  }
+  const word = (opts.targetThing ?? "").toLowerCase().replace(/^(the|a|an)\s+/, "").trim();
+  if (!word) return markup;
+  const norm = (k: string) => k.replace(/[\s_-]+/g, "");
+  const key = Object.keys(STAMPS).find((k) => norm(k) === norm(word) || norm(k) === norm(word).replace(/s$/, "")) ?? Object.keys(STAMPS).find((k) => norm(word).includes(norm(k)) && k.length > 3);
+  if (!key) return markup;
+  const there = [...markup.matchAll(/<stamp\b[^>]*\/>/gi)].find((t) => (attr(t[0], "k") ?? "").toLowerCase() === key);
+  if (there) {
+    notes.push(`the ${key} marked as the tap target`);
+    return markup.slice(0, there.index!) + `<g class="target">${there[0]}</g>` + markup.slice(there.index! + there[0].length);
+  }
+  // (not there at all: added where the characters are, on the ground)
+  const xs = [...markup.matchAll(CHAR_TAG)].map((t) => Number(attr(t[0], "x"))).filter(Number.isFinite);
+  const x = xs.length ? Math.round(xs.reduce((t, v) => t + v, 0) / xs.length) : 200;
+  notes.push(`the ${key}, the tap target, was missing: added`);
+  // (a piece that stands goes on the ground; one placed by its middle - a
+  // kite, a balloon, a butterfly - up in the air, above the characters)
+  const y = STAMPS[key].base === "ground" ? 248 : 120;
+  return `${markup}<g class="target"><stamp k="${key}" x="${x}" y="${y}"/></g>`;
+}
+
 /** Just the size changes written in (a page with one character). */
 function writeSizes(markup: string, placed: { start: number; end: number; tag: string }[]): string {
   let out = markup;
@@ -348,7 +386,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
         p.tag = setAttr(p.tag, "s", kept.toFixed(2));
       }
     }
-  if (placed.length < 2) return { markup: writeSizes(markup, placed), notes };
+  // (one character alone still gets its seat, its target and its size)
 
   // 1. Ease apart anyone overlapping more than a touch, left to right,
   // keeping their order across the picture.
@@ -387,6 +425,48 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     if (Math.abs(p.x - mid) > 30 && facesRight !== shouldFaceRight) {
       p.flip = !shouldFaceRight;
       notes.push(`${p.id} turned to face the others`);
+    }
+  }
+
+  // 2a. Lesson 16 - the action made to read:
+  // - two characters both hugging are drawn close (touching) and facing;
+  // - the target character is kept comfortably in frame (x 90-310): the
+  //   whole group shifts with it, spacing kept;
+  const hugging = placed.filter((p) => /\bhug\b/.test((attr(p.tag, "arms") ?? "") + (attr(p.tag, "pose") ?? "")));
+  if (hugging.length >= 2) {
+    const [a, b] = [...hugging].sort((p, q) => p.x - q.x);
+    const mid = (a.x + b.x) / 2;
+    const half = (110 * Math.max(a.s, b.s) * 0.72) / 2;
+    if (Math.abs(b.x - a.x) > half * 2 + 4) notes.push(`${a.id} and ${b.id} brought together for the hug`);
+    a.x = mid - half;
+    b.x = mid + half;
+    a.flip = false;
+    b.flip = true;
+  }
+  const doer = opts.targetId ? placed.find((p) => p.id === opts.targetId) : null;
+  if (doer && (doer.x < 90 || doer.x > 310)) {
+    const shift = doer.x < 90 ? 90 - doer.x : 310 - doer.x;
+    const lo = Math.min(...placed.map((p) => p.x - 55 * p.s));
+    const hi = Math.max(...placed.map((p) => p.x + 55 * p.s));
+    // (as far as the group can go and stay in the picture)
+    const d = shift > 0 ? Math.min(shift, 380 - hi) : Math.max(shift, 20 - lo);
+    if (Math.abs(d) > 2) {
+      for (const p of placed) p.x += d;
+      notes.push(`the group moved ${Math.round(d)} so ${doer.id}, the main action, is well in frame`);
+    }
+  }
+  // - a sitting character beside its seat (a near="1" piece just before
+  //   it, within its width) sits on the seat's top.
+  for (const m of markup.matchAll(/<stamp\b[^>]*\bnear\s*=\s*"(?:1|true)"[^>]*\/>\s*(<\s*(?:sprite|fig)\b[^>]*\/>)/gi)) {
+    const seat = pieceExtent(m[0].slice(0, m[0].indexOf(m[1])));
+    const p = placed.find((q) => q.tag === m[1]);
+    if (!seat || !p || !/\bsit\b/i.test(`${attr(p.tag, "pose") ?? ""} ${attr(p.tag, "legs") ?? ""}`)) continue;
+    if (p.x < seat.x0 - 10 || p.x > seat.x1 + 10) continue;
+    const top = Math.round(seat.y0 + (seat.y1 - seat.y0) * 0.22);
+    if (Math.abs(top - p.y) > 3) {
+      p.y = top;
+      p.tag = setAttr(p.tag, "y", String(top));
+      notes.push(`${p.id} set on its seat`);
     }
   }
 
@@ -434,6 +514,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   // (near="1" pieces just before it) and what it holds or hides behind
   // (the pieces just after it). Everything else stays where it was.
   out = byDepth(out, notes);
+  out = ensureTarget(out, opts, notes);
 
   // 4. The target is never hidden: a character written after it (so drawn
   // over it) that overlaps it is moved to just before it.

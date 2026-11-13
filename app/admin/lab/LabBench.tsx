@@ -8,6 +8,8 @@ import {
   rankPoints,
   variantOf,
   BENCH_SLOTS,
+  LIVE,
+  LIVE_EARLIER,
   type BenchSlot,
 } from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
@@ -32,18 +34,9 @@ export interface LabPage {
 /** The four ways, from nothing reused to everything. */
 /** The four ways, and exactly what each one changes. (The ids are kept
  *  in the saved runs, so a way that changes gets a new id.) */
+// (v0 - nothing reused - is retired: far dearer and clearly not a
+// contender. Its results stay on the leaderboard under "All".)
 const WAYS = [
-  {
-    id: "1",
-    name: "v0",
-    about: "Nothing reused: the painters draw everything, as now.",
-    vars: [
-      ["Scenery", "Sonnet 5.5, low effort, no thinking - draws all of it"],
-      ["Characters", "Opus 5.5, low effort, thinks first - draws all of them"],
-      ["Pieces", "none"],
-      ["Backdrop", "none: painted afresh on every page"],
-    ],
-  },
   {
     id: "p",
     name: "Parts + pieces",
@@ -631,9 +624,9 @@ export function LabBench({
   // (v0, the baseline: its current version once it has paintings, else
   // its latest version that has - so savings still show just after it
   // changes)
-  const baseRow =
-    board.find((x) => x.way === "1" && x.current && x.painted > 0) ??
-    [...board].filter((x) => x.way === "1" && x.painted > 0).sort((a, b) => (b.firstAt ?? 0) - (a.firstAt ?? 0))[0];
+  // (the baseline: the version readers get - LIVE - wherever it now
+  // stands on the bench)
+  const baseRow = [LIVE.code, ...LIVE_EARLIER].map((code) => board.find((x) => x.variant === code && x.painted > 0)).find(Boolean);
   const today = baseRow?.usd ?? null;
   // The leaderboard's order: by slot (1. v0, 2, 3...: the versions in use
   // now first, each slot's older versions after it, newest first) - or by
@@ -772,15 +765,15 @@ export function LabBench({
   // and any paused one with a picture for this run)
   const zoomItems = (p: LabPage, runId: string): Shown[] => {
     const run = runs.find((r) => r.id === runId);
-    const today = run?.ways["1"]?.usd ?? cells[runId]?.["1"]?.usd;
+    const live = baseRow?.usd ?? null;
     const shown = WAYS.filter((x) => isActive(x.id) || currentResult(run, x.id) || (run ? currentCell(run, x.id) : cells[runId]?.[x.id]));
     return shown.map((x): Shown => {
       const c = currentCell(run, x.id) ?? (run ? undefined : cells[runId]?.[x.id]);
       const saved = currentResult(run, x.id);
       const cost = c?.usd ?? saved?.usd;
       const vs =
-        x.id !== "1" && cost !== undefined && today
-          ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs v0`
+        cost !== undefined && live && currentResult(run, x.id)?.variant !== LIVE.code
+          ? ` · ${cost <= live ? "-" : "+"}${Math.abs(Math.round((1 - cost / live) * 100))}% vs live`
           : "";
       const info =
         c?.state === "painting"
@@ -866,11 +859,11 @@ export function LabBench({
           </span>
         </summary>
         <p className="meta">
-          Which ways paint the test pages. A paused way isn&apos;t painted or paid for; its results so far stay on the leaderboard, and v0&apos;s still serve as the baseline for &quot;vs v0&quot;. Saved for every device.
+          Which ways paint the test pages. A paused way isn&apos;t painted or paid for; its results so far stay on the leaderboard. The baseline for &quot;vs live&quot; is the version readers get ({LIVE.code}). Saved for every device.
         </p>
         <ul className="lab-settings-list">
           {WAYS.map((w) => {
-            const est = w.id === "1" ? null : estimateFor(variantOf(w.id as BenchSlot));
+            const est = estimateFor(variantOf(w.id as BenchSlot));
             const on = isActive(w.id);
             return (
               <li key={w.id} className={on ? "" : "off"}>
@@ -890,7 +883,7 @@ export function LabBench({
                     <small className="lab-variant">{variantOf(w.id as BenchSlot)}</small>
                   </span>
                   <span className="meta lab-settings-est">
-                    {w.id === "1" ? "the baseline" : est ? `expected ${usd(est.usd)}, ${secs(est.ms)} (-${est.costPc}% cost, -${est.timePc}% time)` : ""}
+                    {variantOf(w.id as BenchSlot) === LIVE.code ? "live · the baseline" : est ? `expected ${usd(est.usd)}, ${secs(est.ms)} (-${est.costPc}% cost, -${est.timePc}% time)` : ""}
                   </span>
                 </label>
               </li>
@@ -950,10 +943,10 @@ export function LabBench({
                   Score
                 </th>
                 <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg cost</th>
-                <th>vs v0</th>
+                <th title="Against the live version, the baseline">vs live</th>
                 <th>Expected</th>
                 <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg time</th>
-                <th>vs v0</th>
+                <th title="Against the live version, the baseline">vs live</th>
                 <th className="lab-wide">Ranked 1st</th>
                 <th className="lab-wide">Tokens out</th>
                 <th className="lab-wide">First stroke</th>
@@ -963,7 +956,7 @@ export function LabBench({
             </thead>
             <tbody>
               {ranked
-                .filter(({ b }) => showAll || b.current)
+                .filter(({ b }) => showAll || (b.current && b.way !== "1"))
                 .map(({ b, n }) => {
                   const w = WAYS.find((x) => x.id === b.way);
                   const verdict = judge(b);
@@ -996,6 +989,7 @@ export function LabBench({
                                 </span>
                               ) : null}
                               {b.current && !isActive(b.way) ? <span className="lab-paused">paused</span> : null}
+                              {b.variant === LIVE.code ? <span className="lab-live">live · baseline</span> : null}
                             </small>
                           </b>
                           {b.current && w && (
@@ -1021,7 +1015,7 @@ export function LabBench({
                       <td className={vsMean(b.usd, meanUsd)} title={meanUsd ? `Average across all versions: ${usd(meanUsd)}` : undefined}>
                         {usd(b.usd)}
                       </td>
-                      <td>{b.way === "1" ? "-" : vsBase(b.usd, today)}</td>
+                      <td>{b.variant === LIVE.code ? "-" : vsBase(b.usd, today)}</td>
                       <td className={`lab-est${verdict ? (verdict.kind === "off" ? " lab-bad" : " lab-good") : ""}`} title={verdict?.why}>
                         {b.way !== "1" && estimateFor(b.variant)
                           ? `-${estimateFor(b.variant)!.costPc}%`
@@ -1030,7 +1024,7 @@ export function LabBench({
                       <td className={vsMean(b.totalMs, meanMs)} title={meanMs ? `Average across all versions: ${secs(meanMs)}` : undefined}>
                         {secs(b.totalMs)}
                       </td>
-                      <td>{b.way === "1" ? "-" : vsBase(b.totalMs, todayMs)}</td>
+                      <td>{b.variant === LIVE.code ? "-" : vsBase(b.totalMs, todayMs)}</td>
                       <td className="lab-wide">
                         {b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}
                       </td>
@@ -1205,8 +1199,7 @@ export function LabBench({
                 </div>
               ))}
             </dl>
-            {specWay.id !== "1" &&
-              (() => {
+            {(() => {
                 const e = estimateFor(variantOf(specWay.id as BenchSlot));
                 return e ? (
                   <p className="meta lab-spec-est">
@@ -2038,7 +2031,12 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
     };
   };
   const me = stats(way);
-  const base = way === "1" ? null : stats("1");
+  // (the baseline: the live version's results, wherever they're kept)
+  const liveAll = runs.flatMap((r) => Object.values(r.ways)).filter((x) => x?.ok && !x.fellBack);
+  const liveCode = [LIVE.code, ...LIVE_EARLIER].find((code) => liveAll.some((x) => x.variant === code));
+  const liveDone = liveAll.filter((x) => x.variant === liveCode);
+  const liveCosted = liveDone.filter((x) => x.usd > 0);
+  const base = variantOf(way as BenchSlot) === LIVE.code || !liveDone.length ? null : { avgCost: liveCosted.length ? liveCosted.reduce((t, x) => t + x.usd, 0) / liveCosted.length : null, avgTime: liveDone.reduce((t, x) => t + x.totalMs, 0) / liveDone.length, n: liveDone.length };
   const saving = (mine: number | null, theirs: number | null | undefined) => {
     if (mine === null || !theirs) return null;
     const pc = Math.round((1 - mine / theirs) * 100);
@@ -2062,7 +2060,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <b>{usd(me.avgCost)}</b>
         {base && (
           <em className={costSave?.endsWith("less") ? "good" : ""}>
-            {costSave ? `${costSave} than v0` : "no baseline yet"}
+            {costSave ? `${costSave} than live` : "no baseline yet"}
           </em>
         )}
         {est && (
@@ -2096,7 +2094,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       </div>
       {base && (
         <div className="lab-stat">
-          <span>v0, for comparison</span>
+          <span>Live ({LIVE.code}), for comparison</span>
           <b>
             {usd(base.avgCost)} · {secs(base.avgTime)}
           </b>

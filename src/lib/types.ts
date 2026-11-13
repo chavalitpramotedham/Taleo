@@ -206,6 +206,8 @@ export interface StoryPlace {
   /** what's there and where: landmarks and the side they're on */
   about: string;
   light: "day" | "golden" | "dusk" | "night" | "rain";
+  /** the server's signature on it, for this account (see server/tickets) */
+  sig?: string;
 }
 
 export interface SegmentResponse {
@@ -277,7 +279,7 @@ export interface IllustrateRequest {
    *  (see server/paint/backdrops): a short id for the place, a standing
    *  description of it (its landmarks and which side each is on), and the
    *  light. Pages without it are painted the ordinary way. */
-  place?: { id: string; about?: string; light?: string } | null;
+  place?: { id: string; about?: string; light?: string; sig?: string } | null;
   /** How close the picture is: a close-up, a mid shot or a wide shot. */
   camera?: "close" | "mid" | "wide" | null;
 }

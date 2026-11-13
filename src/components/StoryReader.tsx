@@ -3,7 +3,7 @@ import { deviceHeader, holdStorySession } from "@/lib/device";
 import Link from "next/link";
 import { paintingStage, preparingStage } from "@/lib/art/paintingStage";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { CharacterDef, Page, Segment, SegmentResponse, Story } from "@/lib/types";
+import type { CharacterDef, Page, Segment, SegmentResponse, Story, StoryPlace } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
 import { ageLevel, motionForAge } from "@/lib/actions";
 import { shareUrl } from "@/lib/share";
@@ -352,8 +352,14 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
             const pages = event.pages as Page[];
             const newCharacters = event.newCharacters as CharacterDef[];
             shown = true;
+            const places = (event.places as StoryPlace[] | undefined) ?? [];
+            const world = (event.world as string | undefined) ?? "";
             update?.((cur) => ({
               ...cur,
+              // (the book's world and this part's places come with the
+              // first pages, so they're painted in the right place)
+              world: cur.world || world,
+              places: places.length ? [...(cur.places ?? []).filter((p) => !places.some((n) => n.id === p.id)), ...places] : cur.places,
               cast: [...baseCast, ...newCharacters],
               segments: [...cur.segments.slice(0, base), { pages: keepSvgs(pages, cur.segments[base]), choice: null, chosen: null }],
             }));

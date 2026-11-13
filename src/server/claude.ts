@@ -27,11 +27,12 @@ import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/ar
 import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { kept, once } from "./paint/once";
+import { LIVE } from "@/lib/bench-ways";
 import { codePageLayer } from "./paint/page-layer";
 import { spritesFor } from "./paint/sprite-maker";
 import { SPRITE_POSES, SPRITE_POSE_IDS, type Sprite, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterParts } from "@/lib/art/parts";
-import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
+import { CharacterDesignSchema, NewCharacterSchema, PageSchema, PlaceSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
 type Effort = "low" | "medium" | "high";
 const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
@@ -259,7 +260,7 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
  *  still being written), then the final, validated segment. */
 export type SegmentEvent =
   | { type: "title"; title: string }
-  | { type: "pages"; newCharacters: CharacterDef[]; pages: Page[] }
+  | { type: "pages"; newCharacters: CharacterDef[]; pages: Page[]; places?: StoryPlace[]; world?: string }
   | { type: "done"; response: SegmentResponse };
 
 /** Finds the complete top-level items of the JSON array under `"key"` in a
@@ -349,15 +350,25 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
     if (!pagesSoFar || pagesSoFar.items.length <= sent) continue;
     const chars = completeItems(text, "newCharacters");
     if (!chars?.closed) continue;
+    // (the book's art direction and its places, written before the pages:
+    // sent with the first ones, so the reader's app paints them in the
+    // right world and place, and the places can be readied at once)
+    const placesSoFar = completeItems(text, "places");
+    const worldSaid = /"world"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
+    let world = "";
+    try {
+      world = worldSaid ? (JSON.parse(`"${worldSaid[1]}"`) as string).trim() : "";
+    } catch {}
     try {
       const newCharacters = chars.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
       const pages = pagesSoFar.items.map((p) => PageSchema.parse(JSON.parse(p)));
+      const places = placesSoFar?.closed ? placesSoFar.items.map((p) => PlaceSchema.parse(JSON.parse(p))) : [];
       const partial = normalizeSegment(
-        { title: "", world: "", moral: "", keyword: "", newCharacters, places: [], pages, choice: null, ending: false },
+        { title: "", world: "", moral: "", keyword: "", newCharacters, places, pages, choice: null, ending: false },
         { ...norm, isLast: false },
       );
       sent = pages.length;
-      yield { type: "pages", newCharacters: partial.newCharacters, pages: partial.segment.pages };
+      yield { type: "pages", newCharacters: partial.newCharacters, pages: partial.segment.pages, ...(partial.places ? { places: partial.places } : {}), ...(world ? { world } : {}) };
     } catch {
       // Not parseable yet (or odd) - the final result will carry it.
     }
@@ -769,6 +780,9 @@ function stageBox(req: IllustrateRequest): Box {
  *  All off unless switched on. */
 export function reuseOf(req: Pick<IllustrateRequest, "reuse">): ReuseSettings {
   if (req.reuse) return req.reuse;
+  // (readers' pages: the live version, pinned in bench-ways - unless
+  // switched back to the env's own settings)
+  if (process.env.TALEO_PAINT_LIVE !== "0") return LIVE.settings;
   const on = (v: string | undefined) => v === "1" || v === "true";
   return { stamps: on(process.env.TALEO_PAINT_STAMPS), parts: on(process.env.TALEO_PAINT_PARTS), backdrops: on(process.env.TALEO_PAINT_BACKDROPS) };
 }
@@ -1268,7 +1282,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])) }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),
@@ -1292,7 +1306,11 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const under = place
       ? async function* (stop: AbortSignal, why: () => string | undefined): AsyncGenerator<string> {
           // (on the bench, each variant paints and keeps its own)
-          const key = `bd:v2:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonFor(place.about, "", req.world)}`)}${req.benchVariant ? `:bench:${req.benchVariant}` : ""}`;
+          // (readers' pages: the same key the story's place is prepared
+          // under, so a page that asks while it's being painted waits for
+          // that painting rather than starting a second; on the bench,
+          // each variant paints its own unless the place was prepared)
+          const key = req.benchVariant ? `bd:v2:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonFor(place.about, "", req.world)}`)}:bench:${req.benchVariant}` : placeKey(place, light, req.world);
           const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)

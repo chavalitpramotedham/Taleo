@@ -215,6 +215,8 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-U8SV": X14,
   // (13 Nov: lessons 14-15 - layout in code, the same cost)
   "4-UN3W": X14,
+  // (14 Nov: lesson 16 - layout and phrasebook, the same cost)
+  "4-RUYP": X14,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
@@ -229,6 +231,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "5-HMQ6": S3,
   "5-H8F5": S3,
   "5-IFC8": S3,
+  "5-I117": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

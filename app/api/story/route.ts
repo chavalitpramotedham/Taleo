@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { hasApiKey, prepareBackdrop, readyNewcomer, reuseOf, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
+import { prepareParts } from "@/server/paint/parts-maker";
 import { reportError } from "@/server/alerts";
 import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
@@ -7,14 +8,16 @@ import { parseStoryRequest } from "@/server/validate";
 import { auth } from "@/server/auth";
 import { guard, limitMessage, peekLimit, peekStart, whoIs } from "@/server/limits";
 import { limitsFor, tierFor, storyCredits, CREDITS_PER_STORY_MINUTE, FREE_STORY_MINUTES, STORY_CREDITS_RANGE } from "@/lib/tiers";
-import { inLegacyGrace, signPage, storyTicket, storyTicketIsValid } from "@/server/tickets";
-import type { Page } from "@/lib/types";
+import { inLegacyGrace, signPage, signPlace, storyTicket, storyTicketIsValid } from "@/server/tickets";
+import type { CharacterDef, Page, StoryPlace } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
 import { beginGen, logDenied } from "@/server/genlog";
 import { BUSY_ELSEWHERE, busyElsewhere, claimStorySession, deviceOf } from "@/server/story-session";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+// (5 minutes: a story's places and new characters are readied after its
+// pages are sent, while they're read)
+export const maxDuration = 300;
 
 /** Can the signed-in user begin a new story right now? (Checked by the
  *  setup wizard before it creates the story, so nobody ends up with an
@@ -146,14 +149,15 @@ export async function POST(req: Request) {
   // painted and published later), and the story so far (to ask for the
   // next part).
   const signed = (pages: Page[]) => pages.map((p) => ({ ...p, sig: signPage(userId, p) }));
+  const signedPlaces = (places: StoryPlace[] | undefined) => places?.map((p) => ({ ...p, sig: signPlace(userId, p) }));
   const soFar = parsed.kind === "start" ? { age: parsed.age, minutes: parsed.minutes, theme: parsed.theme, segments: [] } : parsed.story;
   const stamp = (event: SegmentEvent): SegmentEvent => {
-    if (event.type === "pages") return { ...event, pages: signed(event.pages) };
+    if (event.type === "pages") return { ...event, pages: signed(event.pages), ...(event.places ? { places: signedPlaces(event.places) } : {}) };
     if (event.type !== "done") return event;
     const r = event.response;
     const segment = { ...r.segment, pages: signed(r.segment.pages) };
     const ticket = r.ending ? undefined : storyTicket(userId, { ...soFar, segments: [...soFar.segments, segment] });
-    return { ...event, response: { ...r, segment, ticket } };
+    return { ...event, response: { ...r, segment, ticket, ...(r.places ? { places: signedPlaces(r.places) } : {}) } };
   };
 
   // Streams newline-delimited JSON events: {type:"pages"} each time another
@@ -204,21 +208,47 @@ export async function POST(req: Request) {
           }
           send({ type: "done", response: { ...seg, demo: true } });
         } else {
+          // Everything the live painting needs, readied as early as it's
+          // known, each once: the story's characters' parts from the start;
+          // each place the moment the storyteller names it (with the first
+          // pages, before the rest is written); each new character as it's
+          // brought in. A page asking before it's ready waits for the same
+          // making - nothing is made twice.
+          const reuse = reuseOf({});
+          const readied = new Set<string>();
+          const ready = (key: string, make: () => Promise<unknown>) => {
+            if (readied.has(key)) return;
+            readied.add(key);
+            readying.push(make().catch(() => {}));
+          };
+          const cast = parsed.kind === "start" ? [parsed.hero, ...parsed.companions] : [parsed.story.hero, ...parsed.story.companions, ...parsed.story.cast];
+          if (reuse.parts) for (const c of cast) if (c && (c.preset || c.svg)) ready(`parts:${c.id}:${c.preset ?? ""}:${(c.svg ?? "").length}`, () => prepareParts(c));
+          const readyCharacters = (chars: CharacterDef[], world: string) => {
+            if (!reuse.parts) return;
+            for (const c of chars) {
+              // (a preset's parts; a newcomer with no portrait painted once
+              // and kept, then its parts)
+              if (c.preset || c.svg) ready(`parts:${c.id}:${c.preset ?? ""}`, () => prepareParts(c));
+              else if (world) ready(`new:${c.name}`, () => readyNewcomer(c, world));
+            }
+          };
+          const readyPlaces = (places: StoryPlace[], world: string) => {
+            if (!reuse.backdrops || !world) return;
+            for (const pl of places) ready(`place:${pl.id}:${pl.light}`, () => prepareBackdrop(pl, world));
+          };
+          const storyWorld = parsed.kind === "continue" ? parsed.story.world : "";
           for await (const event of streamSegment(parsed, stop.signal)) {
             send(event);
+            if (event.type === "pages") {
+              const world = event.world || storyWorld;
+              readyPlaces(event.places ?? [], world);
+              readyCharacters(event.newCharacters, world);
+            }
             if (event.type === "done") {
               const pages = event.response.segment.pages;
-              // (characters brought in with no portrait: readied for reuse
-              // straight away, while the pages are read - only when pages
-              // are painted from parts)
-              const fresh = event.response.newCharacters.filter((c) => !c.preset && !c.svg);
-              const world = event.response.world || (parsed.kind === "continue" ? parsed.story.world : "");
-              if (fresh.length && world && reuseOf({}).parts) readying.push(...fresh.map((c) => readyNewcomer(c, world).catch(() => {})));
-              // (the places this part first named: each painted once as a
-              // standing backdrop, or found already painted, while the
-              // pages are read - so no page waits for its place)
-              const places = event.response.places ?? [];
-              if (places.length && world && reuseOf({}).backdrops) readying.push(...places.map((pl) => prepareBackdrop(pl, world).catch(() => false)));
+              const world = event.response.world || storyWorld;
+              readyCharacters(event.response.newCharacters, world);
+              readyPlaces(event.response.places ?? [], world);
               count({
                 stories_started: parsed.kind === "start" ? 1 : 0,
                 segments: 1,

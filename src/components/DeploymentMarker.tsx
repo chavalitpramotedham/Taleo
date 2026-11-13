@@ -107,6 +107,16 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
           <span className="deploy-marker-when">
             {state === "update" ? "Newer version live · reload" : state === "offline" ? "Offline" : when(live.builtAt, BRIEF) || "Live"}
           </span>
+          {/* (what readers' pages are painted with) */}
+          <span className="deploy-marker-when deploy-marker-paint">
+            Painting: {live.painting ? (
+              <>
+                <code>{live.painting.code}</code> {live.painting.name}
+              </>
+            ) : (
+              "classic"
+            )}
+          </span>
         </span>
         <InfoIcon />
       </button>
@@ -122,6 +132,7 @@ export function DeploymentDialog({ live, onClose }: { live: Deployment; onClose:
   const facts: [string, React.ReactNode][] = [
     ["Status", STATUS_WORDS[state]],
     ["Version", `v${live.version}`],
+    ["Painting", live.painting ? `${live.painting.code} (${live.painting.name})` : "classic (TALEO_PAINT_LIVE=0)"],
     ["Commit", live.sha ? <code key="c">{live.sha}</code> : "-"],
     ["Branch", live.branch || "-"],
     ["Deployed", [when(live.builtAt, FULL), ago(live.builtAt)].filter(Boolean).join(" · ") || "-"],
