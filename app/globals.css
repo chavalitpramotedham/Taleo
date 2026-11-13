@@ -15778,3 +15778,48 @@ html[data-night] .lab-stat em.good {
   justify-content: center;
   margin: 28px 0 8px;
 }
+.lab-way-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lab-info {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: none;
+  color: var(--ink-soft);
+  font: italic 600 0.72rem Georgia, serif;
+  cursor: pointer;
+  padding: 0;
+}
+.lab-info:hover {
+  color: var(--russet);
+  border-color: var(--russet);
+}
+.lab-spec-dialog {
+  max-width: 520px;
+  text-align: left;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.lab-spec-dialog .lab-vars > div {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.lab-spec-dialog .lab-vars {
+  margin: 10px 0 14px;
+  font-size: 0.9rem;
+}
+.lab-spec-dialog .lab-vars > div {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.lab-spec-est {
+  font-size: 0.85rem;
+  margin: 0 0 14px;
+}

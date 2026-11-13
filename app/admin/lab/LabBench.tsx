@@ -240,6 +240,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [view, setView] = useState<string>("compare");
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
   const [openCaps, setOpenCaps] = useState<Record<string, boolean>>({});
+  const [spec, setSpec] = useState<string | null>(null);
+  const specWay = WAYS.find((w) => w.id === spec);
   const viewing = WAYS.find((w) => w.id === view);
   const paintOne = (p: LabPage) => {
     setOpenRows((o) => ({ ...o, [p.key]: true }));
@@ -297,9 +299,14 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 return (
                   <tr key={w.id}>
                     <td className="lab-way">
-                      <b>
-                        {nOf(w.id)}. {w.name}
-                      </b>
+                      <span className="lab-way-name">
+                        <b>
+                          {nOf(w.id)}. {w.name}
+                        </b>
+                        <button type="button" className="lab-info" onClick={() => setSpec(w.id)} aria-label={`What ${w.name} changes`}>
+                          i
+                        </button>
+                      </span>
                     </td>
                     <td>{b?.wins ?? 0}</td>
                     <td className={b?.usd !== null && b?.usd === best("usd") ? "lab-best" : ""}>{usd(b?.usd)}</td>
@@ -316,31 +323,42 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             </tbody>
           </table>
         </div>
-        <details className="lab-specs">
-          <summary>What each way changes</summary>
-          {WAYS.map((w) => (
-            <details key={w.id} className="lab-spec">
-              <summary>
-                <b>
-                  {nOf(w.id)}. {w.name}
-                </b>
-              </summary>
-              <p>{w.about}</p>
-              <dl className="lab-vars">
-                {w.vars.map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </details>
-          ))}
-        </details>
         <button type="button" className="btn btn-primary lab-all" onClick={paintAll} disabled={busy}>
           {busy ? "Painting..." : `Paint every page four ways (${pages.length * 4})`}
         </button>
       </section>
+
+      {specWay && (
+        <div className="modal-backdrop" onClick={() => setSpec(null)}>
+          <div className="modal-panel draft-prompt lab-spec-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-spec-title">
+            <div className="modal-head">
+              <h3 id="lab-spec-title">
+                {nOf(specWay.id)}. {specWay.name}
+              </h3>
+              <button type="button" className="icon-btn" onClick={() => setSpec(null)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <p className="meta">{specWay.about}</p>
+            <dl className="lab-vars">
+              {specWay.vars.map(([k, v]) => (
+                <div key={k}>
+                  <dt>{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
+            {specWay.id !== "1" && ESTIMATES[specWay.id] && (
+              <p className="meta lab-spec-est">
+                <b>Expected:</b> {usd(ESTIMATES[specWay.id].usd)} and {secs(ESTIMATES[specWay.id].ms)} a page ({ESTIMATES[specWay.id].costPc}% cheaper, {ESTIMATES[specWay.id].timePc}% faster than today). {ESTIMATES[specWay.id].why}
+              </p>
+            )}
+            <button type="button" className="btn btn-primary btn-block" onClick={() => setSpec(null)}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       <nav className="lab-views" aria-label="Show">
         <button type="button" className={`lab-chip${view === "compare" ? " on" : ""}`} onClick={() => setView("compare")}>
