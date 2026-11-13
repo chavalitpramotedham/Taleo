@@ -7,9 +7,10 @@ import {
   legacyVariant,
   rankPoints,
   variantOf,
+  BENCH_NOW,
   BENCH_SLOTS,
   LIVE,
-  LIVE_EARLIER,
+  type BenchSession,
   type BenchSlot,
 } from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
@@ -38,54 +39,10 @@ export interface LabPage {
 // contender. Its results stay on the leaderboard under "All".)
 const WAYS = [
   {
-    id: "p",
-    name: "Parts + pieces",
+    id: "0",
+    name: `Live: ${LIVE.name}`,
     about:
-      "Each character's head and body kept and placed; the painter draws only faces, limbs and actions. Scenery placed from the standard pieces.",
-    vars: [
-      [
-        "Scenery",
-        "Sonnet 5.5, low effort, no thinking - places pieces, draws the rest",
-      ],
-      [
-        "Characters",
-        "Opus 5.5, low effort, thinks first - draws faces, limbs, held things",
-      ],
-      ["Pieces", "on (scenery, props, effects)"],
-      ["Backdrop", "none: painted afresh on every page"],
-    ],
-  },
-  {
-    id: "q",
-    name: "Parts + backdrop, quick",
-    about:
-      "Each character's head and body reused, and drawn on by a quick painter that doesn't think first (faces, limbs, actions, what they hold). The place is painted once and reused; the page's own sky and foreground are made in code.",
-    vars: [
-      [
-        "Scenery",
-        "the place's backdrop, painted once per place and light (shown stroke by stroke on the page that paints it); this page's sky and foreground made in code (no painter)",
-      ],
-      [
-        "Characters",
-        "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies; places standard pieces for what they touch (the tree climbed, the log sat on)",
-      ],
-      [
-        "Prepared ahead",
-        "characters' parts (Prepare characters); each place's backdrop, painted by the first page set there and reused by the rest",
-      ],
-      ["Pieces", "on (scenery, props, effects)"],
-      ["Backdrop", "on: reused, zoomed and panned per page"],
-      [
-        "Replaces",
-        "the first way 3 (Sonnet at medium, thinking first), which cost more than v0",
-      ],
-    ],
-  },
-  {
-    id: "x",
-    name: "Extreme reuse",
-    about:
-      "Almost nothing drawn: the place is reused, the page's sky and foreground are made in code, and the characters are put together entirely from the pose library - a cheap composer only writes where everyone stands, their pose, mood and what they hold.",
+      "What readers get now, always - when the live version changes, v0 changes with it and a new session starts. Almost nothing drawn per page: the place is painted once and reused, the page's own sky and foreground are made in code, and the characters are built in code from their kept parts and the pose library. A composer only writes where everyone stands, their pose, mood, what they hold and the pieces the moment needs; a layout pass in code then fixes depth, facing, the ground line, hugs, seats, the frame and the tap target.",
     vars: [
       [
         "Scenery",
@@ -93,42 +50,53 @@ const WAYS = [
       ],
       [
         "Characters",
-        "Haiku 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn",
+        "Sonnet 5.5, medium effort, thinks first - one tag per character (where, size, pose, mood, held thing) plus pieces; arms, hands, legs and faces drawn in code; a phrasebook turns the action into poses",
       ],
-      ["Pieces", "on, including props and action effects"],
-      ["Backdrop", "on: reused, zoomed and panned per page"],
-      [
-        "If a character has no parts",
-        "the composer can't pose it, so it's drawn by the same quick painter for that page",
-      ],
+      ["Layout", "in code: depth order, everyone facing the action, one ground line, huggers together, sitters on seats, the main character in frame, the tap target always there"],
+      ["Newcomers", "a character the story brings in is painted for its page once, kept as a portrait and readied for reuse"],
+      ["Version", LIVE.code],
     ],
   },
   {
-    id: "s",
-    name: "Pre-painted poses",
+    id: "m",
+    name: "Live + painted poses",
     about:
-      "Each character is painted once, ahead, in ten poses (standing, walking, running, jumping, sitting, waving, pointing, holding out, asleep, surprised) and kept. On each page a cheap composer picks a pose for each character, places and sizes them, and adds the pieces the moment needs. Hand-painted characters at almost no cost per page.",
+      "v0 exactly, except that a character whose poses have been prepared is placed from its hand-painted pose instead of being built in code. Characters without prepared poses are built as in v0. Prepare poses first (one-off, per character).",
     vars: [
-      [
-        "Scenery",
-        "the place's backdrop, painted once per place and light; this page's sky and foreground made in code (no painter)",
-      ],
-      [
-        "Characters",
-        "pre-painted poses (Prepare poses: Sonnet 5.5 at medium, once per character and pose); placed by Haiku 5.5, low effort, no thinking",
-      ],
-      ["Pieces", "on, including props at the hands and action effects"],
-      ["Backdrop", "on: reused, zoomed and panned per page"],
-      [
-        "If a character's poses aren't ready",
-        "it falls back to way 4's assembled figures for that page (the card says so)",
-      ],
+      ["Improves on v0", "expressiveness and finish: hand-painted bodies, faces and gestures (laugh, sad, carry, peek, reach, hug, wave, point...) instead of code-drawn limbs - the area where v0 looks most mechanical"],
+      ["Same as v0", "the composer (Sonnet 5.5, medium, thinks first), the layout pass, the place's backdrop, the sky and foreground made in code, newcomers"],
+      ["Cost", "about v0's per page (the same composer call); poses painted once ahead per character (~$0.03 each)"],
+      ["Risk", "a painted pose may fit the moment less exactly than one built for it"],
+    ],
+  },
+  {
+    id: "n",
+    name: "Live, lighter composer",
+    about:
+      "v0 exactly, except its composer thinks at low effort instead of medium. Since lessons 14-16 the layout pass fixes depth, facing, the ground line, hugs, seats, the frame and the tap target in code, and the phrasebook turns action words into poses - much of what the extra effort was bought for.",
+    vars: [
+      ["Improves on v0", "cost and speed: about 40% cheaper and faster per page, so readers see pages sooner"],
+      ["Same as v0", "everything else - the figures built in code, the layout pass, the place's backdrop, newcomers"],
+      ["Composer", "Sonnet 5.5, low effort, still thinks first"],
+      ["Risk", "fewer of the brief's small details placed (worth checking pages with many named things)"],
     ],
   },
 ] as const;
+/** The ways no longer on the bench, by slot: their names, for their rows
+ *  under earlier sessions and "All". */
+const RETIRED: Record<string, string> = {
+  "1": "Original v0 (nothing reused)",
+  p: "Parts + pieces",
+  b: "+ Backdrops, Sonnet",
+  q: "Parts + backdrop, quick",
+  x: "Extreme reuse",
+  s: "Pre-painted poses",
+};
+/** A way's number on the bench: v0, then 1, 2... (none for a retired
+ *  one). */
 const nOf = (id?: string) => {
   const i = WAYS.findIndex((w) => w.id === id);
-  return i < 0 ? "" : String(i + 1);
+  return i < 0 ? "" : i === 0 ? "v0" : String(i);
 };
 type Way = (typeof WAYS)[number]["id"];
 
@@ -166,6 +134,8 @@ class ConnectionLost extends Error {
 interface Run {
   id: string;
   at: number;
+  /** the bench session it was painted in */
+  session?: number;
   page: string;
   ways: Record<
     string,
@@ -204,6 +174,9 @@ interface Board {
   /** a slot's variant as it paints now (the others are earlier ones) */
   current: boolean;
   firstAt: number | null;
+  /** (the baseline only) its numbers from outside this session - it wasn't
+   *  painted in it */
+  elsewhere?: boolean;
 }
 
 const DONE = "<!--taleo:done-->";
@@ -240,6 +213,12 @@ export function LabBench({
   const [board, setBoard] = useState<Board[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [stale, setStale] = useState(false);
+  // the bench's sessions, the one shown, and its baseline (fixed for the
+  // session: "vs base" is measured against it)
+  const [sessions, setSessions] = useState<(BenchSession & { runs: number })[]>([]);
+  const [session, setSession] = useState<number | null>(null);
+  const sessionRef = useRef<number | null>(null);
+  const [baseline, setBaseline] = useState<string | null>(null);
   // Which ways paint test pages (the rest are paused - e.g. v0, once it's
   // clearly not a contender and too dear to keep painting): saved on the
   // server, so it holds on every device.
@@ -259,20 +238,29 @@ export function LabBench({
   const [shown, setShown] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    const d = await fetch("/api/admin/bench", { cache: "no-store" })
+    const d = await fetch(`/api/admin/bench${sessionRef.current ? `?session=${sessionRef.current}` : ""}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null);
     if (!d) return;
     setRuns(d.runs);
     setBoard(d.leaderboard);
+    if (Array.isArray(d.sessions)) setSessions(d.sessions);
+    if (typeof d.session === "number") setSession(d.session);
+    if (typeof d.baseline === "string") setBaseline(d.baseline);
     setUsage(d.usage ?? null);
     if (Array.isArray(d.activeWays)) setActive(d.activeWays);
     // (the server's current versions against this page's: they differ
     // while the site updates, or when this page was opened before it did)
-    if (d.versions) setStale(BENCH_SLOTS.some((k) => d.versions[k] && d.versions[k] !== variantOf(k)));
+    if (d.versions) setStale(BENCH_NOW.some((k) => d.versions[k] && d.versions[k] !== variantOf(k)));
     setOwn((d.pages as LabPage[]).map((p) => ({ ...p, own: true })));
     setArchived(new Set((d.archived as string[] | undefined) ?? []));
   }, []);
+  /** Shows another session's leaderboard. */
+  const showSession = (n: number) => {
+    sessionRef.current = n;
+    setSession(n);
+    void load();
+  };
   useEffect(() => {
     void load();
   }, [load]);
@@ -626,7 +614,13 @@ export function LabBench({
   // changes)
   // (the baseline: the version readers get - LIVE - wherever it now
   // stands on the bench)
-  const baseRow = [LIVE.code, ...LIVE_EARLIER].map((code) => board.find((x) => x.variant === code && x.painted > 0)).find(Boolean);
+  // (the baseline: the one fixed for the session shown)
+  const baseRow = board.find((x) => x.variant === baseline && x.painted > 0);
+  const baseName = sessions.find((x) => x.n === session)?.name ?? baseline ?? "the baseline";
+  const latestSession = sessions.at(-1);
+  // (an earlier session shows every version painted in it)
+  const pastSession = Boolean(latestSession && session !== null && session !== latestSession.n);
+  const dayOf = (at: number) => (at ? new Date(at).toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "the start");
   const today = baseRow?.usd ?? null;
   // The leaderboard's order: by slot (1. v0, 2, 3...: the versions in use
   // now first, each slot's older versions after it, newest first) - or by
@@ -665,7 +659,9 @@ export function LabBench({
   const judge = (
     b: Board | undefined,
   ): { kind: "off" | "ahead"; why: string } | null => {
-    const est = b && b.way !== "1" ? estimateFor(b.variant) : undefined;
+    const abs = b && b.way !== "1" && b.variant !== baseline ? estimateFor(b.variant) : undefined;
+    // (estimates are figures per painting; as savings against the baseline)
+    const est = abs && today && todayMs ? { costPc: Math.round((1 - abs.usd / today) * 100), timePc: Math.round((1 - abs.ms / todayMs) * 100) } : undefined;
     if (!b || !est || !b.painted) return null;
     const pc = (v: number | null, base: number | null) =>
       v === null || !base ? null : (1 - v / base) * 100;
@@ -697,7 +693,7 @@ export function LabBench({
     );
     if (!parts.length) return null;
     const say = (x: (typeof parts)[number]) =>
-      `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than v0, expected ${x.want}% ${x.less}`;
+      `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than ${baseName}, expected ${Math.abs(x.want)}% ${x.want < 0 ? x.more : x.less}`;
     const short = parts.filter(
       (x) => (x.want > 0 && x.got < 0) || x.want - x.got > 25,
     );
@@ -713,6 +709,15 @@ export function LabBench({
         why: `Better than its estimate: ${ahead.map(say).join("; ")}`,
       };
     return null;
+  };
+  /** A version's expected cost against the session's baseline (its
+   *  paintings' average, or its own estimate before it has any). */
+  const expectedVsBase = (b: Board) => {
+    const est = b.way !== "1" && b.variant !== baseline ? estimateFor(b.variant) : undefined;
+    const base = today ?? estimateFor(baseline ?? undefined)?.usd ?? null;
+    if (!est || !base) return "-";
+    const pc = Math.round((1 - est.usd / base) * 100);
+    return pc > 0 ? `-${pc}%` : pc < 0 ? `+${-pc}%` : "0%";
   };
   /** A value against v0's, as "-40%" (green: cheaper or faster) or "+12%"
    *  (red: dearer or slower). */
@@ -741,7 +746,7 @@ export function LabBench({
    *    worse;
    *  - otherwise average (no colour). v0, the baseline, isn't judged. */
   const contender = (b: Board): { kind: "strong" | "weak"; why: string } | null => {
-    if (b.way === "1" || !b.painted || b.usd === null || b.totalMs === null || !meanUsd || !meanMs) return null;
+    if (b.way === "1" || b.variant === baseline || !b.painted || b.usd === null || b.totalMs === null || !meanUsd || !meanMs) return null;
     const rc = b.usd / meanUsd;
     const rt = b.totalMs / meanMs;
     const both = Math.sqrt(rc * rt);
@@ -772,8 +777,8 @@ export function LabBench({
       const saved = currentResult(run, x.id);
       const cost = c?.usd ?? saved?.usd;
       const vs =
-        cost !== undefined && live && currentResult(run, x.id)?.variant !== LIVE.code
-          ? ` · ${cost <= live ? "-" : "+"}${Math.abs(Math.round((1 - cost / live) * 100))}% vs live`
+        cost !== undefined && live && currentResult(run, x.id)?.variant !== baseline
+          ? ` · ${cost <= live ? "-" : "+"}${Math.abs(Math.round((1 - cost / live) * 100))}% vs base`
           : "";
       const info =
         c?.state === "painting"
@@ -859,7 +864,7 @@ export function LabBench({
           </span>
         </summary>
         <p className="meta">
-          Which ways paint the test pages. A paused way isn&apos;t painted or paid for; its results so far stay on the leaderboard. The baseline for &quot;vs live&quot; is the version readers get ({LIVE.code}). Saved for every device.
+          Which ways paint the test pages. A paused way isn&apos;t painted or paid for; its results so far stay on the leaderboard. Saved for every device. Readers get {LIVE.code}.
         </p>
         <ul className="lab-settings-list">
           {WAYS.map((w) => {
@@ -883,15 +888,31 @@ export function LabBench({
                     <small className="lab-variant">{variantOf(w.id as BenchSlot)}</small>
                   </span>
                   <span className="meta lab-settings-est">
-                    {variantOf(w.id as BenchSlot) === LIVE.code ? "live · the baseline" : est ? `expected ${usd(est.usd)}, ${secs(est.ms)} (-${est.costPc}% cost, -${est.timePc}% time)` : ""}
+                    {[variantOf(w.id as BenchSlot) === LIVE.code ? "live" : "", variantOf(w.id as BenchSlot) === latestSession?.base[0] ? "the baseline" : "", est ? `expected ${usd(est.usd)}, ${secs(est.ms)}` : ""].filter(Boolean).join(" · ")}
                   </span>
                 </label>
               </li>
             );
           })}
         </ul>
+        {latestSession && (
+          <div className="lab-settings-base">
+            <p className="meta">
+              <b>Baseline: {latestSession.name}</b> - session {latestSession.n}, since {dayOf(latestSession.at)}. Every &quot;vs base&quot; is measured against it. v0 is always the version readers get: when that changes, v0 follows and session {latestSession.n + 1} starts by itself. The sessions before keep their own baseline.
+            </p>
+          </div>
+        )}
       </details>
       <section className="panel lab-board" aria-label="Leaderboard">
+        {sessions.length > 0 && (
+          <div className="lab-sessions" role="group" aria-label="Bench session">
+            {[...sessions].reverse().map((x) => (
+              <button key={x.n} type="button" className={`lab-chip${x.n === session ? " on" : ""}`} onClick={() => showSession(x.n)} title={`Since ${dayOf(x.at)} · ${x.runs} runs`}>
+                Session {x.n} <span className="lab-session-base">· base {x.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <div
           className="lab-rank"
           role="group"
@@ -914,6 +935,7 @@ export function LabBench({
               Avg score
             </button>
           </span>
+          {!pastSession && (
           <span className="lab-rank-group">
             <span className="meta">Show</span>
             <button
@@ -931,6 +953,7 @@ export function LabBench({
               All ({board.length})
             </button>
           </span>
+          )}
         </div>
         <div className="lab-board-scroll">
           <table>
@@ -943,10 +966,10 @@ export function LabBench({
                   Score
                 </th>
                 <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg cost</th>
-                <th title="Against the live version, the baseline">vs live</th>
-                <th>Expected</th>
+                <th title={`Against this session's baseline, ${baseName}`}>vs base</th>
+                <th title="Its estimated cost per painting, against the baseline">Expected</th>
                 <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg time</th>
-                <th title="Against the live version, the baseline">vs live</th>
+                <th title={`Against this session's baseline, ${baseName}`}>vs base</th>
                 <th className="lab-wide">Ranked 1st</th>
                 <th className="lab-wide">Tokens out</th>
                 <th className="lab-wide">First stroke</th>
@@ -956,13 +979,12 @@ export function LabBench({
             </thead>
             <tbody>
               {ranked
-                .filter(({ b }) => showAll || (b.current && b.way !== "1"))
+                .filter(({ b }) => showAll || pastSession || b.variant === baseline || (b.current && b.way !== "1"))
                 .map(({ b, n }) => {
                   const w = WAYS.find((x) => x.id === b.way);
                   const verdict = judge(b);
                   const strength = contender(b);
-                  const name =
-                    b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
+                  const name = w?.name ?? RETIRED[b.way] ?? b.way;
                   return (
                     <tr
                       key={b.variant}
@@ -979,17 +1001,22 @@ export function LabBench({
                       <td className="lab-way">
                         <span className="lab-way-name">
                           <b>
-                            <span className="lab-order">{nOf(b.way)}.</span>{" "}
+                            {nOf(b.way) && <span className="lab-order">{nOf(b.way)}.</span>}{" "}
                             {name}
                             <small className="lab-variant">
                               {b.variant}
                               {b.current ? (
                                 <span className="lab-now">
-                                  now slot {nOf(b.way)}
+                                  now {nOf(b.way)}
                                 </span>
                               ) : null}
                               {b.current && !isActive(b.way) ? <span className="lab-paused">paused</span> : null}
-                              {b.variant === LIVE.code ? <span className="lab-live">live · baseline</span> : null}
+                              {b.variant === LIVE.code ? <span className="lab-live">live</span> : null}
+                              {b.variant === baseline ? (
+                                <span className="lab-live" title={b.elsewhere ? "Not painted in this session: its numbers are from all its paintings" : undefined}>
+                                  baseline{b.elsewhere ? " · earlier" : ""}
+                                </span>
+                              ) : null}
                             </small>
                           </b>
                           {b.current && w && (
@@ -1015,16 +1042,14 @@ export function LabBench({
                       <td className={vsMean(b.usd, meanUsd)} title={meanUsd ? `Average across all versions: ${usd(meanUsd)}` : undefined}>
                         {usd(b.usd)}
                       </td>
-                      <td>{b.variant === LIVE.code ? "-" : vsBase(b.usd, today)}</td>
+                      <td>{b.variant === baseline ? "-" : vsBase(b.usd, today)}</td>
                       <td className={`lab-est${verdict ? (verdict.kind === "off" ? " lab-bad" : " lab-good") : ""}`} title={verdict?.why}>
-                        {b.way !== "1" && estimateFor(b.variant)
-                          ? `-${estimateFor(b.variant)!.costPc}%`
-                          : "-"}
+                        {expectedVsBase(b)}
                       </td>
                       <td className={vsMean(b.totalMs, meanMs)} title={meanMs ? `Average across all versions: ${secs(meanMs)}` : undefined}>
                         {secs(b.totalMs)}
                       </td>
-                      <td>{b.variant === LIVE.code ? "-" : vsBase(b.totalMs, todayMs)}</td>
+                      <td>{b.variant === baseline ? "-" : vsBase(b.totalMs, todayMs)}</td>
                       <td className="lab-wide">
                         {b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}
                       </td>
@@ -1092,6 +1117,7 @@ export function LabBench({
                           <b>Run {list.length - i}</b>
                           <span className="meta">
                             {when}
+                            {r.session ? ` · session ${r.session} (base ${sessions.find((x) => x.n === r.session)?.name ?? "?"})` : ""}
                             {order.length
                               ? ` · ranked ${order.map((x) => nOf(x)).join(" > ")}`
                               : " · not ranked"}
@@ -1277,7 +1303,7 @@ export function LabBench({
           className="lab-gallery"
           aria-label={`Every page, ${viewing.name}`}
         >
-          <WaySummary way={viewing.id} runs={runs} />
+          <WaySummary way={viewing.id} runs={runs} baseline={baseline} baseName={baseName} />
           <p className="meta lab-gallery-note">
             Every page&apos;s latest painting, way {nOf(viewing.id)} only.
           </p>
@@ -1650,7 +1676,7 @@ export function LabBench({
 const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
 /** Slots in bench order, the retired first way 3 ("b") where it stood. */
-const SLOT_ORDER = ["1", "p", "b", "q", "x", "s"];
+const SLOT_ORDER = ["0", "m", "n", "1", "p", "b", "q", "x", "s"];
 
 /** The "book" a test page is painted in. Every page set in the same
  *  place shares one, as the pages of a real story do: the first painting
@@ -2004,7 +2030,7 @@ function BenchUsage({ usage }: { usage: Usage | null }) {
 }
 
 /** One way's totals over every run, against today's way. */
-function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
+function WaySummary({ way, runs, baseline, baseName }: { way: string; runs: Run[]; baseline: string | null; baseName: string }) {
   const stats = (w: string) => {
     // (only this slot's current variant: its earlier ones painted differently)
     const done = runs
@@ -2033,10 +2059,9 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   const me = stats(way);
   // (the baseline: the live version's results, wherever they're kept)
   const liveAll = runs.flatMap((r) => Object.values(r.ways)).filter((x) => x?.ok && !x.fellBack);
-  const liveCode = [LIVE.code, ...LIVE_EARLIER].find((code) => liveAll.some((x) => x.variant === code));
-  const liveDone = liveAll.filter((x) => x.variant === liveCode);
+  const liveDone = liveAll.filter((x) => x.variant === baseline);
   const liveCosted = liveDone.filter((x) => x.usd > 0);
-  const base = variantOf(way as BenchSlot) === LIVE.code || !liveDone.length ? null : { avgCost: liveCosted.length ? liveCosted.reduce((t, x) => t + x.usd, 0) / liveCosted.length : null, avgTime: liveDone.reduce((t, x) => t + x.totalMs, 0) / liveDone.length, n: liveDone.length };
+  const base = variantOf(way as BenchSlot) === baseline || !liveDone.length ? null : { avgCost: liveCosted.length ? liveCosted.reduce((t, x) => t + x.usd, 0) / liveCosted.length : null, avgTime: liveDone.reduce((t, x) => t + x.totalMs, 0) / liveDone.length, n: liveDone.length };
   const saving = (mine: number | null, theirs: number | null | undefined) => {
     if (mine === null || !theirs) return null;
     const pc = Math.round((1 - mine / theirs) * 100);
@@ -2060,7 +2085,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <b>{usd(me.avgCost)}</b>
         {base && (
           <em className={costSave?.endsWith("less") ? "good" : ""}>
-            {costSave ? `${costSave} than live` : "no baseline yet"}
+            {costSave ? `${costSave} than ${baseName}` : "no baseline yet"}
           </em>
         )}
         {est && (
@@ -2079,7 +2104,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <b>{secs(me.avgTime)}</b>
         {base && (
           <em className={timeSave?.endsWith("less") ? "good" : ""}>
-            {timeSave ? `${timeSave} than v0` : "no baseline yet"}
+            {timeSave ? `${timeSave} than ${baseName}` : "no baseline yet"}
           </em>
         )}
         {est && (

@@ -9,7 +9,7 @@ import { prepareSprite, spritesFor } from "@/server/paint/sprite-maker";
 import { SPRITE_POSE_IDS, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterDef } from "@/lib/types";
 import { characterArt } from "@/lib/presets";
-import { BENCH_SLOTS, legacyVariant, rankPoints, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
+import { BENCH_NOW, BENCH_SLOTS, FIRST_SESSIONS, legacyVariant, LIVE, rankPoints, sessionAt, variantOf, type BenchSession, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
@@ -80,7 +80,7 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
 /** Each variant's record over every run (see lib/bench-ways): how often
  *  it was voted best, and its averages. The current variant of each slot
  *  first, in slot order; then earlier ones, kept for comparison. */
-function leaderboard(runs: BenchRun[]) {
+function leaderboard(runs: BenchRun[], withCurrent = true) {
   const baseSlot = (key: string) => key.split("@")[0];
   const rows = new Map<string, { slot: string; results: { r: BenchRun; x: WayResult }[] }>();
   const row = (variant: string, slot: string) => {
@@ -91,8 +91,10 @@ function leaderboard(runs: BenchRun[]) {
   // it was painted again - kept under "slot@variant")
   for (const r of runs)
     for (const [key, x] of Object.entries(r.ways)) row(x.variant ?? legacyVariant(baseSlot(key)), baseSlot(key)).results.push({ r, x });
-  const current = new Set(BENCH_SLOTS.map((s) => variantOf(s)));
-  for (const s of BENCH_SLOTS) row(variantOf(s), s);
+  const current = new Set(BENCH_NOW.map((s) => variantOf(s)));
+  // (a current variant is shown in its slot now - v0's was painted in
+  // slot 4 before it was live)
+  for (const s of BENCH_NOW) if (withCurrent || rows.has(variantOf(s))) row(variantOf(s), s).slot = s;
   // Scores, from rankings. A ranking gives points by place (RANK_POINTS)
   // to the variant that was in each slot when it was ranked (a vote from
   // before rankings counts as a first place). A ranking that was reset is
@@ -151,7 +153,7 @@ function leaderboard(runs: BenchRun[]) {
       firstAt: results.length ? Math.min(...results.map(({ r }) => r.at)) : null,
     };
   });
-  const order = (row: { way: string; current: boolean }) => (row.current ? 0 : 10) + Math.max(0, BENCH_SLOTS.indexOf(row.way as BenchSlot));
+  const order = (row: { way: string; current: boolean }) => (row.current ? 0 : 10) + Math.max(0, (row.current ? (BENCH_NOW as readonly string[]) : BENCH_SLOTS).indexOf(row.way as BenchSlot));
   return out.sort((a, b) => order(a) - order(b) || a.variant.localeCompare(b.variant));
 }
 
@@ -185,11 +187,36 @@ async function activeWays(): Promise<string[]> {
   try {
     const list = (typeof v === "string" ? JSON.parse(v) : v) as unknown;
     if (Array.isArray(list)) {
-      const ok = list.filter((x): x is string => typeof x === "string" && SLOT_RE.test(x));
+      // (only slots on the bench now)
+      const ok = list.filter((x): x is string => typeof x === "string" && (BENCH_NOW as readonly string[]).includes(x));
       if (ok.length) return ok;
     }
   } catch {}
-  return [...BENCH_SLOTS];
+  return [...BENCH_NOW];
+}
+/** The bench's sessions, each with its fixed baseline (see lib/bench-ways):
+ *  the first ones, then any started on the bench. */
+const SESSIONS = "bench:sessions";
+let memSessions: BenchSession[] | null = null;
+async function readSessions(): Promise<BenchSession[]> {
+  let v: unknown = memSessions;
+  if (metricsEnabled()) [v] = await pipeline([["GET", SESSIONS]]).catch(() => [null]);
+  try {
+    const list = (typeof v === "string" ? JSON.parse(v) : v) as BenchSession[] | null;
+    if (Array.isArray(list) && list.length) return await followLive(list);
+  } catch {}
+  return followLive(FIRST_SESSIONS);
+}
+/** v0 is always the live version: when LIVE has changed since the latest
+ *  session began, the next session starts now with it as the baseline
+ *  (saved, so it starts once). */
+async function followLive(sessions: BenchSession[]): Promise<BenchSession[]> {
+  const last = sessions[sessions.length - 1];
+  if (last.base[0] === LIVE.code) return sessions;
+  const next = [...sessions, { n: last.n + 1, name: LIVE.code, base: [LIVE.code], at: Date.now() }];
+  if (!metricsEnabled()) memSessions = next;
+  else await pipeline([["SET", SESSIONS, JSON.stringify(next)]]);
+  return next;
 }
 const noStore = { "cache-control": "no-store" };
 
@@ -208,7 +235,6 @@ export async function GET(req: Request) {
     }
     return NextResponse.json({ svg }, { headers: noStore });
   }
-  const runs = await readRuns();
   let pages: unknown[] = [];
   if (!metricsEnabled()) pages = [...mem().pages.values()].map((v) => JSON.parse(v));
   else {
@@ -232,7 +258,48 @@ export async function GET(req: Request) {
   // (the bench's own use: over the last day, the last week, and all time -
   // every run, not just those sent)
   const all = await readRuns(20_000);
-  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all), activeWays: await activeWays(), versions: Object.fromEntries(BENCH_SLOTS.map((k) => [k, variantOf(k)])) }, { headers: noStore });
+  // (the leaderboard of one session - the latest, unless another is asked
+  // for - against that session's baseline. The baseline's own numbers come
+  // from its paintings in the session; if it has none there (it may no
+  // longer be in a slot), from all its paintings, marked so.)
+  const sessions = await readSessions();
+  const latest = sessions[sessions.length - 1];
+  const asked = Number(q.get("session"));
+  const session = sessions.find((s) => s.n === asked) ?? latest;
+  const inSession = all.filter((r) => sessionAt(sessions, r.at).n === session.n);
+  // (an earlier session: only what was painted in it)
+  const board: (ReturnType<typeof leaderboard>[number] & { elsewhere?: boolean })[] = leaderboard(inSession, session.n === latest.n);
+  let baseline = session.base.find((code) => board.some((b) => b.variant === code && b.painted > 0));
+  if (!baseline) {
+    const everywhere = leaderboard(all);
+    const row = session.base.map((code) => everywhere.find((b) => b.variant === code && b.painted > 0)).find(Boolean);
+    if (row) {
+      baseline = row.variant;
+      const at = board.findIndex((b) => b.variant === row.variant);
+      if (at >= 0) board.splice(at, 1);
+      board.push({ ...row, elsewhere: true });
+    }
+  }
+  const counts = new Map<number, number>();
+  for (const r of all) {
+    const n = sessionAt(sessions, r.at).n;
+    counts.set(n, (counts.get(n) ?? 0) + 1);
+  }
+  return NextResponse.json(
+    {
+      runs: all.slice(0, 200).map((r) => ({ ...r, session: sessionAt(sessions, r.at).n })),
+      leaderboard: board,
+      sessions: sessions.map((s) => ({ ...s, runs: counts.get(s.n) ?? 0 })),
+      session: session.n,
+      baseline: baseline ?? session.base[0],
+      pages,
+      archived,
+      usage: usageOf(all),
+      activeWays: await activeWays(),
+      versions: Object.fromEntries(BENCH_NOW.map((k) => [k, variantOf(k)])),
+    },
+    { headers: noStore },
+  );
 }
 
 const ID = /^[\w-]{3,80}$/;

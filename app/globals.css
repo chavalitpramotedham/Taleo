@@ -17023,3 +17023,19 @@ html[data-night] .lab-board .lab-bad {
     padding: 0.8rem;
   }
 }
+
+/* Bench sessions: which session's leaderboard, and the baseline setting */
+.lab-sessions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+.lab-session-base {
+  opacity: 0.75;
+}
+.lab-settings-base {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+}

@@ -16,10 +16,15 @@ import type { ReuseSettings } from "./types";
  * and bump its STYLE: that changes the code too. Either way, write the
  * new code's estimate in bench-estimates.ts.
  */
-export const BENCH_SLOTS = ["1", "p", "q", "x", "s"] as const;
+export const BENCH_SLOTS = ["1", "p", "q", "x", "s", "0", "m", "n"] as const;
 /** A slot id, as the bench's requests carry it. */
-export const SLOT_RE = /^(1|p|q|x|s)$/;
+export const SLOT_RE = /^(1|p|q|x|s|0|m|n)$/;
 export type BenchSlot = (typeof BENCH_SLOTS)[number];
+/** The slots on the bench now, in order: v0 - always the live version, so
+ *  the baseline moves with what readers get - then this session's
+ *  contenders, shown as 1 and 2. The other slots are retired: their
+ *  results stay in the sessions they were painted in, and under "All". */
+export const BENCH_NOW = ["0", "m", "n"] as const satisfies readonly BenchSlot[];
 
 export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   // 1. today: nothing reused
@@ -42,6 +47,16 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   // a composer picks a pose for each, places them and adds pieces (the
   // place reused, its sky and foreground made in code)
   s: { stamps: true, parts: true, backdrops: true, poses: true, sprites: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "medium", unthinking: false } },
+  // v0: whatever is live (set from LIVE below)
+  "0": { stamps: true, parts: true, backdrops: true },
+  // 1 (session 2): live (4-RUYP) with pre-painted poses where a character
+  // has them - hand-painted bodies, the same composer and layout pass;
+  // characters without poses yet are built from parts as in live
+  m: { stamps: true, parts: true, backdrops: true, poses: true, sprites: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } },
+  // 2 (session 2): live (4-RUYP) with its composer at low effort, still
+  // thinking first - the layout pass and the phrasebook now do much of
+  // what the extra effort was bought for
+  n: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: false } },
 };
 
 /** How each way works beyond its settings. Bump (and say why) whenever a
@@ -192,6 +207,12 @@ export const STYLE: Record<BenchSlot, string> = {
   // kept in frame, sitters set on their seats, the tap target always
   // there and marked; a phrasebook of action words into poses
   s: "s13",
+  // v0: live's own (set from LIVE below)
+  "0": "",
+  // s1 (14 Nov): first version - as x s18
+  m: "s1",
+  // s1 (14 Nov): first version - as x s18
+  n: "s1",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
@@ -202,7 +223,7 @@ export const RANK_POINTS = [4, 3, 2, 1];
 export const rankPoints = (place: number, n: number) => (place >= 0 && place < n ? n - place : 0);
 
 /** The slot's number on the bench (1-4). */
-export const slotNumber = (slot: string) => String(BENCH_SLOTS.indexOf(slot as BenchSlot) + 1 || "?");
+export const slotNumber = (slot: string) => ({ "1": "1", p: "2", q: "3", x: "4", s: "5", "0": "0", m: "6", n: "7" })[slot] ?? "?";
 
 const fnv = (s: string) => {
   let h = 0x811c9dc5;
@@ -214,6 +235,7 @@ const canonical = (v: unknown): string =>
 
 /** A way's variant code as it is now: e.g. "3-K7QD". */
 export function variantOf(slot: BenchSlot): string {
+  if (slot === "0") return LIVE.code;
   return `${slotNumber(slot)}-${fnv(`${canonical(BENCH_WAYS[slot])}|${STYLE[slot]}`)}`;
 }
 
@@ -248,9 +270,37 @@ export const liveVariant = () => `${slotNumber(LIVE.slot)}-${fnv(`${canonical(LI
 // (a slip in the pinned copy - settings or style not those of its code -
 // stops the site building, rather than quietly painting something else)
 if (liveVariant() !== LIVE.code) throw new Error(`LIVE is pinned as ${LIVE.code} but its settings make ${liveVariant()}`);
+// (v0 paints exactly what readers get)
+BENCH_WAYS["0"] = LIVE.settings;
+STYLE["0"] = LIVE.style;
 
 /** Results saved before variant codes existed: one code per slot (and the
  *  retired first way 3, "b"). */
 // (v0's results from before variant codes were painted by its first
 // version, 1-SV11 - it has changed since)
 export const legacyVariant = (slot: string) => (slot === "1" ? "1-SV11" : `${slot === "b" ? "3" : slotNumber(slot)}-OLD${slot === "b" ? "B" : ""}`);
+
+/** A bench session: a stretch of testing measured against one baseline,
+ *  which never changes within it. Choosing a new baseline starts the next
+ *  session. `base` lists the baseline's codes, the first with paintings
+ *  used (v0 changed code once, in its instructions only). */
+export interface BenchSession {
+  n: number;
+  /** the baseline's name as shown ("v0", or its code) */
+  name: string;
+  base: string[];
+  /** when it started (ms) */
+  at: number;
+}
+/** The first sessions: the original v0 (nothing reused) as the baseline
+ *  until way 4 went live for readers (13 Nov 2026, 16:34 UTC), then the
+ *  live version, 4-RUYP. After that a new session starts by itself
+ *  whenever LIVE changes (see the bench's API). */
+export const FIRST_SESSIONS: BenchSession[] = [
+  { n: 1, name: "old v0", base: ["1-UG95", "1-SV11"], at: 0 },
+  { n: 2, name: "4-RUYP", base: ["4-RUYP"], at: 1_794_587_680_000 },
+];
+/** The session a run started at `at` belongs to. */
+export const sessionAt = (sessions: BenchSession[], at: number) => [...sessions].reverse().find((s) => s.at <= at) ?? sessions[0];
+/** A variant code, as a baseline may be named. */
+export const VARIANT_RE = /^[1-9]-[A-Z0-9]{3,6}$/;

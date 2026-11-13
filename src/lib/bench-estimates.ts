@@ -154,6 +154,25 @@ const X14: Estimate = {
   why: "The composer is Sonnet at medium effort: about twice the thinking of low (~4-6k tokens out with its thinking, ~10k in, mostly its cached brief), about 6 cents - around way 3's cost, for placement, context and every named thing checked off. Figures still drawn in code (free). A newcomer adds ~$0.03 and ~15 s.",
 };
 
+// Written 14 Nov 2026, before any run: session 2's contenders, each a
+// change of one thing in the live version (4-RUYP).
+// (percentages against the original v0, like the others; the bench shows
+// them against the session's baseline)
+const M1: Estimate = {
+  usd: 0.055,
+  ms: 24_000,
+  costPc: 63,
+  timePc: 37,
+  why: "Live's composer, layout pass and phrasebook, but a character whose poses are prepared is placed from its hand-painted pose instead of being built in code: the same composer call (its sheet lists pose names instead of arm and leg options, a little shorter), so about live's cost per page. Each character's ten poses are painted once ahead (Prepare poses: ~$0.03 each, a one-off). Expected better: more expressive, more finished-looking characters; risk: a painted pose may suit the moment less exactly than a built one.",
+};
+const N1: Estimate = {
+  usd: 0.035,
+  ms: 16_000,
+  costPc: 77,
+  timePc: 58,
+  why: "Live in every way but its composer's effort: Sonnet at low effort, still thinking first (~2k tokens out instead of ~5k). Since lessons 14-16 the layout pass fixes depth, facing, ground line, hugs, seats, frame and the tap target in code, and the phrasebook turns the action into poses - much of what medium effort was bought for. Expected: about 40% cheaper and faster than live for nearly the same picture; risk: fewer of the brief's small details.",
+};
+
 /** Each variant code's estimate. Add the new code's here whenever a way
  *  changes (see variantOf). */
 export const ESTIMATES: Record<string, Estimate> = {
@@ -217,6 +236,9 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-UN3W": X14,
   // (14 Nov: lesson 16 - layout and phrasebook, the same cost)
   "4-RUYP": X14,
+  // session 2's contenders
+  "6-25Q3": M1,
+  "7-KWS6": N1,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
