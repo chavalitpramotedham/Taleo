@@ -15880,3 +15880,127 @@ html[data-night] .lab-stat em.good {
   display: grid;
   place-items: center;
 }
+/* the bench's four ways side by side, on a big screen */
+.lab-collage-backdrop {
+  padding: 16px;
+}
+.lab-collage {
+  width: min(100%, calc((100dvh - 150px) * 4 / 3 + 40px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px 16px;
+  border-radius: 18px;
+  background: var(--page);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+.lab-collage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.lab-collage-head h3 {
+  margin: 0;
+}
+.lab-collage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+  min-height: 0;
+}
+.lab-collage-cell {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.lab-collage-art {
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--page);
+  max-height: calc((100dvh - 190px) / 2);
+}
+.lab-collage-art svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lab-collage-cell.voted .lab-collage-art {
+  outline: 3px solid var(--russet);
+}
+.lab-collage-cell.picked .lab-collage-art {
+  border-color: var(--russet);
+}
+.lab-collage-cell figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.lab-collage-cell figcaption b {
+  color: var(--ink);
+}
+.lab-variant {
+  display: block;
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+#lab-spec-title .lab-variant {
+  display: inline;
+  margin-left: 6px;
+}
+.lab-earlier td {
+  opacity: 0.7;
+}
+.lab-earlier-toggle {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+/* a variant far off its estimate */
+.lab-board tr.lab-off td {
+  background: color-mix(in srgb, #c4554d 16%, transparent);
+  color: #9b2f28;
+  opacity: 1;
+}
+.lab-board tr.lab-off td .lab-est,
+.lab-board tr.lab-off td.lab-est,
+.lab-board tr.lab-off .lab-variant {
+  color: #9b2f28;
+}
+html[data-night] .lab-board tr.lab-off td,
+html[data-night] .lab-board tr.lab-off td.lab-est,
+html[data-night] .lab-board tr.lab-off .lab-variant {
+  color: #f0a39b;
+}
+.lab-rank {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.lab-rank .meta {
+  margin: 0 4px 0 0;
+  font-size: 0.8rem;
+}
+.lab-order {
+  color: var(--ink-soft);
+  font-weight: 400;
+  margin-right: 2px;
+}
+.lab-now {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--russet);
+  color: #fff;
+  font-family: inherit;
+  letter-spacing: 0;
+}

@@ -42,6 +42,15 @@ export const ESTIMATES: Record<string, Estimate> = {
     timePc: 48,
     why: "Sonnet at medium replaces Opus for the characters: half the price per token, fewer tokens. The page-layer painter is small. Backdrops cost ~$0.023 a page here (4 of 7 pages paint one); ~$0.06 a page in a real book.",
   },
+  q: {
+    // (added 13 Nov 2026, after the first way 3 - Sonnet at medium,
+    // thinking - came out at $0.26 and 78 s: more than today)
+    usd: 0.06,
+    ms: 28_000,
+    costPc: 70,
+    timePc: 45,
+    why: "Sonnet at low effort without thinking writes only strokes - faces, limbs, held things - onto the kept heads and bodies: about 4-5k tokens (~$0.05). No scenery painter at all (backdrop reused, the page's sky and foreground made in code). One-off set-up (the backdrop, a character's parts) is counted apart. Expected between ways 2 and 4 on cost, with freer poses than 4.",
+  },
   x: {
     usd: 0.03,
     ms: 17_000,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { BENCH_SLOTS, legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,11 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
         const meta = JSON.parse(o.meta ?? "{}") as { at?: number; page?: string; label?: string };
         const ways: Record<string, WayResult> = {};
         for (const [k, v] of Object.entries(o)) if (k.startsWith("w")) ways[k.slice(1)] = JSON.parse(v) as WayResult;
-        return { id, at: meta.at ?? 0, page: meta.page ?? "", label: meta.label ?? "", ways, vote: o.vote || undefined };
+        let rank: string[] | undefined;
+        try {
+          rank = o.rank ? (JSON.parse(o.rank) as string[]) : undefined;
+        } catch {}
+        return { id, at: meta.at ?? 0, page: meta.page ?? "", label: meta.label ?? "", ways, vote: o.vote || undefined, rank };
       } catch {
         return null;
       }
@@ -50,14 +55,48 @@ async function readRuns(limit = 400): Promise<BenchRun[]> {
 
 /** Each way's record over every run: how often it was voted best, and
  *  what it cost and took on average. */
+/** Each variant's record over every run (see lib/bench-ways): how often
+ *  it was voted best, and its averages. The current variant of each slot
+ *  first, in slot order; then earlier ones, kept for comparison. */
 function leaderboard(runs: BenchRun[]) {
-  const ways = ["1", "p", "b", "x"];
-  return ways.map((w) => {
-    const done = runs.filter((r) => r.ways[w]?.ok);
-    const voted = runs.filter((r) => r.vote && r.ways[w]?.ok);
-    const avg = (pick: (x: WayResult) => number) => (done.length ? done.reduce((t, r) => t + pick(r.ways[w]), 0) / done.length : null);
-    return { way: w, painted: done.length, wins: runs.filter((r) => r.vote === w).length, votedRuns: voted.length, usd: avg((x) => x.usd), out: avg((x) => x.out), totalMs: avg((x) => x.totalMs), firstMs: avg((x) => x.firstMs ?? 0) };
+  const rows = new Map<string, { slot: string; results: { r: BenchRun; x: WayResult }[] }>();
+  for (const r of runs)
+    for (const [slot, x] of Object.entries(r.ways)) {
+      const variant = x.variant ?? legacyVariant(slot);
+      if (!rows.has(variant)) rows.set(variant, { slot, results: [] });
+      rows.get(variant)!.results.push({ r, x });
+    }
+  const current = new Set(BENCH_SLOTS.map((s) => variantOf(s)));
+  for (const s of BENCH_SLOTS) if (!rows.has(variantOf(s))) rows.set(variantOf(s), { slot: s, results: [] });
+  const out = [...rows.entries()].map(([variant, { slot, results }]) => {
+    const done = results.filter(({ x }) => x.ok);
+    const avg = (pick: (x: WayResult) => number) => (done.length ? done.reduce((t, { x }) => t + pick(x), 0) / done.length : null);
+    // (a page's ranking gives points by place - RANK_POINTS; a vote from
+    // before rankings counts as first place)
+    const placeOf = (r: BenchRun) => (r.rank?.length ? r.rank.indexOf(slot) : r.vote ? (r.vote === slot ? 0 : -1) : -1);
+    const ranked = done.filter(({ r }) => r.rank?.length || r.vote);
+    const score = ranked.reduce((t, { r }) => t + (placeOf(r) >= 0 ? (RANK_POINTS[placeOf(r)] ?? 0) : 0), 0);
+    const voted = ranked;
+    return {
+      way: slot,
+      variant,
+      current: current.has(variant),
+      painted: done.length,
+      wins: done.filter(({ r }) => placeOf(r) === 0).length,
+      score,
+      votedRuns: voted.length,
+      usd: avg((x) => x.usd),
+      out: avg((x) => x.out),
+      totalMs: avg((x) => x.totalMs),
+      firstMs: avg((x) => x.firstMs ?? 0),
+      setupUsd: done.reduce((t, { x }) => t + (x.setupUsd ?? 0), 0),
+      // (when it was first tried: the leaderboard numbers variants in the
+      // order they were tested)
+      firstAt: results.length ? Math.min(...results.map(({ r }) => r.at)) : null,
+    };
   });
+  const order = (row: { way: string; current: boolean }) => (row.current ? 0 : 10) + Math.max(0, BENCH_SLOTS.indexOf(row.way as BenchSlot));
+  return out.sort((a, b) => order(a) - order(b) || a.variant.localeCompare(b.variant));
 }
 
 const nope = () => new NextResponse(null, { status: 404 });
@@ -69,7 +108,7 @@ export async function GET(req: Request) {
   const pr = q.get("picture") ?? "";
   const pw = q.get("way") ?? "";
   if (pr) {
-    if (!ID.test(pr) || !/^[1pbx]$/.test(pw)) return NextResponse.json({ svg: null }, { headers: noStore });
+    if (!ID.test(pr) || !/^[1pqx]$/.test(pw)) return NextResponse.json({ svg: null }, { headers: noStore });
     let svg: string | null = null;
     if (!metricsEnabled()) svg = mem().pics.get(picKey(pr, pw)) ?? null;
     else {
@@ -99,7 +138,7 @@ export async function POST(req: Request) {
   if (!(await currentAdmin())) return nope();
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const runId = typeof b?.runId === "string" && ID.test(b.runId) ? b.runId : null;
-  const way = typeof b?.way === "string" && /^[1pbx]$/.test(b.way) ? b.way : null;
+  const way = typeof b?.way === "string" && /^[1pqx]$/.test(b.way) ? b.way : null;
   if (b?.kind === "start" && runId) {
     const meta = { at: Date.now(), page: String(b.page ?? "").slice(0, 80), label: String(b.label ?? "").slice(0, 200) };
     await hset(`bench:run:${runId}`, "meta", JSON.stringify(meta));
@@ -117,6 +156,11 @@ export async function POST(req: Request) {
     if (!svg) return NextResponse.json({ ok: false });
     if (!metricsEnabled()) mem().pics.set(picKey(runId, way), svg);
     else await pipeline([["SET", picKey(runId, way), svg, "EX", KEEP_S]]);
+    return NextResponse.json({ ok: true });
+  }
+  if (b?.kind === "rank" && runId && Array.isArray(b.order)) {
+    const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && /^[1pqx]$/.test(x)))];
+    await hset(`bench:run:${runId}`, "rank", JSON.stringify(order));
     return NextResponse.json({ ok: true });
   }
   if (b?.kind === "vote" && runId && way) {

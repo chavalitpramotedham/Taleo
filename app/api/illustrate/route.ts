@@ -13,6 +13,7 @@ import { auth } from "@/server/auth";
 import { beginGen, logDenied } from "@/server/genlog";
 import type { ReuseSettings } from "@/lib/types";
 import { saveBenchResult } from "@/server/bench";
+import { BENCH_WAYS as CURRENT_WAYS, variantOf, type BenchSlot } from "@/lib/bench-ways";
 import { partsInFlight } from "@/server/paint/parts-maker";
 
 export const runtime = "nodejs";
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
   // result to its run (below), even if the bench page is closed or the
   // phone sleeps - its result is the point of painting it.
   const benchRun = benched ? (req.headers.get("x-taleo-bench-run") ?? "") : "";
-  const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && /^[1pbx]$/.test(lab ?? "");
+  const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && /^[1pqx]$/.test(lab ?? "");
   const stop = new AbortController();
   if (!benchSaves) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   let firstSent = 0;
@@ -193,7 +194,7 @@ export async function POST(req: Request) {
   after(() =>
     gen.done.then(async () => {
       if (!benchSaves) return;
-      await saveBenchResult(benchRun, lab!, { genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg }).catch((e) => console.warn("bench: couldn't save the result", e));
+      await saveBenchResult(benchRun, lab!, { variant: variantOf(lab as BenchSlot), genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg }).catch((e) => console.warn("bench: couldn't save the result", e));
     }),
   );
 
@@ -211,17 +212,11 @@ export async function POST(req: Request) {
 /** The bench's ways to paint a page: 1 as today; 2 standard scenery
  *  pieces; 3 those and characters from their kept parts; 4 everything -
  *  and each place painted once, reused under every page set there. */
+/** The bench's ways (see lib/bench-ways), and older names kept for
+ *  anything still using them. */
 const BENCH_WAYS: Record<string, ReuseSettings> = {
-  // 1. today: nothing reused
-  "1": { stamps: false, parts: false, backdrops: false },
-  // 2. parts + pieces, the usual painters
-  p: { stamps: true, parts: true, backdrops: false },
-  // 3. and backdrops, with the characters' painter the cheaper Sonnet
+  ...CURRENT_WAYS,
   b: { stamps: true, parts: true, backdrops: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } },
-  // 4. extreme: posed from the library by a cheap composer, the page's own
-  // layer made in code
-  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
-  // (older names, kept for anything still using them)
   "2": { stamps: true, parts: false, backdrops: false },
   "3": { stamps: true, parts: true, backdrops: false },
   "4": { stamps: true, parts: true, backdrops: true },

@@ -839,8 +839,20 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
       ? async function* (stop: AbortSignal, why: () => string | undefined): AsyncGenerator<string> {
           const key = `bd:v1:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonOf(req.world)}`)}`;
           const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
+          // (this page's framing: a modest zoom about the ground line and
+          // a pan, chosen from the page itself - a close-up comes closer)
+          const h = hashOf(req.page.text);
+          const zoom = req.camera === "close" ? 1.4 : req.camera === "wide" ? 1 : [1, 1.06, 1.12, 1.18, 1.25][h % 5];
+          const dx = (((h >> 3) % 5) - 2) * 12;
+          notes.frame = `zoom ${zoom}, pan ${dx}`;
+          // The page that paints the place shows it stroke by stroke as it
+          // is painted (not blank until it's done); a page that reuses it
+          // shows it whole at once.
           let made = false;
-          const backdrop = await once(
+          const live: string[] = [];
+          let settled = false;
+          let wake = () => {};
+          const backdrop = once(
             key,
             async () => {
               made = true;
@@ -851,19 +863,31 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
                 content: [{ type: "text", text: [world, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, BACKDROP_BRIEF, stageFor({ ...req, page: { ...req.page, characters: ["a", "b"] } }), "Output the SVG markup now."].join("\n\n") }],
               };
               let svg = "";
-              for await (const c of expandStream(brushStrokes(painter, stop, backdropLog, why), { ...expandCtx({ x0: 85, x1: 315, y0: 75, y1: 250 }), pageSeed: hashOf(key) }, newStats())) svg += c;
+              for await (const c of expandStream(brushStrokes(painter, stop, backdropLog, why), { ...expandCtx({ x0: 85, x1: 315, y0: 75, y1: 250 }), pageSeed: hashOf(key) }, newStats())) {
+                svg += c;
+                live.push(c);
+                wake();
+              }
               return svg;
             },
             { ttlS: 30 * 86_400, waitMs: 120_000 },
           );
+          void backdrop.then(
+            () => ((settled = true), wake()),
+            () => ((settled = true), wake()),
+          );
+          yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">`;
+          for (;;) {
+            const more = new Promise<void>((r) => (wake = r));
+            while (live.length) yield live.shift()!;
+            if (settled) break;
+            await more;
+          }
+          const whole = await backdrop;
+          // (reused, or made by another page: all of it now)
+          if (!made) yield whole;
+          yield "</g>";
           notes.backdrop = made ? "painted for this page, kept for the others" : "reused";
-          // (this page's framing: a modest zoom about the ground line and
-          // a pan, chosen from the page itself - a close-up comes closer)
-          const h = hashOf(req.page.text);
-          const zoom = req.camera === "close" ? 1.4 : req.camera === "wide" ? 1 : [1, 1.06, 1.12, 1.18, 1.25][h % 5];
-          const dx = (((h >> 3) % 5) - 2) * 12;
-          notes.frame = `zoom ${zoom}, pan ${dx}`;
-          yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">${backdrop}</g>`;
           if (reuse.codeLayer) {
             // (this page's own sky and foreground, made in code)
             notes.pageLayer = "made in code";

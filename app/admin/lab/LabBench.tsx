@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ESTIMATES } from "@/lib/bench-estimates";
+import { legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
 import type { CharacterDef, IllustrateRequest } from "@/lib/types";
 
@@ -44,14 +45,15 @@ const WAYS = [
     ],
   },
   {
-    id: "b",
-    name: "+ Backdrops, Sonnet",
-    about: "As 2, and each place is painted once and reused under every page there (framed anew); the characters' painter is the cheaper Sonnet.",
+    id: "q",
+    name: "Parts + backdrop, quick",
+    about: "Each character's head and body reused, and drawn on by a quick painter that doesn't think first (faces, limbs, actions, what they hold). The place is painted once and reused; the page's own sky and foreground are made in code.",
     vars: [
-      ["Scenery", "the place's backdrop, painted once per place and light; then Sonnet 5.5 low, no thinking, paints only this page's own layer"],
-      ["Characters", "Sonnet 5.5, medium effort, thinks first - draws faces, limbs, held things"],
+      ["Scenery", "the place's backdrop, painted once per place and light (shown stroke by stroke on the page that paints it); this page's sky and foreground made in code (no painter)"],
+      ["Characters", "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies"],
       ["Pieces", "on (scenery, props, effects)"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
+      ["Replaces", "the first way 3 (Sonnet at medium, thinking first), which cost more than today"],
     ],
   },
   {
@@ -63,7 +65,7 @@ const WAYS = [
       ["Characters", "Sonnet 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn"],
       ["Pieces", "on, including props and action effects"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
-      ["If a character has no parts", "the composer can't pose it, so it falls back to 3's way for that page"],
+      ["If a character has no parts", "the composer can't pose it, so it's drawn by the same quick painter for that page"],
     ],
   },
 ] as const;
@@ -90,18 +92,25 @@ interface Run {
   id: string;
   at: number;
   page: string;
-  ways: Record<string, { usd: number; out: number; totalMs: number; firstMs?: number; ok: boolean; genId?: string; summary?: string; error?: string }>;
+  ways: Record<string, { usd: number; out: number; totalMs: number; firstMs?: number; ok: boolean; genId?: string; summary?: string; error?: string; setupUsd?: number; variant?: string }>;
   vote?: string;
+  rank?: string[];
 }
 interface Board {
   way: string;
   painted: number;
   wins: number;
   votedRuns: number;
+  score: number;
   usd: number | null;
   out: number | null;
   totalMs: number | null;
   firstMs: number | null;
+  setupUsd?: number;
+  variant: string;
+  /** a slot's variant as it paints now (the others are earlier ones) */
+  current: boolean;
+  firstAt: number | null;
 }
 
 const DONE = "<!--taleo:done-->";
@@ -207,7 +216,10 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           const rec = await fetch(`/api/admin/gen?id=${encodeURIComponent(gen)}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
           if (rec && rec.status !== "running") {
             const out = (rec.calls ?? []).reduce((t: number, c: { out: number }) => t + (c.out || 0), 0);
-            result = { ...result, usd: (rec.usdMicro ?? 0) / 1e6, out, summary: rec.summary ?? "" };
+            // (the page's own cost: one-off set-up - a backdrop, a
+            // character's parts - is counted apart, as the server saves it)
+            const setup = (rec.calls ?? []).filter((c: { label: string }) => SETUP_LABELS.includes(c.label)).reduce((t: number, c: { usdMicro?: number }) => t + (c.usdMicro || 0), 0);
+            result = { ...result, usd: Math.max(0, (rec.usdMicro ?? 0) - setup) / 1e6, out, summary: rec.summary ?? "" };
             setCell(runId, way, { usd: result.usd, out, summary: rec.summary, calls: rec.calls, genId: gen });
             break;
           }
@@ -232,17 +244,49 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     await Promise.all(WAYS.map((w) => paintWay(p, w.id, runId, book)));
     await load();
   };
-  const vote = async (runId: string, way: string) => {
-    setRuns((rs) => rs.map((r) => (r.id === runId ? { ...r, vote: way } : r)));
-    await api({ kind: "vote", runId, way });
+  // Ranking a page's ways, best first: tapped in order, saved once every
+  // painted way has its place (a vote from before rankings reads as a
+  // first place).
+  const [picking, setPicking] = useState<Record<string, string[]>>({});
+  const rankOf = (run: Run | undefined): string[] => (run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : []);
+  const paintedWays = (run: Run) => WAYS.filter((w) => run.ways[w.id]?.ok || cells[run.id]?.[w.id]?.state === "done").map((w) => w.id);
+  const tapRank = async (run: Run, way: string) => {
+    const now = rankOf(run);
+    const at = now.indexOf(way);
+    // (tapped again: it, and the places after it, are taken back)
+    const next = at >= 0 ? now.slice(0, at) : [...now, way];
+    setPicking((pk) => ({ ...pk, [run.id]: next }));
+    if (next.length < paintedWays(run).length) return;
+    setRuns((rs) => rs.map((r) => (r.id === run.id ? { ...r, rank: next } : r)));
+    await api({ kind: "rank", runId: run.id, order: next });
     await load();
   };
 
   const best = (k: "usd" | "totalMs" | "out") => {
-    const vals = board.map((b) => b[k]).filter((v): v is number => v !== null);
+    const vals = board.filter((b) => b.current).map((b) => b[k]).filter((v): v is number => v !== null);
     return vals.length ? Math.min(...vals) : null;
   };
-  const today = board.find((x) => x.way === "1")?.usd ?? null;
+  const today = board.find((x) => x.way === "1" && x.current)?.usd ?? null;
+  // The leaderboard's order: by code - the order the variants were first
+  // tried (#1, #2...; one not tried yet is "new", last) - or by votes.
+  const [rankBy, setRankBy] = useState<"code" | "score">("code");
+  const numbered = [...board].sort((a, b) => (a.firstAt ?? Infinity) - (b.firstAt ?? Infinity) || SLOT_ORDER.indexOf(a.way) - SLOT_ORDER.indexOf(b.way)).map((b, i) => ({ b, n: b.firstAt === null ? null : i + 1 }));
+  const ranked = rankBy === "code" ? numbered : [...numbered].sort((x, y) => y.b.score - x.b.score || (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) - (x.b.votedRuns ? x.b.score / x.b.votedRuns : 0) || (x.n ?? 1e9) - (y.n ?? 1e9));
+  const todayMs = board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
+  /** Has this variant broken its estimate - costing or taking more than
+   *  today where a saving was expected, or falling more than 25 points
+   *  short of the saving expected? (Said why, for the row's tooltip.) */
+  const broke = (b: Board | undefined): string | null => {
+    const est = b && b.way !== "1" ? ESTIMATES[b.way] : undefined;
+    if (!b || !est || !b.painted) return null;
+    const pc = (v: number | null, base: number | null) => (v === null || !base ? null : (1 - v / base) * 100);
+    const cost = pc(b.usd, today);
+    const time = pc(b.totalMs, todayMs);
+    const why: string[] = [];
+    if (cost !== null && ((est.costPc > 0 && cost < 0) || est.costPc - cost > 25)) why.push(`cost ${cost < 0 ? `${Math.round(-cost)}% more` : `${Math.round(cost)}% less`} than today, expected ${est.costPc}% less`);
+    if (time !== null && ((est.timePc > 0 && time < 0) || est.timePc - time > 25)) why.push(`time ${time < 0 ? `${Math.round(-time)}% longer` : `${Math.round(time)}% shorter`} than today, expected ${est.timePc}% shorter`);
+    return why.length ? `Far off its estimate: ${why.join("; ")}` : null;
+  };
   const vsToday = (v?: number | null) => (v === undefined || v === null || !today ? "-" : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`);
 
   const [view, setView] = useState<string>("compare");
@@ -253,7 +297,17 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [zoom, setZoom] = useState<{ items: Shown[]; at: number } | null>(null);
   // (always a page's four ways, in order, so ‹ › steps 1, 2, 3, 4)
   const zoomWays = (p: LabPage, runId: string, way: string) => () => {
-    const items = WAYS.map((x): Shown => ({ svg: cells[runId]?.[x.id]?.svg ?? "", title: `${nOf(x.id)}. ${x.name}`, caption: p.label }));
+    const run = runs.find((r) => r.id === runId);
+    const today = run?.ways["1"]?.usd ?? cells[runId]?.["1"]?.usd;
+    const items = WAYS.map((x): Shown => {
+      const c = cells[runId]?.[x.id];
+      const saved = run?.ways[x.id];
+      const cost = c?.usd ?? saved?.usd;
+      const vs = x.id !== "1" && cost !== undefined && today ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs today` : "";
+      const info = c?.state === "painting" ? "painting..." : cost !== undefined || saved ? `${usd(cost)} · ${secs(c?.totalMs ?? saved?.totalMs)} · ${num(c?.out ?? saved?.out)} out${vs}` : "";
+      const place = rankOf(run).indexOf(x.id);
+      return { svg: c?.svg ?? "", title: `${nOf(x.id)}. ${x.name}${place >= 0 ? ` · ${ORDINAL[place]}` : ""}`, caption: p.label, info, voted: place === 0 };
+    });
     setZoom({ items, at: Math.max(0, WAYS.findIndex((x) => x.id === way)) });
   };
   const specWay = WAYS.find((w) => w.id === spec);
@@ -288,50 +342,72 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     <div className="container lab">
       <header className="lab-head">
         <h1>Painting bench</h1>
-        <p className="meta">Each page painted four ways, from nothing reused to the most. Vote for the best; each painting costs real money.</p>
+        <p className="meta">Each page painted four ways, from nothing reused to the most. Rank them best to worst ({RANK_POINTS.join("-")} points); each painting costs real money.</p>
       </header>
 
       <section className="panel lab-board" aria-label="Leaderboard">
+        <div className="lab-rank" role="group" aria-label="Rank the leaderboard">
+          <span className="meta">Rank by</span>
+          <button type="button" className={`lab-chip${rankBy === "code" ? " on" : ""}`} onClick={() => setRankBy("code")}>
+            Order tested
+          </button>
+          <button type="button" className={`lab-chip${rankBy === "score" ? " on" : ""}`} onClick={() => setRankBy("score")}>
+            Score
+          </button>
+        </div>
         <div className="lab-board-scroll">
           <table>
             <thead>
               <tr>
                 <th>Way</th>
-                <th>Votes</th>
+                <th title={`Points from your rankings: ${RANK_POINTS.join("-")} for best to worst`}>Score</th>
                 <th>Avg cost</th>
                 <th>vs today</th>
                 <th>Expected</th>
                 <th>Avg time</th>
-                <th className="lab-wide">Win rate</th>
+                <th className="lab-wide">Ranked 1st</th>
                 <th className="lab-wide">Tokens out</th>
                 <th className="lab-wide">First stroke</th>
                 <th className="lab-wide">Painted</th>
+                <th className="lab-wide">One-off set-up</th>
               </tr>
             </thead>
             <tbody>
-              {WAYS.map((w) => {
-                const b = board.find((x) => x.way === w.id);
+              {ranked.map(({ b, n }) => {
+                const w = WAYS.find((x) => x.id === b.way);
+                const off = broke(b);
+                const name = b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
                 return (
-                  <tr key={w.id}>
+                  <tr key={b.variant} className={[b.current ? "" : "lab-earlier", off ? "lab-off" : ""].filter(Boolean).join(" ") || undefined} title={off ?? undefined}>
                     <td className="lab-way">
                       <span className="lab-way-name">
                         <b>
-                          {nOf(w.id)}. {w.name}
+                          <span className="lab-order">#{n ?? "new"}</span> {name}
+                          <small className="lab-variant">
+                            {b.variant}
+                            {b.current ? <span className="lab-now">now slot {nOf(b.way)}</span> : null}
+                          </small>
                         </b>
-                        <button type="button" className="lab-info" onClick={() => setSpec(w.id)} aria-label={`What ${w.name} changes`}>
-                          i
-                        </button>
+                        {b.current && w && (
+                          <button type="button" className="lab-info" onClick={() => setSpec(w.id)} aria-label={`What ${w.name} changes`}>
+                            i
+                          </button>
+                        )}
                       </span>
                     </td>
-                    <td>{b?.wins ?? 0}</td>
-                    <td className={b?.usd !== null && b?.usd === best("usd") ? "lab-best" : ""}>{usd(b?.usd)}</td>
-                    <td>{w.id === "1" ? "-" : vsToday(b?.usd)}</td>
-                    <td className="lab-est">{w.id === "1" ? "-" : `-${ESTIMATES[w.id]?.costPc ?? 0}%`}</td>
-                    <td className={b?.totalMs !== null && b?.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b?.totalMs)}</td>
-                    <td className="lab-wide">{b && b.votedRuns ? `${Math.round((b.wins / b.votedRuns) * 100)}%` : "-"}</td>
-                    <td className="lab-wide">{num(b?.out)}</td>
-                    <td className="lab-wide">{secs(b?.firstMs)}</td>
-                    <td className="lab-wide">{b?.painted ?? 0}</td>
+                    <td>
+                      <b>{b.score}</b>
+                      {b.votedRuns > 0 && <small className="lab-variant">{(b.score / b.votedRuns).toFixed(1)} avg</small>}
+                    </td>
+                    <td className={b.current && b.usd !== null && b.usd === best("usd") ? "lab-best" : ""}>{usd(b.usd)}</td>
+                    <td>{b.way === "1" ? "-" : vsToday(b.usd)}</td>
+                    <td className="lab-est">{b.way !== "1" && ESTIMATES[b.way] ? `-${ESTIMATES[b.way].costPc}%` : "-"}</td>
+                    <td className={b.current && b.totalMs !== null && b.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b.totalMs)}</td>
+                    <td className="lab-wide">{b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}</td>
+                    <td className="lab-wide">{num(b.out)}</td>
+                    <td className="lab-wide">{b.firstMs ? secs(b.firstMs) : "-"}</td>
+                    <td className="lab-wide">{b.painted}</td>
+                    <td className="lab-wide">{b.setupUsd ? usd(b.setupUsd) : "-"}</td>
                   </tr>
                 );
               })}
@@ -345,7 +421,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           <div className="modal-panel draft-prompt lab-spec-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-spec-title">
             <div className="modal-head">
               <h3 id="lab-spec-title">
-                {nOf(specWay.id)}. {specWay.name}
+                {nOf(specWay.id)}. {specWay.name} <small className="lab-variant">{variantOf(specWay.id)}</small>
               </h3>
               <button type="button" className="icon-btn" onClick={() => setSpec(null)} aria-label="Close">
                 ✕
@@ -395,10 +471,10 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
               const c = run ? cells[run.id]?.[viewing.id] : undefined;
               const saved = run?.ways[viewing.id];
               return (
-                <figure key={p.key} className={`lab-cell${run?.vote === viewing.id ? " voted" : ""}`}>
+                <figure key={p.key} className={`lab-cell${rankOf(run)[0] === viewing.id ? " voted" : ""}`}>
                   <figcaption>
                     <b>{p.label}</b>
-                    {run?.vote && <span className="lab-state">★{nOf(run.vote)}</span>}
+                    {rankOf(run).includes(viewing.id) && <span className="lab-state">{ORDINAL[rankOf(run).indexOf(viewing.id)]}</span>}
                   </figcaption>
                   <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${p.label} full size`} onClick={zoomWays(p, run!.id, viewing.id)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
                   {((c && c.state !== "painting") || saved) && numbers(c, saved)}
@@ -414,7 +490,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             const runId = runFor(p.key);
             const run = runs.find((r) => r.id === runId);
             const live = runId ? cells[runId] : undefined;
-            const voted = run?.vote;
+            const order = rankOf(run);
+            const voted = order[0];
             const history = runs.filter((r) => r.page === p.key);
             const painting = Boolean(live && Object.values(live).some((c) => c?.state === "painting"));
             return (
@@ -431,7 +508,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                       {p.camera ? ` · ${p.camera}` : ""}
                     </span>
                   </span>
-                  <span className="lab-row-status">{painting ? "painting..." : voted ? `★ ${nOf(voted)}` : run ? "not voted" : "not painted"}</span>
+                  <span className="lab-row-status">{painting ? "painting..." : run && run.rank?.length ? `ranked ${run.rank.map((x) => nOf(x)).join(" > ")}` : order.length ? "ranking..." : run ? "not ranked" : "not painted"}</span>
                   <button
                     type="button"
                     className="lab-paint"
@@ -467,7 +544,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     {history.slice(0, 8).map((r, i) => (
                       <button key={r.id} type="button" className={`lab-chip${r.id === runId ? " on" : ""}`} onClick={() => setShown((s) => ({ ...s, [p.key]: r.id }))}>
                         Run {history.length - i}
-                        {r.vote ? ` · ★${nOf(r.vote)}` : ""}
+                        {r.rank?.length ? ` · ${r.rank.map((x) => nOf(x)).join(">")}` : r.vote ? ` · ★${nOf(r.vote)}` : ""}
                       </button>
                     ))}
                   </div>
@@ -493,8 +570,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                           </button>
                         )}
                         {run && (c?.state === "done" || saved?.ok) && (
-                          <button type="button" className={`btn ${voted === w.id ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void vote(run.id, w.id)}>
-                            {voted === w.id ? "★ Best" : "Vote best"}
+                          <button type="button" className={`btn ${order.includes(w.id) ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void tapRank(run, w.id)}>
+                            {order.includes(w.id) ? `${ORDINAL[order.indexOf(w.id)]} · ${RANK_POINTS[order.indexOf(w.id)]} ${RANK_POINTS[order.indexOf(w.id)] === 1 ? "pt" : "pts"}` : `Rank ${ORDINAL[order.length] ?? ""}`}
                           </button>
                         )}
                       </figure>
@@ -510,8 +587,16 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   );
 }
 
+const ORDINAL = ["1st", "2nd", "3rd", "4th"];
+
+/** Slots in bench order, the retired first way 3 ("b") where it stood. */
+const SLOT_ORDER = ["1", "p", "b", "q", "x"];
+
+/** One-off set-up calls (as server/bench counts them). */
+const SETUP_LABELS = ["backdrop painter", "parts maker"];
+
 /** A painting shown full size: which way, and of which page. */
-type Shown = { svg: string; title: string; caption: string };
+type Shown = { svg: string; title: string; caption: string; info?: string; voted?: boolean };
 
 /** The bench's paintings full size, as the activity log shows its own (the
  *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
@@ -531,8 +616,46 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
     return () => window.removeEventListener("keydown", key);
   }, [onClose, prev, next]);
   const swipe = useRef<{ x: number; y: number } | null>(null);
+  // (on a big screen, all four at once, 1 2 over 3 4, to compare at a glance)
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 900px) and (min-height: 600px)");
+    const set = () => setWide(mq.matches);
+    set();
+    mq.addEventListener("change", set);
+    return () => mq.removeEventListener("change", set);
+  }, []);
   if (!item) return null;
   const stepping = items.length > 1;
+  if (wide && items.length === 4) {
+    return createPortal(
+      <div className="modal-backdrop lab-collage-backdrop" onClick={onClose}>
+        <div className="lab-collage" role="dialog" aria-modal="true" aria-label={`${item.caption}: all four ways`} onClick={(e) => e.stopPropagation()}>
+          <div className="lab-collage-head">
+            <h3>{item.caption}</h3>
+            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+              ✕
+            </button>
+          </div>
+          <div className="lab-collage-grid">
+            {items.map((x, i) => (
+              <figure key={i} className={`lab-collage-cell${x.voted ? " voted" : ""}${i === at ? " picked" : ""}`}>
+                <div className="lab-collage-art">{x.svg ? <Painting svg={x.svg} className="painting" /> : <span className="meta">Not painted yet</span>}</div>
+                <figcaption>
+                  <b>
+                    {x.title}
+
+                  </b>
+                  {x.info && <span>{x.info}</span>}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+  }
   return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="admin-zoom-wrap" onClick={(e) => e.stopPropagation()}>
@@ -590,7 +713,7 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
 /** Until a way usually shows its first strokes, when nothing's measured
  *  yet (ways 3 and 4 wait for the place's backdrop, and the first time a
  *  character is used, up to 20 s for its parts). */
-const FIRST_GUESS_MS: Record<string, number> = { "1": 25_000, p: 25_000, b: 50_000, x: 45_000 };
+const FIRST_GUESS_MS: Record<string, number> = { "1": 25_000, p: 25_000, q: 15_000, x: 15_000 };
 
 /** A painting that hasn't shown anything yet: how long it's been, against
  *  how long this way usually takes to show its first strokes. */
@@ -600,7 +723,7 @@ function WaitBar({ since, way, board }: { since: number; way: string; board: Boa
     const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
   }, []);
-  const measured = board.find((b) => b.way === way)?.firstMs;
+  const measured = board.find((b) => b.way === way && b.current)?.firstMs;
   const usual = measured && measured > 1000 ? measured : FIRST_GUESS_MS[way] ?? 30_000;
   const gone = now - since;
   // (fills to the usual time, then creeps on towards the end without
@@ -621,11 +744,13 @@ function WaitBar({ since, way, board }: { since: number; way: string; board: Boa
 /** One way's totals over every run, against today's way. */
 function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   const stats = (w: string) => {
-    const done = runs.map((r) => r.ways[w]).filter((x): x is Run["ways"][string] => Boolean(x?.ok));
+    // (only this slot's current variant: its earlier ones painted differently)
+    const done = runs.map((r) => r.ways[w]).filter((x): x is Run["ways"][string] => Boolean(x?.ok) && (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot));
     const costed = done.filter((x) => x.usd > 0);
     const cost = costed.reduce((t, x) => t + x.usd, 0);
     const time = done.reduce((t, x) => t + x.totalMs, 0);
-    return { n: done.length, cost, avgCost: costed.length ? cost / costed.length : null, time, avgTime: done.length ? time / done.length : null };
+    const setup = done.reduce((t, x) => t + (x.setupUsd ?? 0), 0);
+    return { n: done.length, cost, setup, avgCost: costed.length ? cost / costed.length : null, time, avgTime: done.length ? time / done.length : null };
   };
   const me = stats(way);
   const base = way === "1" ? null : stats("1");
@@ -653,6 +778,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       <div className="lab-stat">
         <span>Total cost</span>
         <b>{usd(me.n ? me.cost : null)}</b>
+        {me.setup > 0 && <em>plus {usd(me.setup)} one-off set-up</em>}
       </div>
       <div className="lab-stat">
         <span>Time per painting</span>

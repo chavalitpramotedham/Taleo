@@ -18,6 +18,11 @@ export interface WayResult {
   ok: boolean;
   genId?: string;
   summary?: string;
+  /** one-off set-up paid by this painting (a place's backdrop, a
+   *  character's parts) - left out of `usd`, which is the page's own */
+  setupUsd?: number;
+  /** the variant it was painted with (see lib/bench-ways) */
+  variant?: string;
   /** why it failed, from the painting's record */
   error?: string;
 }
@@ -28,6 +33,8 @@ export interface BenchRun {
   label: string;
   ways: Record<string, WayResult>;
   vote?: string;
+  /** the ways ranked best to worst (slot ids) */
+  rank?: string[];
 }
 
 export const RUNS = "bench:runs";
@@ -50,14 +57,21 @@ export async function hset(key: string, field: string, value: string) {
 }
 
 
+/** The model calls that are one-off set-up, paid once and reused by the
+ *  pages after (see paintOnce): not part of a page's own cost. */
+export const SETUP_CALLS = new Set(["backdrop painter", "parts maker"]);
+
 /** A benched painting has finished (on the server, whether or not the
  *  bench page is still open): its cost, times and picture, from its own
  *  record, saved to its run. */
-export async function saveBenchResult(runId: string, way: string, o: { genId: string; ok: boolean; firstMs?: number; totalMs: number; svg: string }): Promise<void> {
+export async function saveBenchResult(runId: string, way: string, o: { variant: string; genId: string; ok: boolean; firstMs?: number; totalMs: number; svg: string }): Promise<void> {
   const got = await getGen(o.genId).catch(() => null);
   const calls = got?.record.calls ?? [];
+  const setup = calls.filter((c) => SETUP_CALLS.has(c.label)).reduce((t, c) => t + (c.usdMicro || 0), 0);
   const result: WayResult = {
-    usd: (got?.record.usdMicro ?? 0) / 1e6,
+    usd: Math.max(0, (got?.record.usdMicro ?? 0) - setup) / 1e6,
+    setupUsd: setup / 1e6,
+    variant: o.variant,
     out: calls.reduce((t, c) => t + (Number((c as { out?: number }).out) || 0), 0),
     totalMs: o.totalMs,
     firstMs: o.firstMs ?? 0,
