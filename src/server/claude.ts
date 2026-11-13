@@ -674,6 +674,17 @@ function stageFor(req: IllustrateRequest): string {
 - The light comes from the upper left; shadows fall to the lower right.`;
 }
 
+/** How long to wait after the service turned a request away for being
+ *  busy (429 too many requests, 529 overloaded): its retry-after, up to
+ *  20 s (10 s if it gave none). 0 for any other error. */
+function busyFor(err: unknown): number {
+  const e = err as { status?: number; headers?: Headers | Record<string, string> } | null;
+  if (!e || (e.status !== 429 && e.status !== 529)) return 0;
+  const h = e.headers;
+  const after = Number(h instanceof Headers ? h.get("retry-after") : h?.["retry-after"]);
+  return Math.min(20_000, Number.isFinite(after) && after > 0 ? after * 1000 : 10_000);
+}
+
 /** Streams the SVG markup of one painted page. `notes`: what the reuse
  *  did, for the activity log. */
 export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, notes: Record<string, unknown> = {}): AsyncGenerator<string> {
@@ -694,6 +705,12 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, n
     const message = err instanceof Error ? err.message : String(err);
     console.warn("painting: reuse failed, painting the ordinary way", err instanceof ReuseFailed ? message : err);
     notes.reuseFailed = err instanceof ReuseFailed ? message : `unexpected: ${message}`;
+    // (turned away for too many requests at once, or the service busy:
+    // trying again at once only gets turned away again - wait as asked,
+    // up to 20 s)
+    const busy = busyFor(err);
+    if (busy) await new Promise((r) => setTimeout(r, busy));
+    if (signal?.aborted) throw err;
     yield RESTART;
     yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, {});
   }

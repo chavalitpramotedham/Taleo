@@ -92,6 +92,12 @@ export async function hdel(key: string, fields: string[]) {
  *  pages after (see paintOnce): not part of a page's own cost. */
 export const SETUP_CALLS = new Set(["backdrop painter", "parts maker"]);
 
+function failedWhy(calls: { label?: string; error?: string }[], end: unknown): string {
+  const first = calls.find((c) => c.error);
+  const why = first ? `${first.label ?? "a painter"}: ${first.error}` : String(end ?? "it didn't finish");
+  return why.slice(0, 300);
+}
+
 /** A benched painting has finished (on the server, whether or not the
  *  bench page is still open): its cost, times and picture, from its own
  *  record, saved to its run. */
@@ -109,7 +115,9 @@ export async function saveBenchResult(runId: string, way: string, o: { variant: 
     ok: o.ok,
     genId: o.genId,
     summary: String(got?.record.summary ?? "").slice(0, 600),
-    ...(o.ok ? {} : { error: String(got?.record.error ?? got?.record.status ?? "it didn't finish").slice(0, 300) }),
+    // (a failure names the first painter that failed and why - e.g. the
+    // service saying too many requests - before the painting's own end)
+    ...(o.ok ? {} : { error: failedWhy(calls, got?.record.error ?? got?.record.status) }),
   };
   // A result an earlier version painted in this slot is kept, under its
   // own name, so that version keeps its numbers. And if the page had been

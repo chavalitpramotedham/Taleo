@@ -1991,9 +1991,12 @@ function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Read
     const chars = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
     const jobs = chars.flatMap((c) => SPRITE_POSE_IDS.map((pose) => ({ c: { ...c, id: "hero" }, pose })));
     setDone({ n: 0, of: jobs.length, failed: 0 });
+    // (three at a time: each asks for a large reply, and more at once used
+    // up the account's per-minute allowance - pages painted meanwhile were
+    // turned away)
     await inTurn(
       jobs,
-      6,
+      3,
       async (job) => Boolean((await prepareCall({ kind: "prepare-pose", character: job.c, pose: job.pose }))?.ok),
       (n, failed) => setDone({ n, of: jobs.length, failed }),
     );
