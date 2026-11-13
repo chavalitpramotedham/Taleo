@@ -156,6 +156,16 @@ interface Cell {
   genId?: string;
   /** when it was asked for (Date.now()), for the wait bar */
   startedAt?: number;
+  /** the connection dropped: the server paints on and saves it, and the
+   *  bench is waiting for that */
+  reconnecting?: boolean;
+}
+/** The painting's stream stopped without its ending (the connection
+ *  dropped); `gen` says the server had taken the request up. */
+class ConnectionLost extends Error {
+  constructor(public gen?: string) {
+    super("connection lost");
+  }
 }
 interface Run {
   id: string;
@@ -342,6 +352,30 @@ export function LabBench({
       },
     }));
 
+  /** After a dropped connection: reads the run until the server has saved
+   *  this way's result, then shows it as saved. False if it never comes. */
+  const waitForSaved = async (runId: string, way: string, forMs: number): Promise<boolean> => {
+    setCell(runId, way, { state: "painting", reconnecting: true });
+    const until = Date.now() + forMs;
+    while (Date.now() < until) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const d = await fetch("/api/admin/bench", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+      const run = (d?.runs as Run[] | undefined)?.find((r) => r.id === runId);
+      if (!run?.ways[way]) continue;
+      // (the live cell gives way to the saved result and its picture)
+      setCells((all) => {
+        const mine = { ...all[runId] };
+        delete mine[way];
+        return { ...all, [runId]: mine };
+      });
+      await load();
+      return true;
+    }
+    return false;
+  };
+
   /** One way of one page. */
   const paintWay = async (
     p: LabPage,
@@ -385,17 +419,22 @@ export function LabBench({
       const dec = new TextDecoder();
       let text = "";
       let first = 0;
+      let serverFailed = false;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         text += dec.decode(value, { stream: true });
         first ||= performance.now() - began;
+        if (text.includes("<!--taleo:error-->")) serverFailed = true;
         text = text.replace("<!--taleo:error-->", "");
         const again = text.lastIndexOf(RESTART);
         if (again >= 0) text = text.slice(again + RESTART.length);
         setCell(runId, way, { svg: text.replace(DONE, ""), firstMs: first });
       }
       const ok = text.includes(DONE);
+      // (the stream stopped with neither an ending nor the server's own
+      // failure: the connection dropped - the server paints on)
+      if (!ok && !serverFailed) throw new ConnectionLost(gen);
       const totalMs = performance.now() - began;
       setCell(runId, way, {
         svg: text.replace(DONE, ""),
@@ -442,9 +481,17 @@ export function LabBench({
             break;
           }
         }
-    } catch {
+    } catch (e) {
+      // The connection dropped (a weak signal, the phone sleeping): the
+      // painting goes on on the server, which saves it to the run - so
+      // wait for that, rather than calling it failed. (If the request
+      // never got there, there's nothing to wait for long.)
+      const lost = e instanceof ConnectionLost || e instanceof TypeError;
+      const asked = e instanceof ConnectionLost && Boolean(e.gen);
+      if (lost && (await waitForSaved(runId, way, asked ? 6 * 60_000 : 45_000))) return;
       setCell(runId, way, {
         state: "failed",
+        reconnecting: false,
         totalMs: performance.now() - began,
       });
       result.totalMs = performance.now() - began;
@@ -1416,6 +1463,12 @@ export function LabBench({
                             </span>
                           )}
                         </div>
+                        {c?.reconnecting && c.state === "painting" && (
+                          <p className="meta lab-reconnect">
+                            Connection dropped: still painting, waiting for
+                            it...
+                          </p>
+                        )}
                         {((c && c.state !== "painting") || saved) &&
                           numbers(c, saved)}
                         {saved && !saved.ok && (

@@ -16749,3 +16749,8 @@ html[data-night] .lab-count.done {
     padding-right: 24px;
   }
 }
+.lab-reconnect {
+  margin: 4px 0 0;
+  font-size: 0.74rem;
+  font-style: italic;
+}
