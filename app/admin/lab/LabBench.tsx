@@ -517,7 +517,7 @@ export function LabBench({
   const today = board.find((x) => x.way === "1" && x.current)?.usd ?? null;
   // The leaderboard's order: by code - the order the variants were first
   // tried (#1, #2...; one not tried yet is "new", last) - or by votes.
-  const [rankBy, setRankBy] = useState<"code" | "score">("code");
+  const [rankBy, setRankBy] = useState<"code" | "score" | "avg">("code");
   // (just the four in use now, unless all variants are asked for)
   const [showAll, setShowAll] = useState(false);
   const numbered = [...board]
@@ -527,10 +527,16 @@ export function LabBench({
         SLOT_ORDER.indexOf(a.way) - SLOT_ORDER.indexOf(b.way),
     )
     .map((b, i) => ({ b, n: b.firstAt === null ? null : i + 1 }));
+  // (by average score: points per ranking it took part in - fair to a way
+  // ranked fewer times than today's, which is in every ranking; unranked
+  // ones last)
+  const avgOf = (b: Board) => (b.votedRuns ? b.score / b.votedRuns : -1);
   const ranked =
     rankBy === "code"
       ? numbered
-      : [...numbered].sort(
+      : rankBy === "avg"
+        ? [...numbered].sort((x, y) => avgOf(y.b) - avgOf(x.b) || y.b.votedRuns - x.b.votedRuns || (x.n ?? 1e9) - (y.n ?? 1e9))
+        : [...numbered].sort(
           (x, y) =>
             y.b.score - x.b.score ||
             (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) -
@@ -713,6 +719,13 @@ export function LabBench({
               onClick={() => setRankBy("score")}
             >
               Score
+            </button>
+            <button
+              type="button"
+              className={`lab-chip${rankBy === "avg" ? " on" : ""}`}
+              onClick={() => setRankBy("avg")}
+            >
+              Avg score
             </button>
           </span>
           <span className="lab-rank-group">
