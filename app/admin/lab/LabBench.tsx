@@ -759,12 +759,17 @@ export function LabBench({
   const [openCaps, setOpenCaps] = useState<Record<string, boolean>>({});
   const [spec, setSpec] = useState<string | null>(null);
   // the painting shown full size, and the others it steps through
-  const [zoom, setZoom] = useState<{ items: Shown[]; at: number; runId?: string } | null>(null);
-  // (always a page's four ways, in order, so ‹ › steps 1, 2, 3, 4)
-  const zoomWays = (p: LabPage, runId: string, way: string) => () => {
+  // (which page and run are open, and which way is picked: the pictures
+  // themselves are read afresh on every render, so a painting still coming
+  // in keeps streaming into the open view)
+  const [zoom, setZoom] = useState<{ page: LabPage; at: number; runId: string } | null>(null);
+  // (a page's ways, in order, so ‹ › steps 1, 2, 3...: those switched on,
+  // and any paused one with a picture for this run)
+  const zoomItems = (p: LabPage, runId: string): Shown[] => {
     const run = runs.find((r) => r.id === runId);
     const today = run?.ways["1"]?.usd ?? cells[runId]?.["1"]?.usd;
-    const items = WAYS.map((x): Shown => {
+    const shown = WAYS.filter((x) => isActive(x.id) || currentResult(run, x.id) || (run ? currentCell(run, x.id) : cells[runId]?.[x.id]));
+    return shown.map((x): Shown => {
       const c = currentCell(run, x.id) ?? (run ? undefined : cells[runId]?.[x.id]);
       const saved = currentResult(run, x.id);
       const cost = c?.usd ?? saved?.usd;
@@ -788,14 +793,10 @@ export function LabBench({
         slot: x.id,
       };
     });
-    setZoom({
-      runId,
-      items,
-      at: Math.max(
-        0,
-        WAYS.findIndex((x) => x.id === way),
-      ),
-    });
+  };
+  const zoomWays = (p: LabPage, runId: string, way: string) => () => {
+    const items = zoomItems(p, runId);
+    setZoom({ page: p, runId, at: Math.max(0, items.findIndex((x) => x.slot === way)) });
   };
   const specWay = WAYS.find((w) => w.id === spec);
   const viewing = WAYS.find((w) => w.id === view);
@@ -1239,7 +1240,8 @@ export function LabBench({
               tap: (slot: string) => void tapRank(run, slot),
             };
           })()}
-          items={zoom.items}
+          items={zoomItems(zoom.page, zoom.runId)}
+          brief={zoom.page.page}
           at={zoom.at}
           onStep={(at) => setZoom((z) => (z ? { ...z, at } : z))}
           onClose={() => setZoom(null)}
@@ -1673,14 +1675,34 @@ type ZoomRank = { label: (slot: string) => string | null; on: (slot: string) => 
  *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
  *  a sideways swipe step through the others) - drawn as the painting
  *  itself, with its watercolour, not as a flat image. */
+/** The page's words and its picture brief, at the top of the picture view. */
+function ZoomBrief({ brief }: { brief: { text: string; picture: string } }) {
+  // (a few lines at first; tap to read it all)
+  const [all, setAll] = useState(false);
+  return (
+    <div className={`lab-zoom-brief${all ? " all" : ""}`} onClick={() => setAll((x) => !x)} title={all ? undefined : "Show it all"}>
+      <p>
+        <b>Text:</b> {brief.text}
+      </p>
+      <p>
+        <b>Picture:</b> {brief.picture}
+      </p>
+    </div>
+  );
+}
+
 function BenchZoom({
   items,
+  brief,
   at,
   onStep,
   onClose,
   rank,
 }: {
   items: Shown[];
+  /** the page being painted: its words and the picture's brief, shown at
+   *  the top so each painting can be judged against what was asked */
+  brief?: { text: string; picture: string };
   at: number;
   onStep: (i: number) => void;
   onClose: () => void;
@@ -1740,6 +1762,7 @@ function BenchZoom({
               ✕
             </button>
           </div>
+          {brief && <ZoomBrief brief={brief} />}
           <div className={`lab-collage-grid${items.length > 4 ? " three" : ""}`}>
             {items.map((x, i) => (
               <figure
@@ -1824,6 +1847,7 @@ function BenchZoom({
               ✕
             </button>
           </div>
+          {brief && <ZoomBrief brief={brief} />}
           <div className="lab-zoom-art">
             {item.svg ? (
               <Painting key={at} svg={item.svg} className="painting" />

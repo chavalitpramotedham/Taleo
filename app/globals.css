@@ -15936,7 +15936,8 @@ html[data-night] .lab-stat em.good {
   border-radius: 10px;
   overflow: hidden;
   background: var(--page);
-  max-height: calc((100dvh - 190px) / 2);
+  /* (room for the heading and the prompt above two rows) */
+  max-height: calc((100dvh - 260px) / 2);
 }
 .lab-collage-art svg {
   width: 100%;
@@ -16519,7 +16520,8 @@ button.admin-bar-col:focus-visible {
   grid-template-columns: repeat(3, 1fr);
 }
 .lab-collage-grid.three .lab-collage-art {
-  max-height: calc((100dvh - 190px) / 2);
+  /* (room for the heading and the prompt above two rows) */
+  max-height: calc((100dvh - 260px) / 2);
 }
 @media (min-width: 1100px) {
   .lab-four {
@@ -16927,4 +16929,36 @@ html[data-night] .lab-board .lab-bad {
   border: 1px solid var(--rule-strong);
   color: var(--ink-soft);
   font-size: 0.66rem;
+}
+/* the page's words and picture brief, at the top of the picture view */
+.lab-zoom-brief {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+.lab-zoom-brief.all {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+.lab-zoom-brief p {
+  margin: 0 0 4px;
+}
+.lab-zoom-brief b {
+  color: var(--ink);
+}
+.lab-collage .lab-zoom-brief {
+  margin: 0 0 12px;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
