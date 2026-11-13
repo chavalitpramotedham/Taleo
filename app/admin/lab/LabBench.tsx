@@ -34,7 +34,7 @@ export interface LabPage {
 const WAYS = [
   {
     id: "1",
-    name: "Today",
+    name: "v0",
     about: "Nothing reused: the painters draw everything, as now.",
     vars: [
       ["Scenery", "Sonnet 5.5, low effort, no thinking - draws all of it"],
@@ -83,7 +83,7 @@ const WAYS = [
       ["Backdrop", "on: reused, zoomed and panned per page"],
       [
         "Replaces",
-        "the first way 3 (Sonnet at medium, thinking first), which cost more than today",
+        "the first way 3 (Sonnet at medium, thinking first), which cost more than v0",
       ],
     ],
   },
@@ -587,7 +587,7 @@ export function LabBench({
     );
     if (!parts.length) return null;
     const say = (x: (typeof parts)[number]) =>
-      `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than today, expected ${x.want}% ${x.less}`;
+      `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than v0, expected ${x.want}% ${x.less}`;
     const short = parts.filter(
       (x) => (x.want > 0 && x.got < 0) || x.want - x.got > 25,
     );
@@ -625,7 +625,7 @@ export function LabBench({
       const cost = c?.usd ?? saved?.usd;
       const vs =
         x.id !== "1" && cost !== undefined && today
-          ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs today`
+          ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs v0`
           : "";
       const info =
         c?.state === "painting"
@@ -757,7 +757,7 @@ export function LabBench({
                   Score
                 </th>
                 <th>Avg cost</th>
-                <th>vs today</th>
+                <th>vs v0</th>
                 <th>Expected</th>
                 <th>Avg time</th>
                 <th className="lab-wide">Ranked 1st</th>
@@ -1028,7 +1028,7 @@ export function LabBench({
                 <b>Expected:</b> {usd(ESTIMATES[specWay.id].usd)} and{" "}
                 {secs(ESTIMATES[specWay.id].ms)} a page (
                 {ESTIMATES[specWay.id].costPc}% cheaper,{" "}
-                {ESTIMATES[specWay.id].timePc}% faster than today).{" "}
+                {ESTIMATES[specWay.id].timePc}% faster than v0).{" "}
                 {ESTIMATES[specWay.id].why}
               </p>
             )}
@@ -1760,7 +1760,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <b>{usd(me.avgCost)}</b>
         {base && (
           <em className={costSave?.endsWith("less") ? "good" : ""}>
-            {costSave ? `${costSave} than today` : "no baseline yet"}
+            {costSave ? `${costSave} than v0` : "no baseline yet"}
           </em>
         )}
         {est && (
@@ -1779,7 +1779,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
         <b>{secs(me.avgTime)}</b>
         {base && (
           <em className={timeSave?.endsWith("less") ? "good" : ""}>
-            {timeSave ? `${timeSave} than today` : "no baseline yet"}
+            {timeSave ? `${timeSave} than v0` : "no baseline yet"}
           </em>
         )}
         {est && (
@@ -1794,7 +1794,7 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       </div>
       {base && (
         <div className="lab-stat">
-          <span>Today, for comparison</span>
+          <span>v0, for comparison</span>
           <b>
             {usd(base.avgCost)} · {secs(base.avgTime)}
           </b>
