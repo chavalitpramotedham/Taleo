@@ -1,7 +1,7 @@
 import { currentAdmin } from "@/server/entitlements";
 import { redirect } from "next/navigation";
 import { listCharacters } from "@/server/characters";
-import { presetByKey, presetCharacter } from "@/lib/presets";
+import { PRESETS, presetByKey, presetCharacter } from "@/lib/presets";
 import type { CharacterDef } from "@/lib/types";
 import { LabBench, type LabPage } from "./LabBench";
 
@@ -23,7 +23,13 @@ export default async function LabPage() {
   const preset = (key: string, id: string) => presetCharacter(presetByKey(key)!, undefined, id);
   // (the admin's own first made-up character, if there is one, stands in
   // for a family's)
-  const own = (await listCharacters(admin.id).catch(() => [])).find((c) => c.svg);
+  const mine = await listCharacters(admin.id).catch(() => []);
+  const own = mine.find((c) => c.svg);
+  // (for the admin's own test pages: every preset, and their own characters)
+  const choices: CharacterDef[] = [
+    ...mine.filter((c) => c.svg).map((c): CharacterDef => ({ id: `own-${c.id}`.slice(0, 40), name: c.name, look: c.look, preset: null, svg: c.svg })),
+    ...PRESETS.map((p) => presetCharacter(p, undefined, p.key)),
+  ];
   const custom: CharacterDef | null = own ? { id: "hero", name: own.name, look: own.look, preset: null, svg: own.svg } : null;
   const pip = preset("bunny", "hero");
   const miso = preset("kitty", "friend1");
@@ -38,6 +44,8 @@ export default async function LabPage() {
         characters: ["hero", "friend1", "friend2"],
         action: { word: "shared", target: "friend1", sound: "pop", motion: "bounce" },
       },
+      place: { id: "meadow-oak", about: "the edge of a summer meadow: a big oak on the left, a wooden fence on the right, wild flowers in the long grass", light: "day" },
+      camera: "mid",
     },
     {
       key: "puddle",
@@ -49,6 +57,8 @@ export default async function LabPage() {
         characters: ["hero"],
         action: { word: "splash", target: "puddle", sound: "splash", motion: "wiggle" },
       },
+      place: { id: "country-lane", about: "a country lane between two hedges, a wooden field gate behind, fields beyond", light: "day" },
+      camera: "mid",
     },
     {
       key: "custom",
@@ -60,6 +70,8 @@ export default async function LabPage() {
         characters: ["hero"],
         action: null,
       },
+      place: { id: "cottage-gate", about: "a cottage garden gate with climbing roses on the left, a path, flower beds, a cottage window behind on the right", light: "day" },
+      camera: "mid",
     },
     {
       key: "closeup",
@@ -71,6 +83,8 @@ export default async function LabPage() {
         characters: ["hero"],
         action: { word: "ladybird", target: "hero", sound: "giggle", motion: "wiggle" },
       },
+      place: { id: "leafy-hedge", about: "a sunny leafy hedge with a few wild flowers", light: "day" },
+      camera: "close",
     },
     {
       key: "place1",
@@ -82,6 +96,8 @@ export default async function LabPage() {
         characters: ["hero", "friend1"],
         action: { word: "apple", target: "friend1", sound: "pop", motion: "bounce" },
       },
+      place: { id: "apple-tree", about: "a little stream with the old apple tree on its right bank and a wooden footbridge on the left, grass and buttercups along the banks", light: "golden" },
+      camera: "wide",
     },
     {
       key: "place2",
@@ -94,6 +110,8 @@ export default async function LabPage() {
         characters: ["hero", "friend1"],
         action: { word: "scrambled", target: "friend1", sound: "boing", motion: "bounce" },
       },
+      place: { id: "apple-tree", about: "a little stream with the old apple tree on its right bank and a wooden footbridge on the left, grass and buttercups along the banks", light: "golden" },
+      camera: "mid",
     },
     {
       key: "place3",
@@ -106,7 +124,9 @@ export default async function LabPage() {
         characters: ["hero", "friend1"],
         action: { word: "tumbled", target: "hero", sound: "pop", motion: "bounce" },
       },
+      place: { id: "apple-tree", about: "a little stream with the old apple tree on its right bank and a wooden footbridge on the left, grass and buttercups along the banks", light: "golden" },
+      camera: "mid",
     },
   ];
-  return <LabBench world={WORLD} pages={pages} />;
+  return <LabBench world={WORLD} pages={pages} choices={choices} />;
 }

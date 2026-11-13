@@ -20,8 +20,11 @@ import type {
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { expandStream, newStats, ReuseFailed, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
-import { lightOf, paletteFor, seasonOf } from "@/lib/art/palette";
-import { characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, sceneryPrompt, writerPrompt } from "./prompts";
+import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
+import { BACKDROP_BRIEF, characterBriefPrompt, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
+import { partsFor } from "./paint/parts-maker";
+import { once } from "./paint/once";
+import type { CharacterParts } from "@/lib/art/parts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
 type Effort = "low" | "medium" | "high";
@@ -663,7 +666,7 @@ function stageFor(req: IllustrateRequest): string {
  *  did, for the activity log. */
 export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, notes: Record<string, unknown> = {}): AsyncGenerator<string> {
   const reuse = reuseOf(req);
-  if (!reuse.stamps) {
+  if (!reuse.stamps && !reuse.parts && !reuse.backdrops) {
     yield* paintOnce({ ...req, reuse: NO_REUSE }, signal, notes);
     return;
   }
@@ -685,15 +688,27 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // (the pieces' colours: the book's season, the page's light; their
   // seeds: the book, and the page)
   const stats = newStats();
-  if (reuse.stamps) notes.reuse = stats;
+  if (reuse.stamps || reuse.parts) notes.reuse = stats;
+  const light: Light = (["day", "golden", "dusk", "night", "rain"] as const).find((l) => l === req.place?.light) ?? lightOf(`${req.place?.light ?? ""} ${req.page.picture} ${req.page.text}`);
   const expandCtx = (stage: Box | null): ExpandContext => ({
     bookSeed: hashOf(req.storyId || req.world || "taleo"),
     pageSeed: hashOf(`${req.storyId ?? ""}|${req.page.text}`),
-    palette: paletteFor(seasonOf(req.world), lightOf(`${req.page.picture} ${req.page.text}`)),
+    palette: paletteFor(seasonOf(req.world), light),
     stamps: reuse.stamps,
     stage,
   });
+  // Characters from their kept parts: the hand-made ones, or their
+  // portrait regrouped (once, then kept). One that has none is painted in
+  // full, as before.
+  const partsOf = new Map<string, CharacterParts>();
+  if (reuse.parts && req.cast.length) {
+    const began = Date.now();
+    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await partsFor(c).catch(() => null)] as const))) if (p) partsOf.set(id, p);
+    notes.parts = { from: [...partsOf.keys()], full: req.cast.filter((c) => !partsOf.has(c.id)).map((c) => c.id), readyMs: Date.now() - began };
+  }
   const sheet = (c: CharacterDef) => {
+    const parts = partsOf.get(c.id);
+    if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);
     return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
   };
@@ -720,6 +735,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     `PAINT THIS MOMENT: ${req.page.picture}`,
     target ? `${target} Wrap it in <g class="target">.` : "",
     layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
+    partsOf.size ? PARTS_SECTION : "",
     `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
   ]
     .filter(Boolean)
@@ -788,8 +804,53 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const sceneryStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
-      reuse.stamps ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: false }, stats) : brushStrokes(main, stop, logs.characters, why);
-    for await (const strokes of inLayers(sceneryStrokes, characterStrokes, signal)) {
+      reuse.stamps || partsOf.size
+        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: false, figures: Object.fromEntries(partsOf) }, stats)
+        : brushStrokes(main, stop, logs.characters, why);
+    // With backdrops: the place is painted once (the first page set there
+    // paints it, every other page reuses it), framed a little differently
+    // for each page, and the scenery painter adds only this page's own
+    // layer over it.
+    const place = reuse.backdrops && req.place?.id ? req.place : null;
+    const under = place
+      ? async function* (stop: AbortSignal, why: () => string | undefined): AsyncGenerator<string> {
+          const key = `bd:v1:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonOf(req.world)}`)}`;
+          const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
+          let made = false;
+          const backdrop = await once(
+            key,
+            async () => {
+              made = true;
+              (logs as Record<string, Record<string, unknown>>).backdrop = backdropLog;
+              const painter: Brush = {
+                ...scenery,
+                label: "backdrop painter",
+                content: [{ type: "text", text: [world, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, BACKDROP_BRIEF, stageFor({ ...req, page: { ...req.page, characters: ["a", "b"] } }), "Output the SVG markup now."].join("\n\n") }],
+              };
+              let svg = "";
+              for await (const c of expandStream(brushStrokes(painter, stop, backdropLog, why), { ...expandCtx({ x0: 85, x1: 315, y0: 75, y1: 250 }), pageSeed: hashOf(key) }, newStats())) svg += c;
+              return svg;
+            },
+            { ttlS: 30 * 86_400, waitMs: 120_000 },
+          );
+          notes.backdrop = made ? "painted for this page, kept for the others" : "reused";
+          // (this page's framing: a modest zoom about the ground line and
+          // a pan, chosen from the page itself - a close-up comes closer)
+          const h = hashOf(req.page.text);
+          const zoom = req.camera === "close" ? 1.4 : req.camera === "wide" ? 1 : [1, 1.06, 1.12, 1.18, 1.25][h % 5];
+          const dx = (((h >> 3) % 5) - 2) * 12;
+          notes.frame = `zoom ${zoom}, pan ${dx}`;
+          yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">${backdrop}</g>`;
+          const pageLayer: Brush = {
+            ...scenery,
+            label: "page-layer painter",
+            content: [{ type: "text", text: [world, `THE PLACE: ${place.about || place.id}`, PAGE_LAYER_BRIEF, previous, `THIS PAGE'S TEXT: ${req.page.text}`, `THE MOMENT BEING PAINTED: ${req.page.picture}`, stageFor(req), `Painted by the other hand, so NOT by you: ${[...req.cast.map((c) => c.name), req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? `the ${req.page.action.target} (unless it is part of the place's change)` : ""].filter(Boolean).join(", ")}. Output the SVG markup now.`].filter(Boolean).join("\n\n") }],
+          };
+          (logs as Record<string, Record<string, unknown>>).pageLayer = logs.scenery;
+          yield* expandStream(brushStrokes(pageLayer, stop, logs.scenery, why), expandCtx(stageBox(req)), stats);
+        }
+      : sceneryStrokes;
+    for await (const strokes of inLayers(under, characterStrokes, signal)) {
       log.firstStrokeMs ??= Date.now() - began;
       yield strokes;
     }
@@ -798,7 +859,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     throw err;
   } finally {
     log.totalMs = Date.now() - began;
-    if (reuse.stamps) log.reuse = stats;
+    if (reuse.stamps || reuse.parts) log.reuse = stats;
     console.info("painting", JSON.stringify(log));
   }
 }

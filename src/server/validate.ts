@@ -103,5 +103,15 @@ export function parseIllustrateRequest(body: unknown): IllustrateRequest | null 
     sig: str(b.sig, 40) || undefined,
     storyId: /^[a-z0-9]{1,40}$/i.test(str(b.storyId, 41)) ? str(b.storyId, 40) : undefined,
     pageInPart: typeof b.pageInPart === "number" && b.pageInPart >= 0 ? Math.floor(b.pageInPart) : undefined,
+    place: placeOf(b.place),
+    camera: b.camera === "close" || b.camera === "mid" || b.camera === "wide" ? b.camera : null,
   };
+}
+
+/** Where a page is set (see IllustrateRequest.place), if it says. */
+function placeOf(v: unknown): IllustrateRequest["place"] {
+  const p = (v ?? null) as { id?: unknown; about?: unknown; light?: unknown } | null;
+  const id = p && typeof p.id === "string" ? p.id.trim().toLowerCase().replace(/[^a-z0-9 -]/g, "").slice(0, 40) : "";
+  if (!id) return null;
+  return { id, about: str(p!.about, 400) || undefined, light: str(p!.light, 20) || undefined };
 }

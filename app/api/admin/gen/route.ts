@@ -14,8 +14,10 @@ export async function GET(req: Request) {
   const got = await getGen(id).catch(() => null);
   if (!got) return NextResponse.json({ error: "Not written yet." }, { status: 404, headers: { "cache-control": "no-store" } });
   const { record } = got;
+  // (?picture=1: the painting too, for a bench run opened again later)
+  const withPicture = new URL(req.url).searchParams.get("picture") === "1";
   return NextResponse.json(
-    { status: record.status, summary: record.summary, firstMs: record.firstMs, totalMs: record.totalMs, usdMicro: record.usdMicro, calls: record.calls, cases: record.cases },
+    { status: record.status, summary: record.summary, firstMs: record.firstMs, totalMs: record.totalMs, usdMicro: record.usdMicro, calls: record.calls, cases: record.cases, ...(withPicture ? { svg: got.result } : {}) },
     { headers: { "cache-control": "no-store" } },
   );
 }

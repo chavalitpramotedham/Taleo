@@ -246,6 +246,13 @@ export interface IllustrateRequest {
   /** Painted on the admin's bench: also measure how much of each
    *  painter's output was strokes and how much thinking (server only). */
   bench?: boolean;
+  /** Where the page is set, for painting its place once and reusing it
+   *  (see server/paint/backdrops): a short id for the place, a standing
+   *  description of it (its landmarks and which side each is on), and the
+   *  light. Pages without it are painted the ordinary way. */
+  place?: { id: string; about?: string; light?: string } | null;
+  /** How close the picture is: a close-up, a mid shot or a wide shot. */
+  camera?: "close" | "mid" | "wide" | null;
 }
 
 /** Which of the reuse savings a painting uses (see server/paint). */

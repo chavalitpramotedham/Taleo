@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       parsed.cast.length ? `${parsed.cast.length} ${parsed.cast.length === 1 ? "character" : "characters"}` : "nobody on the page",
       parsed.page.action ? "with an action" : "no action",
       allowedAs,
-      parsed.reuse && `lab: ${parsed.reuse.stamps ? "reused pieces" : "ordinary"}`,
+      parsed.reuse && `bench: way ${lab}`,
       !parsed.reuse && reuseOf(parsed).stamps && "reused pieces",
     ].filter((c): c is string => Boolean(c)),
     userId: user?.id ?? null,
@@ -80,10 +80,17 @@ export async function POST(req: Request) {
     await logDenied(logged((await auth())?.user, undefined, false), g.response);
     return g.response;
   }
-  const benched = (lab === "new" || lab === "old") && g.session.user.isAdmin;
+  // The bench's four ways, from nothing reused to everything (see BENCH_WAYS).
+  const way = BENCH_WAYS[lab ?? ""];
+  const benched = Boolean(way) && g.session.user.isAdmin;
   if (benched) {
-    parsed.reuse = lab === "new" ? { stamps: true, parts: false, backdrops: false } : { stamps: false, parts: false, backdrops: false };
+    parsed.reuse = way;
     parsed.bench = true;
+  } else {
+    // (where a page is set steers its painting: until that's part of a
+    // page's signature, only the bench may say)
+    parsed.place = null;
+    parsed.camera = null;
   }
   // The quick painter takes the pages a reader waits on at the start of each
   // part (the story's beginning, and after every decision) - how many is
@@ -178,6 +185,18 @@ export async function POST(req: Request) {
   });
 }
 
+/** The bench's ways to paint a page: 1 as today; 2 standard scenery
+ *  pieces; 3 those and characters from their kept parts; 4 everything -
+ *  and each place painted once, reused under every page set there. */
+const BENCH_WAYS: Record<string, { stamps: boolean; parts: boolean; backdrops: boolean }> = {
+  "1": { stamps: false, parts: false, backdrops: false },
+  "2": { stamps: true, parts: false, backdrops: false },
+  "3": { stamps: true, parts: true, backdrops: false },
+  "4": { stamps: true, parts: true, backdrops: true },
+  old: { stamps: false, parts: false, backdrops: false },
+  new: { stamps: true, parts: false, backdrops: false },
+};
+
 /** What reuse did on a page, for its line in the activity log. */
 function reuseNote(notes: Record<string, unknown>): string {
   const r = notes.reuse as { stamps: number; scatter: number; moved: number; bareInk: number } | undefined;
@@ -188,6 +207,12 @@ function reuseNote(notes: Record<string, unknown>): string {
     .filter(([, l]) => typeof l?.strokeTokens === "number")
     .map(([who, l]) => ` · ${who}: ${l.strokeTokens!.toLocaleString("en-GB")} strokes + ${(l.thinkingTokens ?? 0).toLocaleString("en-GB")} thinking`)
     .join("");
-  if (!r) return failed + split;
-  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${failed}${split}`;
+  const parts = notes.parts as { from: string[]; full: string[]; readyMs: number } | undefined;
+  const figs = (notes.reuse as { figIds?: string[] } | undefined)?.figIds ?? [];
+  const partsNote = parts
+    ? ` · from parts: ${figs.length} of ${parts.from.length}${parts.from.length > figs.length ? ` (${parts.from.filter((id) => !figs.includes(id)).join(", ")} redrawn in full)` : ""}${parts.full.length ? `; no parts for ${parts.full.join(", ")}` : ""}${parts.readyMs > 1500 ? `; parts ready after ${Math.round(parts.readyMs / 1000)}s` : ""}`
+    : "";
+  const place = notes.backdrop ? ` · backdrop ${notes.backdrop}, ${notes.frame}` : "";
+  if (!r) return failed + partsNote + place + split;
+  return ` · ${r.stamps} pieces, ${r.scatter} scatters${r.moved ? `, ${r.moved} moved out of the characters' space` : ""}${partsNote}${place}${failed}${split}`;
 }

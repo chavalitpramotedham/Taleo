@@ -1,6 +1,6 @@
 import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
-import type { CharacterParts, PartView, View } from "@/lib/art/parts";
+import { viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
 
 /**
  * The expander: sits between a painter's stream and the reader, and turns
@@ -66,9 +66,11 @@ export interface ExpandStats {
   figs: number;
   torsos: number;
   heads: number;
+  /** which characters were placed as figures */
+  figIds: string[];
 }
 
-export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0 });
+export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [] });
 
 type Layer = "paint" | "ink" | "detail";
 const LAYER_OF = (tag: string): Layer | "wash" | null => (tag.match(/class="(wash|paint|ink|detail)"/)?.[1] as Layer | "wash" | undefined) ?? null;
@@ -225,22 +227,25 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         const id = a.c ?? a.id ?? "";
         const parts = ctx.figures?.[id];
         const v = ((a.v ?? a.view ?? "front").toLowerCase() === "three" ? "three" : "front") as View;
-        if (!parts) throw new ReuseFailed(`no parts for "${id}"`);
+        const view = parts ? viewOf(parts, v) : null;
+        if (!parts || !view) throw new ReuseFailed(`no parts for "${id}"`);
         const x = num(a, "x", null, -100, 500);
         const y = num(a, "y", null, -100, 400);
         const sc = num(a, "s", 0.6, 0.15, 2.5);
-        const flip = a.flip === "1" || a.flip === "true";
+        // (a view drawn facing left is mirrored to face right first)
+        const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
         const lean = num(a, "lean", 0, -45, 45);
         fig = {
           id,
           s: sc,
           tilt: num(a, "tilt", 0, -40, 40),
-          view: parts.views[v],
+          view,
           put: new Set(),
           // (feet at 100,190 on its own canvas: placed at x,y, leaned about the feet)
           t: `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
         };
         stats.figs++;
+        if (!stats.figIds.includes(id)) stats.figIds.push(id);
         continue;
       }
       if (/^<\s*\/\s*fig\s*>$/i.test(tag)) {

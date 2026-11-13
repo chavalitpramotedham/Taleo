@@ -26,6 +26,9 @@ export type View = "front" | "three";
 export type Pt = [number, number];
 
 export interface PartView {
+  /** drawn turned to face the viewer's left (a three-quarter view made
+   *  from a portrait that looks that way): mirrored when placed */
+  facesLeft?: boolean;
   head: Piece;
   torso: Piece;
   anchors: {
@@ -47,8 +50,12 @@ export interface CharacterParts {
   colours: Record<string, string>;
   /** a few words on how its limbs and face are drawn */
   build: string;
-  views: Record<View, PartView>;
+  /** at least one view; a missing one is stood in for by the other */
+  views: Partial<Record<View, PartView>>;
 }
+
+/** The view to use: the one asked for, else whichever there is. */
+export const viewOf = (parts: CharacterParts, v: View): PartView | null => parts.views[v] ?? parts.views.front ?? parts.views.three ?? null;
 
 const f = (n: number) => (Math.round(n * 10) / 10).toString();
 /** form shading: a darker crescent lower right, a pale glaze upper left */

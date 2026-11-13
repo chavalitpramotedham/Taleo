@@ -303,3 +303,53 @@ QUALITY
 - Before finishing, check it like an illustrator: Is the silhouette clear and charming? Is every limb attached, counted and doing something? Are the eyes level and alive, with highlights? Does every rounded form have its shadow and highlight? Is there pen line on every main shape? Fix anything that looks flat, stiff, lopsided or unfinished.
 
 In "look", write a precise model sheet of exactly what you painted, so the same character can be repainted identically on every page of a book. In this order: kind, age and build; proportions (head against body, limb length); each colour with its exact hex and where it goes (skin or fur, hair, each garment, markings); the signature features and where they sit; the face (eye shape and colour, brows, nose, mouth, cheeks); anything worn or carried; personality in a few words. Under 550 characters.`;
+
+// ---------------------------------------------------------------- reuse: characters from parts
+
+/** Added to the character painter's request when some characters are
+ *  painted from their kept parts (see lib/art/parts, server/paint). */
+export const PARTS_SECTION = `CHARACTERS FROM PARTS
+Some characters below are marked PAINTED FROM PARTS: the app keeps their head (head shape, ears, hair, muzzle or snout and nose, markings, anything worn on the head) and their body (body shape, clothing, markings) and puts them in for you, exactly as the family knows them. For those characters you draw only what moves: the face (eyes, eyebrows, mouth, cheeks), the arms, hands or paws, legs, feet, tail, whatever they hold, put on or take off, and what the action does. Never draw a kept head or body yourself.
+Write each such character as one figure:
+  <fig c="hero" v="three" x="140" y="246" s="0.62" flip="1" lean="-5" tilt="8">
+    <g class="paint">far arm and leg, far held things <torso/> near legs and arms, held things <head>cheeks</head></g>
+    <g class="ink">pen lines of the limbs and held things <torso/> <head>closed or laughing eyes as arcs, eyebrows, mouth</head></g>
+    <g class="detail"><head>eye dots with a white highlight, tongue</head></g>
+  </fig>
+- c: the character's id. v: one of its views ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually 0.55-0.8, a close-up 1.3-1.8, far away 0.3). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
+- Inside a figure you draw in the character's OWN 200x200 coordinates, from the anchors its sheet gives: arms start at the shoulders, legs at the hips, the face sits on the eye and mouth points. <torso/> and <head>...</head> mark where the kept parts go in the stacking order: far limbs before <torso/>, near limbs and held things after it, and the face inside <head>...</head> so it turns with the head. Write them in each of your paint, ink and detail groups.
+- Use the exact colours each sheet gives, so limbs match the body. Limbs overlap the body where they join; never leave a gap at a shoulder or hip.
+- A figure that is the tap target sits inside it: <g class="target"><fig ...>...</fig></g>.
+- If a pose truly can't be made from the kept head and body (curled up asleep, seen from behind, bent right over, looking straight up), draw that character in full the ordinary way instead, without a <fig>, keeping its colours from its model sheet. Use this only when you must.`;
+
+/** A character's sheet when it's painted from parts: its views, anchors
+ *  and colours instead of its whole reference painting. */
+export function partsSheet(c: { id: string; name: string; look: string }, parts: { colours: Record<string, string>; build: string; views: Partial<Record<"front" | "three", { facesLeft?: boolean; anchors: Record<string, [number, number]> }>> }): string {
+  const pt = (p: [number, number]) => `${p[0]},${p[1]}`;
+  const views = (Object.entries(parts.views) as [string, { anchors: Record<string, [number, number]> }][])
+    .map(([v, pv]) => {
+      const a = pv.anchors;
+      return `  v="${v}": neck ${pt(a.neck)}; shoulders ${pt(a.shoulderL)} and ${pt(a.shoulderR)}; hips ${pt(a.hipL)} and ${pt(a.hipR)}; eyes ${pt(a.eyeL)} and ${pt(a.eyeR)}; mouth ${pt(a.mouth)}`;
+    })
+    .join("\n");
+  const colours = Object.entries(parts.colours)
+    .map(([k, v]) => `${k} ${v}`)
+    .join(", ");
+  return `CHARACTER "${c.id}": ${c.name} - PAINTED FROM PARTS
+Model sheet: ${c.look}
+Views (on its own 200x200 canvas, feet at y 190; the first side named is the nearer one):
+${views}
+Draw its limbs and face in: ${colours}.
+Build: ${parts.build}`;
+}
+
+/** The scenery painter's brief for a place's standing backdrop, painted
+ *  once and reused under every page set there. */
+export const BACKDROP_BRIEF = `THIS IS A STANDING BACKDROP: it will be laid under every page of the book set in this place, each framed a little differently, with that page's own foreground and happenings painted over it by others. So paint the PLACE ITSELF as it always is: the sky and light, the far land or the back wall, the ground or floor right across, and the landmarks that anchor the place, each on the side the description gives. Nothing that happens on any one page: no splashes, nothing fallen, toppled or dropped, nothing mid-motion, no loose leaves or flowers in the foreground, no clouds or birds (those come with each page). Run the sky and ground washes well past every edge (from x -40 to 440, y -30 to 330), because a page may show a little more or less of it.`;
+
+/** The scenery painter's brief for one page's own layer over a backdrop. */
+export const PAGE_LAYER_BRIEF = `THE PLACE IS ALREADY PAINTED (a standing backdrop of it lies underneath, with its sky, land and landmarks). Paint ONLY this page's own layer over it:
+- the foreground: grasses, flowers, a branch, the edge of a rug or table, placed for this picture (mostly standard pieces and scatter);
+- whatever the story has changed in the place on this page (the tipped basket, the open gate, the puddle after the splash, the lamp now lit);
+- the sky's moving things in new places: a couple of clouds, a few birds, drifting leaves (standard pieces).
+No washes, no sky, no land, no landmarks, nothing in the characters' space. Usually 5-20 elements of your own plus your pieces.`;
