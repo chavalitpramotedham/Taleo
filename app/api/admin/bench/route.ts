@@ -113,7 +113,10 @@ function leaderboard(runs: BenchRun[]) {
       // (the other painted slots of a run with only a vote: ranked, no points)
       const slots = r.rank?.length ? order : Object.keys(r.ways).filter((k) => !k.includes("@") && r.ways[k].ok);
       for (const slot of slots) {
-        const v = r.rankVariants?.[slot] ?? variantIn(r, slot);
+        // (the version that painted the ranked picture, as saved with it;
+        // what the browser said only if there's no saved version - a
+        // ranking made while the site updated could name the wrong one)
+        const v = r.ways[slot]?.variant ?? r.rankVariants?.[slot] ?? variantIn(r, slot);
         if (v) give(v, order.indexOf(slot) < 0 ? 99 : order.indexOf(slot), r.rank?.length ? order.length : 4);
       }
     }
@@ -229,7 +232,7 @@ export async function GET(req: Request) {
   // (the bench's own use: over the last day, the last week, and all time -
   // every run, not just those sent)
   const all = await readRuns(20_000);
-  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all), activeWays: await activeWays() }, { headers: noStore });
+  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all), activeWays: await activeWays(), versions: Object.fromEntries(BENCH_SLOTS.map((k) => [k, variantOf(k)])) }, { headers: noStore });
 }
 
 const ID = /^[\w-]{3,80}$/;
@@ -317,9 +320,14 @@ export async function POST(req: Request) {
     const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && SLOT_RE.test(x)))];
     // (which variant was in each slot when it was ranked: the slot's way may
     // change later)
+    // (the version that actually painted each picture, as saved with it -
+    // never the browser's idea of the current one, which can be a version
+    // behind or ahead while the site updates; else what the browser said,
+    // else the current one)
     const variants: Record<string, string> = {};
     const given = (b.variants ?? {}) as Record<string, unknown>;
-    for (const slot of order) variants[slot] = typeof given[slot] === "string" && /^[\w-]{1,20}$/.test(given[slot] as string) ? (given[slot] as string) : variantOf(slot as BenchSlot);
+    const run = (await readRuns()).find((r) => r.id === runId);
+    for (const slot of order) variants[slot] = run?.ways[slot]?.variant ?? (typeof given[slot] === "string" && /^[\w-]{1,20}$/.test(given[slot] as string) ? (given[slot] as string) : variantOf(slot as BenchSlot));
     await hset(`bench:run:${runId}`, "rank", JSON.stringify(order));
     await hset(`bench:run:${runId}`, "rankv", JSON.stringify(variants));
     return NextResponse.json({ ok: true });

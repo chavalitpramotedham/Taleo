@@ -7,6 +7,7 @@ import {
   legacyVariant,
   rankPoints,
   variantOf,
+  BENCH_SLOTS,
   type BenchSlot,
 } from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
@@ -245,6 +246,7 @@ export function LabBench({
   const [runs, setRuns] = useState<Run[]>([]);
   const [board, setBoard] = useState<Board[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
+  const [stale, setStale] = useState(false);
   // Which ways paint test pages (the rest are paused - e.g. v0, once it's
   // clearly not a contender and too dear to keep painting): saved on the
   // server, so it holds on every device.
@@ -272,6 +274,9 @@ export function LabBench({
     setBoard(d.leaderboard);
     setUsage(d.usage ?? null);
     if (Array.isArray(d.activeWays)) setActive(d.activeWays);
+    // (the server's current versions against this page's: they differ
+    // while the site updates, or when this page was opened before it did)
+    if (d.versions) setStale(BENCH_SLOTS.some((k) => d.versions[k] && d.versions[k] !== variantOf(k)));
     setOwn((d.pages as LabPage[]).map((p) => ({ ...p, own: true })));
     setArchived(new Set((d.archived as string[] | undefined) ?? []));
   }, []);
@@ -844,6 +849,12 @@ export function LabBench({
         </p>
       </header>
 
+      {stale && (
+        <p className="lab-stale" role="status">
+          The bench has been updated since this page loaded (or is updating
+          now). <button type="button" className="btn-link" onClick={() => location.reload()}>Refresh</button> to paint and rank with the latest versions.
+        </p>
+      )}
       <BenchUsage usage={usage} />
       <details className="panel lab-settings">
         <summary>

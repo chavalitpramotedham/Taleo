@@ -16958,3 +16958,22 @@ html[data-night] .lab-board .lab-bad {
   -webkit-line-clamp: 3;
   line-clamp: 3;
 }
+/* the bench is out of date: refresh */
+.lab-stale {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--russet);
+  background: color-mix(in srgb, var(--russet) 10%, transparent);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.lab-stale .btn-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--russet);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
