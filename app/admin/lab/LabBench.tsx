@@ -605,13 +605,6 @@ export function LabBench({
     await load();
   };
 
-  const best = (k: "usd" | "totalMs" | "out") => {
-    const vals = board
-      .filter((b) => b.current)
-      .map((b) => b[k])
-      .filter((v): v is number => v !== null);
-    return vals.length ? Math.min(...vals) : null;
-  };
   // (v0, the baseline: its current version once it has paintings, else
   // its latest version that has - so savings still show just after it
   // changes)
@@ -708,10 +701,23 @@ export function LabBench({
       };
     return null;
   };
-  const vsToday = (v?: number | null) =>
-    v === undefined || v === null || !today
-      ? "-"
-      : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`;
+  /** A value against v0's, as "-40%" (green: cheaper or faster) or "+12%"
+   *  (red: dearer or slower). */
+  const vsBase = (v: number | null | undefined, base: number | null | undefined) => {
+    if (v === undefined || v === null || !base) return <>-</>;
+    const pc = Math.round((1 - v / base) * 100);
+    return <span className={pc > 0 ? "lab-good" : pc < 0 ? "lab-bad" : ""}>{pc > 0 ? `-${pc}%` : pc < 0 ? `+${-pc}%` : "0%"}</span>;
+  };
+  // The average cost and time across every version with paintings (old
+  // ones too): each version's own is green when it's at least 5% better
+  // than that, red when at least 5% worse.
+  const meanOf = (k: "usd" | "totalMs") => {
+    const xs = board.filter((x) => x.painted > 0 && typeof x[k] === "number").map((x) => x[k] as number);
+    return xs.length ? xs.reduce((t, x) => t + x, 0) / xs.length : null;
+  };
+  const meanUsd = meanOf("usd");
+  const meanMs = meanOf("totalMs");
+  const vsMean = (v: number | null, mean: number | null) => (v === null || !mean ? "" : v <= mean * 0.95 ? "lab-good" : v >= mean * 1.05 ? "lab-bad" : "");
 
   const [view, setView] = useState<string>("compare");
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
@@ -861,10 +867,11 @@ export function LabBench({
                 >
                   Score
                 </th>
-                <th>Avg cost</th>
+                <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg cost</th>
                 <th>vs v0</th>
                 <th>Expected</th>
-                <th>Avg time</th>
+                <th title="Green: at least 5% below the average across all versions; red: at least 5% above">Avg time</th>
+                <th>vs v0</th>
                 <th className="lab-wide">Ranked 1st</th>
                 <th className="lab-wide">Tokens out</th>
                 <th className="lab-wide">First stroke</th>
@@ -931,32 +938,19 @@ export function LabBench({
                           </small>
                         )}
                       </td>
-                      <td
-                        className={
-                          b.current && b.usd !== null && b.usd === best("usd")
-                            ? "lab-best"
-                            : ""
-                        }
-                      >
+                      <td className={vsMean(b.usd, meanUsd)} title={meanUsd ? `Average across all versions: ${usd(meanUsd)}` : undefined}>
                         {usd(b.usd)}
                       </td>
-                      <td>{b.way === "1" ? "-" : vsToday(b.usd)}</td>
+                      <td>{b.way === "1" ? "-" : vsBase(b.usd, today)}</td>
                       <td className="lab-est">
                         {b.way !== "1" && estimateFor(b.variant)
                           ? `-${estimateFor(b.variant)!.costPc}%`
                           : "-"}
                       </td>
-                      <td
-                        className={
-                          b.current &&
-                          b.totalMs !== null &&
-                          b.totalMs === best("totalMs")
-                            ? "lab-best"
-                            : ""
-                        }
-                      >
+                      <td className={vsMean(b.totalMs, meanMs)} title={meanMs ? `Average across all versions: ${secs(meanMs)}` : undefined}>
                         {secs(b.totalMs)}
                       </td>
+                      <td>{b.way === "1" ? "-" : vsBase(b.totalMs, todayMs)}</td>
                       <td className="lab-wide">
                         {b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}
                       </td>

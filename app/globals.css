@@ -16813,3 +16813,18 @@ html[data-night] .lab-fell-note {
   text-decoration: none;
   font-size: 0.88rem;
 }
+/* the leaderboard's better and worse: green and red, by direction */
+.lab-board .lab-good {
+  color: #4f7a38;
+  font-weight: 700;
+}
+.lab-board .lab-bad {
+  color: #a8382f;
+  font-weight: 700;
+}
+html[data-night] .lab-board .lab-good {
+  color: #a9c98f;
+}
+html[data-night] .lab-board .lab-bad {
+  color: #f0a39b;
+}
