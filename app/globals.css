@@ -16069,12 +16069,9 @@ html[data-night] .policy-body a.btn:hover {
 }
 .journey-intro {
   max-width: 640px;
-  margin: 0 auto 26px;
+  margin: 0 auto 12px;
   text-align: center;
   color: var(--ink-soft);
-}
-.journey-intro a {
-  color: var(--russet);
 }
 .journey-line {
   list-style: none;
@@ -16146,34 +16143,12 @@ html[data-night] .policy-body a.btn:hover {
   margin: 4px 0 2px;
   font-size: 1.3rem;
 }
-.journey-count {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
-  color: var(--ink-soft);
-}
 .journey-card ul {
   margin: 0;
   padding-left: 18px;
 }
 .journey-card li {
   margin: 0 0 4px;
-}
-.journey-shot {
-  margin: 12px 0 0;
-  display: grid;
-  justify-items: start;
-  gap: 4px;
-}
-.journey-shot img {
-  width: min(190px, 52vw);
-  height: auto;
-  border-radius: 18px;
-  border: 1px solid var(--rule);
-  box-shadow: 0 10px 24px -14px rgba(60, 40, 20, 0.45);
-}
-.journey-shot figcaption {
-  font-size: 0.75rem;
-  color: var(--ink-soft);
 }
 /* (six links: a little tighter on a phone, so they keep to one line) */
 @media (max-width: 440px) {
@@ -16231,4 +16206,81 @@ html[data-night] .lab-board tr.lab-ahead td,
 html[data-night] .lab-board tr.lab-ahead td.lab-est,
 html[data-night] .lab-board tr.lab-ahead .lab-variant {
   color: #b9d197;
+}
+
+.journey-ask {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0 auto 28px;
+}
+.journey-ask p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+.journey-ask .btn {
+  min-height: 0;
+  padding: 8px 22px;
+}
+.journey-card {
+  padding: 12px 16px 14px;
+}
+.journey-card ul {
+  font-size: 0.95rem;
+}
+.journey-card li {
+  margin: 0 0 2px;
+}
+/* a day's screenshots: a low window that scrolls sideways */
+.journey-gallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  margin: 12px -16px 0;
+  padding: 2px 16px 6px;
+  scrollbar-width: thin;
+}
+.journey-thumb {
+  flex: none;
+  margin: 0;
+  width: 110px;
+  display: grid;
+  gap: 4px;
+  scroll-snap-align: start;
+}
+.journey-thumb.wide {
+  width: 300px;
+}
+.journey-thumb .admin-zoom {
+  display: block;
+  width: 100%;
+  cursor: zoom-in;
+}
+.journey-thumb-img {
+  display: block;
+  width: 100%;
+  height: 238px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 12px;
+  border: 1px solid var(--rule);
+  background: var(--page);
+}
+.journey-thumb.wide .journey-thumb-img {
+  height: 188px;
+}
+.journey-thumb figcaption {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+.journey-thumb.square {
+  width: 130px;
+}
+.journey-thumb.square .journey-thumb-img {
+  height: 130px;
+  border-radius: 28px;
 }

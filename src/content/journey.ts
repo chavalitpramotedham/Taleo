@@ -10,8 +10,7 @@
  * admin's tools or dashboards, model or supplier names, or anything about
  * accounts, security settings or keys.
  *
- * A scheduled task adds each new day's entry at the end of the day (see
- * the commit that added this file).
+ * A scheduled task adds each new day's entry at the end of the day.
  */
 export interface JourneyDay {
   /** YYYY-MM-DD, Singapore time */
@@ -20,9 +19,21 @@ export interface JourneyDay {
   updates: number;
   /** two to four short points */
   highlights: string[];
-  /** optional: a picture of the site as it stood that day (public/journey/) */
-  shot?: { src: string; alt: string };
+  /** pictures of what changed, as it looked that evening (public/journey/):
+   *  each caption names what it shows - night mode in night mode, and so
+   *  on. Admin pages only ever with everything under their title blurred. */
+  shots?: JourneyShot[];
 }
+export interface JourneyShot {
+  src: string;
+  caption: string;
+  /** a desktop-width picture (else a phone's) */
+  wide?: boolean;
+  /** a square picture (an icon) */
+  square?: boolean;
+}
+
+const shot = (day: string, name: string, caption: string, wide = false): JourneyShot => ({ src: `/journey/d${day}-${name}.webp`, caption, ...(wide ? { wide } : {}) });
 
 export const JOURNEY: JourneyDay[] = [
   {
@@ -35,7 +46,7 @@ export const JOURNEY: JourneyDay[] = [
       "A public library of stories, sign-in with Google, ratings and friendly character avatars.",
       "The maple-leaf whirl that became Taleo's brand mark.",
     ],
-    shot: { src: "/journey/day-07.webp", alt: "Taleo's home page at the end of its first day" },
+    shots: [shot("07", "home", "The very first home page"), shot("07", "reader", "A storybook page, with a word to tap"), shot("07", "library", "The first public library")],
   },
   {
     date: "2026-11-08",
@@ -45,21 +56,21 @@ export const JOURNEY: JourneyDay[] = [
       "Your own characters, and stories with up to three heroes.",
       "Page turns you can swipe, read-aloud, and gentle bedtime music.",
       "Night mode, with a hand-inked lantern glowing over the page.",
-      "The home page painting paints itself, like an illustrator at work.",
+      "An About page: why Taleo exists.",
     ],
-    shot: { src: "/journey/day-08.webp", alt: "Taleo's home page at the end of day two" },
+    shots: [shot("08", "reader-night", "Night mode in the storybook, with music and read-aloud"), shot("08", "create", "Setting up a story: who is it for?"), shot("08", "about", "The About page: why I made Taleo")],
   },
   {
     date: "2026-11-09",
     title: "Ready for bedtime",
     updates: 155,
     highlights: [
+      "Night mode across the whole site, with a lantern and fireflies.",
       "Every story opens as a cloth-bound book cover.",
-      "Words light up as they're read aloud, so little ones can follow along.",
-      "Unfinished stories are saved to carry on later, and a new level for young readers (6+).",
-      "Anyone can browse and read the library, no account needed.",
+      "Words light up as they're read aloud, and a new level for young readers (6+).",
+      "Your own characters get a page of their own, and anyone can read the library.",
     ],
-    shot: { src: "/journey/day-09.webp", alt: "Taleo's home page at the end of day three" },
+    shots: [shot("09", "home-night", "Night mode across the whole site"), shot("09", "cover", "Every story opens as a book cover"), shot("09", "characters", "My characters")],
   },
   {
     date: "2026-11-10",
@@ -71,7 +82,7 @@ export const JOURNEY: JourneyDay[] = [
       "Make a character from a photo, and rearrange your characters by dragging.",
       "Pictures arrive much sooner: the scenery and the characters are painted at the same time.",
     ],
-    shot: { src: "/journey/day-10.webp", alt: "Taleo's home page at the end of day four" },
+    shots: [shot("10", "home-signed-in", "Your own home page, with a reading chart"), shot("10", "bookshelf", "My bookshelf"), shot("10", "admin", "Behind the scenes: the owner's dashboard (details hidden)", true)],
   },
   {
     date: "2026-11-11",
@@ -83,7 +94,7 @@ export const JOURNEY: JourneyDay[] = [
       "A new home-screen icon, and day or night chosen by the clock.",
       "Read-aloud reworked to start sooner and sound more natural.",
     ],
-    shot: { src: "/journey/day-11.webp", alt: "Taleo's home page at the end of day five" },
+    shots: [shot("11", "plans", "Plan and credits: a free story every week"), shot("11", "privacy", "A plain-words privacy page"), { ...shot("11", "icon", "The new home-screen icon"), square: true }, shot("11", "activity", "Behind the scenes: a log of what's made (details hidden)", true)],
   },
   {
     date: "2026-11-12",
@@ -95,7 +106,7 @@ export const JOURNEY: JourneyDay[] = [
       "Secure card payments for credits, through Stripe.",
       "A starry night sky on bigger screens, and faster pages everywhere.",
     ],
-    shot: { src: "/journey/day-12.webp", alt: "Taleo's home page at the end of day six" },
+    shots: [shot("12", "length", "Choosing a story's length"), shot("12", "night-sky", "A starry night sky on bigger screens", true), shot("12", "credits", "Credits, and what each thing takes")],
   },
   {
     date: "2026-11-13",
@@ -104,7 +115,8 @@ export const JOURNEY: JourneyDay[] = [
     highlights: [
       "Plus and Pro plans for families who read every night, and a clear page on pricing.",
       "Smoother home page, story set-up and page turns; the first page's picture is ready sooner.",
-      "Behind the scenes: trying a new way of painting that reuses characters and places, for quicker pictures.",
+      "Behind the scenes: trying new ways of painting that reuse characters and places, for quicker pictures.",
     ],
+    shots: [shot("13", "pricing", "A clear page on pricing and the plans"), shot("13", "bench", "Behind the scenes: testing new ways to paint (details hidden)", true)],
   },
 ];
