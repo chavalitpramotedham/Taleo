@@ -15584,9 +15584,6 @@ html[data-night] .lab-best {
   gap: 2px;
 }
 @media (max-width: 640px) {
-  .lab-wide {
-    display: none;
-  }
   .lab-board th,
   .lab-board td {
     padding: 6px 5px;
@@ -15983,7 +15980,7 @@ html[data-night] .lab-stat em.good {
 }
 /* a variant far off its estimate */
 .lab-board tr.lab-off td {
-  background: color-mix(in srgb, #c4554d 16%, transparent);
+  background: color-mix(in srgb, #c4554d 16%, var(--page));
   color: #9b2f28;
   opacity: 1;
 }
@@ -16205,7 +16202,7 @@ html[data-night] .policy-body a.btn:hover {
 }
 /* a variant doing better than its estimate */
 .lab-board tr.lab-ahead td {
-  background: color-mix(in srgb, #5f8a45 15%, transparent);
+  background: color-mix(in srgb, #5f8a45 15%, var(--page));
   color: #3f6a2c;
   opacity: 1;
 }
@@ -16426,10 +16423,6 @@ button.admin-bar-col:focus-visible {
   .lab-way-name {
     gap: 4px;
   }
-  /* (the Current view already says which are in use) */
-  .lab-now {
-    display: none;
-  }
   .lab-variant {
     font-size: 0.66rem;
   }
@@ -16637,4 +16630,24 @@ html.in-app body {
 }
 html[data-night] .lab-count.done {
   color: #a9c98f;
+}
+/* the leaderboard on a phone: every column, as on a big screen, scrolled
+   sideways - the way's name stays put at the left while the rest moves */
+@media (max-width: 640px) {
+  .lab-board-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .lab-board th:first-child,
+  .lab-board td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: var(--page);
+    box-shadow: 6px 0 8px -8px rgba(0, 0, 0, 0.35);
+  }
+  .lab-board tr.lab-off td:first-child,
+  .lab-board tr.lab-ahead td:first-child {
+    z-index: 1;
+  }
 }
