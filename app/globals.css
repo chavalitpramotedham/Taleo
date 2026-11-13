@@ -15651,3 +15651,77 @@ html[data-night] .lab-best {
 .lab-remove {
   font-size: 0.8rem;
 }
+.lab-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+.lab-stat {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+.lab-stat span {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.lab-stat b {
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.lab-stat em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.lab-stat em.good {
+  color: #4f6b38;
+  font-weight: 600;
+}
+html[data-night] .lab-stat em.good {
+  color: #b9d197;
+}
+@media (max-width: 640px) {
+  .lab-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.lab-new.closed {
+  margin: 12px 0;
+}
+.lab-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lab-add:hover {
+  border-color: var(--russet);
+}
+.lab-add-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--russet);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+.lab-add.open .lab-add-icon {
+  transform: rotate(45deg);
+}

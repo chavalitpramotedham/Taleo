@@ -352,6 +352,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
 
       {viewing ? (
         <section className="lab-gallery" aria-label={`Every page, ${viewing.name}`}>
+          <WaySummary way={viewing.id} runs={runs} />
           <p className="meta lab-gallery-note">Every page&apos;s latest painting, way {nOf(viewing.id)} only.</p>
           <div className="lab-gallery-grid">
             {pages.map((p) => {
@@ -468,6 +469,62 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   );
 }
 
+/** One way's totals over every run, against today's way. */
+function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
+  const stats = (w: string) => {
+    const done = runs.map((r) => r.ways[w]).filter((x): x is Run["ways"][string] => Boolean(x?.ok));
+    const costed = done.filter((x) => x.usd > 0);
+    const cost = costed.reduce((t, x) => t + x.usd, 0);
+    const time = done.reduce((t, x) => t + x.totalMs, 0);
+    return { n: done.length, cost, avgCost: costed.length ? cost / costed.length : null, time, avgTime: done.length ? time / done.length : null };
+  };
+  const me = stats(way);
+  const base = way === "1" ? null : stats("1");
+  const saving = (mine: number | null, theirs: number | null | undefined) => {
+    if (mine === null || !theirs) return null;
+    const pc = Math.round((1 - mine / theirs) * 100);
+    return pc >= 0 ? `${pc}% less` : `${-pc}% more`;
+  };
+  const totalTime = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : secs(ms));
+  const costSave = saving(me.avgCost, base?.avgCost);
+  const timeSave = saving(me.avgTime, base?.avgTime);
+  return (
+    <div className="lab-summary">
+      <div className="lab-stat">
+        <span>Paintings</span>
+        <b>{me.n}</b>
+      </div>
+      <div className="lab-stat">
+        <span>Cost per painting</span>
+        <b>{usd(me.avgCost)}</b>
+        {base && <em className={costSave?.endsWith("less") ? "good" : ""}>{costSave ? `${costSave} than today` : "no baseline yet"}</em>}
+      </div>
+      <div className="lab-stat">
+        <span>Total cost</span>
+        <b>{usd(me.n ? me.cost : null)}</b>
+      </div>
+      <div className="lab-stat">
+        <span>Time per painting</span>
+        <b>{secs(me.avgTime)}</b>
+        {base && <em className={timeSave?.endsWith("less") ? "good" : ""}>{timeSave ? `${timeSave} than today` : "no baseline yet"}</em>}
+      </div>
+      <div className="lab-stat">
+        <span>Total painting time</span>
+        <b>{me.n ? totalTime(me.time) : "-"}</b>
+      </div>
+      {base && (
+        <div className="lab-stat">
+          <span>Today, for comparison</span>
+          <b>
+            {usd(base.avgCost)} · {secs(base.avgTime)}
+          </b>
+          <em>per painting, over {base.n}</em>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** A test page of the admin's own. */
 function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
@@ -514,9 +571,12 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
     onSaved();
   };
   return (
-    <section className="panel lab-new">
-      <button type="button" className="link-btn" onClick={() => setOpen((o) => !o)}>
-        {open ? "Close" : "+ Add a test page of your own"}
+    <section className={open ? "panel lab-new" : "lab-new closed"}>
+      <button type="button" className={`lab-add${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span className="lab-add-icon" aria-hidden="true">
+          +
+        </span>
+        {open ? "Close" : "New test page"}
       </button>
       {open && (
         <div className="lab-form">
