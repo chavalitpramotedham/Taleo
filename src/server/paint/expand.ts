@@ -58,7 +58,34 @@ export interface ExpandContext {
   figures?: Record<string, CharacterParts>;
   /** Characters' pre-painted poses, by their id on the page. */
   sprites?: Record<string, Partial<Record<string, Sprite>>>;
+  /** How big a placed character may be, and where its feet may stand,
+   *  for this page's camera (see sizingFor): what the model asks for is
+   *  kept within it, so nobody comes out huge or tiny. */
+  sizing?: Sizing;
 }
+export interface Sizing {
+  /** the usual size for this camera */
+  s: number;
+  /** the band around it, as multiples of s */
+  lo: number;
+  hi: number;
+  /** where feet may stand */
+  yLo: number;
+  yHi: number;
+}
+/** A page's sizing, from its camera (or, without one, its brief). */
+export function sizingFor(camera: string | null | undefined, picture: string, characters: number): Sizing {
+  const cam = camera ?? (/close[- ]?up|close shot/i.test(picture) ? "close" : /wide shot|far away|in the distance|tiny in|small in the/i.test(picture) ? "wide" : "mid");
+  const crowd = characters >= 3 ? 0.9 : 1;
+  if (cam === "close") return { s: 1.45 * crowd, lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
+  if (cam === "wide") return { s: 0.42 * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
+  return { s: 0.62 * crowd, lo: 0.82, hi: 1.18, yLo: 234, yHi: 262 };
+}
+const sized = (ctx: ExpandContext, sc: number, y: number) => {
+  const z = ctx.sizing;
+  if (!z) return { sc, y };
+  return { sc: Math.min(z.s * z.hi, Math.max(z.s * z.lo, sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
+};
 
 export interface ExpandStats {
   stamps: number;
@@ -279,8 +306,8 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         const sp = poses[want] ?? poses.stand ?? Object.values(poses)[0];
         if (!sp) throw new ReuseFailed(`no poses for "${id}"`);
         const x = num(a, "x", null, -100, 500);
-        const y = num(a, "y", null, -100, 400);
-        const sc = num(a, "s", 0.6, 0.15, 2.5);
+        // (size and footing kept to this page's camera)
+        const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400));
         const flip = a.flip === "1" || a.flip === "true";
         const lean = num(a, "lean", 0, -30, 30);
         const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
@@ -300,8 +327,12 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         const view = parts ? viewOf(parts, v) : null;
         if (!parts || !view) throw new ReuseFailed(`no parts for "${id}"`);
         const x = num(a, "x", null, -100, 500);
-        const y = num(a, "y", null, -100, 400);
-        const sc = num(a, "s", 0.6, 0.15, 2.5);
+        // (size and footing kept to this page's camera - except sitting,
+        // whose y is the seat's)
+        const seated = (a.legs ?? "").toLowerCase() === "sit";
+        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400));
+        const sc = fit.sc;
+        const y = seated ? num(a, "y", null, -100, 400) : fit.y;
         // (a view drawn facing left is mirrored to face right first)
         const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
         const lean = num(a, "lean", 0, -45, 45);
@@ -408,3 +439,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   if (fig) tail += endFig();
   if (tail) yield tail;
 }
+
+/** The size line the composers and painters are given (see sizingFor). */
+export const sizeLine = (z: Sizing) =>
+  `SIZE ON THIS PAGE: a grown character is about s="${z.s.toFixed(2)}" (kept between ${(z.s * z.lo).toFixed(2)} and ${(z.s * z.hi).toFixed(2)}); smaller ones (a baby, a mouse) toward the low end. Feet stand between y ${z.yLo} and ${z.yHi}.`;

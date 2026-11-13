@@ -201,7 +201,7 @@ const RESTART = "<!--taleo:restart-->";
 const secs = (n?: number | null) =>
   n === undefined || n === null ? "-" : `${(n / 1000).toFixed(1)}s`;
 const usd = (n?: number | null) =>
-  n === undefined || n === null ? "-" : `$${n.toFixed(3)}`;
+  n === undefined || n === null ? "-" : n > 0 && n < 0.01 ? `$${n.toFixed(4)}` : `$${n.toFixed(3)}`;
 const num = (n?: number | null) =>
   n === undefined || n === null ? "-" : Math.round(n).toLocaleString();
 const newId = (k: string) =>

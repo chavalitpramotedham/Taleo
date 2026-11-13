@@ -49,14 +49,16 @@ export const STYLE: Record<BenchSlot, string> = {
   // (an apple and a bunch of flowers to hold had taken their names)
   // s5 (13 Nov): characters' parts prepared ahead and shared; token
   // counts off the clock; a tree a character touches can stand among them
-  p: "s5",
+  // s6 (13 Nov): characters kept to the camera's size band and footing
+  p: "s6",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
   // s4 (13 Nov): as p s5, and its painter may place standard pieces for
   // what the characters touch; gentler backdrop framing; a place's
   // backdrop reused across its pages
-  q: "s4",
+  // s5 (13 Nov): as p s6
+  q: "s5",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -64,9 +66,11 @@ export const STYLE: Record<BenchSlot, string> = {
   // s5 (13 Nov): as q s4
   // s6 (13 Nov): the composer is Haiku 5.5 (a twentieth of Sonnet's price);
   // and so its settings' fingerprint changes too
-  x: "s6",
+  // s7 (13 Nov): as p s6 (Haiku had them huge or tiny)
+  x: "s7",
   // s1 (13 Nov): first version
-  s: "s1",
+  // s2 (13 Nov): as p s6
+  s: "s2",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

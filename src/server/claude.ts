@@ -18,7 +18,7 @@ import type {
   StoryRequest,
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
-import { expandStream, newStats, ReuseFailed, type Box, type ExpandContext } from "./paint/expand";
+import { expandStream, newStats, ReuseFailed, sizeLine, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
 import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
@@ -712,6 +712,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     palette: paletteFor(seasonOf(req.world), light),
     stamps: reuse.stamps,
     stage,
+    // (characters placed from parts or poses kept to the page's camera)
+    sizing: reuse.parts || reuse.sprites ? sizingFor(req.camera, req.page.picture, req.page.characters.length) : undefined,
   });
   // Characters from their kept parts: the hand-made ones, or their
   // portrait regrouped (once, then kept). One that has none is painted in
@@ -771,6 +773,9 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     target ? `${target} Wrap it in <g class="target">.` : "",
     layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
     partsOf.size && !posing ? PARTS_SECTION : "",
+    // (the size every placed character is kept to - better aimed at than
+    // corrected)
+    posing || partsOf.size ? sizeLine(sizingFor(req.camera, req.page.picture, req.page.characters.length)) : "",
     posing
       ? `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the tags now.`
       : `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
