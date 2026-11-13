@@ -2,7 +2,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ESTIMATES } from "@/lib/bench-estimates";
-import { legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
+import {
+  legacyVariant,
+  RANK_POINTS,
+  variantOf,
+  type BenchSlot,
+} from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
 import type { CharacterDef, IllustrateRequest } from "@/lib/types";
 
@@ -36,10 +41,17 @@ const WAYS = [
   {
     id: "p",
     name: "Parts + pieces",
-    about: "Each character's head and body kept and placed; the painter draws only faces, limbs and actions. Scenery placed from the standard pieces.",
+    about:
+      "Each character's head and body kept and placed; the painter draws only faces, limbs and actions. Scenery placed from the standard pieces.",
     vars: [
-      ["Scenery", "Sonnet 5.5, low effort, no thinking - places pieces, draws the rest"],
-      ["Characters", "Opus 5.5, low effort, thinks first - draws faces, limbs, held things"],
+      [
+        "Scenery",
+        "Sonnet 5.5, low effort, no thinking - places pieces, draws the rest",
+      ],
+      [
+        "Characters",
+        "Opus 5.5, low effort, thinks first - draws faces, limbs, held things",
+      ],
       ["Pieces", "on (scenery, props, effects)"],
       ["Backdrop", "none: painted afresh on every page"],
     ],
@@ -47,25 +59,45 @@ const WAYS = [
   {
     id: "q",
     name: "Parts + backdrop, quick",
-    about: "Each character's head and body reused, and drawn on by a quick painter that doesn't think first (faces, limbs, actions, what they hold). The place is painted once and reused; the page's own sky and foreground are made in code.",
+    about:
+      "Each character's head and body reused, and drawn on by a quick painter that doesn't think first (faces, limbs, actions, what they hold). The place is painted once and reused; the page's own sky and foreground are made in code.",
     vars: [
-      ["Scenery", "the place's backdrop, painted once per place and light (shown stroke by stroke on the page that paints it); this page's sky and foreground made in code (no painter)"],
-      ["Characters", "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies"],
+      [
+        "Scenery",
+        "the place's backdrop, painted once per place and light (shown stroke by stroke on the page that paints it); this page's sky and foreground made in code (no painter)",
+      ],
+      [
+        "Characters",
+        "Sonnet 5.5, low effort, no thinking - draws faces, limbs, held things onto the kept heads and bodies",
+      ],
       ["Pieces", "on (scenery, props, effects)"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
-      ["Replaces", "the first way 3 (Sonnet at medium, thinking first), which cost more than today"],
+      [
+        "Replaces",
+        "the first way 3 (Sonnet at medium, thinking first), which cost more than today",
+      ],
     ],
   },
   {
     id: "x",
     name: "Extreme reuse",
-    about: "Almost nothing drawn: the place is reused, the page's sky and foreground are made in code, and the characters are put together entirely from the pose library - a cheap composer only writes where everyone stands, their pose, mood and what they hold.",
+    about:
+      "Almost nothing drawn: the place is reused, the page's sky and foreground are made in code, and the characters are put together entirely from the pose library - a cheap composer only writes where everyone stands, their pose, mood and what they hold.",
     vars: [
-      ["Scenery", "the place's backdrop, painted once per place and light; this page's sky and foreground made in code (no painter)"],
-      ["Characters", "Sonnet 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn"],
+      [
+        "Scenery",
+        "the place's backdrop, painted once per place and light; this page's sky and foreground made in code (no painter)",
+      ],
+      [
+        "Characters",
+        "Sonnet 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn",
+      ],
       ["Pieces", "on, including props and action effects"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
-      ["If a character has no parts", "the composer can't pose it, so it's drawn by the same quick painter for that page"],
+      [
+        "If a character has no parts",
+        "the composer can't pose it, so it's drawn by the same quick painter for that page",
+      ],
     ],
   },
 ] as const;
@@ -83,7 +115,13 @@ interface Cell {
   totalMs?: number;
   firstMs?: number;
   summary?: string;
-  calls?: { label: string; out: number; in: number; cacheRead: number; totalMs: number }[];
+  calls?: {
+    label: string;
+    out: number;
+    in: number;
+    cacheRead: number;
+    totalMs: number;
+  }[];
   genId?: string;
   /** when it was asked for (Date.now()), for the wait bar */
   startedAt?: number;
@@ -92,7 +130,21 @@ interface Run {
   id: string;
   at: number;
   page: string;
-  ways: Record<string, { usd: number; out: number; totalMs: number; firstMs?: number; ok: boolean; genId?: string; summary?: string; error?: string; setupUsd?: number; variant?: string }>;
+  ways: Record<
+    string,
+    {
+      usd: number;
+      out: number;
+      totalMs: number;
+      firstMs?: number;
+      ok: boolean;
+      genId?: string;
+      summary?: string;
+      error?: string;
+      setupUsd?: number;
+      variant?: string;
+    }
+  >;
   vote?: string;
   rank?: string[];
 }
@@ -115,17 +167,33 @@ interface Board {
 
 const DONE = "<!--taleo:done-->";
 const RESTART = "<!--taleo:restart-->";
-const secs = (n?: number | null) => (n === undefined || n === null ? "-" : `${(n / 1000).toFixed(1)}s`);
-const usd = (n?: number | null) => (n === undefined || n === null ? "-" : `$${n.toFixed(3)}`);
-const num = (n?: number | null) => (n === undefined || n === null ? "-" : Math.round(n).toLocaleString());
-const newId = (k: string) => `${k.replace(/[^\w-]/g, "").slice(0, 40)}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+const secs = (n?: number | null) =>
+  n === undefined || n === null ? "-" : `${(n / 1000).toFixed(1)}s`;
+const usd = (n?: number | null) =>
+  n === undefined || n === null ? "-" : `$${n.toFixed(3)}`;
+const num = (n?: number | null) =>
+  n === undefined || n === null ? "-" : Math.round(n).toLocaleString();
+const newId = (k: string) =>
+  `${k.replace(/[^\w-]/g, "").slice(0, 40)}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 async function api(body: object) {
-  await fetch("/api/admin/bench", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => {});
+  await fetch("/api/admin/bench", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  }).catch(() => {});
 }
 
 /** The bench: each page painted four ways, voted on, and added up. */
-export function LabBench({ world, pages: fixed, choices }: { world: string; pages: LabPage[]; choices: CharacterDef[] }) {
+export function LabBench({
+  world,
+  pages: fixed,
+  choices,
+}: {
+  world: string;
+  pages: LabPage[];
+  choices: CharacterDef[];
+}) {
   const [own, setOwn] = useState<LabPage[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [board, setBoard] = useState<Board[]>([]);
@@ -135,7 +203,9 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [shown, setShown] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    const d = await fetch("/api/admin/bench", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const d = await fetch("/api/admin/bench", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
     if (!d) return;
     setRuns(d.runs);
     setBoard(d.leaderboard);
@@ -159,10 +229,38 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
         // run; the painting's record has the painters' detail, and is
         // gone after two weeks)
         const [kept, d] = await Promise.all([
-          fetch(`/api/admin/bench?picture=${encodeURIComponent(run.id)}&way=${w}`, { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).catch(() => null),
-          r.genId ? fetch(`/api/admin/gen?id=${encodeURIComponent(r.genId)}&picture=1`, { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).catch(() => null) : null,
+          fetch(
+            `/api/admin/bench?picture=${encodeURIComponent(run.id)}&way=${w}`,
+            { cache: "no-store" },
+          )
+            .then((x) => (x.ok ? x.json() : null))
+            .catch(() => null),
+          r.genId
+            ? fetch(
+                `/api/admin/gen?id=${encodeURIComponent(r.genId)}&picture=1`,
+                { cache: "no-store" },
+              )
+                .then((x) => (x.ok ? x.json() : null))
+                .catch(() => null)
+            : null,
         ]);
-        setCells((all) => ({ ...all, [run.id]: { ...all[run.id], [w]: { svg: kept?.svg || d?.svg || "", state: r.ok ? "done" : "failed", usd: r.usd, out: r.out, totalMs: r.totalMs, firstMs: r.firstMs, summary: r.summary, calls: d?.calls, genId: r.genId } } }));
+        setCells((all) => ({
+          ...all,
+          [run.id]: {
+            ...all[run.id],
+            [w]: {
+              svg: kept?.svg || d?.svg || "",
+              state: r.ok ? "done" : "failed",
+              usd: r.usd,
+              out: r.out,
+              totalMs: r.totalMs,
+              firstMs: r.firstMs,
+              summary: r.summary,
+              calls: d?.calls,
+              genId: r.genId,
+            },
+          },
+        }));
       }
     },
     [cells],
@@ -175,19 +273,51 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runs, pages]);
 
-  const setCell = (runId: string, way: string, c: Partial<Cell>) => setCells((all) => ({ ...all, [runId]: { ...all[runId], [way]: { ...(all[runId]?.[way] as Cell), ...c } } }));
+  const setCell = (runId: string, way: string, c: Partial<Cell>) =>
+    setCells((all) => ({
+      ...all,
+      [runId]: {
+        ...all[runId],
+        [way]: { ...(all[runId]?.[way] as Cell), ...c },
+      },
+    }));
 
   /** One way of one page. */
-  const paintWay = async (p: LabPage, way: Way, runId: string, book: string) => {
+  const paintWay = async (
+    p: LabPage,
+    way: Way,
+    runId: string,
+    book: string,
+  ) => {
     const began = performance.now();
     setCell(runId, way, { svg: "", state: "painting", startedAt: Date.now() });
     let finalSvg = "";
-    let result = { usd: 0, out: 0, totalMs: 0, firstMs: 0, ok: false, genId: undefined as string | undefined, summary: "" };
+    let result = {
+      usd: 0,
+      out: 0,
+      totalMs: 0,
+      firstMs: 0,
+      ok: false,
+      genId: undefined as string | undefined,
+      summary: "",
+    };
     try {
       const res = await fetch("/api/illustrate", {
         method: "POST",
-        headers: { "content-type": "application/json", "x-taleo-paint-lab": way, "x-taleo-bench-run": runId },
-        body: JSON.stringify({ world, cast: p.cast, page: p.page, previous: p.previous ?? null, storyId: book, place: p.place ?? null, camera: p.camera ?? null }),
+        headers: {
+          "content-type": "application/json",
+          "x-taleo-paint-lab": way,
+          "x-taleo-bench-run": runId,
+        },
+        body: JSON.stringify({
+          world,
+          cast: p.cast,
+          page: p.page,
+          previous: p.previous ?? null,
+          storyId: book,
+          place: p.place ?? null,
+          camera: p.camera ?? null,
+        }),
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
       const gen = res.headers.get("x-taleo-gen") ?? undefined;
@@ -207,25 +337,56 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
       }
       const ok = text.includes(DONE);
       const totalMs = performance.now() - began;
-      setCell(runId, way, { svg: text.replace(DONE, ""), state: ok ? "done" : "failed", totalMs });
+      setCell(runId, way, {
+        svg: text.replace(DONE, ""),
+        state: ok ? "done" : "failed",
+        totalMs,
+      });
       finalSvg = text.replace(DONE, "");
       result = { ...result, ok, totalMs, firstMs: first, genId: gen };
       if (gen)
         for (let i = 0; i < 25; i++) {
           await new Promise((r) => setTimeout(r, 1200));
-          const rec = await fetch(`/api/admin/gen?id=${encodeURIComponent(gen)}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+          const rec = await fetch(
+            `/api/admin/gen?id=${encodeURIComponent(gen)}`,
+            { cache: "no-store" },
+          )
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
           if (rec && rec.status !== "running") {
-            const out = (rec.calls ?? []).reduce((t: number, c: { out: number }) => t + (c.out || 0), 0);
+            const out = (rec.calls ?? []).reduce(
+              (t: number, c: { out: number }) => t + (c.out || 0),
+              0,
+            );
             // (the page's own cost: one-off set-up - a backdrop, a
             // character's parts - is counted apart, as the server saves it)
-            const setup = (rec.calls ?? []).filter((c: { label: string }) => SETUP_LABELS.includes(c.label)).reduce((t: number, c: { usdMicro?: number }) => t + (c.usdMicro || 0), 0);
-            result = { ...result, usd: Math.max(0, (rec.usdMicro ?? 0) - setup) / 1e6, out, summary: rec.summary ?? "" };
-            setCell(runId, way, { usd: result.usd, out, summary: rec.summary, calls: rec.calls, genId: gen });
+            const setup = (rec.calls ?? [])
+              .filter((c: { label: string }) => SETUP_LABELS.includes(c.label))
+              .reduce(
+                (t: number, c: { usdMicro?: number }) => t + (c.usdMicro || 0),
+                0,
+              );
+            result = {
+              ...result,
+              usd: Math.max(0, (rec.usdMicro ?? 0) - setup) / 1e6,
+              out,
+              summary: rec.summary ?? "",
+            };
+            setCell(runId, way, {
+              usd: result.usd,
+              out,
+              summary: rec.summary,
+              calls: rec.calls,
+              genId: gen,
+            });
             break;
           }
         }
     } catch {
-      setCell(runId, way, { state: "failed", totalMs: performance.now() - began });
+      setCell(runId, way, {
+        state: "failed",
+        totalMs: performance.now() - began,
+      });
       result.totalMs = performance.now() - began;
     }
     // (the server saves the result and the picture to the run itself, when
@@ -237,7 +398,10 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
 
   /** A page, all four ways at once. `book`: pages painted together share
    *  one book (so a place's backdrop is painted once among them). */
-  const paintPage = async (p: LabPage, book = `b${Date.now().toString(36)}`) => {
+  const paintPage = async (
+    p: LabPage,
+    book = `b${Date.now().toString(36)}`,
+  ) => {
     const runId = newId(p.key);
     setShown((s) => ({ ...s, [p.key]: runId }));
     await api({ kind: "start", runId, page: p.key, label: p.label });
@@ -248,8 +412,12 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   // painted way has its place (a vote from before rankings reads as a
   // first place).
   const [picking, setPicking] = useState<Record<string, string[]>>({});
-  const rankOf = (run: Run | undefined): string[] => (run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : []);
-  const paintedWays = (run: Run) => WAYS.filter((w) => run.ways[w.id]?.ok || cells[run.id]?.[w.id]?.state === "done").map((w) => w.id);
+  const rankOf = (run: Run | undefined): string[] =>
+    run ? (picking[run.id] ?? run.rank ?? (run.vote ? [run.vote] : [])) : [];
+  const paintedWays = (run: Run) =>
+    WAYS.filter(
+      (w) => run.ways[w.id]?.ok || cells[run.id]?.[w.id]?.state === "done",
+    ).map((w) => w.id);
   const tapRank = async (run: Run, way: string) => {
     const now = rankOf(run);
     const at = now.indexOf(way);
@@ -257,13 +425,18 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     const next = at >= 0 ? now.slice(0, at) : [...now, way];
     setPicking((pk) => ({ ...pk, [run.id]: next }));
     if (next.length < paintedWays(run).length) return;
-    setRuns((rs) => rs.map((r) => (r.id === run.id ? { ...r, rank: next } : r)));
+    setRuns((rs) =>
+      rs.map((r) => (r.id === run.id ? { ...r, rank: next } : r)),
+    );
     await api({ kind: "rank", runId: run.id, order: next });
     await load();
   };
 
   const best = (k: "usd" | "totalMs" | "out") => {
-    const vals = board.filter((b) => b.current).map((b) => b[k]).filter((v): v is number => v !== null);
+    const vals = board
+      .filter((b) => b.current)
+      .map((b) => b[k])
+      .filter((v): v is number => v !== null);
     return vals.length ? Math.min(...vals) : null;
   };
   const today = board.find((x) => x.way === "1" && x.current)?.usd ?? null;
@@ -272,24 +445,56 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   const [rankBy, setRankBy] = useState<"code" | "score">("code");
   // (just the four in use now, unless all variants are asked for)
   const [showAll, setShowAll] = useState(false);
-  const numbered = [...board].sort((a, b) => (a.firstAt ?? Infinity) - (b.firstAt ?? Infinity) || SLOT_ORDER.indexOf(a.way) - SLOT_ORDER.indexOf(b.way)).map((b, i) => ({ b, n: b.firstAt === null ? null : i + 1 }));
-  const ranked = rankBy === "code" ? numbered : [...numbered].sort((x, y) => y.b.score - x.b.score || (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) - (x.b.votedRuns ? x.b.score / x.b.votedRuns : 0) || (x.n ?? 1e9) - (y.n ?? 1e9));
-  const todayMs = board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
+  const numbered = [...board]
+    .sort(
+      (a, b) =>
+        (a.firstAt ?? Infinity) - (b.firstAt ?? Infinity) ||
+        SLOT_ORDER.indexOf(a.way) - SLOT_ORDER.indexOf(b.way),
+    )
+    .map((b, i) => ({ b, n: b.firstAt === null ? null : i + 1 }));
+  const ranked =
+    rankBy === "code"
+      ? numbered
+      : [...numbered].sort(
+          (x, y) =>
+            y.b.score - x.b.score ||
+            (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) -
+              (x.b.votedRuns ? x.b.score / x.b.votedRuns : 0) ||
+            (x.n ?? 1e9) - (y.n ?? 1e9),
+        );
+  const todayMs =
+    board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
   /** Has this variant broken its estimate - costing or taking more than
    *  today where a saving was expected, or falling more than 25 points
    *  short of the saving expected? (Said why, for the row's tooltip.) */
   const broke = (b: Board | undefined): string | null => {
     const est = b && b.way !== "1" ? ESTIMATES[b.way] : undefined;
     if (!b || !est || !b.painted) return null;
-    const pc = (v: number | null, base: number | null) => (v === null || !base ? null : (1 - v / base) * 100);
+    const pc = (v: number | null, base: number | null) =>
+      v === null || !base ? null : (1 - v / base) * 100;
     const cost = pc(b.usd, today);
     const time = pc(b.totalMs, todayMs);
     const why: string[] = [];
-    if (cost !== null && ((est.costPc > 0 && cost < 0) || est.costPc - cost > 25)) why.push(`cost ${cost < 0 ? `${Math.round(-cost)}% more` : `${Math.round(cost)}% less`} than today, expected ${est.costPc}% less`);
-    if (time !== null && ((est.timePc > 0 && time < 0) || est.timePc - time > 25)) why.push(`time ${time < 0 ? `${Math.round(-time)}% longer` : `${Math.round(time)}% shorter`} than today, expected ${est.timePc}% shorter`);
+    if (
+      cost !== null &&
+      ((est.costPc > 0 && cost < 0) || est.costPc - cost > 25)
+    )
+      why.push(
+        `cost ${cost < 0 ? `${Math.round(-cost)}% more` : `${Math.round(cost)}% less`} than today, expected ${est.costPc}% less`,
+      );
+    if (
+      time !== null &&
+      ((est.timePc > 0 && time < 0) || est.timePc - time > 25)
+    )
+      why.push(
+        `time ${time < 0 ? `${Math.round(-time)}% longer` : `${Math.round(time)}% shorter`} than today, expected ${est.timePc}% shorter`,
+      );
     return why.length ? `Far off its estimate: ${why.join("; ")}` : null;
   };
-  const vsToday = (v?: number | null) => (v === undefined || v === null || !today ? "-" : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`);
+  const vsToday = (v?: number | null) =>
+    v === undefined || v === null || !today
+      ? "-"
+      : `${v <= today ? "-" : "+"}${Math.abs(Math.round((1 - v / today) * 100))}%`;
 
   const [view, setView] = useState<string>("compare");
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
@@ -305,12 +510,32 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
       const c = cells[runId]?.[x.id];
       const saved = run?.ways[x.id];
       const cost = c?.usd ?? saved?.usd;
-      const vs = x.id !== "1" && cost !== undefined && today ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs today` : "";
-      const info = c?.state === "painting" ? "painting..." : cost !== undefined || saved ? `${usd(cost)} · ${secs(c?.totalMs ?? saved?.totalMs)} · ${num(c?.out ?? saved?.out)} out${vs}` : "";
+      const vs =
+        x.id !== "1" && cost !== undefined && today
+          ? ` · ${cost <= today ? "-" : "+"}${Math.abs(Math.round((1 - cost / today) * 100))}% vs today`
+          : "";
+      const info =
+        c?.state === "painting"
+          ? "painting..."
+          : cost !== undefined || saved
+            ? `${usd(cost)} · ${secs(c?.totalMs ?? saved?.totalMs)} · ${num(c?.out ?? saved?.out)} out${vs}`
+            : "";
       const place = rankOf(run).indexOf(x.id);
-      return { svg: c?.svg ?? "", title: `${nOf(x.id)}. ${x.name}${place >= 0 ? ` · ${ORDINAL[place]}` : ""}`, caption: p.label, info, voted: place === 0 };
+      return {
+        svg: c?.svg ?? "",
+        title: `${nOf(x.id)}. ${x.name}${place >= 0 ? ` · ${ORDINAL[place]}` : ""}`,
+        caption: p.label,
+        info,
+        voted: place === 0,
+      };
     });
-    setZoom({ items, at: Math.max(0, WAYS.findIndex((x) => x.id === way)) });
+    setZoom({
+      items,
+      at: Math.max(
+        0,
+        WAYS.findIndex((x) => x.id === way),
+      ),
+    });
   };
   const specWay = WAYS.find((w) => w.id === spec);
   const viewing = WAYS.find((w) => w.id === view);
@@ -320,10 +545,14 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   };
 
   /** One painting's numbers, and the painters' detail folded away. */
-  const numbers = (c: Cell | undefined, saved: Run["ways"][string] | undefined) => (
+  const numbers = (
+    c: Cell | undefined,
+    saved: Run["ways"][string] | undefined,
+  ) => (
     <div className="lab-numbers">
       <span>
-        <b>{usd(c?.usd ?? saved?.usd)}</b> · {secs(c?.totalMs ?? saved?.totalMs)} · {num(c?.out ?? saved?.out)} out
+        <b>{usd(c?.usd ?? saved?.usd)}</b> ·{" "}
+        {secs(c?.totalMs ?? saved?.totalMs)} · {num(c?.out ?? saved?.out)} out
       </span>
       {(c?.calls?.length || c?.summary || saved?.summary) && (
         <details className="lab-more">
@@ -331,10 +560,13 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           <span>first stroke {secs(c?.firstMs ?? saved?.firstMs)}</span>
           {c?.calls?.map((k, i) => (
             <span key={i} className="lab-call">
-              {k.label}: {k.out.toLocaleString()} out, {k.in.toLocaleString()} in ({k.cacheRead.toLocaleString()} cached), {secs(k.totalMs)}
+              {k.label}: {k.out.toLocaleString()} out, {k.in.toLocaleString()}{" "}
+              in ({k.cacheRead.toLocaleString()} cached), {secs(k.totalMs)}
             </span>
           ))}
-          {(c?.summary ?? saved?.summary) && <span className="lab-call">{c?.summary ?? saved?.summary}</span>}
+          {(c?.summary ?? saved?.summary) && (
+            <span className="lab-call">{c?.summary ?? saved?.summary}</span>
+          )}
         </details>
       )}
     </div>
@@ -344,23 +576,47 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
     <div className="container lab">
       <header className="lab-head">
         <h1>Painting bench</h1>
-        <p className="meta">Each page painted four ways, from nothing reused to the most. Rank them best to worst ({RANK_POINTS.join("-")} points); each painting costs real money.</p>
+        <p className="meta">
+          Each page painted four ways, from nothing reused to the most. Rank
+          them best to worst ({RANK_POINTS.join("-")} points); each painting
+          costs real money.
+        </p>
       </header>
 
       <section className="panel lab-board" aria-label="Leaderboard">
-        <div className="lab-rank" role="group" aria-label="Rank the leaderboard">
+        <div
+          className="lab-rank"
+          role="group"
+          aria-label="Rank the leaderboard"
+        >
           <span className="meta">Rank by</span>
-          <button type="button" className={`lab-chip${rankBy === "code" ? " on" : ""}`} onClick={() => setRankBy("code")}>
+          <button
+            type="button"
+            className={`lab-chip${rankBy === "code" ? " on" : ""}`}
+            onClick={() => setRankBy("code")}
+          >
             Index
           </button>
-          <button type="button" className={`lab-chip${rankBy === "score" ? " on" : ""}`} onClick={() => setRankBy("score")}>
+          <button
+            type="button"
+            className={`lab-chip${rankBy === "score" ? " on" : ""}`}
+            onClick={() => setRankBy("score")}
+          >
             Score
           </button>
           <span className="meta lab-rank-gap">Show</span>
-          <button type="button" className={`lab-chip${!showAll ? " on" : ""}`} onClick={() => setShowAll(false)}>
+          <button
+            type="button"
+            className={`lab-chip${!showAll ? " on" : ""}`}
+            onClick={() => setShowAll(false)}
+          >
             Current
           </button>
-          <button type="button" className={`lab-chip${showAll ? " on" : ""}`} onClick={() => setShowAll(true)}>
+          <button
+            type="button"
+            className={`lab-chip${showAll ? " on" : ""}`}
+            onClick={() => setShowAll(true)}
+          >
             All ({board.length})
           </button>
         </div>
@@ -369,7 +625,11 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             <thead>
               <tr>
                 <th>Way</th>
-                <th title={`Points from your rankings: ${RANK_POINTS.join("-")} for best to worst`}>Score</th>
+                <th
+                  title={`Points from your rankings: ${RANK_POINTS.join("-")} for best to worst`}
+                >
+                  Score
+                </th>
                 <th>Avg cost</th>
                 <th>vs today</th>
                 <th>Expected</th>
@@ -382,44 +642,97 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
               </tr>
             </thead>
             <tbody>
-              {ranked.filter(({ b }) => showAll || b.current).map(({ b, n }) => {
-                const w = WAYS.find((x) => x.id === b.way);
-                const off = broke(b);
-                const name = b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
-                return (
-                  <tr key={b.variant} className={[b.current ? "" : "lab-earlier", off ? "lab-off" : ""].filter(Boolean).join(" ") || undefined} title={off ?? undefined}>
-                    <td className="lab-way">
-                      <span className="lab-way-name">
-                        <b>
-                          <span className="lab-order">#{n ?? "new"}</span> {name}
+              {ranked
+                .filter(({ b }) => showAll || b.current)
+                .map(({ b, n }) => {
+                  const w = WAYS.find((x) => x.id === b.way);
+                  const off = broke(b);
+                  const name =
+                    b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
+                  return (
+                    <tr
+                      key={b.variant}
+                      className={
+                        [b.current ? "" : "lab-earlier", off ? "lab-off" : ""]
+                          .filter(Boolean)
+                          .join(" ") || undefined
+                      }
+                      title={off ?? undefined}
+                    >
+                      <td className="lab-way">
+                        <span className="lab-way-name">
+                          <b>
+                            <span className="lab-order">#{n ?? "new"}</span>{" "}
+                            {name}
+                            <small className="lab-variant">
+                              {b.variant}
+                              {b.current ? (
+                                <span className="lab-now">
+                                  now slot {nOf(b.way)}
+                                </span>
+                              ) : null}
+                            </small>
+                          </b>
+                          {b.current && w && (
+                            <button
+                              type="button"
+                              className="lab-info"
+                              onClick={() => setSpec(w.id)}
+                              aria-label={`What ${w.name} changes`}
+                            >
+                              i
+                            </button>
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        <b>{b.score}</b>
+                        {b.votedRuns > 0 && (
                           <small className="lab-variant">
-                            {b.variant}
-                            {b.current ? <span className="lab-now">now slot {nOf(b.way)}</span> : null}
+                            {(b.score / b.votedRuns).toFixed(1)} avg
                           </small>
-                        </b>
-                        {b.current && w && (
-                          <button type="button" className="lab-info" onClick={() => setSpec(w.id)} aria-label={`What ${w.name} changes`}>
-                            i
-                          </button>
                         )}
-                      </span>
-                    </td>
-                    <td>
-                      <b>{b.score}</b>
-                      {b.votedRuns > 0 && <small className="lab-variant">{(b.score / b.votedRuns).toFixed(1)} avg</small>}
-                    </td>
-                    <td className={b.current && b.usd !== null && b.usd === best("usd") ? "lab-best" : ""}>{usd(b.usd)}</td>
-                    <td>{b.way === "1" ? "-" : vsToday(b.usd)}</td>
-                    <td className="lab-est">{b.way !== "1" && ESTIMATES[b.way] ? `-${ESTIMATES[b.way].costPc}%` : "-"}</td>
-                    <td className={b.current && b.totalMs !== null && b.totalMs === best("totalMs") ? "lab-best" : ""}>{secs(b.totalMs)}</td>
-                    <td className="lab-wide">{b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}</td>
-                    <td className="lab-wide">{num(b.out)}</td>
-                    <td className="lab-wide">{b.firstMs ? secs(b.firstMs) : "-"}</td>
-                    <td className="lab-wide">{b.painted}</td>
-                    <td className="lab-wide">{b.setupUsd ? usd(b.setupUsd) : "-"}</td>
-                  </tr>
-                );
-              })}
+                      </td>
+                      <td
+                        className={
+                          b.current && b.usd !== null && b.usd === best("usd")
+                            ? "lab-best"
+                            : ""
+                        }
+                      >
+                        {usd(b.usd)}
+                      </td>
+                      <td>{b.way === "1" ? "-" : vsToday(b.usd)}</td>
+                      <td className="lab-est">
+                        {b.way !== "1" && ESTIMATES[b.way]
+                          ? `-${ESTIMATES[b.way].costPc}%`
+                          : "-"}
+                      </td>
+                      <td
+                        className={
+                          b.current &&
+                          b.totalMs !== null &&
+                          b.totalMs === best("totalMs")
+                            ? "lab-best"
+                            : ""
+                        }
+                      >
+                        {secs(b.totalMs)}
+                      </td>
+                      <td className="lab-wide">
+                        {b.votedRuns ? `${b.wins} of ${b.votedRuns}` : "-"}
+                      </td>
+                      <td className="lab-wide">{num(b.out)}</td>
+                      <td className="lab-wide">
+                        {b.firstMs ? secs(b.firstMs) : "-"}
+                      </td>
+                      <td className="lab-wide">{b.painted}</td>
+                      <td className="lab-wide">
+                        {b.setupUsd ? usd(b.setupUsd) : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
@@ -427,12 +740,24 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
 
       {specWay && (
         <div className="modal-backdrop" onClick={() => setSpec(null)}>
-          <div className="modal-panel draft-prompt lab-spec-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-spec-title">
+          <div
+            className="modal-panel draft-prompt lab-spec-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lab-spec-title"
+          >
             <div className="modal-head">
               <h3 id="lab-spec-title">
-                {nOf(specWay.id)}. {specWay.name} <small className="lab-variant">{variantOf(specWay.id)}</small>
+                {nOf(specWay.id)}. {specWay.name}{" "}
+                <small className="lab-variant">{variantOf(specWay.id)}</small>
               </h3>
-              <button type="button" className="icon-btn" onClick={() => setSpec(null)} aria-label="Close">
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setSpec(null)}
+                aria-label="Close"
+              >
                 ✕
               </button>
             </div>
@@ -447,46 +772,104 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             </dl>
             {specWay.id !== "1" && ESTIMATES[specWay.id] && (
               <p className="meta lab-spec-est">
-                <b>Expected:</b> {usd(ESTIMATES[specWay.id].usd)} and {secs(ESTIMATES[specWay.id].ms)} a page ({ESTIMATES[specWay.id].costPc}% cheaper, {ESTIMATES[specWay.id].timePc}% faster than today). {ESTIMATES[specWay.id].why}
+                <b>Expected:</b> {usd(ESTIMATES[specWay.id].usd)} and{" "}
+                {secs(ESTIMATES[specWay.id].ms)} a page (
+                {ESTIMATES[specWay.id].costPc}% cheaper,{" "}
+                {ESTIMATES[specWay.id].timePc}% faster than today).{" "}
+                {ESTIMATES[specWay.id].why}
               </p>
             )}
-            <button type="button" className="btn btn-primary btn-block" onClick={() => setSpec(null)}>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => setSpec(null)}
+            >
               Got it
             </button>
           </div>
         </div>
       )}
 
-      {zoom && <BenchZoom items={zoom.items} at={zoom.at} onStep={(at) => setZoom((z) => (z ? { ...z, at } : z))} onClose={() => setZoom(null)} />}
+      {zoom && (
+        <BenchZoom
+          items={zoom.items}
+          at={zoom.at}
+          onStep={(at) => setZoom((z) => (z ? { ...z, at } : z))}
+          onClose={() => setZoom(null)}
+        />
+      )}
 
       <nav className="lab-views" aria-label="Show">
-        <button type="button" className={`lab-chip${view === "compare" ? " on" : ""}`} onClick={() => setView("compare")}>
+        <button
+          type="button"
+          className={`lab-chip${view === "compare" ? " on" : ""}`}
+          onClick={() => setView("compare")}
+        >
           Compare all
         </button>
         {WAYS.map((w) => (
-          <button key={w.id} type="button" className={`lab-chip${view === w.id ? " on" : ""}`} onClick={() => setView(w.id)}>
+          <button
+            key={w.id}
+            type="button"
+            className={`lab-chip${view === w.id ? " on" : ""}`}
+            onClick={() => setView(w.id)}
+          >
             {nOf(w.id)}. {w.name}
           </button>
         ))}
       </nav>
 
       {viewing ? (
-        <section className="lab-gallery" aria-label={`Every page, ${viewing.name}`}>
+        <section
+          className="lab-gallery"
+          aria-label={`Every page, ${viewing.name}`}
+        >
           <WaySummary way={viewing.id} runs={runs} />
-          <p className="meta lab-gallery-note">Every page&apos;s latest painting, way {nOf(viewing.id)} only.</p>
+          <p className="meta lab-gallery-note">
+            Every page&apos;s latest painting, way {nOf(viewing.id)} only.
+          </p>
           <div className="lab-gallery-grid">
             {pages.map((p) => {
               const run = runs.find((r) => r.id === runFor(p.key));
               const c = run ? cells[run.id]?.[viewing.id] : undefined;
               const saved = run?.ways[viewing.id];
               return (
-                <figure key={p.key} className={`lab-cell${rankOf(run)[0] === viewing.id ? " voted" : ""}`}>
+                <figure
+                  key={p.key}
+                  className={`lab-cell${rankOf(run)[0] === viewing.id ? " voted" : ""}`}
+                >
                   <figcaption>
                     <b>{p.label}</b>
-                    {rankOf(run).includes(viewing.id) && <span className="lab-state">{ORDINAL[rankOf(run).indexOf(viewing.id)]}</span>}
+                    {rankOf(run).includes(viewing.id) && (
+                      <span className="lab-state">
+                        {ORDINAL[rankOf(run).indexOf(viewing.id)]}
+                      </span>
+                    )}
                   </figcaption>
-                  <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${p.label} full size`} onClick={zoomWays(p, run!.id, viewing.id)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={viewing.id} board={board} /> : <span className="meta">{c?.state === "painting" ? "..." : "Not painted yet"}</span>}</div>
-                  {((c && c.state !== "painting") || saved) && numbers(c, saved)}
+                  <div className="lab-art">
+                    {c?.svg ? (
+                      <button
+                        type="button"
+                        className="lab-zoom"
+                        aria-label={`See ${p.label} full size`}
+                        onClick={zoomWays(p, run!.id, viewing.id)}
+                      >
+                        <Painting svg={c.svg} className="painting" />
+                      </button>
+                    ) : c?.state === "painting" && c.startedAt ? (
+                      <WaitBar
+                        since={c.startedAt}
+                        way={viewing.id}
+                        board={board}
+                      />
+                    ) : (
+                      <span className="meta">
+                        {c?.state === "painting" ? "..." : "Not painted yet"}
+                      </span>
+                    )}
+                  </div>
+                  {((c && c.state !== "painting") || saved) &&
+                    numbers(c, saved)}
                 </figure>
               );
             })}
@@ -502,22 +885,96 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
             const order = rankOf(run);
             const voted = order[0];
             const history = runs.filter((r) => r.page === p.key);
-            const painting = Boolean(live && Object.values(live).some((c) => c?.state === "painting"));
+            const painting = Boolean(
+              live && Object.values(live).some((c) => c?.state === "painting"),
+            );
             return (
-              <details key={p.key} className="panel lab-row" open={Boolean(openRows[p.key])} onToggle={(e) => {
-                const isOpen = (e.currentTarget as HTMLDetailsElement).open;
-                setOpenRows((o) => (Boolean(o[p.key]) === isOpen ? o : { ...o, [p.key]: isOpen }));
-              }}>
+              <details
+                key={p.key}
+                className="panel lab-row"
+                open={Boolean(openRows[p.key])}
+                onToggle={(e) => {
+                  const isOpen = (e.currentTarget as HTMLDetailsElement).open;
+                  setOpenRows((o) =>
+                    Boolean(o[p.key]) === isOpen
+                      ? o
+                      : { ...o, [p.key]: isOpen },
+                  );
+                }}
+              >
                 <summary className="lab-row-sum">
                   <span className="lab-row-title">
-                    <b>{p.label}</b>
+                    <b className="lab-row-name">
+                      {(() => {
+                        // (how far this page has got: nothing painted, some ways,
+                        // all four, or all four and ranked)
+                        const done = run ? paintedWays(run).length : 0;
+                        const ranked =
+                          Boolean(run?.rank?.length) &&
+                          done === WAYS.length &&
+                          WAYS.every((w) => run!.rank!.includes(w.id));
+                        const stage =
+                          !run || done === 0
+                            ? painting
+                              ? "some"
+                              : "none"
+                            : done < WAYS.length || painting
+                              ? "some"
+                              : ranked
+                                ? "ranked"
+                                : "all";
+                        const label = {
+                          none: "Not painted",
+                          some: "Partly painted",
+                          all: "All four painted, not ranked",
+                          ranked: "All four painted and ranked",
+                        }[stage];
+                        return (
+                          <span
+                            className={`lab-dot ${stage}`}
+                            role="img"
+                            aria-label={label}
+                            title={label}
+                          >
+                            {stage === "ranked" && (
+                              <svg
+                                viewBox="0 0 16 16"
+                                width="10"
+                                height="10"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M3.5 8.5 6.5 11.5 12.5 4.5"
+                                  fill="none"
+                                  stroke="#fff"
+                                  strokeWidth="2.2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </span>
+                        );
+                      })()}
+                      <span className="lab-row-label">{p.label}</span>
+                    </b>
                     <span className="meta lab-tags">
                       {p.cast.map((c) => c.name).join(", ") || "nobody"}
                       {p.place ? ` · ${p.place.id}` : ""}
                       {p.camera ? ` · ${p.camera}` : ""}
                     </span>
                   </span>
-                  <span className="lab-row-status">{painting ? "painting..." : run && run.rank?.length ? `ranked ${run.rank.map((x) => nOf(x)).join(" > ")}` : order.length ? "ranking..." : run ? "not ranked" : "not painted"}</span>
+                  <span className="lab-row-status">
+                    {painting
+                      ? "painting..."
+                      : run && run.rank?.length
+                        ? `ranked ${run.rank.map((x) => nOf(x)).join(" > ")}`
+                        : order.length
+                          ? "ranking..."
+                          : run
+                            ? "not ranked"
+                            : "not painted"}
+                  </span>
                   <button
                     type="button"
                     className="lab-paint"
@@ -530,7 +987,17 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                       paintOne(p);
                     }}
                   >
-                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      aria-hidden="true"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M18.5 3.5a2.1 2.1 0 0 1 3 3L12 16l-4-4z" />
                       <path d="M8 12c-2.5 0-4 1.6-4 4 0 1.6-.7 2.7-2 3.5 3.8.8 8-.4 8-4.5" />
                     </svg>
@@ -538,22 +1005,41 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                 </summary>
                 <p
                   className={`meta lab-picture${openCaps[p.key] ? " open" : ""}`}
-                  onClick={() => setOpenCaps((o) => ({ ...o, [p.key]: !o[p.key] }))}
+                  onClick={() =>
+                    setOpenCaps((o) => ({ ...o, [p.key]: !o[p.key] }))
+                  }
                   title={openCaps[p.key] ? undefined : "Show all"}
                 >
                   {p.page.picture}
                 </p>
                 {p.own && (
-                  <button type="button" className="link-btn lab-remove" onClick={() => void api({ kind: "forget-page", key: p.key }).then(load)}>
+                  <button
+                    type="button"
+                    className="link-btn lab-remove"
+                    onClick={() =>
+                      void api({ kind: "forget-page", key: p.key }).then(load)
+                    }
+                  >
                     Remove this page
                   </button>
                 )}
                 {history.length > 1 && (
                   <div className="lab-history">
                     {history.slice(0, 8).map((r, i) => (
-                      <button key={r.id} type="button" className={`lab-chip${r.id === runId ? " on" : ""}`} onClick={() => setShown((s) => ({ ...s, [p.key]: r.id }))}>
+                      <button
+                        key={r.id}
+                        type="button"
+                        className={`lab-chip${r.id === runId ? " on" : ""}`}
+                        onClick={() =>
+                          setShown((s) => ({ ...s, [p.key]: r.id }))
+                        }
+                      >
                         Run {history.length - i}
-                        {r.rank?.length ? ` · ${r.rank.map((x) => nOf(x)).join(">")}` : r.vote ? ` · ★${nOf(r.vote)}` : ""}
+                        {r.rank?.length
+                          ? ` · ${r.rank.map((x) => nOf(x)).join(">")}`
+                          : r.vote
+                            ? ` · ★${nOf(r.vote)}`
+                            : ""}
                       </button>
                     ))}
                   </div>
@@ -563,24 +1049,86 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     const c = live?.[w.id];
                     const saved = run?.ways[w.id];
                     return (
-                      <figure key={w.id} className={`lab-cell${voted === w.id ? " voted" : ""}`}>
+                      <figure
+                        key={w.id}
+                        className={`lab-cell${voted === w.id ? " voted" : ""}`}
+                      >
                         <figcaption>
                           <b>
                             {nOf(w.id)}. {w.name}
                           </b>
-                          {c && c.state !== "done" && <span className={`lab-state ${c.state}`}>{c.state}</span>}
+                          {c && c.state !== "done" && (
+                            <span className={`lab-state ${c.state}`}>
+                              {c.state}
+                            </span>
+                          )}
                         </figcaption>
-                        <div className="lab-art">{c?.svg ? <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomWays(p, runId!, w.id)}><Painting svg={c.svg} className="painting" /></button> : c?.state === "painting" && c.startedAt ? <WaitBar since={c.startedAt} way={w.id} board={board} /> : <span className="meta">{!runId ? "Not painted yet" : c?.state === "failed" || saved ? "No picture" : run && Date.now() - run.at > 6 * 60_000 ? "Didn't finish" : "Painting... (saved when done)"}</span>}</div>
-                        {((c && c.state !== "painting") || saved) && numbers(c, saved)}
-                        {saved && !saved.ok && <p className="lab-error">Failed: {saved.error || "no reason recorded"}</p>}
-                        {run && c?.state !== "painting" && !c?.svg && !saved?.ok && (c?.state === "failed" || saved || Date.now() - run.at > 6 * 60_000) && (
-                          <button type="button" className="btn btn-soft lab-vote" onClick={() => void paintWay(p, w.id, run.id, `b${Date.now().toString(36)}`).then(load)}>
-                            Paint this way
-                          </button>
+                        <div className="lab-art">
+                          {c?.svg ? (
+                            <button
+                              type="button"
+                              className="lab-zoom"
+                              aria-label={`See ${w.name} full size`}
+                              onClick={zoomWays(p, runId!, w.id)}
+                            >
+                              <Painting svg={c.svg} className="painting" />
+                            </button>
+                          ) : c?.state === "painting" && c.startedAt ? (
+                            <WaitBar
+                              since={c.startedAt}
+                              way={w.id}
+                              board={board}
+                            />
+                          ) : (
+                            <span className="meta">
+                              {!runId
+                                ? "Not painted yet"
+                                : c?.state === "failed" || saved
+                                  ? "No picture"
+                                  : run && Date.now() - run.at > 6 * 60_000
+                                    ? "Didn't finish"
+                                    : "Painting... (saved when done)"}
+                            </span>
+                          )}
+                        </div>
+                        {((c && c.state !== "painting") || saved) &&
+                          numbers(c, saved)}
+                        {saved && !saved.ok && (
+                          <p className="lab-error">
+                            Failed: {saved.error || "no reason recorded"}
+                          </p>
                         )}
+                        {run &&
+                          c?.state !== "painting" &&
+                          !c?.svg &&
+                          !saved?.ok &&
+                          (c?.state === "failed" ||
+                            saved ||
+                            Date.now() - run.at > 6 * 60_000) && (
+                            <button
+                              type="button"
+                              className="btn btn-soft lab-vote"
+                              onClick={() =>
+                                void paintWay(
+                                  p,
+                                  w.id,
+                                  run.id,
+                                  `b${Date.now().toString(36)}`,
+                                ).then(load)
+                              }
+                            >
+                              Paint this way
+                            </button>
+                          )}
                         {run && (c?.state === "done" || saved?.ok) && (
-                          <button type="button" className={`btn ${order.includes(w.id) ? "btn-primary" : "btn-soft"} lab-vote`} onClick={() => void tapRank(run, w.id)}>
-                            {order.includes(w.id) ? `${ORDINAL[order.indexOf(w.id)]} · ${RANK_POINTS[order.indexOf(w.id)]} ${RANK_POINTS[order.indexOf(w.id)] === 1 ? "pt" : "pts"}` : `Rank ${ORDINAL[order.length] ?? ""}`}
+                          <button
+                            type="button"
+                            className={`btn ${order.includes(w.id) ? "btn-primary" : "btn-soft"} lab-vote`}
+                            onClick={() => void tapRank(run, w.id)}
+                          >
+                            {order.includes(w.id)
+                              ? `${ORDINAL[order.indexOf(w.id)]} · ${RANK_POINTS[order.indexOf(w.id)]} ${RANK_POINTS[order.indexOf(w.id)] === 1 ? "pt" : "pts"}`
+                              : `Rank ${ORDINAL[order.length] ?? ""}`}
                           </button>
                         )}
                       </figure>
@@ -605,13 +1153,29 @@ const SLOT_ORDER = ["1", "p", "b", "q", "x"];
 const SETUP_LABELS = ["backdrop painter", "parts maker"];
 
 /** A painting shown full size: which way, and of which page. */
-type Shown = { svg: string; title: string; caption: string; info?: string; voted?: boolean };
+type Shown = {
+  svg: string;
+  title: string;
+  caption: string;
+  info?: string;
+  voted?: boolean;
+};
 
 /** The bench's paintings full size, as the activity log shows its own (the
  *  same dialog: ✕, Esc or a tap outside closes it; ‹ ›, the arrow keys or
  *  a sideways swipe step through the others) - drawn as the painting
  *  itself, with its watercolour, not as a flat image. */
-function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number; onStep: (i: number) => void; onClose: () => void }) {
+function BenchZoom({
+  items,
+  at,
+  onStep,
+  onClose,
+}: {
+  items: Shown[];
+  at: number;
+  onStep: (i: number) => void;
+  onClose: () => void;
+}) {
   const item = items[at];
   const prev = at > 0 ? () => onStep(at - 1) : undefined;
   const next = at < items.length - 1 ? () => onStep(at + 1) : undefined;
@@ -639,22 +1203,39 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
   if (wide && items.length === 4) {
     return createPortal(
       <div className="modal-backdrop lab-collage-backdrop" onClick={onClose}>
-        <div className="lab-collage" role="dialog" aria-modal="true" aria-label={`${item.caption}: all four ways`} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="lab-collage"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${item.caption}: all four ways`}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="lab-collage-head">
             <h3>{item.caption}</h3>
-            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={onClose}
+              aria-label="Close"
+            >
               ✕
             </button>
           </div>
           <div className="lab-collage-grid">
             {items.map((x, i) => (
-              <figure key={i} className={`lab-collage-cell${x.voted ? " voted" : ""}${i === at ? " picked" : ""}`}>
-                <div className="lab-collage-art">{x.svg ? <Painting svg={x.svg} className="painting" /> : <span className="meta">Not painted yet</span>}</div>
+              <figure
+                key={i}
+                className={`lab-collage-cell${x.voted ? " voted" : ""}${i === at ? " picked" : ""}`}
+              >
+                <div className="lab-collage-art">
+                  {x.svg ? (
+                    <Painting svg={x.svg} className="painting" />
+                  ) : (
+                    <span className="meta">Not painted yet</span>
+                  )}
+                </div>
                 <figcaption>
-                  <b>
-                    {x.title}
-
-                  </b>
+                  <b>{x.title}</b>
                   {x.info && <span>{x.info}</span>}
                 </figcaption>
               </figure>
@@ -670,10 +1251,22 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
       <div className="admin-zoom-wrap" onClick={(e) => e.stopPropagation()}>
         {stepping && (
           <>
-            <button type="button" className="preview-step admin-zoom-step admin-zoom-prev" onClick={prev} disabled={!prev} aria-label="Previous painting">
+            <button
+              type="button"
+              className="preview-step admin-zoom-step admin-zoom-prev"
+              onClick={prev}
+              disabled={!prev}
+              aria-label="Previous painting"
+            >
               ‹
             </button>
-            <button type="button" className="preview-step admin-zoom-step admin-zoom-next" onClick={next} disabled={!next} aria-label="Next painting">
+            <button
+              type="button"
+              className="preview-step admin-zoom-step admin-zoom-next"
+              onClick={next}
+              disabled={!next}
+              aria-label="Next painting"
+            >
               ›
             </button>
           </>
@@ -683,7 +1276,12 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
           role="dialog"
           aria-modal="true"
           aria-label={`${item.title}: ${item.caption}`}
-          onTouchStart={(e) => (swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY })}
+          onTouchStart={(e) =>
+            (swipe.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            })
+          }
           onTouchEnd={(e) => {
             const from = swipe.current;
             swipe.current = null;
@@ -697,12 +1295,21 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
         >
           <div className="modal-head">
             <h3>{item.title}</h3>
-            <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={onClose}
+              aria-label="Close"
+            >
               ✕
             </button>
           </div>
           <div className="lab-zoom-art">
-            {item.svg ? <Painting key={at} svg={item.svg} className="painting" /> : <span className="meta">Not painted yet</span>}
+            {item.svg ? (
+              <Painting key={at} svg={item.svg} className="painting" />
+            ) : (
+              <span className="meta">Not painted yet</span>
+            )}
           </div>
           <p className="admin-zoom-caption">{item.caption}</p>
           {stepping && (
@@ -722,29 +1329,59 @@ function BenchZoom({ items, at, onStep, onClose }: { items: Shown[]; at: number;
 /** Until a way usually shows its first strokes, when nothing's measured
  *  yet (ways 3 and 4 wait for the place's backdrop, and the first time a
  *  character is used, up to 20 s for its parts). */
-const FIRST_GUESS_MS: Record<string, number> = { "1": 25_000, p: 25_000, q: 15_000, x: 15_000 };
+const FIRST_GUESS_MS: Record<string, number> = {
+  "1": 25_000,
+  p: 25_000,
+  q: 15_000,
+  x: 15_000,
+};
 
 /** A painting that hasn't shown anything yet: how long it's been, against
  *  how long this way usually takes to show its first strokes. */
-function WaitBar({ since, way, board }: { since: number; way: string; board: Board[] }) {
+function WaitBar({
+  since,
+  way,
+  board,
+}: {
+  since: number;
+  way: string;
+  board: Board[];
+}) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
   }, []);
   const measured = board.find((b) => b.way === way && b.current)?.firstMs;
-  const usual = measured && measured > 1000 ? measured : FIRST_GUESS_MS[way] ?? 30_000;
+  const usual =
+    measured && measured > 1000 ? measured : (FIRST_GUESS_MS[way] ?? 30_000);
   const gone = now - since;
   // (fills to the usual time, then creeps on towards the end without
   // reaching it)
-  const frac = gone <= usual ? (gone / usual) * 0.9 : 0.9 + 0.1 * (1 - Math.exp(-(gone - usual) / usual));
+  const frac =
+    gone <= usual
+      ? (gone / usual) * 0.9
+      : 0.9 + 0.1 * (1 - Math.exp(-(gone - usual) / usual));
   return (
-    <div className="lab-wait" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(frac * 100)} aria-label="Waiting for the first strokes">
+    <div
+      className="lab-wait"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(frac * 100)}
+      aria-label="Waiting for the first strokes"
+    >
       <div className="lab-wait-track">
-        <div className="lab-wait-fill" style={{ width: `${(frac * 100).toFixed(1)}%` }} />
+        <div
+          className="lab-wait-fill"
+          style={{ width: `${(frac * 100).toFixed(1)}%` }}
+        />
       </div>
       <span>
-        {Math.floor(gone / 1000)}s · {gone > usual ? "taking longer than usual" : `first strokes in ~${Math.max(1, Math.round((usual - gone) / 1000))}s`}
+        {Math.floor(gone / 1000)}s ·{" "}
+        {gone > usual
+          ? "taking longer than usual"
+          : `first strokes in ~${Math.max(1, Math.round((usual - gone) / 1000))}s`}
       </span>
     </div>
   );
@@ -754,12 +1391,25 @@ function WaitBar({ since, way, board }: { since: number; way: string; board: Boa
 function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   const stats = (w: string) => {
     // (only this slot's current variant: its earlier ones painted differently)
-    const done = runs.map((r) => r.ways[w]).filter((x): x is Run["ways"][string] => Boolean(x?.ok) && (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot));
+    const done = runs
+      .map((r) => r.ways[w])
+      .filter(
+        (x): x is Run["ways"][string] =>
+          Boolean(x?.ok) &&
+          (x!.variant ?? legacyVariant(w)) === variantOf(w as BenchSlot),
+      );
     const costed = done.filter((x) => x.usd > 0);
     const cost = costed.reduce((t, x) => t + x.usd, 0);
     const time = done.reduce((t, x) => t + x.totalMs, 0);
     const setup = done.reduce((t, x) => t + (x.setupUsd ?? 0), 0);
-    return { n: done.length, cost, setup, avgCost: costed.length ? cost / costed.length : null, time, avgTime: done.length ? time / done.length : null };
+    return {
+      n: done.length,
+      cost,
+      setup,
+      avgCost: costed.length ? cost / costed.length : null,
+      time,
+      avgTime: done.length ? time / done.length : null,
+    };
   };
   const me = stats(way);
   const base = way === "1" ? null : stats("1");
@@ -768,7 +1418,10 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
     const pc = Math.round((1 - mine / theirs) * 100);
     return pc >= 0 ? `${pc}% less` : `${-pc}% more`;
   };
-  const totalTime = (ms: number) => (ms >= 60_000 ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s` : secs(ms));
+  const totalTime = (ms: number) =>
+    ms >= 60_000
+      ? `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`
+      : secs(ms);
   const costSave = saving(me.avgCost, base?.avgCost);
   const timeSave = saving(me.avgTime, base?.avgTime);
   const est = way === "1" ? null : ESTIMATES[way];
@@ -781,8 +1434,16 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       <div className="lab-stat">
         <span>Cost per painting</span>
         <b>{usd(me.avgCost)}</b>
-        {base && <em className={costSave?.endsWith("less") ? "good" : ""}>{costSave ? `${costSave} than today` : "no baseline yet"}</em>}
-        {est && <em className="lab-est">expected {usd(est.usd)}, {est.costPc}% less</em>}
+        {base && (
+          <em className={costSave?.endsWith("less") ? "good" : ""}>
+            {costSave ? `${costSave} than today` : "no baseline yet"}
+          </em>
+        )}
+        {est && (
+          <em className="lab-est">
+            expected {usd(est.usd)}, {est.costPc}% less
+          </em>
+        )}
       </div>
       <div className="lab-stat">
         <span>Total cost</span>
@@ -792,8 +1453,16 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
       <div className="lab-stat">
         <span>Time per painting</span>
         <b>{secs(me.avgTime)}</b>
-        {base && <em className={timeSave?.endsWith("less") ? "good" : ""}>{timeSave ? `${timeSave} than today` : "no baseline yet"}</em>}
-        {est && <em className="lab-est">expected {secs(est.ms)}, {est.timePc}% less</em>}
+        {base && (
+          <em className={timeSave?.endsWith("less") ? "good" : ""}>
+            {timeSave ? `${timeSave} than today` : "no baseline yet"}
+          </em>
+        )}
+        {est && (
+          <em className="lab-est">
+            expected {secs(est.ms)}, {est.timePc}% less
+          </em>
+        )}
       </div>
       <div className="lab-stat">
         <span>Total painting time</span>
@@ -818,7 +1487,13 @@ function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
 }
 
 /** A test page of the admin's own. */
-function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () => void }) {
+function NewPage({
+  choices,
+  onSaved,
+}: {
+  choices: CharacterDef[];
+  onSaved: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [text, setText] = useState("");
@@ -831,7 +1506,14 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
   const [word, setWord] = useState("");
   const [target, setTarget] = useState("");
   const [saving, setSaving] = useState(false);
-  const toggle = (key: string) => setPicked((p) => (p.includes(key) ? p.filter((k) => k !== key) : p.length < 4 ? [...p, key] : p));
+  const toggle = (key: string) =>
+    setPicked((p) =>
+      p.includes(key)
+        ? p.filter((k) => k !== key)
+        : p.length < 4
+          ? [...p, key]
+          : p,
+    );
   const save = async () => {
     if (!text.trim() || !picture.trim()) return;
     setSaving(true);
@@ -842,13 +1524,31 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
     });
     const ids = cast.map((c) => c.id);
     const tgt = target.trim();
-    const targetId = tgt ? (cast.find((c) => c.name.toLowerCase() === tgt.toLowerCase())?.id ?? tgt) : ids[0];
+    const targetId = tgt
+      ? (cast.find((c) => c.name.toLowerCase() === tgt.toLowerCase())?.id ??
+        tgt)
+      : ids[0];
     const page: LabPage = {
       key: `own-${Date.now().toString(36)}`,
       label: label.trim() || text.trim().slice(0, 50),
       cast,
-      page: { text: text.trim(), picture: picture.trim(), characters: ids, action: word.trim() && targetId ? { word: word.trim(), target: targetId, sound: "pop", motion: "bounce" } : null },
-      place: placeId.trim() ? { id: placeId.trim(), about: placeAbout.trim() || undefined, light } : null,
+      page: {
+        text: text.trim(),
+        picture: picture.trim(),
+        characters: ids,
+        action:
+          word.trim() && targetId
+            ? {
+                word: word.trim(),
+                target: targetId,
+                sound: "pop",
+                motion: "bounce",
+              }
+            : null,
+      },
+      place: placeId.trim()
+        ? { id: placeId.trim(), about: placeAbout.trim() || undefined, light }
+        : null,
       camera: camera as LabPage["camera"],
     };
     await api({ kind: "page", page });
@@ -864,7 +1564,12 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
   };
   return (
     <section className={open ? "panel lab-new" : "lab-new closed"}>
-      <button type="button" className={`lab-add${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+      <button
+        type="button"
+        className={`lab-add${open ? " open" : ""}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
         <span className="lab-add-icon" aria-hidden="true">
           +
         </span>
@@ -874,21 +1579,45 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
         <div className="lab-form">
           <label>
             Name (for you)
-            <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Bedtime in the burrow" />
+            <input
+              className="input"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g. Bedtime in the burrow"
+            />
           </label>
           <label>
             The page&apos;s words
-            <textarea className="input" rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Pip yawned and snuggled under the blanket." />
+            <textarea
+              className="input"
+              rows={2}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Pip yawned and snuggled under the blanket."
+            />
           </label>
           <label>
             The picture to paint
-            <textarea className="input" rows={3} value={picture} onChange={(e) => setPicture(e.target.value)} placeholder="A mid shot inside a cosy burrow at night: Pip in a little bed, yawning, a lamp glowing..." />
+            <textarea
+              className="input"
+              rows={3}
+              value={picture}
+              onChange={(e) => setPicture(e.target.value)}
+              placeholder="A mid shot inside a cosy burrow at night: Pip in a little bed, yawning, a lamp glowing..."
+            />
           </label>
           <div>
-            <p className="meta">Characters (the first you pick is the hero; up to 4)</p>
+            <p className="meta">
+              Characters (the first you pick is the hero; up to 4)
+            </p>
             <div className="lab-picks">
               {choices.map((c) => (
-                <button key={c.id} type="button" className={`lab-chip${picked.includes(c.id) ? " on" : ""}`} onClick={() => toggle(c.id)}>
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`lab-chip${picked.includes(c.id) ? " on" : ""}`}
+                  onClick={() => toggle(c.id)}
+                >
                   {picked.includes(c.id) ? `${picked.indexOf(c.id) + 1}. ` : ""}
                   {c.name}
                 </button>
@@ -898,21 +1627,40 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
           <div className="lab-form-row">
             <label>
               Tap word
-              <input className="input" value={word} onChange={(e) => setWord(e.target.value)} placeholder="yawned" />
+              <input
+                className="input"
+                value={word}
+                onChange={(e) => setWord(e.target.value)}
+                placeholder="yawned"
+              />
             </label>
             <label>
               Tap target (a name, or a thing)
-              <input className="input" value={target} onChange={(e) => setTarget(e.target.value)} placeholder="the hero, or e.g. lamp" />
+              <input
+                className="input"
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                placeholder="the hero, or e.g. lamp"
+              />
             </label>
           </div>
           <div className="lab-form-row">
             <label>
               Place (same name = same place)
-              <input className="input" value={placeId} onChange={(e) => setPlaceId(e.target.value)} placeholder="burrow" />
+              <input
+                className="input"
+                value={placeId}
+                onChange={(e) => setPlaceId(e.target.value)}
+                placeholder="burrow"
+              />
             </label>
             <label>
               Light
-              <select className="input" value={light} onChange={(e) => setLight(e.target.value)}>
+              <select
+                className="input"
+                value={light}
+                onChange={(e) => setLight(e.target.value)}
+              >
                 {["day", "golden", "dusk", "night", "rain"].map((l) => (
                   <option key={l}>{l}</option>
                 ))}
@@ -920,7 +1668,11 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
             </label>
             <label>
               Camera
-              <select className="input" value={camera} onChange={(e) => setCamera(e.target.value)}>
+              <select
+                className="input"
+                value={camera}
+                onChange={(e) => setCamera(e.target.value)}
+              >
                 {["close", "mid", "wide"].map((l) => (
                   <option key={l}>{l}</option>
                 ))}
@@ -929,9 +1681,20 @@ function NewPage({ choices, onSaved }: { choices: CharacterDef[]; onSaved: () =>
           </div>
           <label>
             The place, as it always is (its landmarks and which side each is on)
-            <textarea className="input" rows={2} value={placeAbout} onChange={(e) => setPlaceAbout(e.target.value)} placeholder="A round burrow room: a little bed on the left, a round window on the right, a rag rug in the middle." />
+            <textarea
+              className="input"
+              rows={2}
+              value={placeAbout}
+              onChange={(e) => setPlaceAbout(e.target.value)}
+              placeholder="A round burrow room: a little bed on the left, a round window on the right, a rag rug in the middle."
+            />
           </label>
-          <button type="button" className="btn btn-primary" onClick={save} disabled={saving || !text.trim() || !picture.trim()}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={save}
+            disabled={saving || !text.trim() || !picture.trim()}
+          >
             {saving ? "Saving..." : "Add this page"}
           </button>
         </div>

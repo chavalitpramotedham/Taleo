@@ -16010,3 +16010,40 @@ html[data-night] .lab-board tr.lab-off .lab-variant {
 .lab-rank .lab-rank-gap {
   margin-left: 14px;
 }
+/* a test page's progress: none, some ways, all four, all four ranked */
+.lab-dot {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-soft);
+  opacity: 0.85;
+}
+.lab-dot.some {
+  background: #e3b53c;
+  border-color: #c99a22;
+}
+.lab-dot.all {
+  background: var(--russet);
+  border-color: var(--russet);
+}
+.lab-dot.ranked {
+  background: #5f8a45;
+  border-color: #5f8a45;
+}
+.lab-row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.lab-row-title b.lab-row-name {
+  white-space: nowrap;
+}
+.lab-row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
