@@ -18,12 +18,13 @@ import type {
   StoryRequest,
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
-import { expandStream, newStats, sizeLine, sizingFor, type Box, type ExpandContext } from "./paint/expand";
+import { layoutComposed, type LayoutOptions } from "./paint/layout";
+import { expandStream, newStats, sizeLine, type ExpandStats, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
-import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
+import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
-import { once } from "./paint/once";
+import { kept, once } from "./paint/once";
 import { codePageLayer } from "./paint/page-layer";
 import { spritesFor } from "./paint/sprite-maker";
 import { SPRITE_POSES, type Sprite, type SpritePose } from "@/lib/art/sprites";
@@ -454,6 +455,30 @@ interface Brush {
   content: Anthropic.Beta.BetaTextBlockParam[];
 }
 
+/** How much room each painter's reply is given (max_tokens): sized to what
+ *  it writes, thinking included, with room to spare. The service's
+ *  per-minute limits count this room when a request starts, not what is
+ *  used - so a composer writing 400 tokens of tags no longer books 32,000.
+ *  Should a reply ever need more, the painter carries on (see
+ *  brushStrokes), so nothing is lost by sizing it close. */
+function replyRoom(brush: Pick<Brush, "label" | "unthinking">): number {
+  const l = brush.label;
+  // (a handful of tags; with thinking now on for placement)
+  if (/composer/.test(l)) return 8_000;
+  // (one character, alone, ~25-45 shapes)
+  if (/newcomer/.test(l)) return 8_000;
+  // (a page's own small layer over a backdrop)
+  if (/page-layer/.test(l)) return 6_000;
+  // (a whole scene or a standing backdrop, without thinking)
+  if (/scenery|backdrop/.test(l)) return 12_000;
+  // (only the characters' faces, limbs and actions: short without
+  // thinking, longer with it)
+  if (/character painter/.test(l)) return brush.unthinking ? 10_000 : 24_000;
+  if (/quick/.test(l)) return 16_000;
+  // (the whole picture, thinking first)
+  return 32_000;
+}
+
 /** Times a painter cut off part-way is asked to carry on (see brushStrokes)
  *  - when the connection dropped, it broke, or it ran out of room. */
 const MAX_RESUMES = 3;
@@ -532,7 +557,7 @@ async function* brushStrokes(
       const stream = getClient().beta.messages.stream(
         {
           model,
-          max_tokens: 32000,
+          max_tokens: replyRoom(brush),
           ...(standIn ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
           system: [{ type: "text", text: brush.system, cache_control: { type: "ephemeral" } }],
           messages: [{ role: "user", content: kept ? [...brush.content, { type: "text", text: carryOn(kept) }] : brush.content }],
@@ -766,6 +791,63 @@ export async function* paintPage(req: IllustrateRequest, signal?: AbortSignal, n
   yield* paintOnce({ ...req, reuse: reuseOf(req) }, signal, notes);
 }
 
+/** Where a place's prepared backdrop is kept: by the place itself (its id
+ *  and description), its light and the book's season - shared by every
+ *  page and way set there, as a character's prepared parts are. */
+const placeKey = (place: { id: string; about?: string }, light: Light, world: string) =>
+  `bd:place:v1:${hashOf(`${place.id}|${place.about ?? ""}|${light}|${seasonOf(world)}`)}`;
+const lightFor = (place: { about?: string; light?: string }, extra = ""): Light =>
+  (["day", "golden", "dusk", "night", "rain"] as const).find((l) => l === place.light) ?? lightOf(`${place.light ?? ""} ${place.about ?? ""} ${extra}`);
+
+/** Paints a place's standing backdrop ahead of any page and keeps it (the
+ *  bench's "Prepare places", or a story's places as soon as they're
+ *  known): a page set there then never waits for it. Painted once - one
+ *  already made, or being made, is found. False if it couldn't be. The
+ *  scene's details still change on every page: each page's own sky and
+ *  foreground, its framing, and the moment's details over it. */
+export async function prepareBackdrop(place: { id: string; about?: string; light?: string }, world: string): Promise<boolean> {
+  const light = lightFor(place);
+  const key = placeKey(place, light, world);
+  const made = await once(key, () => paintBackdropSvg(place, light, world, key, undefined, {}), { ttlS: 365 * 86_400, waitMs: 180_000, nothingTtlS: 20 }).catch(() => null);
+  return Boolean(made);
+}
+
+/** Whether a place's backdrop is prepared (never paints it). */
+export async function backdropReady(place: { id: string; about?: string; light?: string }, world: string): Promise<boolean> {
+  return Boolean(await kept<string>(placeKey(place, lightFor(place), world)));
+}
+
+/** A place's standing backdrop, painted (see BACKDROP_BRIEF). `onStroke`
+ *  sees it as it comes, for a page showing it being painted. */
+async function paintBackdropSvg(place: { id: string; about?: string }, light: Light, world: string, key: string, signal: AbortSignal | undefined, log: Record<string, unknown>, onStroke?: (s: string) => void, why?: () => string | undefined): Promise<string | null> {
+  const painter: Brush = {
+    model: SCENERY_MODEL,
+    effort: SCENERY_EFFORT,
+    label: "backdrop painter",
+    unthinking: QUICK_ART_UNTHINKING,
+    clockMs: 0,
+    system: sceneryPrompt({ stamps: true }),
+    content: [{ type: "text", text: [`BOOK ART DIRECTION: ${world || "a gentle English countryside in late summer, soft golden light"}`, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, BACKDROP_BRIEF, stageFor({ page: { characters: ["a", "b"] } } as unknown as IllustrateRequest), "Output the SVG markup now."].join("\n\n") }],
+  };
+  const ctx: ExpandContext = { bookSeed: hashOf(key), pageSeed: hashOf(key), palette: paletteFor(seasonOf(world), light), stamps: true, stage: { x0: 85, x1: 315, y0: 75, y1: 250 } };
+  let svg = "";
+  for await (const c of expandStream(brushStrokes(painter, signal, log, why), ctx, newStats())) {
+    svg += c;
+    onStroke?.(c);
+  }
+  return svg || null;
+}
+
+/** A composer's tags, whole, through the layout pass (see layoutComposed);
+ *  its changes are noted with the page's other mends. */
+async function* laidOut(src: AsyncIterable<string>, opts: LayoutOptions, stats: ExpandStats): AsyncGenerator<string> {
+  let all = "";
+  for await (const s of src) all += s;
+  const { markup, notes } = layoutComposed(all, opts);
+  stats.fixes.push(...notes.map((n) => `layout: ${n}`));
+  yield markup;
+}
+
 /** A newcomer's painting for one page: the character alone, in the pose
  *  this moment needs, on its own 200x200 canvas (feet at 100,190, facing
  *  right) - placed where the composer's tag puts it, like a pre-painted
@@ -926,6 +1008,11 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // corrected)
     posing || partsOf.size ? sizeLine(sizingFor(req.camera, req.page.picture, req.page.characters.length)) : "",
     posing && newcomers.length ? NEWCOMERS_SECTION : "",
+    // (the place is a standing backdrop, the page's sky and foreground
+    // made in code: so this moment's own scene details - what makes this
+    // page's scene unlike the last one there - come from whoever paints the
+    // characters)
+    reuse.backdrops && reuse.codeLayer && req.place?.id && layered ? MOMENT_DETAILS : "",
     posing
       ? `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Output the tags now.`
       : `Characters in the picture: ${req.page.characters.join(", ") || "none"}. Keep each one's exact colours, signature features and proportions from their sheet. Output the SVG markup now.`,
@@ -953,7 +1040,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // the illustrator only when it paints the whole picture alone)
     // (and to the characters' painter when it paints from parts: for the
     // things the characters touch - the tree climbed, the bench sat on)
-    system: spriting ? spriteComposerPrompt(SPRITE_POSES) : posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && (!layered || partsOf.size > 0) }),
+    system: spriting ? spriteComposerPrompt(SPRITE_POSES) : posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && (!layered || partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id)) }),
     content,
   };
   // One line per painting in the server log: which painter, how long until
@@ -1003,10 +1090,12 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps || partsOf.size || spriting
         ? expandStream(
-            brushStrokes(main, stop, logs.characters, why),
+            // (a composer's tags are read whole - they're short - and its
+            // placement checked before anything is drawn: see layoutComposed)
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s }, stats) : brushStrokes(main, stop, logs.characters, why),
             {
               ...expandCtx(null),
-              stamps: posing || (reuse.stamps && partsOf.size > 0),
+              stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),
               figures: Object.fromEntries(partsOf),
               sprites: Object.fromEntries(spritesOf),
               // (a tag that names a character finds it; on a composed page,
@@ -1045,7 +1134,10 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           const live: string[] = [];
           let settled = false;
           let wake = () => {};
-          const backdrop = once(
+          // (prepared ahead - "Prepare places", or the story's places - it's
+          // here already, whole: no waiting, nothing to pay)
+          const prepared = await kept<string>(placeKey(place, light, req.world)).catch(() => null);
+          const backdrop = prepared ? Promise.resolve(prepared) : once(
             key,
             async () => {
               made = true;
@@ -1080,7 +1172,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           // (reused, or made by another page: all of it now)
           if (!made) yield whole;
           yield "</g>";
-          notes.backdrop = made ? "painted for this page, kept for the others" : "reused";
+          notes.backdrop = prepared ? "prepared ahead" : made ? "painted for this page, kept for the others" : "reused";
           if (reuse.codeLayer) {
             // (this page's own sky and foreground, made in code)
             notes.pageLayer = "made in code";

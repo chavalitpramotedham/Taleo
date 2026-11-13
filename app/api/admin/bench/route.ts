@@ -3,6 +3,7 @@ import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { generateBenchCases } from "@/server/bench-cases";
+import { backdropReady, prepareBackdrop } from "@/server/claude";
 import { partsReady, prepareParts } from "@/server/paint/parts-maker";
 import { prepareSprite, spritesFor } from "@/server/paint/sprite-maker";
 import { SPRITE_POSE_IDS, type SpritePose } from "@/lib/art/sprites";
@@ -258,10 +259,19 @@ export async function POST(req: Request) {
     const each = await Promise.all(chars.map(async (c) => ({ name: c.name, ready: await partsReady(c).catch(() => false) })));
     const parts = each.filter((x) => x.ready !== null);
     const poses = await Promise.all(cast.map((c) => spritesFor({ ...c, id: "hero" }).catch(() => ({}))));
+    const places = Array.isArray(b.places) ? (b.places as { id?: unknown; about?: unknown; light?: unknown }[]).filter((x) => typeof x?.id === "string").slice(0, 120) : [];
+    const placesReady = await Promise.all(places.map((pl) => backdropReady({ id: String(pl.id), about: String(pl.about ?? ""), light: String(pl.light ?? "") }, String(b.world ?? "")).catch(() => false)));
     return NextResponse.json({
+      places: { ready: placesReady.filter(Boolean).length, of: places.length },
       parts: { ready: parts.filter((x) => x.ready).length, of: parts.length, missing: parts.filter((x) => !x.ready).map((x) => x.name) },
       poses: { ready: poses.reduce<number>((t, x) => t + Object.keys(x).length, 0), of: cast.length * SPRITE_POSE_IDS.length },
     });
+  }
+  // A place's backdrop painted ahead (shared by every way and page set there).
+  if (b?.kind === "prepare-place" && typeof (b.place as { id?: unknown } | undefined)?.id === "string") {
+    const pl = b.place as { id: string; about?: string; light?: string };
+    const ok = await prepareBackdrop({ id: pl.id.slice(0, 40), about: String(pl.about ?? "").slice(0, 400), light: String(pl.light ?? "").slice(0, 20) }, String(b.world ?? "").slice(0, 400)).catch(() => false);
+    return NextResponse.json({ ok });
   }
   if (b?.kind === "prepare" && Array.isArray(b.characters)) {
     const list = (b.characters as CharacterDef[]).filter((c) => c && typeof c.name === "string").slice(0, 30);

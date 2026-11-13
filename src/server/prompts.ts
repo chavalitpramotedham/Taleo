@@ -364,6 +364,20 @@ No washes, no sky, no land, no landmarks, nothing in the characters' space. Usua
 export function composerPrompt(): string {
   return `You compose pages of Taleo picture books from ready-made parts. The place is already painted. The characters are already made: each one's head and body are kept, and the app makes their arms, legs, faces and what they hold from a library of poses. You decide where everyone is, how they stand, what they feel and what they hold, so the picture tells this page's moment at a glance - and you add the few things the moment needs.
 
+THINK FIRST, THEN PLACE (the page's main action must read at a glance - it is what the child taps):
+1. Name the MAIN ACTION from the text and the moment: who does what, to whom or to what. Place its doer and its target first, close enough to touch when they touch (hands reach the thing or each other), facing each other or the thing, the target in plain view: nothing in front of its face or of the action.
+2. Then everyone else, around them and a little back, each turned towards the action (or doing their own part of it), never standing on top of anyone: side by side a body-width apart, unless touching is the point (a hug, holding paws, carrying something together).
+3. Then the things of the moment, each where the action needs it.
+INTERACTIONS - make the picture say it:
+- HOLDING or CARRYING: the thing goes right at the hands - for a character facing right, about x + 25*s and y - 65*s (x - 25*s when flipped); carried together, between the two. Write it AFTER the character, so it's in front.
+- HIDING BEHIND, PEEKING ROUND: the cover (a tree, a bush, a pot, a door) is written AFTER the character, with near="1", overlapping half of them, so only their face or ears show past its edge.
+- LOOKING THROUGH (a window, a telescope, a hole): the thing written after them at their eye height, about y - 110*s.
+- SITTING ON, CLIMBING, STANDING ON: the seat, tree or rock written BEFORE them with near="1", their feet (or seat) on it.
+- TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
+- MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
+FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
+DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
+
 EACH CHARACTER: one tag (put the characters further back first)
   <fig c="hero" v="three" x="140" y="248" s="0.62" flip="1" lean="0" tilt="0" arms="wave,down" legs="walk" mood="laugh" hold="basket"/>
 - c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
@@ -398,6 +412,20 @@ export function composerSheet(c: { id: string; name: string; look: string }, vie
  *  of poses; it picks one for each, places them, and adds a few pieces. */
 export function spriteComposerPrompt(poses: Record<string, string>): string {
   return `You compose pages of Taleo picture books from ready-made paintings. The place is already painted. Every character is already painted in a set of poses, exactly as the family knows them. You choose each character's pose, where they stand, how big and which way they face, so the picture tells this page's moment at a glance - and you add the few things the moment needs.
+
+THINK FIRST, THEN PLACE (the page's main action must read at a glance - it is what the child taps):
+1. Name the MAIN ACTION from the text and the moment: who does what, to whom or to what. Place its doer and its target first, close enough to touch when they touch (hands reach the thing or each other), facing each other or the thing, the target in plain view: nothing in front of its face or of the action.
+2. Then everyone else, around them and a little back, each turned towards the action (or doing their own part of it), never standing on top of anyone: side by side a body-width apart, unless touching is the point (a hug, holding paws, carrying something together).
+3. Then the things of the moment, each where the action needs it.
+INTERACTIONS - make the picture say it:
+- HOLDING or CARRYING: the thing goes right at the hands - for a character facing right, about x + 25*s and y - 65*s (x - 25*s when flipped); carried together, between the two. Write it AFTER the character, so it's in front.
+- HIDING BEHIND, PEEKING ROUND: the cover (a tree, a bush, a pot, a door) is written AFTER the character, with near="1", overlapping half of them, so only their face or ears show past its edge.
+- LOOKING THROUGH (a window, a telescope, a hole): the thing written after them at their eye height, about y - 110*s.
+- SITTING ON, CLIMBING, STANDING ON: the seat, tree or rock written BEFORE them with near="1", their feet (or seat) on it.
+- TALKING, GIVING, SHOWING: the two face each other, a little apart; the giver's thing between them.
+- MOVING: lean into it (lean 10-20), motion lines behind, facing the way they go.
+FEELINGS: choose the pose (and on figures mood and tilt) that shows this moment's feeling - joy, worry, surprise, sleepiness - not just standing.
+DEPTH: someone further back is higher up (smaller y), a little smaller, and written first.
 
 EACH CHARACTER: one tag (characters further back first)
   <sprite c="hero" pose="wave" x="140" y="248" s="0.62" flip="1" lean="0"/>
@@ -455,3 +483,9 @@ THE LAYERS: write exactly three groups, in this order, and nothing else (no word
   <g class="detail">eye dots with a white highlight, nose shine, tiny marks</g>
 Use whole-number coordinates and earthy colours from its description (exact hex values where it gives them). Paint economically, 25-45 elements in all: it is one character among several, read by its silhouette, pose, face and colours.`;
 }
+
+/** Added to the character painter's or composer's request when the place
+ *  is a standing backdrop (reused on every page set there) and the page's
+ *  sky and foreground are made in code: the moment's own scene details
+ *  are theirs to add, so no two pages in one place look the same. */
+export const MOMENT_DETAILS = `THIS MOMENT'S OWN SCENE DETAILS: the place is already laid as a standing backdrop (the same on every page set there), with a light sky and foreground over it. Nobody else paints what makes THIS page's scene different, so you add it: the 2-6 things the brief names or the moment implies that a standing backdrop wouldn't have - bunting, a kite caught in a tree, a fallen basket, puddles after rain, a tent, falling leaves, a lit lantern, steam, footprints in snow. Use standard pieces where one fits (spelled exactly as listed), else draw a few simple shapes (<g class="paint">...</g><g class="ink">...</g>, at most 10 shapes each). Put them where the brief says, outside the characters' space unless a character touches them (then near="1"), and never in front of a character's face or the main action.`;

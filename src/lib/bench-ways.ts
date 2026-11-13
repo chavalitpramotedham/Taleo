@@ -25,18 +25,20 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   // 1. today: nothing reused
   "1": { stamps: false, parts: false, backdrops: false },
   // 2. parts + pieces, the usual painters
-  p: { stamps: true, parts: true, backdrops: false },
+  // (and, like way 3, the place's backdrop reused with the page's own sky
+  // and foreground made in code: only the characters are painted)
+  p: { stamps: true, parts: true, backdrops: true, codeLayer: true },
   // 3. parts, pieces and the place's backdrop reused, the page's own sky
   // and foreground made in code, the characters drawn (faces, limbs,
   // actions) by Sonnet at low effort, without thinking
   q: { stamps: true, parts: true, backdrops: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
   // 4. extreme: posed from the library by a cheap composer, the page's own
   // layer made in code
-  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "low", unthinking: true } },
+  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "medium", unthinking: false } },
   // 5. pre-painted poses: each character painted once in ten poses, ahead;
   // a composer picks a pose for each, places them and adds pieces (the
   // place reused, its sky and foreground made in code)
-  s: { stamps: true, parts: true, backdrops: true, poses: true, sprites: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "low", unthinking: true } },
+  s: { stamps: true, parts: true, backdrops: true, poses: true, sprites: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "medium", unthinking: false } },
 };
 
 /** How each way works beyond its settings. Bump (and say why) whenever a
@@ -51,7 +53,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // s5 (13 Nov): characters' parts prepared ahead and shared; token
   // counts off the clock; a tree a character touches can stand among them
   // s6 (13 Nov): characters kept to the camera's size band and footing
-  p: "s6",
+  // s7 (13 Nov): the place's backdrop reused like way 3 (a setting); the
+  // moment's own scene details added by the character painter; replies
+  // sized to fit
+  p: "s7",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -59,7 +64,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // what the characters touch; gentler backdrop framing; a place's
   // backdrop reused across its pages
   // s5 (13 Nov): as p s6
-  q: "s5",
+  // s6 (13 Nov): the moment's own scene details added by the character
+  // painter; replies sized to fit; nothing thrown away when cut off
+  q: "s6",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -68,10 +75,16 @@ export const STYLE: Record<BenchSlot, string> = {
   // s6 (13 Nov): the composer is Haiku 5.5 (a twentieth of Sonnet's price);
   // and so its settings' fingerprint changes too
   // s7 (13 Nov): as p s6 (Haiku had them huge or tiny)
-  x: "s7",
+  // s8 (13 Nov): the composer thinks first (Haiku at medium effort, a
+  // setting); main-action and interaction rules; a layout pass (nobody on
+  // top of anybody, the target never hidden, the ends of a group facing
+  // in); newcomers painted for the page; the moment's own scene details
+  x: "s8",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
-  s: "s2",
+  // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
+  // peek, reach, hug)
+  s: "s3",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

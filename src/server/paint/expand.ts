@@ -415,8 +415,9 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const lean = num(a, "lean", 0, -45, 45);
     // (a sprite's pose word, turned into arms, legs and mood)
     const pose = (a.pose ?? "").toLowerCase();
-    const extra: Record<string, string> = { wave: "wave,down", point: "point,down", hold: "hold,hold", surprised: "up,up" };
-    const b = { ...a, arms: a.arms ?? extra[pose] ?? "down,down", legs: a.legs ?? (["walk", "run", "jump", "sit"].includes(pose) ? pose : "stand"), mood: a.mood ?? (pose === "sleep" ? "sleepy" : pose === "surprised" ? "surprised" : "happy") };
+    const extra: Record<string, string> = { wave: "wave,down", point: "point,down", hold: "hold,hold", carry: "hold,hold", surprised: "up,up", reach: "up,up", hug: "hug,hug", peek: "reach,down", laugh: "hip,hip" };
+    const moodOf: Record<string, string> = { sleep: "sleepy", surprised: "surprised", laugh: "laugh", sad: "sad" };
+    const b = { ...a, arms: a.arms ?? extra[pose] ?? "down,down", legs: a.legs ?? (["walk", "run", "jump", "sit"].includes(pose) ? pose : "stand"), mood: a.mood ?? moodOf[pose] ?? "happy" };
     stats.figs++;
     if (!stats.figIds.includes(id)) stats.figIds.push(id);
     const sc = fit.sc;

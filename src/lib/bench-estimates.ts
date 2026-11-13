@@ -103,6 +103,39 @@ const S2: Estimate = {
   why: "As way 4, the Haiku composer only picks poses and places them: about a tenth of a cent. Poses are prepared ahead (not counted). The wait is the place's backdrop on the pages that paint one; the others should take ~3 s.",
 };
 
+// Written 13 Nov 2026 (evening), before any run of these versions. A
+// page's cost leaves out set-up (backdrops, parts, poses), as the bench
+// does; times assume the page's place was prepared ahead ("Prepare
+// places") - a place not prepared adds ~25 s to its first page.
+const P7: Estimate = {
+  usd: 0.12,
+  ms: 30_000,
+  costPc: 43,
+  timePc: 40,
+  why: "Opus still paints the characters' faces and limbs with thinking, but the scenery painter is gone: the place's backdrop is reused and the page's sky and foreground made in code, as in way 3. The character painter adds the moment's own scene details (a few pieces), so pages in one place still differ.",
+};
+const Q6: Estimate = {
+  usd: 0.05,
+  ms: 25_000,
+  costPc: 76,
+  timePc: 50,
+  why: "As before (Sonnet at low effort, no thinking, faces and limbs only), plus a few pieces for the moment's own scene details. With the place prepared ahead, no page waits for a backdrop.",
+};
+const X8: Estimate = {
+  usd: 0.003,
+  ms: 9_000,
+  costPc: 98,
+  timePc: 82,
+  why: "The composer now thinks before placing (Haiku at medium effort): ~8k tokens in, ~2-3k out with its thinking, about a third of a cent - twice the old effort for better placement. A page with a newcomer adds ~$0.03 and ~15 s for the newcomer's own painting. The layout pass costs nothing.",
+};
+const S3: Estimate = {
+  usd: 0.003,
+  ms: 9_000,
+  costPc: 98,
+  timePc: 82,
+  why: "As way 4: the composer thinks first, then picks from sixteen prepared poses (six more, for laughing, sadness, carrying, peeking, reaching and hugging). A newcomer adds ~$0.03 and ~15 s. The extra poses are set-up: about $0.04 each per character, once.",
+};
+
 /** Each variant code's estimate. Add the new code's here whenever a way
  *  changes (see variantOf). */
 export const ESTIMATES: Record<string, Estimate> = {
@@ -116,12 +149,14 @@ export const ESTIMATES: Record<string, Estimate> = {
   "2-3UTO": P1,
   "2-3GIN": P1,
   "2-327M": P6,
+  "2-1N64": P7,
   // way 3
   "3-YTBT": Q1,
   "3-008W": Q1,
   "3-ZLXV": Q1,
   "3-XMEQ": Q1,
   "3-X83P": Q5,
+  "3-YF0S": Q6,
   // way 4
   "4-YG44": X1,
   "4-Y1T3": X1,
@@ -129,9 +164,11 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-YUF5": X1,
   "4-R8EN": X1,
   "4-RMPO": X7,
+  "4-F49Z": X8,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
+  "5-0Y5G": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

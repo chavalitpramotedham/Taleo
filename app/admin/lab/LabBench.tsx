@@ -275,20 +275,22 @@ export function LabBench({
   // What's prepared ahead (characters' parts, way 5's poses): the Prepare
   // buttons show a tick once all of it is. (Asked again as pages change,
   // and after each Prepare.)
-  const [prepared, setPrepared] = useState<{ parts: Ready; poses: Ready } | null>(null);
+  const [prepared, setPrepared] = useState<{ parts: Ready; poses: Ready; places?: Ready } | null>(null);
+  // (every test page's place, once each)
+  const places = useMemo(() => [...new Map(pages.filter((p) => p.place?.id).map((p) => [`${p.place!.id}|${p.place!.light ?? ""}`, p.place!])).values()], [pages]);
   const castKey = useMemo(() => [...new Set(pages.flatMap((p) => p.cast.map((c) => c.name)))].sort().join("|"), [pages]);
   const checkPrepared = useCallback(async () => {
     const cast = [...new Map(pages.flatMap((p) => p.cast).filter((c) => c.preset || c.svg).map((c) => [c.name, c])).values()];
     const d = await fetch("/api/admin/bench", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "prepared", characters: choices, cast }),
+      body: JSON.stringify({ kind: "prepared", characters: choices, cast, places, world }),
     })
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null);
     if (d?.parts && d?.poses) setPrepared(d);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [castKey, choices]);
+  }, [castKey, choices, places.length]);
   useEffect(() => {
     void checkPrepared();
   }, [checkPrepared]);
@@ -792,6 +794,7 @@ export function LabBench({
         </p>
       </header>
 
+      <BenchUsage runs={runs} />
       <section className="panel lab-board" aria-label="Leaderboard">
         <div
           className="lab-rank"
@@ -1259,6 +1262,7 @@ export function LabBench({
             </span>
             <PrepareCharacters choices={choices} ready={prepared?.parts} onDone={checkPrepared} />
             <PreparePoses pages={pages} ready={prepared?.poses} onDone={checkPrepared} />
+            <PreparePlaces places={places} world={world} ready={prepared?.places} onDone={checkPrepared} />
             <span
               className="lab-pages-filter"
               role="group"
@@ -1835,6 +1839,44 @@ function WaitBar({
   );
 }
 
+/** The bench's own use, over the last day and the last 7: paintings made
+ *  (every way of every page painted, failed ones too), how many painting
+ *  versions they used, and what they cost in all (set-up included). From
+ *  the runs loaded (the latest 400). */
+function BenchUsage({ runs }: { runs: Run[] }) {
+  const now = Date.now();
+  const over = (ms: number) => {
+    const results = runs.filter((r) => now - r.at <= ms).flatMap((r) => Object.entries(r.ways).map(([k, x]) => ({ k, x })));
+    return {
+      paints: results.length,
+      versions: new Set(results.map(({ k, x }) => x.variant ?? legacyVariant(k.split("@")[0]))).size,
+      usd: results.reduce((t, { x }) => t + (x.usd || 0) + (x.setupUsd || 0), 0),
+    };
+  };
+  const rows: [string, ReturnType<typeof over>][] = [
+    ["Last 24 hours", over(86_400_000)],
+    ["Last 7 days", over(7 * 86_400_000)],
+  ];
+  return (
+    <div className="lab-usage" aria-label="Bench use">
+      {rows.map(([label, u]) => (
+        <div key={label} className="lab-usage-row">
+          <span className="lab-usage-label">{label}</span>
+          <span>
+            <b>{u.paints.toLocaleString()}</b> paintings
+          </span>
+          <span>
+            <b>{u.versions}</b> {u.versions === 1 ? "version" : "versions"}
+          </span>
+          <span>
+            <b>{usd(u.usd)}</b> spent
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** One way's totals over every run, against today's way. */
 function WaySummary({ way, runs }: { way: string; runs: Run[] }) {
   const stats = (w: string) => {
@@ -2089,6 +2131,36 @@ function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Read
       >
         <PrepIcon ready={ready} busy={busy} icon="✎" />
         {busy ? "Preparing poses" : "Prepare poses"}
+        <PrepCount ready={busy && done ? { ready: done.n, of: done.of } : ready} />
+      </button>
+    </span>
+  );
+}
+
+/** "Prepare places": each test page's place painted ahead as a standing
+ *  backdrop, kept and shared by every way and page set there - so the
+ *  first page at a place doesn't wait ~25 s for it. Each page still has
+ *  its own sky, foreground, framing and moment's details over it. */
+function PreparePlaces({ places, world, ready, onDone }: { places: { id: string; about?: string; light?: string }[]; world: string; ready?: Ready; onDone: () => Promise<void> | void }) {
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ n: number; of: number } | null>(null);
+  const go = async () => {
+    setBusy(true);
+    setDone({ n: 0, of: places.length });
+    await inTurn(
+      places,
+      3,
+      async (place) => Boolean((await prepareCall({ kind: "prepare-place", place, world }))?.ok),
+      (n) => setDone({ n, of: places.length }),
+    );
+    await onDone();
+    setBusy(false);
+  };
+  return (
+    <span className="lab-prepare">
+      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
+        <PrepIcon ready={ready} busy={busy} icon="⌂" />
+        {busy ? "Preparing places" : "Prepare places"}
         <PrepCount ready={busy && done ? { ready: done.n, of: done.of } : ready} />
       </button>
     </span>
