@@ -293,9 +293,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       setLimit(null);
       const body =
         s.segments.length === 0
-          ? { kind: "start", age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
+          ? { kind: "start", storyId: s.id, age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
           : {
               kind: "continue",
+              storyId: s.id,
               // (the server's ticket for the part after these - see server/tickets)
               ticket: s.ticket,
               story: {

@@ -16985,3 +16985,41 @@ html[data-night] .lab-board .lab-bad {
   color: var(--ink);
   font-size: 0.66rem;
 }
+/* Full book: its pages, picture over folded words */
+.admin-book {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.admin-book-page {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+.admin-book-page .admin-picture {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+}
+.admin-book-page details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.admin-book-page details p {
+  margin: 6px 0 0;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 640px) {
+  .admin-book-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .admin-book-tiles .admin-tile {
+    padding: 0.8rem;
+  }
+}

@@ -134,6 +134,8 @@ async function save(rec: GenRecord, first: boolean, result?: string) {
     if (first) {
       cmds.push(["ZADD", "gl:all", rec.at, rec.id], ["ZREMRANGEBYRANK", "gl:all", 0, -(KEEP_ALL + 1)]);
       if (rec.userId) cmds.push(["ZADD", `gl:u:${rec.userId}`, rec.at, rec.id], ["ZREMRANGEBYRANK", `gl:u:${rec.userId}`, 0, -(KEEP_USER + 1)], ["EXPIRE", `gl:u:${rec.userId}`, RECORD_TTL]);
+      // (and by book: everything made for one story, for its Full Book page)
+      if (rec.storyId) cmds.push(["ZADD", `gl:s:${rec.storyId}`, rec.at, rec.id], ["EXPIRE", `gl:s:${rec.storyId}`, RECORD_TTL]);
     }
     if (result) cmds.push(["SET", `gl:r:${rec.id}`, result, "EX", RESULT_TTL]);
     await pipeline(cmds);
@@ -162,6 +164,28 @@ export async function recentGens(opts: { userId?: string; limit?: number } = {})
     } catch {}
   }
   return out;
+}
+
+/** Everything made for one book (story), oldest first: from its own index,
+ *  and - for records from before there was one - the newest records. */
+export async function storyGens(storyId: string): Promise<GenRecord[]> {
+  if (!/^[\w-]{1,80}$/.test(storyId)) return [];
+  const byId = new Map<string, GenRecord>();
+  if (metricsEnabled()) {
+    const [ids] = await pipeline([["ZRANGE", `gl:s:${storyId}`, 0, -1]]).catch(() => [[]]);
+    if (Array.isArray(ids) && ids.length) {
+      const [found] = await pipeline([["MGET", ...ids.map((id) => `gl:${String(id)}`)]]);
+      for (const raw of Array.isArray(found) ? found : []) {
+        if (!raw) continue;
+        try {
+          const r = (typeof raw === "string" ? JSON.parse(raw) : raw) as GenRecord;
+          byId.set(r.id, r);
+        } catch {}
+      }
+    }
+  }
+  for (const r of await recentGens({ limit: 1000 }).catch(() => [] as GenRecord[])) if (r.storyId === storyId) byId.set(r.id, r);
+  return [...byId.values()].sort((a, b) => a.at - b.at);
 }
 
 /** One record with what it made (if that was kept). */

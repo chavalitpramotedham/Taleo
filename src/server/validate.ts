@@ -53,6 +53,9 @@ const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "character
   action: cleanAction(p.action),
 });
 
+/** A book's id, as the browser sends it (letters and digits). */
+const bookId = (v: unknown) => (typeof v === "string" && /^[a-z0-9]{1,40}$/i.test(v) ? v : undefined);
+
 /** A story's places, as the browser sends them back. */
 function cleanPlaces(v: unknown): StoryPlace[] {
   return (Array.isArray(v) ? v : [])
@@ -75,7 +78,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
     if (!age || !theme) return null;
     // (a new story: at a length this age has - an Odyssey asked for a
     // child under three is made as an Adventure, and charged as one)
-    return { kind: "start", age, minutes: fitMinutes(age, minutesFor(b.minutes, age)), theme, hero: cleanCharacter(b.hero), companions: cleanCompanions(b.companions) };
+    return { kind: "start", storyId: bookId(b.storyId), age, minutes: fitMinutes(age, minutesFor(b.minutes, age)), theme, hero: cleanCharacter(b.hero), companions: cleanCompanions(b.companions) };
   }
   if (b.kind === "continue") {
     const s = (b.story ?? {}) as Partial<Story>;
@@ -83,6 +86,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
     if (!age || !Array.isArray(s.segments) || s.segments.length === 0 || s.segments.length > 8) return null;
     return {
       kind: "continue",
+      storyId: bookId(b.storyId ?? s.id),
       story: {
         age,
         minutes: minutesFor(s.minutes, age),

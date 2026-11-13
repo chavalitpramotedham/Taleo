@@ -134,7 +134,7 @@ export async function POST(req: Request) {
         : ["a continuation", parsed.story.segments.length === 1 ? "the first choice" : "a later choice", chosen?.custom ? "their own idea" : "a choice offered", countedAs].filter((c): c is string => Boolean(c)),
     userId: user?.id ?? null,
     tier,
-    storyId: parsed.kind === "start" ? undefined : (parsed.story as { id?: string }).id,
+    storyId: parsed.storyId,
     req,
     request: parsed,
     mock: !hasApiKey(),

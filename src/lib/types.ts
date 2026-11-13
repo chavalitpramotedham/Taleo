@@ -183,6 +183,8 @@ export interface RatingRecord {
 
 export interface StartRequest {
   kind: "start";
+  /** the book this is part of (for its Full Book page) */
+  storyId?: string;
   age: AgeId;
   minutes: number;
   theme: string;
@@ -192,6 +194,7 @@ export interface StartRequest {
 
 export interface ContinueRequest {
   kind: "continue";
+  storyId?: string;
   story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral" | "places">;
 }
 

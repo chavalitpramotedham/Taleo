@@ -4,7 +4,7 @@ import { currentAdmin } from "@/server/entitlements";
 import { notFound, redirect } from "next/navigation";
 import { getUser, listUsers } from "@/server/users";
 import { metricsEnabled } from "@/server/metrics";
-import { GEN_KINDS, NEVER_FINISHED_MS, getGen, makesPicture, pictureOf, recentGens, type GenKind, type GenRecord } from "@/server/genlog";
+import { GEN_KINDS, NEVER_FINISHED_MS, getGen, makesPicture, pictureOf, recentGens, storyGens, type GenKind, type GenRecord } from "@/server/genlog";
 import type { UserProfile } from "@/lib/types";
 import { AutoRefresh, FilteredList, ToggleChip, When } from "./Live";
 import { Segmented } from "@/components/Segmented";
@@ -130,6 +130,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const now = Date.now();
 
   if (id) return <Detail id={id} now={now} />;
+  const book = one("book");
+  if (book) return <Book id={book} now={now} />;
+  const books = one("view") === "books";
 
   const users = await listUsers({ cacheSeconds: 60 }).catch(() => [] as UserProfile[]);
   const byId = new Map(users.map((u) => [u.id, u]));
@@ -150,7 +153,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   }
   const subject = subjectId ? (byId.get(subjectId) ?? (await getUser(subjectId).catch(() => null))) : null;
 
-  const all = await recentGens({ userId: subjectId, limit: subjectId ? 500 : 300 }).catch((e) => (console.error("[activity]", e), [] as GenRecord[]));
+  const all = await recentGens({ userId: subjectId, limit: books ? 1000 : subjectId ? 500 : 300 }).catch((e) => (console.error("[activity]", e), [] as GenRecord[]));
   const list = all.filter((r) => (!kind || r.kind === kind) && (!issues || isIssue(shown(r, now))));
   const keep = { user: subjectId, kind, issues: issues && "1" };
 
@@ -216,10 +219,12 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 nav
                 keepScroll
                 label="Show"
-                value={kind ?? "all"}
+                value={books ? "books" : (kind ?? "all")}
                 options={[
                   { key: "all", label: "Everything", href: href({ ...keep, kind: undefined }) },
                   ...GEN_KINDS.map((k) => ({ key: k, label: KIND_NAME[k], href: href({ ...keep, kind: k }) })),
+                  // (whole books: everything made for each story, added up)
+                  { key: "books", label: "Full books", href: `${href({ ...keep, kind: undefined })}${href({ ...keep, kind: undefined }).includes("?") ? "&" : "?"}view=books` },
                 ]}
               />
               <span className="filter-split" aria-hidden />
@@ -231,7 +236,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           </section>
 
           <FilteredList>
-          {subjectId && !kind ? (
+          {books ? (
+            <BookList records={all} users={byId} now={now} />
+          ) : subjectId && !kind ? (
             GEN_KINDS.map((k) => {
               const rows = list.filter((r) => r.kind === k);
               return (
@@ -550,3 +557,190 @@ const pretty = (s: string) => {
     return s;
   }
 };
+
+// ---------------------------------------------------------------- full books
+
+/** A book's records added up: what it cost, by kind, and how many. */
+function tally(records: GenRecord[]) {
+  const by = (k: GenKind) => records.filter((r) => r.kind === k);
+  const sum = (rs: GenRecord[]) => rs.reduce((t, r) => t + (r.usdMicro || 0), 0);
+  const first = records.reduce((t, r) => Math.min(t, r.at), Infinity);
+  const last = records.reduce((t, r) => Math.max(t, r.at + (r.totalMs ?? 0)), 0);
+  return {
+    total: sum(records),
+    parts: by("story").length,
+    partsCost: sum(by("story")),
+    paintings: by("painting").length,
+    paintingsCost: sum(by("painting")),
+    voice: by("voice").length,
+    voiceCost: sum(by("voice")),
+    other: sum(records.filter((r) => r.kind !== "story" && r.kind !== "painting" && r.kind !== "voice")),
+    first,
+    last,
+  };
+}
+/** A book's name, as its first part asked for it. */
+const bookName = (records: GenRecord[]) => records.find((r) => r.kind === "story")?.what || records[0]?.what || "a book";
+
+/** Every book made lately (everything with a story's id, but the bench's
+ *  own), newest first: what it cost in all, and how much of it there is. */
+function BookList({ records, users, now }: { records: GenRecord[]; users: Map<string, UserProfile>; now: number }) {
+  const byBook = new Map<string, GenRecord[]>();
+  for (const r of records) if (r.storyId && !/^lab/.test(r.storyId)) byBook.set(r.storyId, [...(byBook.get(r.storyId) ?? []), r]);
+  const list = [...byBook.entries()].map(([id, rs]) => ({ id, rs, t: tally(rs) })).sort((a, b) => b.t.last - a.t.last);
+  return (
+    <section className="admin-section admin-wide">
+      <h2>
+        Full books <span className="admin-count">{n(list.length)}</span>
+      </h2>
+      <p className="meta">Everything made for each book (its parts, paintings and voice), added up. From the newest 1,000 records; open a book for all of it.</p>
+      {list.length ? (
+        <div className="admin-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Last made</th>
+                <th>Book</th>
+                <th>Who</th>
+                <th>Parts</th>
+                <th>Paintings</th>
+                <th>Voice</th>
+                <th>Took</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map(({ id, rs, t }) => (
+                <tr key={id}>
+                  <td>
+                    <Link href={`${HERE}?book=${encodeURIComponent(id)}`}>
+                      <When at={t.last} />
+                    </Link>
+                  </td>
+                  <td>
+                    <Link href={`${HERE}?book=${encodeURIComponent(id)}`}>{bookName(rs)}</Link>
+                  </td>
+                  <td>{who(users.get(rs[0].userId ?? ""), rs[0].userId)}</td>
+                  <td>{n(t.parts)}</td>
+                  <td>{n(t.paintings)}</td>
+                  <td>{n(t.voice)}</td>
+                  <td>{dur(t.last - t.first)}</td>
+                  <td>
+                    <b>{cost(t.total)}</b>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="meta">No books yet.</p>
+      )}
+    </section>
+  );
+}
+
+/** One whole book: what it cost (by kind), its pictures page by page (the
+ *  words and the picture's brief folded under each), and everything made
+ *  for it. */
+async function Book({ id, now }: { id: string; now: number }) {
+  const records = await storyGens(id);
+  if (!records.length) notFound();
+  const t = tally(records);
+  const user = records[0].userId ? await getUser(records[0].userId).catch(() => null) : null;
+  // (each page's latest painting that came out: a page painted twice shows
+  // its last go)
+  const latest = new Map<string, GenRecord>();
+  for (const r of records) {
+    if (r.kind !== "painting" || r.status !== "ok") continue;
+    const page = (r.request as { page?: { text?: string } } | undefined)?.page?.text ?? r.what;
+    latest.set(page, r);
+  }
+  const pages = await Promise.all(
+    [...latest.values()].map(async (r) => {
+      const got = await getGen(r.id).catch(() => null);
+      const req = r.request as { page?: { text?: string; picture?: string } } | undefined;
+      return { r, svg: pictureOf(r, got?.result), text: req?.page?.text ?? r.what, brief: req?.page?.picture ?? "" };
+    }),
+  );
+  // (each picture from its own address, as the activity list shows them -
+  // not written into the page)
+  const items: ZoomItem[] = pages.filter((p) => p.svg).map((p, i) => ({ src: `${HERE}/picture/${p.r.id}`, label: `Page ${i + 1}`, record: href({ id: p.r.id }), caption: p.text }));
+  let shownAt = 0;
+  return (
+    <>
+      <div className="admin-lede">
+        <p className="meta">
+          <Link href={`${HERE}?view=books`}>All books</Link>
+        </p>
+        <h2>{bookName(records)}</h2>
+        <p className="meta">
+          {who(user, records[0].userId)} · begun <When at={t.first} /> · {dur(t.last - t.first)} from first to last
+        </p>
+      </div>
+      <section className="admin-section">
+        <div className="admin-tiles admin-book-tiles">
+          <div className="admin-tile">
+            <p className="admin-tile-label">Whole book</p>
+            <p className="admin-tile-value">{cost(t.total)}</p>
+            <p className="admin-tile-note">{n(records.length)} things made</p>
+          </div>
+          <div className="admin-tile">
+            <p className="admin-tile-label">Story</p>
+            <p className="admin-tile-value">{cost(t.partsCost)}</p>
+            <p className="admin-tile-note">{n(t.parts)} {t.parts === 1 ? "part" : "parts"}</p>
+          </div>
+          <div className="admin-tile">
+            <p className="admin-tile-label">Paintings</p>
+            <p className="admin-tile-value">{cost(t.paintingsCost)}</p>
+            <p className="admin-tile-note">
+              {n(t.paintings)} made{t.paintings ? `, ${cost(t.paintingsCost / t.paintings)} each` : ""}
+            </p>
+          </div>
+          <div className="admin-tile">
+            <p className="admin-tile-label">Voice</p>
+            <p className="admin-tile-value">{cost(t.voiceCost)}</p>
+            <p className="admin-tile-note">{n(t.voice)} clips</p>
+          </div>
+        </div>
+      </section>
+      <section className="admin-section admin-wide">
+        <h2>
+          The book <span className="admin-count">{n(pages.length)} {pages.length === 1 ? "page" : "pages"} painted</span>
+        </h2>
+        <ZoomList items={items}>
+          <div className="admin-book">
+            {pages.map((p) => (
+              <figure key={p.r.id} className="admin-book-page">
+                {p.svg ? (
+                  <ZoomPicture className="admin-picture" src={`${HERE}/picture/${p.r.id}`} label={`Page ${shownAt + 1}`} record={href({ id: p.r.id })} caption={p.text} index={shownAt++} lazy />
+                ) : (
+                  <p className="meta">Not kept (pictures are held for 14 days).</p>
+                )}
+                <figcaption>
+                  <details>
+                    <summary>
+                      {p.text.slice(0, 90)}
+                      {p.text.length > 90 ? "…" : ""}
+                    </summary>
+                    <p>{p.text}</p>
+                    {p.brief && <p className="meta">Picture: {p.brief}</p>}
+                    <p className="meta">
+                      {cost(p.r.usdMicro)} · {dur(p.r.totalMs)} · <Link href={`${HERE}?id=${p.r.id}`}>details</Link>
+                    </p>
+                  </details>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </ZoomList>
+      </section>
+      <section className="admin-section admin-wide">
+        <h2>
+          Everything made for it <span className="admin-count">{n(records.length)}</span>
+        </h2>
+        <Records records={[...records].reverse()} now={now} users={null} kinds />
+      </section>
+    </>
+  );
+}
