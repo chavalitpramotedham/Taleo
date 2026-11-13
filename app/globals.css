@@ -15619,3 +15619,35 @@ html[data-night] .lab-best {
     font-size: 1.9rem;
   }
 }
+.lab-paint {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: none;
+  color: var(--russet);
+  cursor: pointer;
+}
+.lab-paint:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.lab .lab-picture {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  cursor: pointer;
+  margin: 10px 0 4px;
+}
+.lab .lab-picture.open {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+.lab-remove {
+  font-size: 0.8rem;
+}

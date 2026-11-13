@@ -238,6 +238,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
 
   const [view, setView] = useState<string>("compare");
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({});
+  const [openCaps, setOpenCaps] = useState<Record<string, boolean>>({});
   const viewing = WAYS.find((w) => w.id === view);
   const paintOne = (p: LabPage) => {
     setOpenRows((o) => ({ ...o, [p.key]: true }));
@@ -395,18 +396,36 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
                     </span>
                   </span>
                   <span className="lab-row-status">{painting ? "painting..." : voted ? `★ ${nOf(voted)}` : run ? "not voted" : "not painted"}</span>
-                </summary>
-                <p className="meta lab-picture">{p.page.picture}</p>
-                <div className="lab-row-btns">
-                  <button type="button" className="btn btn-soft" onClick={() => paintOne(p)} disabled={busy}>
-                    Paint four ways
+                  <button
+                    type="button"
+                    className="lab-paint"
+                    aria-label="Paint this page four ways"
+                    title="Paint four ways"
+                    disabled={busy || painting}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      paintOne(p);
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18.5 3.5a2.1 2.1 0 0 1 3 3L12 16l-4-4z" />
+                      <path d="M8 12c-2.5 0-4 1.6-4 4 0 1.6-.7 2.7-2 3.5 3.8.8 8-.4 8-4.5" />
+                    </svg>
                   </button>
-                  {p.own && (
-                    <button type="button" className="link-btn" onClick={() => void api({ kind: "forget-page", key: p.key }).then(load)}>
-                      Remove
-                    </button>
-                  )}
-                </div>
+                </summary>
+                <p
+                  className={`meta lab-picture${openCaps[p.key] ? " open" : ""}`}
+                  onClick={() => setOpenCaps((o) => ({ ...o, [p.key]: !o[p.key] }))}
+                  title={openCaps[p.key] ? undefined : "Show all"}
+                >
+                  {p.page.picture}
+                </p>
+                {p.own && (
+                  <button type="button" className="link-btn lab-remove" onClick={() => void api({ kind: "forget-page", key: p.key }).then(load)}>
+                    Remove this page
+                  </button>
+                )}
                 {history.length > 1 && (
                   <div className="lab-history">
                     {history.slice(0, 8).map((r, i) => (
