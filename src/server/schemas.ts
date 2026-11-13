@@ -16,6 +16,8 @@ export const PageSchema = z.object({
       "Illustrator's brief for this page's full-page painting (2-4 sentences): the single most dynamic moment, what each character is physically doing with their whole body, their expressions, where they are looking, key objects, setting details, camera (close-up / mid / wide, low or high angle) and composition.",
     ),
   characters: z.array(z.string()).describe("Ids of characters visible in the picture ('hero' and/or side-character ids)"),
+  place: z.string().describe("Id of the place this page is set in: one of the story's places (from PLACES, or one you add in this segment's places)"),
+  camera: z.enum(["close", "mid", "wide"]).describe("How close the picture is: close (faces fill it), mid (the characters at a good size), wide (small in a big place)"),
   action: z
     .object({
       word: z
@@ -39,6 +41,12 @@ export const NewCharacterSchema = z.object({
   preset: z.enum(presetKeys).nullable().describe("Reuse a preset character's look if it fits exactly, else null"),
 });
 
+export const PlaceSchema = z.object({
+  id: z.string().describe("short lowercase id, e.g. 'riverbank' or 'grannys-kitchen'"),
+  about: z.string().describe("What the place always looks like, for painting it once and reusing it on every page set there: the kind of place and its 2-4 landmarks, each on the side it stands (left, right, behind), in one sentence. No characters, nothing that only happens on one page."),
+  light: z.enum(["day", "golden", "dusk", "night", "rain"]),
+});
+
 export const SegmentSchema = z.object({
   title: z.string().describe("Story title (first segment only; empty string afterwards)"),
   world: z
@@ -55,6 +63,9 @@ export const SegmentSchema = z.object({
       "First segment only (empty afterwards): ONE word naming what this story is about, for its library card - e.g. Family, Friendship, Adventure, Kindness, Bravery, Bedtime, Feelings, Mystery, Nature, Celebration, Imagination",
     ),
   newCharacters: z.array(NewCharacterSchema).describe("Side characters introduced in this segment (empty if none)"),
+  places: z
+    .array(PlaceSchema)
+    .describe("Places NEW in this segment (empty if every page is set in a place already named). In segment 1, plot the whole book's main places up front (usually 2-4). A place lit differently (the same garden at night) is a new place."),
   pages: z.array(PageSchema),
   choice: z
     .object({

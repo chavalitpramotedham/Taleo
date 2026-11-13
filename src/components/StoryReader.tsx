@@ -368,6 +368,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               moral: cur.moral || data.moral,
               keyword: cur.keyword || data.keyword,
               cast: [...baseCast, ...data.newCharacters],
+              // (the places this part first named, added to the story's)
+              places: [...(cur.places ?? []).filter((p) => !data.places?.some((n) => n.id === p.id)), ...(data.places ?? [])],
               segments: [
                 ...cur.segments.slice(0, base),
                 { ...data.segment, pages: keepSvgs(data.segment.pages, cur.segments[base]) },

@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { hasApiKey, readyNewcomer, reuseOf, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
+import { hasApiKey, prepareBackdrop, readyNewcomer, reuseOf, StoryRefusal, streamSegment, type SegmentEvent } from "@/server/claude";
 import { reportError } from "@/server/alerts";
 import { errorResponse } from "@/server/errors";
 import { mockSegment } from "@/server/mock";
@@ -214,6 +214,11 @@ export async function POST(req: Request) {
               const fresh = event.response.newCharacters.filter((c) => !c.preset && !c.svg);
               const world = event.response.world || (parsed.kind === "continue" ? parsed.story.world : "");
               if (fresh.length && world && reuseOf({}).parts) readying.push(...fresh.map((c) => readyNewcomer(c, world).catch(() => {})));
+              // (the places this part first named: each painted once as a
+              // standing backdrop, or found already painted, while the
+              // pages are read - so no page waits for its place)
+              const places = event.response.places ?? [];
+              if (places.length && world && reuseOf({}).backdrops) readying.push(...places.map((pl) => prepareBackdrop(pl, world).catch(() => false)));
               count({
                 stories_started: parsed.kind === "start" ? 1 : 0,
                 segments: 1,

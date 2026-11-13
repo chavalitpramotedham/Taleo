@@ -74,6 +74,12 @@ export interface Page {
   characters: string[];
   /** The finished painting (layered SVG body for a 400x300 canvas). */
   svg?: string | null;
+  /** Where the page is set: the id of one of the story's places (see
+   *  Story.places), so every page there shares the place's standing
+   *  backdrop when pages are painted from reused pieces. */
+  place?: string | null;
+  /** How close the picture is: decides how big the characters are. */
+  camera?: "close" | "mid" | "wide" | null;
   /** The server's signature on this page's words and picture brief, for
    *  the account it was written for (see server/tickets). */
   sig?: string;
@@ -114,6 +120,9 @@ export interface Story {
    *  the story gives real page-time to. */
   companions: CharacterDef[];
   cast: CharacterDef[]; // side characters, introduced by the story itself
+  /** The places the story is set in (see StoryPlace), as the storyteller
+   *  named them, oldest first. */
+  places?: StoryPlace[];
   segments: Segment[];
   status: "new" | "in-progress" | "complete";
   /** @deprecated superseded by per-user RatingRecord; kept only so very old local drafts still load. */
@@ -183,14 +192,27 @@ export interface StartRequest {
 
 export interface ContinueRequest {
   kind: "continue";
-  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral">;
+  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral" | "places">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;
 
+/** A place a story is set in, named by the storyteller when it plots the
+ *  story: painted once as a standing backdrop (or found, already painted)
+ *  and reused by every page set there. */
+export interface StoryPlace {
+  /** short, lowercase: "riverbank", "grannys-kitchen" */
+  id: string;
+  /** what's there and where: landmarks and the side they're on */
+  about: string;
+  light: "day" | "golden" | "dusk" | "night" | "rain";
+}
+
 export interface SegmentResponse {
   /** The ticket for asking for the part after this one (none at the end). */
   ticket?: string;
+  /** Places first named in this part (the story's earlier ones are kept). */
+  places?: StoryPlace[];
   title?: string;
   world?: string;
   moral?: string;

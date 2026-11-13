@@ -244,6 +244,7 @@ export function LabBench({
   const [own, setOwn] = useState<LabPage[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [board, setBoard] = useState<Board[]>([]);
+  const [usage, setUsage] = useState<Usage | null>(null);
   // live cells: run id -> way -> cell
   const [cells, setCells] = useState<Record<string, Record<string, Cell>>>({});
   // the run shown for each page (the latest, unless one is painting)
@@ -256,6 +257,7 @@ export function LabBench({
     if (!d) return;
     setRuns(d.runs);
     setBoard(d.leaderboard);
+    setUsage(d.usage ?? null);
     setOwn((d.pages as LabPage[]).map((p) => ({ ...p, own: true })));
     setArchived(new Set((d.archived as string[] | undefined) ?? []));
   }, []);
@@ -794,7 +796,7 @@ export function LabBench({
         </p>
       </header>
 
-      <BenchUsage runs={runs} />
+      <BenchUsage usage={usage} />
       <section className="panel lab-board" aria-label="Leaderboard">
         <div
           className="lab-rank"
@@ -1839,23 +1841,18 @@ function WaitBar({
   );
 }
 
-/** The bench's own use, over the last day and the last 7: paintings made
- *  (every way of every page painted, failed ones too), how many painting
- *  versions they used, and what they cost in all (set-up included). From
- *  the runs loaded (the latest 400). */
-function BenchUsage({ runs }: { runs: Run[] }) {
-  const now = Date.now();
-  const over = (ms: number) => {
-    const results = runs.filter((r) => now - r.at <= ms).flatMap((r) => Object.entries(r.ways).map(([k, x]) => ({ k, x })));
-    return {
-      paints: results.length,
-      versions: new Set(results.map(({ k, x }) => x.variant ?? legacyVariant(k.split("@")[0]))).size,
-      usd: results.reduce((t, { x }) => t + (x.usd || 0) + (x.setupUsd || 0), 0),
-    };
-  };
-  const rows: [string, ReturnType<typeof over>][] = [
-    ["Last 24 hours", over(86_400_000)],
-    ["Last 7 days", over(7 * 86_400_000)],
+/** The bench's own use, over the last day, the last 7 and all time:
+ *  paintings made (every way of every page painted, failed ones too), how
+ *  many painting versions they used, and what they cost in all (set-up
+ *  included). Counted on the server, over every run. */
+type UsageRow = { paints: number; versions: number; usd: number };
+type Usage = { day: UsageRow; week: UsageRow; all: UsageRow };
+function BenchUsage({ usage }: { usage: Usage | null }) {
+  if (!usage) return null;
+  const rows: [string, UsageRow][] = [
+    ["Last 24 hours", usage.day],
+    ["Last 7 days", usage.week],
+    ["All time", usage.all],
   ];
   return (
     <div className="lab-usage" aria-label="Bench use">

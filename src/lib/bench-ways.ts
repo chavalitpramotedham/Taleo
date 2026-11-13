@@ -34,7 +34,10 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   q: { stamps: true, parts: true, backdrops: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
   // 4. extreme: posed from the library by a cheap composer, the page's own
   // layer made in code
-  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "medium", unthinking: false } },
+  // (its composer is Sonnet, thinking at low effort: the arrangement of
+  // the figures - who stands where, doing what, facing whom - is the whole
+  // picture here, and worth a stronger hand than way 5's)
+  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: false } },
   // 5. pre-painted poses: each character painted once in ten poses, ahead;
   // a composer picks a pose for each, places them and adds pieces (the
   // place reused, its sky and foreground made in code)
@@ -79,12 +82,18 @@ export const STYLE: Record<BenchSlot, string> = {
   // setting); main-action and interaction rules; a layout pass (nobody on
   // top of anybody, the target never hidden, the ends of a group facing
   // in); newcomers painted for the page; the moment's own scene details
-  x: "s8",
+  // s9 (13 Nov): figures' arms, hands, legs and faces redrawn in code
+  // (tapering limbs, shaped hands, feet that turn, a jump that leaves the
+  // ground, a run that leans, arms that swing, eyes that look; new arm
+  // and leg poses and moods); the composer is Sonnet (a setting)
+  x: "s9",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
   // peek, reach, hug)
-  s: "s3",
+  // s4 (13 Nov): a character without poses yet is put together from its
+  // parts with way 4's new arms, hands, legs and faces
+  s: "s4",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

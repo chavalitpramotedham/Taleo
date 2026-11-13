@@ -1,5 +1,5 @@
 import { stampCatalogue } from "@/lib/art/stamps";
-import { ARM_POSES, LEG_POSES, MOODS } from "@/lib/art/poses";
+import { ARM_HINTS, ARM_POSES, LEG_POSES, LOOKS, MOODS } from "@/lib/art/poses";
 import { AGES } from "@/lib/ages";
 import { PRESETS } from "@/lib/presets";
 import { MOTIONS, SOUNDS } from "@/lib/actions";
@@ -383,9 +383,10 @@ EACH CHARACTER: one tag (put the characters further back first)
 - c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
 - x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other (a baby much smaller than a grown-up).
 - lean: degrees the whole body leans (-25 to 25: running, stretching, staggering). tilt: degrees the head turns (-25 to 25: curious, laughing, sad).
-- arms: the near arm, then the far arm, each one of: ${ARM_POSES.join(", ")}. ("hold" and "hug" bring the hands together in front.)
+- arms: the near arm, then the far arm, each one of: ${ARM_POSES.map((k) => `${k} (${ARM_HINTS[k]})`).join("; ")}.
 - legs: one of: ${LEG_POSES.join(", ")}. (For "sit", put y where the seat is.)
-- mood: one of: ${MOODS.join(", ")}.
+- mood: one of: ${MOODS.join(", ")}. Choose the feeling of this moment for each character, not just "happy".
+- look: where the eyes look, one of ${LOOKS.join(", ")} - towards whoever or whatever they're attending to (on a flipped figure, "right" is still the picture's right).
 - hold (optional): something from the list of things to hold below; it goes in the near hand (or both hands, with "hold" or "hug").
 - A character that is the tap target: <g class="target"><fig .../></g>.
 

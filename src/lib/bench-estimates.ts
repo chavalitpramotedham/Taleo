@@ -136,6 +136,14 @@ const S3: Estimate = {
   why: "As way 4: the composer thinks first, then picks from sixteen prepared poses (six more, for laughing, sadness, carrying, peeking, reaching and hugging). A newcomer adds ~$0.03 and ~15 s. The extra poses are set-up: about $0.04 each per character, once.",
 };
 
+const X9: Estimate = {
+  usd: 0.03,
+  ms: 15_000,
+  costPc: 86,
+  timePc: 70,
+  why: "The composer is now Sonnet, thinking at low effort (~9k tokens in, mostly its cached brief and the pieces' list; ~2k out with its thinking): about 3 cents, ten times the Haiku composer, for a much better arrangement. The figures' arms, hands, legs and faces are drawn in code, as before: free. A newcomer adds ~$0.03 and ~15 s.",
+};
+
 /** Each variant code's estimate. Add the new code's here whenever a way
  *  changes (see variantOf). */
 export const ESTIMATES: Record<string, Estimate> = {
@@ -165,10 +173,12 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-R8EN": X1,
   "4-RMPO": X7,
   "4-F49Z": X8,
+  "4-HQBY": X9,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
   "5-0Y5G": S3,
+  "5-1CGH": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

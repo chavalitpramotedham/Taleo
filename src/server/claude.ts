@@ -16,6 +16,7 @@ import type {
   ReuseSettings,
   SegmentResponse,
   StoryRequest,
+  StoryPlace,
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { layoutComposed, type LayoutOptions } from "./paint/layout";
@@ -198,6 +199,14 @@ function buildSegmentRequest(req: StoryRequest) {
   const taught = [...new Set(segments.flatMap((sg) => sg.pages.map((p) => p.action?.word?.trim().toLowerCase()).filter(Boolean)))];
   if (taught.length) parts.push(`WORDS ALREADY TAUGHT in this book (don't reuse these or other forms of them): ${taught.join(", ")}`);
   if (cast.length) parts.push(`SUPPORTING CAST SO FAR:\n${cast.map(modelSheet).join("\n")}`);
+  // (the story's places so far: pages set in one reuse its id, so each is
+  // painted once and its look kept)
+  const known = isStart ? [] : (req.story.places ?? []);
+  parts.push(
+    known.length
+      ? `PLACES SO FAR (set each page in one of these by its id whenever the story is there; add a new place only when the story truly goes somewhere new, or the light changes):\n${known.map((p) => `- "${p.id}" (${p.light}): ${p.about}`).join("\n")}`
+      : `PLACES: plot the book's main places now (usually 2-4), in "places", and set every page in one of them by its id. Pages in one place share one painted backdrop, so keep each place's landmarks where you put them.`,
+  );
 
   if (isStart) {
     const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
@@ -233,7 +242,7 @@ function buildSegmentRequest(req: StoryRequest) {
 
   return {
     user: parts.join("\n\n"),
-    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount },
+    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount, knownPlaces: known.map((p) => p.id) },
   };
 }
 
@@ -344,7 +353,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
       const newCharacters = chars.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
       const pages = pagesSoFar.items.map((p) => PageSchema.parse(JSON.parse(p)));
       const partial = normalizeSegment(
-        { title: "", world: "", moral: "", keyword: "", newCharacters, pages, choice: null, ending: false },
+        { title: "", world: "", moral: "", keyword: "", newCharacters, places: [], pages, choice: null, ending: false },
         { ...norm, isLast: false },
       );
       sent = pages.length;
@@ -368,7 +377,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   yield { type: "done", response: normalizeSegment(out, norm) };
 }
 
-function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; optionCount: number }): SegmentResponse {
+function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; optionCount: number; knownPlaces?: string[] }): SegmentResponse {
   const taken = new Set(opts.existingIds);
   const idMap: Record<string, string> = {};
   const newCharacters: CharacterDef[] = [];
@@ -387,7 +396,16 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     });
   }
 
+  // (places: new ones named here, cleaned; a page set somewhere unnamed is
+  // left without one)
+  const placeIds = new Set([...(opts.knownPlaces ?? []), ...(out.places ?? []).map((p) => slugPlace(p.id))]);
+  const places: StoryPlace[] = (out.places ?? [])
+    .map((p) => ({ id: slugPlace(p.id), about: p.about.trim().slice(0, 400), light: p.light }))
+    .filter((p) => p.id && p.about && !(opts.knownPlaces ?? []).includes(p.id))
+    .slice(0, 6);
   const pages: Page[] = out.pages.slice(0, 7).map((p) => ({
+    place: placeIds.has(slugPlace(p.place ?? "")) ? slugPlace(p.place ?? "") : null,
+    camera: p.camera ?? null,
     text: p.text.trim(),
     aside: p.aside?.trim() ? p.aside.trim() : null,
     picture: p.picture.trim().slice(0, 1200),
@@ -410,10 +428,14 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     moral: out.moral?.trim().slice(0, 200) || undefined,
     keyword: out.keyword?.trim().split(/\s+/)[0]?.replace(/[^\p{L}-]/gu, "").slice(0, 24) || undefined,
     newCharacters,
+    ...(places.length ? { places } : {}),
     segment: { pages, choice, chosen: null },
     ending: opts.isLast || (!choice && out.ending),
   };
 }
+
+/** A place id as the story keeps it: lowercase letters, digits, hyphens. */
+const slugPlace = (id: string) => id.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 
 function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text: string, idMap: Record<string, string>): PageAction | null {
   if (!a) return null;

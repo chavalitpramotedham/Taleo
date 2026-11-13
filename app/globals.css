@@ -16804,3 +16804,12 @@ html[data-night] .lab-fell-note {
     min-width: 0;
   }
 }
+/* Plan and credits: a quiet pill under the heading, to the pricing page */
+.wizard-head .pricing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  text-decoration: none;
+  font-size: 0.88rem;
+}

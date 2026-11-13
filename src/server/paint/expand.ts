@@ -2,7 +2,7 @@ import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
 import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
 import type { Sprite } from "@/lib/art/sprites";
-import { arm, ARM_POSES, face, legs, LEG_POSES, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
+import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, LOOKS, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
 import { PROPS } from "@/lib/art/stamps-more";
 
 /**
@@ -312,10 +312,21 @@ function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view
   const legPose: LegPose = pick(LEG_POSES, a.legs, "stand");
   const mood: Mood = pick(MOODS, a.mood, "happy");
   const view = fig.view;
-  const near = arm(view, roles, "near", armPose(nearPose, "down"), three);
-  const far = arm(view, roles, "far", armPose(farPose ?? nearPose, "down"), three);
+  // (relaxed arms swing with a stride: the near arm back as the near foot
+  // goes forward, the far arm forward)
+  const striding = legPose === "walk" || legPose === "run" ? 1 : 0;
+  const near = arm(view, roles, "near", armPose(nearPose, "down"), three, -striding);
+  const far = arm(view, roles, "far", armPose(farPose ?? nearPose, "down"), three, striding);
   const lg = legs(view, roles, legPose, three);
-  const fc = face(view, roles, mood);
+  // (the picture's left or right: on a mirrored figure, the other way in
+  // its own coordinates)
+  const gazeAsked = pick(LOOKS, a.look, "ahead");
+  const look = /scale\(-/.test(fig.t) && (gazeAsked === "left" || gazeAsked === "right") ? (gazeAsked === "left" ? "right" : "left") : gazeAsked;
+  const fc = face(view, roles, mood, look);
+  // (a jump lifts the whole figure off the ground, a run leans it forward:
+  // about its feet, in its own coordinates, so a flipped figure leans its
+  // own way)
+  const body = bodyOf(legPose);
   // what it holds, at the near hand (or both hands, when they hold it together)
   const asked = (a.hold ?? "").toLowerCase();
   const holdKey = !asked || PROPS[asked] ? asked : (nearestKey(asked, PROPS) ?? "");
@@ -338,7 +349,8 @@ function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view
   stats.posed++;
   stats.torsos++;
   stats.heads++;
-  return `<g class="paint"><g transform="${fig.t}">${paint}</g></g><g class="ink" fill="none" stroke="#4F3A2A" stroke-width="${f(1.2 / fig.s)}" stroke-linecap="round" stroke-linejoin="round"><g transform="${fig.t}">${unscaleStrokes(ink, fig.s)}</g></g><g class="detail"><g transform="${fig.t}">${detail}</g></g>`;
+  const t = body.lift || body.lean ? `${fig.t} rotate(${f(body.lean)} 100 190) translate(0 ${f(-body.lift)})` : fig.t;
+  return `<g class="paint"><g transform="${t}">${paint}</g></g><g class="ink" fill="none" stroke="#4F3A2A" stroke-width="${f(1.2 / fig.s)}" stroke-linecap="round" stroke-linejoin="round"><g transform="${t}">${unscaleStrokes(ink, fig.s)}</g></g><g class="detail"><g transform="${t}">${detail}</g></g>`;
 }
 
 /**

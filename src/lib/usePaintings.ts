@@ -108,6 +108,11 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             // (proof that this page is the storyteller's own writing)
             sig: page.sig,
             storyId: s.id,
+            // (where the page is set, and how close: for painting the place
+            // once and reusing it, and sizing the characters - see
+            // StoryPlace)
+            place: (page.place && s.places?.find((p) => p.id === page.place)) || null,
+            camera: page.camera ?? null,
           }),
         });
         // (a refusal - a limit reached, a page that can't be painted - is

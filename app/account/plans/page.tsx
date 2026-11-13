@@ -26,6 +26,10 @@ export default async function PlansPage() {
           <Link href="/account">Manage account</Link>
         </p>
         <h1>Plan and credits</h1>
+        {/* (how prices are set, for anyone wondering) */}
+        <Link href="/pricing" className="chip pricing-pill">
+          How Taleo&apos;s pricing works <span aria-hidden="true">→</span>
+        </Link>
       </header>
       {rights ? (
         <PlansView rights={rights} history={history} paymentsOpen={paymentsOpen()}>

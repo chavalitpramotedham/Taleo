@@ -1,5 +1,5 @@
 import { AGES, ageById, clampMinutes, fitMinutes } from "@/lib/ages";
-import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryRequest } from "@/lib/types";
+import type { CharacterDef, IllustrateRequest, Page, PageAction, Story, StoryPlace, StoryRequest } from "@/lib/types";
 import { isMotion, isSound } from "@/lib/actions";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { NOTES_MAX, asGender } from "@/lib/characters";
@@ -43,13 +43,28 @@ const cleanAction = (a: unknown): PageAction | null => {
 const cleanCompanions = (v: unknown): CharacterDef[] =>
   (Array.isArray(v) ? v : []).slice(0, 2).map((c, i) => cleanCharacter(c, `companion${i + 1}`));
 
-const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "characters" | "aside" | "action"> => ({
+const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "characters" | "aside" | "action" | "place" | "camera"> => ({
+  place: typeof p.place === "string" ? p.place.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || null : null,
+  camera: p.camera === "close" || p.camera === "mid" || p.camera === "wide" ? p.camera : null,
   text: str(p.text, 800),
   picture: str(p.picture, 1200),
   characters: strs(p.characters, 6),
   aside: p.aside ? str(p.aside, 400) : null,
   action: cleanAction(p.action),
 });
+
+/** A story's places, as the browser sends them back. */
+function cleanPlaces(v: unknown): StoryPlace[] {
+  return (Array.isArray(v) ? v : [])
+    .slice(0, 16)
+    .map((p) => p as Partial<StoryPlace>)
+    .map((p) => ({
+      id: str(p.id, 40).toLowerCase().replace(/[^a-z0-9-]/g, ""),
+      about: str(p.about, 400),
+      light: (["day", "golden", "dusk", "night", "rain"] as const).find((l) => l === p.light) ?? "day",
+    }))
+    .filter((p) => p.id && p.about);
+}
 
 /** Accept a story request from the browser, trimming anything oversized. */
 export function parseStoryRequest(body: unknown): StoryRequest | null {
@@ -78,6 +93,7 @@ export function parseStoryRequest(body: unknown): StoryRequest | null {
         hero: cleanCharacter(s.hero),
         companions: cleanCompanions(s.companions),
         cast: (Array.isArray(s.cast) ? s.cast : []).slice(0, 10).map((c, i) => cleanCharacter(c, `friend${i}`)),
+        places: cleanPlaces(s.places),
         segments: s.segments.map((seg) => ({
           pages: (Array.isArray(seg.pages) ? seg.pages : []).slice(0, 8).map((p) => ({ ...cleanPage(p), svg: null })),
           choice: null,

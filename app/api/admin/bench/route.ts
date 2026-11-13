@@ -152,6 +152,22 @@ function leaderboard(runs: BenchRun[]) {
   return out.sort((a, b) => order(a) - order(b) || a.variant.localeCompare(b.variant));
 }
 
+/** Paintings made (every way of every page, failed ones too), painting
+ *  versions used and money spent (set-up included), over a day, a week and
+ *  all time. */
+function usageOf(runs: BenchRun[]) {
+  const now = Date.now();
+  const over = (ms: number) => {
+    const results = runs.filter((r) => now - r.at <= ms).flatMap((r) => Object.entries(r.ways));
+    return {
+      paints: results.length,
+      versions: new Set(results.map(([k, x]) => x.variant ?? legacyVariant(k.split("@")[0]))).size,
+      usd: results.reduce((t, [, x]) => t + (x.usd || 0) + (x.setupUsd || 0), 0),
+    };
+  };
+  return { day: over(86_400_000), week: over(7 * 86_400_000), all: over(Infinity) };
+}
+
 const nope = () => new NextResponse(null, { status: 404 });
 /** Archived test pages' keys (a list kept on its own). */
 const ARCHIVED = "bench:archived";
@@ -194,7 +210,10 @@ export async function GET(req: Request) {
       archived = typeof v === "string" ? (JSON.parse(v) as string[]) : [];
     } catch {}
   }
-  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived }, { headers: noStore });
+  // (the bench's own use: over the last day, the last week, and all time -
+  // every run, not just those sent)
+  const all = await readRuns(20_000);
+  return NextResponse.json({ runs: runs.slice(0, 200), leaderboard: leaderboard(runs), pages, archived, usage: usageOf(all) }, { headers: noStore });
 }
 
 const ID = /^[\w-]{3,80}$/;
