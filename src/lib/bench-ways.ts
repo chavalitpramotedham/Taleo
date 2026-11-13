@@ -67,7 +67,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // s9 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
   // character's size against the others on its sheet; the main action's
   // object always shown, at the action
-  p: "s9",
+  // s10 (13 Nov): lesson 3 - a character with no parts is marked DRAWN
+  // IN FULL on its sheet, and if it's drawn inside a <fig> anyway that
+  // drawing is kept and placed, never dropped
+  p: "s10",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -82,7 +85,10 @@ export const STYLE: Record<BenchSlot, string> = {
   // s8 (13 Nov): lessons 1-2 (docs/painting-lessons.md): each
   // character's size against the others on its sheet; the main action's
   // object always shown, at the action
-  q: "s8",
+  // s9 (13 Nov): lesson 3 - a character with no parts is marked DRAWN
+  // IN FULL on its sheet, and if it's drawn inside a <fig> anyway that
+  // drawing is kept and placed, never dropped
+  q: "s9",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's

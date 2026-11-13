@@ -139,7 +139,7 @@ export interface ExpandStats {
 
 export const newStats = (): ExpandStats => ({ stamps: 0, scatter: 0, moved: 0, bareInk: 0, kinds: {}, figs: 0, torsos: 0, heads: 0, figIds: [], posed: 0, fixes: [] });
 const fixed = (stats: ExpandStats, what: string) => {
-  if (stats.fixes.length < 40) stats.fixes.push(what);
+  if (stats.fixes.length < 40 && stats.fixes[stats.fixes.length - 1] !== what) stats.fixes.push(what);
 };
 
 /** The name in a table nearest to what was asked for: the same once case,
@@ -303,6 +303,15 @@ function scatter(tag: string, ctx: ExpandContext, stats: ExpandStats, index: num
   }
   return flat(kind.draw(r, ctx.palette, box, n));
 }
+
+/** A figure with no kept parts: nothing to put in for <torso/> or <head>,
+ *  just a frame for what the painter drew (see the <fig> handling). */
+const NONE: Piece = { paint: "", ink: "", detail: "" };
+const DRAWN_VIEW: PartView = {
+  head: NONE,
+  torso: NONE,
+  anchors: { neck: [100, 100], shoulderL: [85, 110], shoulderR: [115, 110], hipL: [90, 160], hipR: [110, 160], eyeL: [92, 70], eyeR: [108, 70], mouth: [100, 85] },
+} as PartView;
 
 /** A whole figure from a pose: far limbs, legs, body, near arm, what it
  *  holds, head and face - in the three layers, placed. */
@@ -521,12 +530,38 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         const v = ((a.v ?? a.view ?? "front").toLowerCase() === "three" ? "three" : "front") as View;
         const view = parts ? viewOf(parts, v) : null;
         if (!parts || !view) {
-          // (no parts for it: placed from its poses if it has them; what the
-          // painter drew inside the figure is left out either way)
+          // No parts for it. Placed from its poses if it has them (what the
+          // painter drew inside is then left out: the pose is the whole
+          // character).
           const made = placeAny(id, a);
-          fixed(stats, made ? `no parts for "${id}": placed from its poses` : `no parts for "${id}": left out`);
-          out += made;
-          if (!tag.trim().endsWith("/>")) skipping = true;
+          if (made) {
+            fixed(stats, `no parts for "${id}": placed from its poses`);
+            out += made;
+            if (!tag.trim().endsWith("/>")) skipping = true;
+            continue;
+          }
+          // Else whatever the painter drew inside the figure IS the
+          // character (drawn in full, in its own 200x200 coordinates): it's
+          // kept and placed where the figure says - never dropped. (A
+          // figure with nothing inside has nothing to keep.)
+          if (tag.trim().endsWith("/>")) {
+            fixed(stats, `no parts for "${id}" and nothing drawn: left out`);
+            continue;
+          }
+          fixed(stats, `no parts for "${id}": its drawing inside the figure kept and placed`);
+          const x = num(a, "x", null, -100, 500, stats);
+          const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), true);
+          const flip = a.flip === "1" || a.flip === "true";
+          fig = {
+            id,
+            s: fit.sc,
+            tilt: 0,
+            view: DRAWN_VIEW,
+            put: new Set(),
+            t: `translate(${f(x)} ${f(fit.y)}) rotate(${f(num(a, "lean", 0, -45, 45))}) scale(${f(flip ? -fit.sc : fit.sc)} ${f(fit.sc)}) translate(-100 -190)`,
+          };
+          stats.figs++;
+          if (!stats.figIds.includes(id)) stats.figIds.push(id);
           continue;
         }
         const x = num(a, "x", null, -100, 500, stats);

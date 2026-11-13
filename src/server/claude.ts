@@ -1069,7 +1069,10 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     if (parts && posing) return composerSheet(c, Object.keys(parts.views));
     if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);
-    return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
+    // (on a page where others are painted from parts: this one isn't - it
+    // is drawn whole, never as a <fig>, or it can go missing)
+    const whole = partsOf.size ? " - DRAWN IN FULL by you, the ordinary way: never as a <fig>" : "";
+    return `CHARACTER "${c.id}": ${c.name}${genderNote(c)}${whole}\nModel sheet: ${c.look}${art ? `\nReference painting (neutral pose, 200x200 canvas):\n${art}` : ""}`;
   };
   // The book's central characters come first, always in the same order and
   // each as its own cached block: their reference paintings are by far the

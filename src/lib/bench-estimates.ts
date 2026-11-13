@@ -163,6 +163,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "2-YV0X": P7,
   // (13 Nov: lessons 1-2 - instructions only, the same cost)
   "2-Z9BY": P7,
+  "2-HYLE": P7,
   // way 3
   "3-YTBT": Q1,
   "3-008W": Q1,
@@ -172,6 +173,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "3-YF0S": Q6,
   "3-Y0PR": Q6,
   "3-W16M": Q6,
+  "3-VMVL": Q6,
   // way 4
   "4-YG44": X1,
   "4-Y1T3": X1,

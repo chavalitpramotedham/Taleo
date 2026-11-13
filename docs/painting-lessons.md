@@ -45,3 +45,28 @@ own details (`MOMENT_DETAILS`), and both composers' main-action rule
 (`src/server/prompts.ts`) - so v0 and ways 2-5.
 
 New codes: 1-U1Y4, 2-Z9BY, 3-W16M, 4-5V0L, 5-252J (same cost estimates).
+
+## 13 Nov 2026 - "The squirrel's acorn stash" again: way 3 lost the squirrel
+
+Seen: on a repaint, way 3 (which had done best before) had no squirrel at
+all. Ways 4 and 5 placed it; v0 and way 2 painted it.
+
+Why: Nutkin has no portrait, so in way 3 the character painter must draw
+him in full. It most likely wrote him as a <fig> (the form it uses for
+characters made from parts) instead. Before "nothing painted is thrown
+away", that made the whole page start again the ordinary way, which is
+why the slip didn't show; afterwards, the mend for "a figure for someone
+with no parts" was to leave it out - and the squirrel went with it.
+
+**Lesson 3 - a mend must never drop a character.** If a character with
+no parts is drawn inside a <fig>, that drawing is the character: it's kept
+and placed where the figure says (in its own 200x200 coordinates, at the
+figure's position and size), never left out. And, to make the slip rarer,
+on a page where others are painted from parts, a character without parts
+is marked "DRAWN IN FULL by you, the ordinary way: never as a <fig>" on
+its sheet.
+Where: the <fig> handling in `src/server/paint/expand.ts` (DRAWN_VIEW);
+the sheet in `paintOnce` (`src/server/claude.ts`).
+
+New codes: 2-HYLE, 3-VMVL (ways 4 and 5 unchanged: they place newcomers
+separately).
