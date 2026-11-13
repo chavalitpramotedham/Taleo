@@ -17042,11 +17042,12 @@ html[data-night] .lab-board .lab-bad {
 }
 .lab-session-pick {
   font: inherit;
+  font-size: 0.85rem;
   color: var(--ink);
   background: var(--paper, transparent);
   border: 1px solid var(--rule-strong);
-  border-radius: 10px;
-  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
   max-width: 100%;
 }
 .lab-settings-base {
