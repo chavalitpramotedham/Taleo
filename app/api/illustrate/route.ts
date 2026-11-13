@@ -13,7 +13,7 @@ import { auth } from "@/server/auth";
 import { beginGen, logDenied } from "@/server/genlog";
 import type { ReuseSettings } from "@/lib/types";
 import { saveBenchResult } from "@/server/bench";
-import { BENCH_WAYS as CURRENT_WAYS, variantOf, type BenchSlot } from "@/lib/bench-ways";
+import { BENCH_WAYS as CURRENT_WAYS, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
 import { partsInFlight } from "@/server/paint/parts-maker";
 
 export const runtime = "nodejs";
@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     parsed.reuse = way;
     parsed.bench = true;
     // (a current way's own variant; an older name keeps its own name)
-    parsed.benchVariant = /^[1pqx]$/.test(lab ?? "") ? variantOf(lab as BenchSlot) : `old-${lab}`;
+    parsed.benchVariant = SLOT_RE.test(lab ?? "") ? variantOf(lab as BenchSlot) : `old-${lab}`;
   } else {
     // (where a page is set steers its painting: until that's part of a
     // page's signature, only the bench may say)
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
   // result to its run (below), even if the bench page is closed or the
   // phone sleeps - its result is the point of painting it.
   const benchRun = benched ? (req.headers.get("x-taleo-bench-run") ?? "") : "";
-  const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && /^[1pqx]$/.test(lab ?? "");
+  const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && SLOT_RE.test(lab ?? "");
   const stop = new AbortController();
   if (!benchSaves) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   let firstSent = 0;
@@ -241,9 +241,11 @@ function reuseNote(notes: Record<string, unknown>): string {
     .join("");
   const parts = notes.parts as { from: string[]; full: string[]; readyMs: number } | undefined;
   const figs = (notes.reuse as { figIds?: string[] } | undefined)?.figIds ?? [];
-  const partsNote = parts
+  // (characters placed from pre-painted poses aren't drawn from parts at all)
+  const spritesNote = typeof notes.sprites === "string" ? ` · ${notes.sprites}` : "";
+  const partsNote = spritesNote.includes("placed from") ? spritesNote : (spritesNote + (parts
     ? ` · from parts: ${figs.length} of ${parts.from.length}${parts.from.length > figs.length ? ` (${parts.from.filter((id) => !figs.includes(id)).join(", ")} redrawn in full)` : ""}${parts.full.length ? `; no parts for ${parts.full.join(", ")}` : ""}${parts.readyMs > 1500 ? `; parts ready after ${Math.round(parts.readyMs / 1000)}s` : ""}`
-    : "";
+    : ""));
   const place = notes.backdrop ? ` · backdrop ${notes.backdrop}, ${notes.frame}${notes.pageLayer ? `, page layer ${notes.pageLayer}` : ""}` : "";
   const posed = notes.composer ? ` · ${notes.composer}${(notes.reuse as { posed?: number } | undefined)?.posed ? ` (${(notes.reuse as { posed: number }).posed} posed)` : ""}` : "";
   if (!r) return failed + partsNote + posed + place + split;

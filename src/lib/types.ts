@@ -271,6 +271,8 @@ export interface ReuseSettings {
   /** characters put together entirely from the pose library - nothing of
    *  them drawn - by a composer that only places, poses and adds pieces */
   poses?: boolean;
+  /** characters placed from their pre-painted poses (made ahead) */
+  sprites?: boolean;
   /** each page's own sky and foreground made in code (no painter) */
   codeLayer?: boolean;
   /** who paints the characters, instead of the usual painter */

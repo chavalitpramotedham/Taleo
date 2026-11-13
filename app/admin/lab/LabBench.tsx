@@ -2,9 +2,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ESTIMATES } from "@/lib/bench-estimates";
+import { SPRITE_POSE_IDS } from "@/lib/art/sprites";
 import {
   legacyVariant,
-  RANK_POINTS,
+  rankPoints,
   variantOf,
   type BenchSlot,
 } from "@/lib/bench-ways";
@@ -98,13 +99,35 @@ const WAYS = [
       ],
       [
         "Characters",
-        "Sonnet 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn",
+        "Haiku 5.5, low effort, no thinking - writes one tag per character (pose, mood, held thing) plus a few pieces; nothing drawn",
       ],
       ["Pieces", "on, including props and action effects"],
       ["Backdrop", "on: reused, zoomed and panned per page"],
       [
         "If a character has no parts",
         "the composer can't pose it, so it's drawn by the same quick painter for that page",
+      ],
+    ],
+  },
+  {
+    id: "s",
+    name: "Pre-painted poses",
+    about:
+      "Each character is painted once, ahead, in ten poses (standing, walking, running, jumping, sitting, waving, pointing, holding out, asleep, surprised) and kept. On each page a cheap composer picks a pose for each character, places and sizes them, and adds the pieces the moment needs. Hand-painted characters at almost no cost per page.",
+    vars: [
+      [
+        "Scenery",
+        "the place's backdrop, painted once per place and light; this page's sky and foreground made in code (no painter)",
+      ],
+      [
+        "Characters",
+        "pre-painted poses (Prepare poses: Sonnet 5.5 at medium, once per character and pose); placed by Haiku 5.5, low effort, no thinking",
+      ],
+      ["Pieces", "on, including props at the hands and action effects"],
+      ["Backdrop", "on: reused, zoomed and panned per page"],
+      [
+        "If a character's poses aren't ready",
+        "it falls back to way 4's assembled figures for that page (the card says so)",
       ],
     ],
   },
@@ -661,8 +684,8 @@ export function LabBench({
       <header className="lab-head">
         <h1>Painting bench</h1>
         <p className="meta">
-          Each page painted four ways, from nothing reused to the most. Rank
-          them best to worst ({RANK_POINTS.join("-")} points); each painting
+          Each page painted every way, from nothing reused to the most. Rank
+          them best to worst ({WAYS.map((_, i) => WAYS.length - i).join("-")} points); each painting
           costs real money.
         </p>
       </header>
@@ -714,7 +737,7 @@ export function LabBench({
               <tr>
                 <th>Way</th>
                 <th
-                  title={`Points from your rankings: ${RANK_POINTS.join("-")} for best to worst`}
+                  title={`Points from your rankings: ${WAYS.map((_, i) => WAYS.length - i).join("-")} for best to worst (a ranking of fewer ways: as many points as ways for the best)`}
                 >
                   Score
                 </th>
@@ -1095,6 +1118,7 @@ export function LabBench({
           <div className="lab-pages-bar">
             <GenerateCases choices={choices} pages={pages} onSaved={load} />
             <PrepareCharacters choices={choices} />
+            <PreparePoses pages={pages} />
             <NewPage choices={choices} onSaved={load} />
             <span
               className="lab-pages-filter"
@@ -1212,8 +1236,8 @@ export function LabBench({
                   <button
                     type="button"
                     className="lab-paint"
-                    aria-label="Paint this page four ways"
-                    title="Paint four ways"
+                    aria-label="Paint this page every way"
+                    title="Paint every way"
                     disabled={painting}
                     onClick={(e) => {
                       e.preventDefault();
@@ -1344,7 +1368,7 @@ export function LabBench({
                             onClick={() => void tapRank(run, w.id)}
                           >
                             {order.includes(w.id)
-                              ? `${ORDINAL[order.indexOf(w.id)]} · ${RANK_POINTS[order.indexOf(w.id)]} ${RANK_POINTS[order.indexOf(w.id)] === 1 ? "pt" : "pts"}`
+                              ? `${ORDINAL[order.indexOf(w.id)]} · ${rankPoints(order.indexOf(w.id), Math.max(order.length, paintedWays(run).length))} ${rankPoints(order.indexOf(w.id), Math.max(order.length, paintedWays(run).length)) === 1 ? "pt" : "pts"}`
                               : `Rank ${ORDINAL[order.length] ?? ""}`}
                           </button>
                         )}
@@ -1386,7 +1410,7 @@ export function LabBench({
   );
 }
 
-const ORDINAL = ["1st", "2nd", "3rd", "4th"];
+const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th"];
 
 /** Slots in bench order, the retired first way 3 ("b") where it stood. */
 const SLOT_ORDER = ["1", "p", "b", "q", "x"];
@@ -1448,14 +1472,14 @@ function BenchZoom({
   }, []);
   if (!item) return null;
   const stepping = items.length > 1;
-  if (wide && items.length === 4) {
+  if (wide && items.length >= 4) {
     return createPortal(
       <div className="modal-backdrop lab-collage-backdrop" onClick={onClose}>
         <div
           className="lab-collage"
           role="dialog"
           aria-modal="true"
-          aria-label={`${item.caption}: all four ways`}
+          aria-label={`${item.caption}: every way`}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="lab-collage-head">
@@ -1469,7 +1493,7 @@ function BenchZoom({
               ✕
             </button>
           </div>
-          <div className="lab-collage-grid">
+          <div className={`lab-collage-grid${items.length > 4 ? " three" : ""}`}>
             {items.map((x, i) => (
               <figure
                 key={i}
@@ -1582,6 +1606,7 @@ const FIRST_GUESS_MS: Record<string, number> = {
   p: 25_000,
   q: 15_000,
   x: 15_000,
+  s: 10_000,
 };
 
 /** A painting that hasn't shown anything yet: how long it's been, against
@@ -1790,6 +1815,50 @@ function caseToPage(
     },
     camera: c.camera,
   };
+}
+
+/** "Prepare poses" (way 5): every test page's characters painted in each
+ *  pose, ahead and kept - one pose per request, a few at once, with the
+ *  count shown as they're done. Poses already made are found at once. */
+function PreparePoses({ pages }: { pages: LabPage[] }) {
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ n: number; of: number; failed: number } | null>(null);
+  const go = async () => {
+    setBusy(true);
+    const chars = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
+    const jobs = chars.flatMap((c) => SPRITE_POSE_IDS.map((pose) => ({ c: { ...c, id: "hero" }, pose })));
+    let n = 0;
+    let failed = 0;
+    setDone({ n: 0, of: jobs.length, failed: 0 });
+    const next = async (): Promise<void> => {
+      const job = jobs.shift();
+      if (!job) return;
+      const r = await fetch("/api/admin/bench", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "prepare-pose", character: job.c, pose: job.pose }) })
+        .then((x) => x.json())
+        .catch(() => null);
+      n++;
+      if (!r?.ok) failed++;
+      setDone({ n, of: n + jobs.length, failed });
+      return next();
+    };
+    await Promise.all(Array.from({ length: 6 }, next));
+    setBusy(false);
+  };
+  return (
+    <span className="lab-prepare">
+      <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
+        <span className="lab-add-icon" aria-hidden="true">
+          ✎
+        </span>
+        {busy ? "Preparing poses..." : "Prepare poses"}
+      </button>
+      {done && (
+        <span className="meta">
+          {done.n} of {done.of} ready{done.failed ? `, ${done.failed} failed` : ""}
+        </span>
+      )}
+    </span>
+  );
 }
 
 /** "Prepare characters": every character's parts made ahead and kept,

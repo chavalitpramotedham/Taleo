@@ -16511,3 +16511,34 @@ button.admin-bar-col:focus-visible {
   transform: scaleY(-1);
   pointer-events: none;
 }
+.lab-collage-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.lab-collage-grid.three .lab-collage-art {
+  max-height: calc((100dvh - 190px) / 2);
+}
+@media (min-width: 1100px) {
+  .lab-four {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Inside an app's own browser (see IN_APP in the layout) ----------
+   The page scrolls inside the body, not the whole document, so nothing
+   passes under the app's floating bar; the strip above the menu bar shows
+   the page's own colour, which here is the menu bar's. */
+html.in-app {
+  height: 100%;
+  overflow: hidden;
+  background: #fbf7ee;
+}
+html.in-app[data-night] {
+  background: #18141c;
+}
+html.in-app body {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}

@@ -15,7 +15,9 @@ import type { ReuseSettings } from "./types";
  * changes by itself. Change how a way works without changing a setting,
  * and bump its STYLE: that changes the code too.
  */
-export const BENCH_SLOTS = ["1", "p", "q", "x"] as const;
+export const BENCH_SLOTS = ["1", "p", "q", "x", "s"] as const;
+/** A slot id, as the bench's requests carry it. */
+export const SLOT_RE = /^(1|p|q|x|s)$/;
 export type BenchSlot = (typeof BENCH_SLOTS)[number];
 
 export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
@@ -29,7 +31,11 @@ export const BENCH_WAYS: Record<BenchSlot, ReuseSettings> = {
   q: { stamps: true, parts: true, backdrops: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
   // 4. extreme: posed from the library by a cheap composer, the page's own
   // layer made in code
-  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "low", unthinking: true } },
+  x: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "low", unthinking: true } },
+  // 5. pre-painted poses: each character painted once in ten poses, ahead;
+  // a composer picks a pose for each, places them and adds pieces (the
+  // place reused, its sky and foreground made in code)
+  s: { stamps: true, parts: true, backdrops: true, poses: true, sprites: true, codeLayer: true, painter: { model: "claude-haiku-5-5", effort: "low", unthinking: true } },
 };
 
 /** How each way works beyond its settings. Bump (and say why) whenever a
@@ -56,12 +62,19 @@ export const STYLE: Record<BenchSlot, string> = {
   // s3 (13 Nov): its own backdrops and parts, never another variant's
   // s4 (13 Nov): the apple tree and wild flowers fixed, as p s4
   // s5 (13 Nov): as q s4
-  x: "s5",
+  // s6 (13 Nov): the composer is Haiku 5.5 (a twentieth of Sonnet's price);
+  // and so its settings' fingerprint changes too
+  x: "s6",
+  // s1 (13 Nov): first version
+  s: "s1",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then
  *  3, 2, 1. Spread them further (say 8, 4, 2, 1) if scores bunch up. */
 export const RANK_POINTS = [4, 3, 2, 1];
+/** Points for a place in a ranking of n ways: n for the best, down to 1
+ *  (a ranking of four gives 4-3-2-1, as before; of five, 5-4-3-2-1). */
+export const rankPoints = (place: number, n: number) => (place >= 0 && place < n ? n - place : 0);
 
 /** The slot's number on the bench (1-4). */
 export const slotNumber = (slot: string) => String(BENCH_SLOTS.indexOf(slot as BenchSlot) + 1 || "?");

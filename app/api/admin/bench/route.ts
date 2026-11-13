@@ -4,8 +4,10 @@ import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { generateBenchCases } from "@/server/bench-cases";
 import { prepareParts } from "@/server/paint/parts-maker";
+import { prepareSprite } from "@/server/paint/sprite-maker";
+import { SPRITE_POSE_IDS, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterDef } from "@/lib/types";
-import { BENCH_SLOTS, legacyVariant, RANK_POINTS, variantOf, type BenchSlot } from "@/lib/bench-ways";
+import { BENCH_SLOTS, legacyVariant, rankPoints, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
 import { hset, KEEP_S, mem, picKey, RUNS, PAGES, type BenchRun, type WayResult } from "@/server/bench";
 
 export const dynamic = "force-dynamic";
@@ -95,9 +97,9 @@ function leaderboard(runs: BenchRun[]) {
   // kept: it still counts for variants no longer in use, so they keep the
   // score they earned, but not for current ones, which are ranked afresh.
   const score = new Map<string, { points: number; ranked: number; first: number }>();
-  const give = (variant: string, place: number) => {
+  const give = (variant: string, place: number, n: number) => {
     const t = score.get(variant) ?? { points: 0, ranked: 0, first: 0 };
-    t.points += RANK_POINTS[place] ?? 0;
+    t.points += rankPoints(place, n);
     t.ranked += 1;
     if (place === 0) t.first += 1;
     score.set(variant, t);
@@ -110,13 +112,13 @@ function leaderboard(runs: BenchRun[]) {
       const slots = r.rank?.length ? order : Object.keys(r.ways).filter((k) => !k.includes("@") && r.ways[k].ok);
       for (const slot of slots) {
         const v = r.rankVariants?.[slot] ?? variantIn(r, slot);
-        if (v) give(v, order.indexOf(slot) < 0 ? 99 : order.indexOf(slot));
+        if (v) give(v, order.indexOf(slot) < 0 ? 99 : order.indexOf(slot), r.rank?.length ? order.length : 4);
       }
     }
     for (const old of r.rankOld ?? [])
       old.order.forEach((slot, place) => {
         const v = old.variants[slot];
-        if (v && !current.has(v)) give(v, place);
+        if (v && !current.has(v)) give(v, place, old.order.length);
       });
   }
   const out = [...rows.entries()].map(([variant, { slot, results }]) => {
@@ -154,7 +156,7 @@ export async function GET(req: Request) {
   const pr = q.get("picture") ?? "";
   const pw = q.get("way") ?? "";
   if (pr) {
-    if (!ID.test(pr) || !/^[1pqx]$/.test(pw)) return NextResponse.json({ svg: null }, { headers: noStore });
+    if (!ID.test(pr) || !SLOT_RE.test(pw)) return NextResponse.json({ svg: null }, { headers: noStore });
     let svg: string | null = null;
     if (!metricsEnabled()) svg = mem().pics.get(picKey(pr, pw)) ?? null;
     else {
@@ -184,7 +186,7 @@ export async function POST(req: Request) {
   if (!(await currentAdmin())) return nope();
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const runId = typeof b?.runId === "string" && ID.test(b.runId) ? b.runId : null;
-  const way = typeof b?.way === "string" && /^[1pqx]$/.test(b.way) ? b.way : null;
+  const way = typeof b?.way === "string" && SLOT_RE.test(b.way) ? b.way : null;
   if (b?.kind === "start" && runId) {
     const meta = { at: Date.now(), page: String(b.page ?? "").slice(0, 80), label: String(b.label ?? "").slice(0, 200) };
     await hset(`bench:run:${runId}`, "meta", JSON.stringify(meta));
@@ -224,13 +226,19 @@ export async function POST(req: Request) {
   }
   // Characters' parts made ahead, once for all ways and pages ("Prepare
   // characters"): no page then waits on them, and every way uses the same.
+  // One pre-painted pose of one character (way 5's "Prepare poses" asks
+  // for them one at a time, a few at once, so none runs long)
+  if (b?.kind === "prepare-pose" && b.character && typeof b.pose === "string" && (SPRITE_POSE_IDS as string[]).includes(b.pose)) {
+    const ok = await prepareSprite(b.character as CharacterDef, b.pose as SpritePose).catch(() => false);
+    return NextResponse.json({ ok });
+  }
   if (b?.kind === "prepare" && Array.isArray(b.characters)) {
     const list = (b.characters as CharacterDef[]).filter((c) => c && typeof c.name === "string").slice(0, 30);
     const results = await Promise.all(list.map(async (c) => ({ name: c.name, ...(await prepareParts(c).catch(() => ({ ok: false, preset: false }))) })));
     return NextResponse.json({ results });
   }
   if (b?.kind === "rank" && runId && Array.isArray(b.order)) {
-    const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && /^[1pqx]$/.test(x)))];
+    const order = [...new Set((b.order as unknown[]).filter((x): x is string => typeof x === "string" && SLOT_RE.test(x)))];
     // (which variant was in each slot when it was ranked: the slot's way may
     // change later)
     const variants: Record<string, string> = {};

@@ -21,10 +21,12 @@ import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { expandStream, newStats, ReuseFailed, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light } from "@/lib/art/palette";
-import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
+import { BACKDROP_BRIEF, characterBriefPrompt, composerPrompt, composerSheet, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { once } from "./paint/once";
 import { codePageLayer } from "./paint/page-layer";
+import { spritesFor } from "./paint/sprite-maker";
+import { SPRITE_POSES, type Sprite, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterParts } from "@/lib/art/parts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, SegmentSchema, type SegmentOut } from "./schemas";
 
@@ -727,10 +729,19 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   }
   // The cheapest way: when every character has its parts, nobody is drawn
   // at all - the composer only places and poses them from the library.
-  const posing = Boolean(reuse.poses) && req.cast.length > 0 && req.cast.every((c) => partsOf.has(c.id));
+  // The pre-painted poses, where they're ready (made ahead, never here):
+  // with every character's ready, nobody is drawn - the composer places
+  // their poses.
+  const spritesOf = new Map<string, Partial<Record<SpritePose, Sprite>>>();
+  if (reuse.sprites && req.cast.length)
+    for (const [id, sp] of await Promise.all(req.cast.map(async (c) => [c.id, await spritesFor(c).catch(() => ({}))] as const))) if (Object.keys(sp).length) spritesOf.set(id, sp);
+  const spriting = Boolean(reuse.sprites) && req.cast.length > 0 && req.cast.every((c) => spritesOf.has(c.id));
+  if (reuse.sprites) notes.sprites = spriting ? "placed from pre-painted poses" : `poses not ready for ${req.cast.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ") || "anyone"}: assembled from parts instead`;
+  const posing = spriting || (Boolean(reuse.poses) && req.cast.length > 0 && req.cast.every((c) => partsOf.has(c.id)));
   if (reuse.poses) notes.composer = posing ? "posed from the library" : "someone had no parts: drawn by the painter";
   const sheet = (c: CharacterDef) => {
     const parts = partsOf.get(c.id);
+    if (spriting) return spriteSheet(c, Object.keys(spritesOf.get(c.id) ?? {}));
     if (parts && posing) return composerSheet(c, Object.keys(parts.views));
     if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);
@@ -780,14 +791,14 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   const main: Brush = {
     model,
     effort: chosen?.effort ?? (req.quick ? QUICK_ART_EFFORT : layered ? LAYER_CHARACTERS_EFFORT : ART_EFFORT),
-    label: posing ? "composer" : layered ? "character painter" : req.quick ? "quick painter" : "main painter",
+    label: spriting ? "pose composer" : posing ? "composer" : layered ? "character painter" : req.quick ? "quick painter" : "main painter",
     unthinking: chosen ? chosen.unthinking : Boolean(req.quick) && QUICK_ART_UNTHINKING,
     clockMs: req.quick || chosen ? 0 : FIRST_STROKE_MS,
     // (the standard pieces are offered to whoever paints the scenery:
     // the illustrator only when it paints the whole picture alone)
     // (and to the characters' painter when it paints from parts: for the
     // things the characters touch - the tree climbed, the bench sat on)
-    system: posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && (!layered || partsOf.size > 0) }),
+    system: spriting ? spriteComposerPrompt(SPRITE_POSES) : posing ? composerPrompt() : illustratorPrompt({ stamps: reuse.stamps && (!layered || partsOf.size > 0) }),
     content,
   };
   // One line per painting in the server log: which painter, how long until
@@ -835,8 +846,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const sceneryStrokes = (stop: AbortSignal, why: () => string | undefined) =>
       reuse.stamps ? expandStream(brushStrokes(scenery, stop, logs.scenery, why), expandCtx(stageBox(req)), stats) : brushStrokes(scenery, stop, logs.scenery, why);
     const characterStrokes = (stop: AbortSignal, why: () => string | undefined) =>
-      reuse.stamps || partsOf.size
-        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing || (reuse.stamps && partsOf.size > 0), figures: Object.fromEntries(partsOf) }, stats)
+      reuse.stamps || partsOf.size || spriting
+        ? expandStream(brushStrokes(main, stop, logs.characters, why), { ...expandCtx(null), stamps: posing || (reuse.stamps && partsOf.size > 0), figures: Object.fromEntries(partsOf), sprites: Object.fromEntries(spritesOf) }, stats)
         : brushStrokes(main, stop, logs.characters, why);
     // With backdrops: the place is painted once (the first page set there
     // paints it, every other page reuses it), framed a little differently

@@ -51,6 +51,14 @@ export const ESTIMATES: Record<string, Estimate> = {
     timePc: 45,
     why: "Sonnet at low effort without thinking writes only strokes - faces, limbs, held things - onto the kept heads and bodies: about 4-5k tokens (~$0.05). No scenery painter at all (backdrop reused, the page's sky and foreground made in code). One-off set-up (the backdrop, a character's parts) is counted apart. Expected between ways 2 and 4 on cost, with freer poses than 4.",
   },
+  s: {
+    // (added 13 Nov 2026, before any real run)
+    usd: 0.006,
+    ms: 9_000,
+    costPc: 95,
+    timePc: 80,
+    why: "Nothing of the characters is painted per page: their poses are painted ahead (one-off, about $0.04 a pose with Sonnet) and only placed. The Haiku composer writes a few hundred tokens of tags (a fraction of a cent) with no thinking, the place is reused and its sky and foreground are made in code. Once a place's backdrop exists, a page should take seconds.",
+  },
   x: {
     usd: 0.03,
     ms: 17_000,

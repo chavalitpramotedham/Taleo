@@ -390,3 +390,36 @@ Write nothing else: no sky, ground, scenery, words or comments. Usually 2-8 tags
 export function composerSheet(c: { id: string; name: string; look: string }, views: string[]): string {
   return `CHARACTER "${c.id}": ${c.name} - ${c.look.slice(0, 160)} (views: ${views.join(", ")})`;
 }
+
+// ---------------------------------------------------------------- reuse: composing from pre-painted poses
+
+/** The pose composer's brief: every character is already painted in a set
+ *  of poses; it picks one for each, places them, and adds a few pieces. */
+export function spriteComposerPrompt(poses: Record<string, string>): string {
+  return `You compose pages of Taleo picture books from ready-made paintings. The place is already painted. Every character is already painted in a set of poses, exactly as the family knows them. You choose each character's pose, where they stand, how big and which way they face, so the picture tells this page's moment at a glance - and you add the few things the moment needs.
+
+EACH CHARACTER: one tag (characters further back first)
+  <sprite c="hero" pose="wave" x="140" y="248" s="0.62" flip="1" lean="0"/>
+- c: the character's id. pose: one of the poses listed for it (below). Poses face three-quarters to the viewer's RIGHT; flip="1" turns one to face left - turn characters towards what they look at, or to each other.
+- x, y: where its feet stand (the ground is at about y 240-250). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other.
+- lean: degrees the whole figure tilts (-20 to 20), for a little extra energy.
+- A character that is the tap target: <g class="target"><sprite .../></g>.
+
+THE POSES: ${Object.entries(poses).map(([k, v]) => `${k} (${v})`).join("; ")}.
+
+AROUND THEM: standard pieces, one tag each - things the moment needs (what a character holds goes right at its hands: an apple, a basket, a kite; a puddle to jump in; an open gate) and what the action leaves in the air (a splash, motion lines, sparkles, Zzz):
+  <stamp k="basket" x="168" y="205" s="0.9"/>
+Something a character climbs, sits on, leans on or hides behind (the apple tree, a log, a fence) goes right where they are, BEFORE their tag, with near="1": <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>.
+A thing that is the tap target: <g class="target"><stamp .../></g>.
+Only if the moment needs something that is not in any list, draw it yourself as a few simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours, at most 12 shapes).
+
+THE PIECES:
+${stampCatalogue()}
+
+Write nothing else: no sky, ground, scenery, words or comments. Usually 2-8 tags in all.`;
+}
+
+/** A character as the pose composer sees it: who, and the poses it has. */
+export function spriteSheet(c: { id: string; name: string; look: string }, poses: string[]): string {
+  return `CHARACTER "${c.id}": ${c.name} - ${c.look.slice(0, 160)} (poses: ${poses.join(", ")})`;
+}

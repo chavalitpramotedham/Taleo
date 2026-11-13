@@ -126,6 +126,20 @@ const fellSC = IM_Fell_English_SC({
  *  come back to it (see PullToRefresh, and .leaves-taken in the styles). */
 const LEAVES_BACK = `try{if(sessionStorage.getItem("taleo.pulled")){sessionStorage.removeItem("taleo.pulled");var d=document.documentElement;d.classList.add("leaves-taken");var b=function(){setTimeout(function(){d.classList.remove("leaves-taken")},450)};if(document.readyState==="complete")b();else addEventListener("load",b)}}catch(e){}`;
 
+/**
+ * Inside an app's own browser on an iPhone (Telegram, Instagram,
+ * Facebook...: a bare web view, which names no "Safari/" in its user
+ * agent - Safari, Chrome and Firefox all do), the app's own bar floats
+ * over the top of the page and the page scrolls on underneath it - and the
+ * web view clips anything drawn above our menu bar, so nothing of ours can
+ * cover that strip. There, the page scrolls inside the body instead of the
+ * whole document: nothing passes under the app's bar, and the strip shows
+ * the page's own colour (the menu bar's - see .in-app in the styles).
+ * What reads or sets the window's scroll position is pointed at the body,
+ * so scroll positions, "back to the top" and pull to refresh still work.
+ */
+const IN_APP = `try{(function(){var u=navigator.userAgent;if(!/iPhone|iPad|iPod/.test(u)||/Safari\\//.test(u)||navigator.standalone)return;var d=document.documentElement;d.classList.add("in-app");var b=function(){return document.body};try{Object.defineProperty(window,"scrollY",{configurable:true,get:function(){return b()?b().scrollTop:0}});Object.defineProperty(window,"pageYOffset",{configurable:true,get:function(){return b()?b().scrollTop:0}})}catch(e){}var to=function(x,y){if(!b())return;if(typeof x==="object"&&x)b().scrollTo(x);else b().scrollTo(x||0,y||0)};window.scrollTo=to;window.scroll=to;window.scrollBy=function(x,y){if(!b())return;if(typeof x==="object"&&x)b().scrollBy(x);else b().scrollBy(x||0,y||0)};document.addEventListener("DOMContentLoaded",function(){b().addEventListener("scroll",function(){window.dispatchEvent(new Event("scroll"))},{passive:true})})})()}catch(e){}`;
+
 /** Runs right after the menu bar's markup: notes its height as --topbar-h. */
 const TOPBAR_HEIGHT = `try{(function(){var b=document.querySelector(".topbar");if(b)document.documentElement.style.setProperty("--topbar-h",Math.round(b.getBoundingClientRect().height)+"px")})()}catch(e){}`;
 
@@ -143,7 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             before the first paint: no flash of the other theme. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `${NIGHT_INIT}${INSTALL_CATCH}${EARLY_FETCH}${LEAVES_BACK}`,
+            __html: `${NIGHT_INIT}${IN_APP}${INSTALL_CATCH}${EARLY_FETCH}${LEAVES_BACK}`,
           }}
         />
       </head>

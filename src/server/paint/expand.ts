@@ -1,6 +1,7 @@
 import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
 import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
+import type { Sprite } from "@/lib/art/sprites";
 import { arm, ARM_POSES, face, legs, LEG_POSES, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
 import { PROPS } from "@/lib/art/stamps-more";
 
@@ -55,6 +56,8 @@ export interface ExpandContext {
   stage?: Box | null;
   /** Characters painted from parts, by their id on the page. */
   figures?: Record<string, CharacterParts>;
+  /** Characters' pre-painted poses, by their id on the page. */
+  sprites?: Record<string, Partial<Record<string, Sprite>>>;
 }
 
 export interface ExpandStats {
@@ -264,6 +267,29 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       out += text.slice(at, m.index);
       at = m.index! + m[0].length;
       let tag = m[0];
+      // ---- characters from their pre-painted poses
+      if (/^<\s*sprite\b/i.test(tag)) {
+        if (fig) throw new ReuseFailed("a pose inside a figure");
+        const a = attrsOf(tag);
+        const id = a.c ?? a.id ?? "";
+        const poses = ctx.sprites?.[id];
+        if (!poses) throw new ReuseFailed(`no poses for "${id}"`);
+        const want = (a.pose ?? "stand").toLowerCase();
+        // (a pose not painted for it: the nearest it has, standing first)
+        const sp = poses[want] ?? poses.stand ?? Object.values(poses)[0];
+        if (!sp) throw new ReuseFailed(`no poses for "${id}"`);
+        const x = num(a, "x", null, -100, 500);
+        const y = num(a, "y", null, -100, 400);
+        const sc = num(a, "s", 0.6, 0.15, 2.5);
+        const flip = a.flip === "1" || a.flip === "true";
+        const lean = num(a, "lean", 0, -30, 30);
+        const t = `translate(${f(x)} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+        stats.figs++;
+        stats.posed++;
+        if (!stats.figIds.includes(id)) stats.figIds.push(id);
+        out += `<g class="paint"><g transform="${t}">${sp.paint}</g></g><g class="ink" ${inkAttrs(sc)}><g transform="${t}">${unscaleStrokes(sp.ink, sc)}</g></g><g class="detail"><g transform="${t}">${sp.detail}</g></g>`;
+        continue;
+      }
       // ---- figures from parts
       if (/^<\s*fig\b/i.test(tag)) {
         if (fig) out += endFig();
