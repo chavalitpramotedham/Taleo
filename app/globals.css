@@ -16284,3 +16284,107 @@ html[data-night] .lab-board tr.lab-ahead .lab-variant {
   height: 130px;
   border-radius: 28px;
 }
+/* the daily chart's days: hover or tap one for its numbers */
+.admin-chart-wrap {
+  position: relative;
+  padding-top: 4px;
+}
+button.admin-bar-col {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+}
+button.admin-bar-col:hover,
+button.admin-bar-col.on,
+button.admin-bar-col:focus-visible {
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  outline: none;
+}
+.admin-chart-tip {
+  position: absolute;
+  bottom: calc(100% - 8px);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: grid;
+  gap: 1px;
+  min-width: 128px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: var(--page);
+  box-shadow: 0 10px 24px -12px rgba(40, 25, 10, 0.45);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.admin-chart-tip b {
+  color: var(--ink);
+}
+.lab-past-link {
+  display: block;
+  margin: 12px auto 0;
+  font-size: 0.85rem;
+}
+.lab-past-dialog {
+  max-width: 760px;
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  text-align: left;
+}
+.lab-past-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.lab-past-list > li {
+  padding: 10px 12px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.lab-past-list > li.on {
+  border-color: var(--russet);
+}
+.lab-past-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.lab-past-head .meta {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.lab-past-head .link-btn {
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+.lab-past-four {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.lab-past-four figure {
+  margin: 0;
+}
+.lab-past-four figure.first .lab-art {
+  outline: 2px solid var(--russet);
+}
+.lab-past-four figcaption {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+@media (max-width: 560px) {
+  .lab-past-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

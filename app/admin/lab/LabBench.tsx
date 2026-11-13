@@ -430,6 +430,13 @@ export function LabBench({
     if (done < WAYS.length || painting) return "some";
     return ranked ? "ranked" : "all";
   };
+  // A test page's past generations, in a list (its key), and their pictures
+  // fetched as the list opens
+  const [past, setPast] = useState<string | null>(null);
+  const openPast = (key: string) => {
+    setPast(key);
+    for (const r of runs.filter((x) => x.page === key)) void opened(r);
+  };
   // (all test pages, or just those not yet painted all four ways and ranked)
   const [onlyOpen, setOnlyOpen] = useState(false);
   const rankOf = (run: Run | undefined): string[] =>
@@ -754,6 +761,78 @@ export function LabBench({
         </div>
       </section>
 
+      {past && (() => {
+        const p = pages.find((x) => x.key === past);
+        const list = runs.filter((r) => r.page === past).sort((a, b) => b.at - a.at);
+        if (!p) return null;
+        return (
+          <div className="modal-backdrop" onClick={() => setPast(null)}>
+            <div className="modal-panel draft-prompt lab-past-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-past-title">
+              <div className="modal-head">
+                <h3 id="lab-past-title">{p.label}: past generations</h3>
+                <button type="button" className="icon-btn" onClick={() => setPast(null)} aria-label="Close">
+                  ✕
+                </button>
+              </div>
+              <ol className="lab-past-list">
+                {list.map((r, i) => {
+                  const order = rankOf(r);
+                  const when = new Date(r.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+                  return (
+                    <li key={r.id} className={r.id === runFor(p.key) ? "on" : undefined}>
+                      <div className="lab-past-head">
+                        <b>Run {list.length - i}</b>
+                        <span className="meta">
+                          {when}
+                          {order.length ? ` · ranked ${order.map((x) => nOf(x)).join(" > ")}` : " · not ranked"}
+                        </span>
+                        {r.id !== runFor(p.key) && (
+                          <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => {
+                              setShown((s) => ({ ...s, [p.key]: r.id }));
+                              setOpenRows((o) => ({ ...o, [p.key]: true }));
+                              setPast(null);
+                            }}
+                          >
+                            Show this run
+                          </button>
+                        )}
+                      </div>
+                      <div className="lab-past-four">
+                        {WAYS.map((w) => {
+                          const c = cells[r.id]?.[w.id];
+                          const saved = r.ways[w.id];
+                          return (
+                            <figure key={w.id} className={order[0] === w.id ? "first" : undefined}>
+                              <div className="lab-art">
+                                {c?.svg ? (
+                                  <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomWays(p, r.id, w.id)}>
+                                    <Painting svg={c.svg} className="painting" />
+                                  </button>
+                                ) : (
+                                  <span className="meta">{saved ? (saved.ok ? "..." : "failed") : "not painted"}</span>
+                                )}
+                              </div>
+                              <figcaption>
+                                {nOf(w.id)}
+                                {order.includes(w.id) ? ` · ${ORDINAL[order.indexOf(w.id)]}` : ""}
+                                {saved?.ok ? ` · ${usd(saved.usd)} · ${secs(saved.totalMs)}` : ""}
+                              </figcaption>
+                            </figure>
+                          );
+                        })}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </div>
+        );
+      })()}
+
       {specWay && (
         <div className="modal-backdrop" onClick={() => setSpec(null)}>
           <div
@@ -1035,27 +1114,6 @@ export function LabBench({
                     Remove this page
                   </button>
                 )}
-                {history.length > 1 && (
-                  <div className="lab-history">
-                    {history.slice(0, 8).map((r, i) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        className={`lab-chip${r.id === runId ? " on" : ""}`}
-                        onClick={() =>
-                          setShown((s) => ({ ...s, [p.key]: r.id }))
-                        }
-                      >
-                        Run {history.length - i}
-                        {r.rank?.length
-                          ? ` · ${r.rank.map((x) => nOf(x)).join(">")}`
-                          : r.vote
-                            ? ` · ★${nOf(r.vote)}`
-                            : ""}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 <div className="lab-four">
                   {WAYS.map((w) => {
                     const c = live?.[w.id];
@@ -1147,6 +1205,11 @@ export function LabBench({
                     );
                   })}
                 </div>
+                {history.length > 1 && (
+                  <button type="button" className="link-btn lab-past-link" onClick={() => openPast(p.key)}>
+                    Past generations ({history.length})
+                  </button>
+                )}
               </details>
             );
           })}

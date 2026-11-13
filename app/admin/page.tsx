@@ -1,5 +1,6 @@
 import { currentAdmin } from "@/server/entitlements";
 import { redirect } from "next/navigation";
+import { DailyChart } from "./DailyChart";
 import { listUsers } from "@/server/users";
 import { listGallery } from "@/server/gallery";
 import { activeUsersOver, metricsEnabled, readMetrics, type DayMetrics } from "@/server/metrics";
@@ -128,27 +129,17 @@ export default async function AdminPage() {
       <section className="admin-section">
         <h2>Daily</h2>
         {perDay.length ? (
-          <div className="admin-chart" role="img" aria-label="Cost and stories per day">
-            {perDay.map((d) => (
-              <div key={d.day} className="admin-bar-col" title={`${d.day}: ${usd(d.cost)}, ${d.stories} stories, ${d.paintings} paintings, ${d.active} active`}>
-                <span className="admin-bar admin-bar-cost" style={{ height: `${(d.cost / maxCost) * 100}%` }} />
-                <span className="admin-bar admin-bar-stories" style={{ height: `${(d.stories / maxStories) * 100}%` }} />
-              </div>
-            ))}
-          </div>
+          <DailyChart
+            label="Cost and stories per day"
+            days={perDay.map((d) => ({ day: d.day, cost: (d.cost / maxCost) * 100, stories: (d.stories / maxStories) * 100, lines: [`${usd(d.cost)} cost`, `${d.stories} ${d.stories === 1 ? "story" : "stories"} started`, `${d.paintings} paintings`, `${d.active} active`] }))}
+          />
         ) : costs ? (
-          <div className="admin-chart" role="img" aria-label="Cost per day">
-            {costs.days.map((d) => (
-              <div key={d.day} className="admin-bar-col" title={`${d.day}: ${usd(d.usd)}`}>
-                <span className="admin-bar admin-bar-cost" style={{ height: `${(d.usd / Math.max(0.01, ...costs.days.map((x) => x.usd))) * 100}%` }} />
-              </div>
-            ))}
-          </div>
+          <DailyChart label="Cost per day" days={costs.days.map((d) => ({ day: d.day, cost: (d.usd / Math.max(0.01, ...costs.days.map((x) => x.usd))) * 100, lines: [`${usd(d.usd)} cost`] }))} />
         ) : (
           <p className="meta">Nothing recorded yet.</p>
         )}
         <p className="admin-legend">
-          <span className="admin-key admin-key-cost" /> cost per day <span className="admin-key admin-key-stories" /> stories started (hover a day for details)
+          <span className="admin-key admin-key-cost" /> cost per day <span className="admin-key admin-key-stories" /> stories started (hover or tap a day for details)
         </p>
       </section>
 
