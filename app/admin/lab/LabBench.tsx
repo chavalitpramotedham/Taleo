@@ -222,7 +222,8 @@ export function LabBench({
   // (newest first: the pages added or generated, by when, then the
   // bench's own fixed ones)
   const pages = useMemo(() => {
-    const at = (p: LabPage) => p.createdAt ?? (parseInt(p.key.split("-")[1] ?? "", 36) || 0);
+    const at = (p: LabPage) =>
+      p.createdAt ?? (parseInt(p.key.split("-")[1] ?? "", 36) || 0);
     return [...[...own].sort((a, b) => at(b) - at(a)), ...fixed];
   }, [own, fixed]);
   const latest = (key: string) => runs.find((r) => r.page === key);
@@ -423,9 +424,15 @@ export function LabBench({
   const [picking, setPicking] = useState<Record<string, string[]>>({});
   /** How far a page has got: nothing painted, some ways, all four, or all
    *  four and ranked. */
-  const stageOf = (run: Run | undefined, painting: boolean): "none" | "some" | "all" | "ranked" => {
+  const stageOf = (
+    run: Run | undefined,
+    painting: boolean,
+  ): "none" | "some" | "all" | "ranked" => {
     const done = run ? paintedWays(run).length : 0;
-    const ranked = Boolean(run?.rank?.length) && done === WAYS.length && WAYS.every((w) => run!.rank!.includes(w.id));
+    const ranked =
+      Boolean(run?.rank?.length) &&
+      done === WAYS.length &&
+      WAYS.every((w) => run!.rank!.includes(w.id));
     if (!run || done === 0) return painting ? "some" : "none";
     if (done < WAYS.length || painting) return "some";
     return ranked ? "ranked" : "all";
@@ -498,20 +505,56 @@ export function LabBench({
    *  - "ahead" (green): neither falls short by more than 10 points, and at
    *    least one beats its estimate by 10 points or more;
    *  - otherwise nothing: near enough to what was expected. */
-  const judge = (b: Board | undefined): { kind: "off" | "ahead"; why: string } | null => {
+  const judge = (
+    b: Board | undefined,
+  ): { kind: "off" | "ahead"; why: string } | null => {
     const est = b && b.way !== "1" ? ESTIMATES[b.way] : undefined;
     if (!b || !est || !b.painted) return null;
-    const pc = (v: number | null, base: number | null) => (v === null || !base ? null : (1 - v / base) * 100);
+    const pc = (v: number | null, base: number | null) =>
+      v === null || !base ? null : (1 - v / base) * 100;
     const parts = [
-      { what: "cost", got: pc(b.usd, today), want: est.costPc, more: "more", less: "less" },
-      { what: "time", got: pc(b.totalMs, todayMs), want: est.timePc, more: "longer", less: "shorter" },
-    ].filter((x): x is { what: string; got: number; want: number; more: string; less: string } => x.got !== null);
+      {
+        what: "cost",
+        got: pc(b.usd, today),
+        want: est.costPc,
+        more: "more",
+        less: "less",
+      },
+      {
+        what: "time",
+        got: pc(b.totalMs, todayMs),
+        want: est.timePc,
+        more: "longer",
+        less: "shorter",
+      },
+    ].filter(
+      (
+        x,
+      ): x is {
+        what: string;
+        got: number;
+        want: number;
+        more: string;
+        less: string;
+      } => x.got !== null,
+    );
     if (!parts.length) return null;
-    const say = (x: (typeof parts)[number]) => `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than today, expected ${x.want}% ${x.less}`;
-    const short = parts.filter((x) => (x.want > 0 && x.got < 0) || x.want - x.got > 25);
-    if (short.length) return { kind: "off", why: `Far off its estimate: ${short.map(say).join("; ")}` };
+    const say = (x: (typeof parts)[number]) =>
+      `${x.what} ${x.got < 0 ? `${Math.round(-x.got)}% ${x.more}` : `${Math.round(x.got)}% ${x.less}`} than today, expected ${x.want}% ${x.less}`;
+    const short = parts.filter(
+      (x) => (x.want > 0 && x.got < 0) || x.want - x.got > 25,
+    );
+    if (short.length)
+      return {
+        kind: "off",
+        why: `Far off its estimate: ${short.map(say).join("; ")}`,
+      };
     const ahead = parts.filter((x) => x.got - x.want >= 10);
-    if (ahead.length && parts.every((x) => x.want - x.got <= 10)) return { kind: "ahead", why: `Better than its estimate: ${ahead.map(say).join("; ")}` };
+    if (ahead.length && parts.every((x) => x.want - x.got <= 10))
+      return {
+        kind: "ahead",
+        why: `Better than its estimate: ${ahead.map(say).join("; ")}`,
+      };
     return null;
   };
   const vsToday = (v?: number | null) =>
@@ -612,36 +655,40 @@ export function LabBench({
           role="group"
           aria-label="Rank the leaderboard"
         >
-          <span className="meta">Rank by</span>
-          <button
-            type="button"
-            className={`lab-chip${rankBy === "code" ? " on" : ""}`}
-            onClick={() => setRankBy("code")}
-          >
-            Index
-          </button>
-          <button
-            type="button"
-            className={`lab-chip${rankBy === "score" ? " on" : ""}`}
-            onClick={() => setRankBy("score")}
-          >
-            Score
-          </button>
-          <span className="meta lab-rank-gap">Show</span>
-          <button
-            type="button"
-            className={`lab-chip${!showAll ? " on" : ""}`}
-            onClick={() => setShowAll(false)}
-          >
-            Current
-          </button>
-          <button
-            type="button"
-            className={`lab-chip${showAll ? " on" : ""}`}
-            onClick={() => setShowAll(true)}
-          >
-            All ({board.length})
-          </button>
+          <span className="lab-rank-group">
+            <span className="meta">Rank by</span>
+            <button
+              type="button"
+              className={`lab-chip${rankBy === "code" ? " on" : ""}`}
+              onClick={() => setRankBy("code")}
+            >
+              Index
+            </button>
+            <button
+              type="button"
+              className={`lab-chip${rankBy === "score" ? " on" : ""}`}
+              onClick={() => setRankBy("score")}
+            >
+              Score
+            </button>
+          </span>
+          <span className="lab-rank-group">
+            <span className="meta">Show</span>
+            <button
+              type="button"
+              className={`lab-chip${!showAll ? " on" : ""}`}
+              onClick={() => setShowAll(false)}
+            >
+              Current
+            </button>
+            <button
+              type="button"
+              className={`lab-chip${showAll ? " on" : ""}`}
+              onClick={() => setShowAll(true)}
+            >
+              All ({board.length})
+            </button>
+          </span>
         </div>
         <div className="lab-board-scroll">
           <table>
@@ -676,7 +723,14 @@ export function LabBench({
                     <tr
                       key={b.variant}
                       className={
-                        [b.current ? "" : "lab-earlier", verdict ? (verdict.kind === "off" ? "lab-off" : "lab-ahead") : ""]
+                        [
+                          b.current ? "" : "lab-earlier",
+                          verdict
+                            ? verdict.kind === "off"
+                              ? "lab-off"
+                              : "lab-ahead"
+                            : "",
+                        ]
                           .filter(Boolean)
                           .join(" ") || undefined
                       }
@@ -761,77 +815,124 @@ export function LabBench({
         </div>
       </section>
 
-      {past && (() => {
-        const p = pages.find((x) => x.key === past);
-        const list = runs.filter((r) => r.page === past).sort((a, b) => b.at - a.at);
-        if (!p) return null;
-        return (
-          <div className="modal-backdrop" onClick={() => setPast(null)}>
-            <div className="modal-panel draft-prompt lab-past-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-past-title">
-              <div className="modal-head">
-                <h3 id="lab-past-title">{p.label}: past generations</h3>
-                <button type="button" className="icon-btn" onClick={() => setPast(null)} aria-label="Close">
-                  ✕
-                </button>
+      {past &&
+        (() => {
+          const p = pages.find((x) => x.key === past);
+          const list = runs
+            .filter((r) => r.page === past)
+            .sort((a, b) => b.at - a.at);
+          if (!p) return null;
+          return (
+            <div className="modal-backdrop" onClick={() => setPast(null)}>
+              <div
+                className="modal-panel draft-prompt lab-past-dialog"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="lab-past-title"
+              >
+                <div className="modal-head">
+                  <h3 id="lab-past-title">{p.label}: past generations</h3>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => setPast(null)}
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <ol className="lab-past-list">
+                  {list.map((r, i) => {
+                    const order = rankOf(r);
+                    const when = new Date(r.at).toLocaleString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                    return (
+                      <li
+                        key={r.id}
+                        className={r.id === runFor(p.key) ? "on" : undefined}
+                      >
+                        <div className="lab-past-head">
+                          <b>Run {list.length - i}</b>
+                          <span className="meta">
+                            {when}
+                            {order.length
+                              ? ` · ranked ${order.map((x) => nOf(x)).join(" > ")}`
+                              : " · not ranked"}
+                          </span>
+                          {r.id !== runFor(p.key) && (
+                            <button
+                              type="button"
+                              className="link-btn"
+                              onClick={() => {
+                                setShown((s) => ({ ...s, [p.key]: r.id }));
+                                setOpenRows((o) => ({ ...o, [p.key]: true }));
+                                setPast(null);
+                              }}
+                            >
+                              Show this run
+                            </button>
+                          )}
+                        </div>
+                        <div className="lab-past-four">
+                          {WAYS.map((w) => {
+                            const c = cells[r.id]?.[w.id];
+                            const saved = r.ways[w.id];
+                            return (
+                              <figure
+                                key={w.id}
+                                className={
+                                  order[0] === w.id ? "first" : undefined
+                                }
+                              >
+                                <div className="lab-art">
+                                  {c?.svg ? (
+                                    <button
+                                      type="button"
+                                      className="lab-zoom"
+                                      aria-label={`See ${w.name} full size`}
+                                      onClick={zoomWays(p, r.id, w.id)}
+                                    >
+                                      <Painting
+                                        svg={c.svg}
+                                        className="painting"
+                                      />
+                                    </button>
+                                  ) : (
+                                    <span className="meta">
+                                      {saved
+                                        ? saved.ok
+                                          ? "..."
+                                          : "failed"
+                                        : "not painted"}
+                                    </span>
+                                  )}
+                                </div>
+                                <figcaption>
+                                  {nOf(w.id)}
+                                  {order.includes(w.id)
+                                    ? ` · ${ORDINAL[order.indexOf(w.id)]}`
+                                    : ""}
+                                  {saved?.ok
+                                    ? ` · ${usd(saved.usd)} · ${secs(saved.totalMs)}`
+                                    : ""}
+                                </figcaption>
+                              </figure>
+                            );
+                          })}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
               </div>
-              <ol className="lab-past-list">
-                {list.map((r, i) => {
-                  const order = rankOf(r);
-                  const when = new Date(r.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-                  return (
-                    <li key={r.id} className={r.id === runFor(p.key) ? "on" : undefined}>
-                      <div className="lab-past-head">
-                        <b>Run {list.length - i}</b>
-                        <span className="meta">
-                          {when}
-                          {order.length ? ` · ranked ${order.map((x) => nOf(x)).join(" > ")}` : " · not ranked"}
-                        </span>
-                        {r.id !== runFor(p.key) && (
-                          <button
-                            type="button"
-                            className="link-btn"
-                            onClick={() => {
-                              setShown((s) => ({ ...s, [p.key]: r.id }));
-                              setOpenRows((o) => ({ ...o, [p.key]: true }));
-                              setPast(null);
-                            }}
-                          >
-                            Show this run
-                          </button>
-                        )}
-                      </div>
-                      <div className="lab-past-four">
-                        {WAYS.map((w) => {
-                          const c = cells[r.id]?.[w.id];
-                          const saved = r.ways[w.id];
-                          return (
-                            <figure key={w.id} className={order[0] === w.id ? "first" : undefined}>
-                              <div className="lab-art">
-                                {c?.svg ? (
-                                  <button type="button" className="lab-zoom" aria-label={`See ${w.name} full size`} onClick={zoomWays(p, r.id, w.id)}>
-                                    <Painting svg={c.svg} className="painting" />
-                                  </button>
-                                ) : (
-                                  <span className="meta">{saved ? (saved.ok ? "..." : "failed") : "not painted"}</span>
-                                )}
-                              </div>
-                              <figcaption>
-                                {nOf(w.id)}
-                                {order.includes(w.id) ? ` · ${ORDINAL[order.indexOf(w.id)]}` : ""}
-                                {saved?.ok ? ` · ${usd(saved.usd)} · ${secs(saved.totalMs)}` : ""}
-                              </figcaption>
-                            </figure>
-                          );
-                        })}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {specWay && (
         <div className="modal-backdrop" onClick={() => setSpec(null)}>
@@ -975,12 +1076,34 @@ export function LabBench({
           <div className="lab-pages-bar">
             <GenerateCases choices={choices} pages={pages} onSaved={load} />
             <NewPage choices={choices} onSaved={load} />
-            <span className="lab-pages-filter" role="group" aria-label="Which test pages">
-              <button type="button" className={`lab-chip${!onlyOpen ? " on" : ""}`} onClick={() => setOnlyOpen(false)}>
+            <span
+              className="lab-pages-filter"
+              role="group"
+              aria-label="Which test pages"
+            >
+              <button
+                type="button"
+                className={`lab-chip${!onlyOpen ? " on" : ""}`}
+                onClick={() => setOnlyOpen(false)}
+              >
                 All ({pages.length})
               </button>
-              <button type="button" className={`lab-chip${onlyOpen ? " on" : ""}`} onClick={() => setOnlyOpen(true)}>
-                Uncompleted ({pages.filter((q) => stageOf(runs.find((r) => r.id === runFor(q.key)), false) !== "ranked").length})
+              <button
+                type="button"
+                className={`lab-chip${onlyOpen ? " on" : ""}`}
+                onClick={() => setOnlyOpen(true)}
+              >
+                Uncompleted (
+                {
+                  pages.filter(
+                    (q) =>
+                      stageOf(
+                        runs.find((r) => r.id === runFor(q.key)),
+                        false,
+                      ) !== "ranked",
+                  ).length
+                }
+                )
               </button>
             </span>
           </div>
@@ -1206,7 +1329,11 @@ export function LabBench({
                   })}
                 </div>
                 {history.length > 1 && (
-                  <button type="button" className="link-btn lab-past-link" onClick={() => openPast(p.key)}>
+                  <button
+                    type="button"
+                    className="link-btn lab-past-link"
+                    onClick={() => openPast(p.key)}
+                  >
                     Past generations ({history.length})
                   </button>
                 )}
@@ -1572,14 +1699,24 @@ type GenCase = {
   camera: "close" | "mid" | "wide";
   action: { word: string; target: string } | null;
 };
-function caseToPage(c: GenCase, choices: CharacterDef[], key: string, createdAt: number): LabPage {
-  const byName = (n: string) => choices.find((x) => x.name.toLowerCase() === n.trim().toLowerCase());
+function caseToPage(
+  c: GenCase,
+  choices: CharacterDef[],
+  key: string,
+  createdAt: number,
+): LabPage {
+  const byName = (n: string) =>
+    choices.find((x) => x.name.toLowerCase() === n.trim().toLowerCase());
   const cast = [...new Set(c.characters)]
     .map(byName)
     .filter((x): x is CharacterDef => Boolean(x))
     .slice(0, 3)
     .map((x, i) => ({ ...x, id: i === 0 ? "hero" : `friend${i}` }));
-  const target = c.action ? (cast.find((x) => x.name.toLowerCase() === c.action!.target.trim().toLowerCase())?.id ?? c.action.target.trim().slice(0, 40)) : "";
+  const target = c.action
+    ? (cast.find(
+        (x) => x.name.toLowerCase() === c.action!.target.trim().toLowerCase(),
+      )?.id ?? c.action.target.trim().slice(0, 40))
+    : "";
   return {
     key,
     createdAt,
@@ -1590,16 +1727,36 @@ function caseToPage(c: GenCase, choices: CharacterDef[], key: string, createdAt:
       text: c.text,
       picture: c.picture,
       characters: cast.map((x) => x.id),
-      action: c.action && target ? { word: c.action.word.slice(0, 30), target, sound: "pop", motion: "bounce" } : null,
+      action:
+        c.action && target
+          ? {
+              word: c.action.word.slice(0, 30),
+              target,
+              sound: "pop",
+              motion: "bounce",
+            }
+          : null,
     },
-    place: { id: c.place.id.replace(/[^\w-]/g, "-").slice(0, 40) || "place", about: c.place.about, light: c.place.light },
+    place: {
+      id: c.place.id.replace(/[^\w-]/g, "-").slice(0, 40) || "place",
+      about: c.place.about,
+      light: c.place.light,
+    },
     camera: c.camera,
   };
 }
 
 /** "Generate more cases": the model writes a number of new, varied test
  *  pages, which are saved like the admin's own. */
-function GenerateCases({ choices, pages, onSaved }: { choices: CharacterDef[]; pages: LabPage[]; onSaved: () => void }) {
+function GenerateCases({
+  choices,
+  pages,
+  onSaved,
+}: {
+  choices: CharacterDef[];
+  pages: LabPage[];
+  onSaved: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState("5");
   const [busy, setBusy] = useState(false);
@@ -1616,20 +1773,43 @@ function GenerateCases({ choices, pages, onSaved }: { choices: CharacterDef[]; p
           kind: "generate",
           count: n,
           characters: choices.map((c) => ({ name: c.name, look: c.look })),
-          existing: pages.map((p) => ({ label: p.label, picture: p.page.picture })),
+          existing: pages.map((p) => ({
+            label: p.label,
+            picture: p.page.picture,
+          })),
         }),
       });
-      const d = (await res.json().catch(() => null)) as { cases?: GenCase[]; error?: string } | null;
-      if (!res.ok || !d?.cases?.length) throw new Error(d?.error || "Nothing came back.");
+      const d = (await res.json().catch(() => null)) as {
+        cases?: GenCase[];
+        error?: string;
+      } | null;
+      if (!res.ok || !d?.cases?.length)
+        throw new Error(d?.error || "Nothing came back.");
       // (saved newest first in the order written: the first case gets the
       // latest time)
       const now = Date.now();
       const batch = now.toString(36);
-      await Promise.all(d.cases.map((c, i) => api({ kind: "page", page: caseToPage(c, choices, `gen-${batch}${i.toString(36)}`, now - i) })));
+      await Promise.all(
+        d.cases.map((c, i) =>
+          api({
+            kind: "page",
+            page: caseToPage(
+              c,
+              choices,
+              `gen-${batch}${i.toString(36)}`,
+              now - i,
+            ),
+          }),
+        ),
+      );
       onSaved();
       setOpen(false);
     } catch (e) {
-      setNote(e instanceof Error ? e.message : "Couldn't write new test pages just now.");
+      setNote(
+        e instanceof Error
+          ? e.message
+          : "Couldn't write new test pages just now.",
+      );
     } finally {
       setBusy(false);
     }
@@ -1644,14 +1824,31 @@ function GenerateCases({ choices, pages, onSaved }: { choices: CharacterDef[]; p
       </button>
       {open && (
         <div className="modal-backdrop" onClick={() => !busy && setOpen(false)}>
-          <div className="modal-panel draft-prompt lab-gen-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="lab-gen-title">
+          <div
+            className="modal-panel draft-prompt lab-gen-dialog"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lab-gen-title"
+          >
             <div className="modal-head">
               <h3 id="lab-gen-title">Generate more cases</h3>
-              <button type="button" className="icon-btn" onClick={() => setOpen(false)} disabled={busy} aria-label="Close">
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setOpen(false)}
+                disabled={busy}
+                aria-label="Close"
+              >
                 ✕
               </button>
             </div>
-            <p className="meta">New test pages written by Claude, as different as possible from each other and from the ones here: places, light and seasons, camera, how many characters, what they do and feel, and whether there&apos;s a word to tap.</p>
+            <p className="meta">
+              New test pages written by Claude, as different as possible from
+              each other and from the ones here: places, light and seasons,
+              camera, how many characters, what they do and feel, and whether
+              there&apos;s a word to tap.
+            </p>
             <label className="lab-gen-count">
               How many? (1 to 20)
               <input
@@ -1668,8 +1865,15 @@ function GenerateCases({ choices, pages, onSaved }: { choices: CharacterDef[]; p
               />
             </label>
             {note && <p className="lab-error">{note}</p>}
-            <button type="button" className="btn btn-primary btn-block" onClick={() => void go()} disabled={busy}>
-              {busy ? `Writing ${n} test ${n === 1 ? "page" : "pages"}...` : `Generate ${n} ${n === 1 ? "case" : "cases"}`}
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => void go()}
+              disabled={busy}
+            >
+              {busy
+                ? `Writing ${n} test ${n === 1 ? "page" : "pages"}...`
+                : `Generate ${n} ${n === 1 ? "case" : "cases"}`}
             </button>
           </div>
         </div>

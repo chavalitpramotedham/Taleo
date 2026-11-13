@@ -16388,3 +16388,41 @@ button.admin-bar-col:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+.lab-rank {
+  gap: 8px 18px;
+}
+.lab-rank-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.lab-variant {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .lab-rank .lab-chip {
+    padding: 3px 10px;
+    font-size: 0.78rem;
+  }
+  .lab-rank .meta {
+    font-size: 0.75rem;
+    margin-right: 0;
+  }
+  .lab-board td.lab-way {
+    min-width: 128px;
+  }
+  .lab-way-name {
+    gap: 4px;
+  }
+  /* (the Current view already says which are in use) */
+  .lab-now {
+    display: none;
+  }
+  .lab-variant {
+    font-size: 0.66rem;
+  }
+  .lab-board td small.lab-variant {
+    letter-spacing: 0.02em;
+  }
+}
