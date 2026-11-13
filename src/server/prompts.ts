@@ -1,5 +1,6 @@
 import { stampCatalogue } from "@/lib/art/stamps";
 import { ARM_HINTS, ARM_POSES, LEG_POSES, LOOKS, MOODS } from "@/lib/art/poses";
+import { SIZES } from "./paint/expand";
 import { AGES } from "@/lib/ages";
 import { PRESETS } from "@/lib/presets";
 import { MOTIONS, SOUNDS } from "@/lib/actions";
@@ -318,7 +319,7 @@ Write each such character as one figure:
     <g class="ink">pen lines of the limbs and held things <torso/> <head>closed or laughing eyes as arcs, eyebrows, mouth</head></g>
     <g class="detail"><head>eye dots with a white highlight, tongue</head></g>
   </fig>
-- c: the character's id, exactly as its sheet gives it - and only for a character marked PAINTED FROM PARTS (any other is drawn in full, never as a figure). v: one of the views its sheet lists ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually 0.55-0.8, a close-up 1.3-1.8, far away 0.3). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
+- c: the character's id, exactly as its sheet gives it - and only for a character marked PAINTED FROM PARTS (any other is drawn in full, never as a figure). v: one of the views its sheet lists ("front", or "three" = three-quarter, turned to the viewer's right). x, y: where its feet stand on the page. s: its size (1 = its own 200x200 canvas; a main character in a mid shot is usually ${SIZES.mid}, a wide shot ${SIZES.wide}, a close-up ${SIZES.close}; the page's SIZE line gives this page's exact range). flip="1" mirrors it (a "three" view then faces left). lean: degrees the whole figure leans, about its feet (a run, a stretch, a stagger). tilt: degrees the head turns about the neck (cocked in curiosity, thrown back laughing, drooped).
 - Inside a figure you draw in the character's OWN 200x200 coordinates, from the anchors its sheet gives: arms start at the shoulders, legs at the hips, the face sits on the eye and mouth points. <torso/> and <head>...</head> mark where the kept parts go in the stacking order: far limbs before <torso/>, near limbs and held things after it, and the face inside <head>...</head> so it turns with the head. Write them in each of your paint, ink and detail groups.
 - Use the exact colours each sheet gives, so limbs match the body. Limbs overlap the body where they join; never leave a gap at a shoulder or hip.
 - A figure that is the tap target sits inside it: <g class="target"><fig ...>...</fig></g>.
@@ -381,7 +382,7 @@ DEPTH: someone further back is higher up (smaller y), a little smaller, and writ
 EACH CHARACTER: one tag (put the characters further back first)
   <fig c="hero" v="three" x="140" y="248" s="0.62" flip="1" lean="0" tilt="0" arms="wave,down" legs="walk" mood="laugh" hold="basket"/>
 - c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
-- x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other (a baby much smaller than a grown-up).
+- x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot about ${SIZES.mid}, a wide shot ${SIZES.wide}, a close-up ${SIZES.close} with its feet below the picture's bottom edge; the page's SIZE line gives this page's exact range - keep to it, characters must read clearly). Keep sizes true to each other (a baby much smaller than a grown-up).
 - lean: degrees the whole body leans (-25 to 25: running, stretching, staggering). tilt: degrees the head turns (-25 to 25: curious, laughing, sad).
 - arms: the near arm, then the far arm, each one of: ${ARM_POSES.map((k) => `${k} (${ARM_HINTS[k]})`).join("; ")}.
 - legs: one of: ${LEG_POSES.join(", ")}. (For "sit", put y where the seat is.)
@@ -431,7 +432,7 @@ DEPTH: someone further back is higher up (smaller y), a little smaller, and writ
 EACH CHARACTER: one tag (characters further back first)
   <sprite c="hero" pose="wave" x="140" y="248" s="0.62" flip="1" lean="0"/>
 - c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. pose: one of the poses listed for it on its sheet (and below). Poses face three-quarters to the viewer's RIGHT; flip="1" turns one to face left - turn characters towards what they look at, or to each other.
-- x, y: where its feet stand (the ground is at about y 240-250). s: size (1 = its own 200x200 canvas; a main character in a mid shot 0.55-0.75, a wide shot 0.35-0.5, a close-up 1.3-1.8 with its feet below the picture's bottom edge). Keep sizes true to each other.
+- x, y: where its feet stand (the ground is at about y 240-250). s: size (1 = its own 200x200 canvas; a main character in a mid shot about ${SIZES.mid}, a wide shot ${SIZES.wide}, a close-up ${SIZES.close} with its feet below the picture's bottom edge; the page's SIZE line gives this page's exact range - keep to it, characters must read clearly). Keep sizes true to each other.
 - lean: degrees the whole figure tilts (-20 to 20), for a little extra energy.
 - A character that is the tap target: <g class="target"><sprite .../></g>.
 

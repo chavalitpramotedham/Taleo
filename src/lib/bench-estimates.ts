@@ -158,6 +158,9 @@ export const ESTIMATES: Record<string, Estimate> = {
   "2-3GIN": P1,
   "2-327M": P6,
   "2-1N64": P7,
+  // (13 Nov: the same as the versions before, with bigger characters - the
+  // size costs nothing)
+  "2-YV0X": P7,
   // way 3
   "3-YTBT": Q1,
   "3-008W": Q1,
@@ -165,6 +168,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "3-XMEQ": Q1,
   "3-X83P": Q5,
   "3-YF0S": Q6,
+  "3-Y0PR": Q6,
   // way 4
   "4-YG44": X1,
   "4-Y1T3": X1,
@@ -174,11 +178,13 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-RMPO": X7,
   "4-F49Z": X8,
   "4-HQBY": X9,
+  "4-69BM": X9,
   // way 5
   "5-0IZW": S1,
   "5-ZC2T": S2,
   "5-0Y5G": S3,
   "5-1CGH": S3,
+  "5-1QRI": S3,
 };
 
 /** A variant's estimate (none for v0, the baseline, or an unknown code). */

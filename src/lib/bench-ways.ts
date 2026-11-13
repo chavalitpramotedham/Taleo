@@ -59,7 +59,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s7 (13 Nov): the place's backdrop reused like way 3 (a setting); the
   // moment's own scene details added by the character painter; replies
   // sized to fit
-  p: "s7",
+  // s8 (13 Nov): characters bigger - a mid shot about half the
+  // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
+  p: "s8",
   // s1 (13 Nov): first version
   // s2 (13 Nov): its own backdrops and parts, never another variant's
   // s3 (13 Nov): the apple tree and wild flowers fixed, as p s4
@@ -69,7 +71,9 @@ export const STYLE: Record<BenchSlot, string> = {
   // s5 (13 Nov): as p s6
   // s6 (13 Nov): the moment's own scene details added by the character
   // painter; replies sized to fit; nothing thrown away when cut off
-  q: "s6",
+  // s7 (13 Nov): characters bigger - a mid shot about half the
+  // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
+  q: "s7",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
   // s3 (13 Nov): its own backdrops and parts, never another variant's
@@ -86,14 +90,18 @@ export const STYLE: Record<BenchSlot, string> = {
   // (tapering limbs, shaped hands, feet that turn, a jump that leaves the
   // ground, a run that leans, arms that swing, eyes that look; new arm
   // and leg poses and moods); the composer is Sonnet (a setting)
-  x: "s9",
+  // s10 (13 Nov): characters bigger - a mid shot about half the
+  // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
+  x: "s10",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,
   // peek, reach, hug)
   // s4 (13 Nov): a character without poses yet is put together from its
   // parts with way 4's new arms, hands, legs and faces
-  s: "s4",
+  // s5 (13 Nov): characters bigger - a mid shot about half the
+  // picture's height (0.88 of their canvas, from 0.62), wide 0.55, close 1.5
+  s: "s5",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

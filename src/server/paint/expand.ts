@@ -95,12 +95,20 @@ export interface Sizing {
   yHi: number;
 }
 /** A page's sizing, from its camera (or, without one, its brief). */
+/** A grown character's usual size for each camera, as a share of its own
+ *  200x200 canvas (where it stands about 170 tall): a mid shot about half
+ *  the picture's height (it had been about a third - too small for a
+ *  picture book), a wide shot about a third, a close-up its head and
+ *  shoulders filling the picture. Prompts quote these, so what's asked
+ *  for and what's kept to agree. */
+export const SIZES = { close: 1.5, mid: 0.88, wide: 0.55 } as const;
 export function sizingFor(camera: string | null | undefined, picture: string, characters: number): Sizing {
   const cam = camera ?? (/close[- ]?up|close shot/i.test(picture) ? "close" : /wide shot|far away|in the distance|tiny in|small in the/i.test(picture) ? "wide" : "mid");
-  const crowd = characters >= 3 ? 0.9 : 1;
-  if (cam === "close") return { s: 1.45 * crowd, lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
-  if (cam === "wide") return { s: 0.42 * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
-  return { s: 0.62 * crowd, lo: 0.82, hi: 1.18, yLo: 234, yHi: 262 };
+  // (a crowd stands a little smaller, so everyone fits)
+  const crowd = characters >= 4 ? 0.85 : characters === 3 ? 0.92 : 1;
+  if (cam === "close") return { s: SIZES.close * crowd, lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
+  if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
+  return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 238, yHi: 270 };
 }
 const sized = (ctx: ExpandContext, sc: number, y: number, small = false) => {
   const z = ctx.sizing;
