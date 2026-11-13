@@ -287,3 +287,33 @@ gave them a gaze, left a runner facing away, and put three sets of feet
 (246, 250, 255) on one line.
 
 New codes: 4-UN3W, 5-IFC8.
+
+**Lesson 16 - the action has to read.** A layout that is tidy but loses
+the story's moment is wrong. In the layout pass (ways 4-5):
+- two characters who are both hugging are brought together, facing each
+  other, about 80*s apart;
+- the main action's character is kept well inside the frame (x 90-310); the
+  whole group shifts, rather than that one character;
+- a sitting character beside its seat (a near="1" piece just before it,
+  within its width) is set on the seat's top;
+- the tap target is always there and marked. If it is a character, its tag
+  is wrapped. If it is a piece already drawn, that piece is marked. If it
+  is missing, it is added from the library: on the ground, or up in the air
+  (y 120) for a kite, balloon or bird;
+- one character alone still gets these checks (it used to skip the pass).
+
+The composer is also given a phrasebook of action words into poses: push,
+carry, give, hide, peek, climb, cheer, dance, think, cry, sit and more.
+Each is given as the arms, legs and mood to combine, always with the
+feeling.
+
+Where: steps 2a and 2b, the seat snap and `ensureTarget` in
+`src/server/paint/layout.ts`; "ACTION WORDS INTO POSES" in
+`src/server/prompts.ts`.
+
+Checked: the layout pass on a hug, a character at the edge, a seat and a
+missing kite. A live page with a preset bear and rabbit and a newcomer
+squirrel came out composed and laid out, using a stand-in for the AI
+service.
+
+New codes: 4-RUYP (now live for readers), 5-I117.
