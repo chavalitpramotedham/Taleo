@@ -16004,3 +16004,9 @@ html[data-night] .lab-board tr.lab-off .lab-variant {
   font-family: inherit;
   letter-spacing: 0;
 }
+.lab-rank {
+  flex-wrap: wrap;
+}
+.lab-rank .lab-rank-gap {
+  margin-left: 14px;
+}

@@ -270,6 +270,8 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
   // The leaderboard's order: by code - the order the variants were first
   // tried (#1, #2...; one not tried yet is "new", last) - or by votes.
   const [rankBy, setRankBy] = useState<"code" | "score">("code");
+  // (just the four in use now, unless all variants are asked for)
+  const [showAll, setShowAll] = useState(false);
   const numbered = [...board].sort((a, b) => (a.firstAt ?? Infinity) - (b.firstAt ?? Infinity) || SLOT_ORDER.indexOf(a.way) - SLOT_ORDER.indexOf(b.way)).map((b, i) => ({ b, n: b.firstAt === null ? null : i + 1 }));
   const ranked = rankBy === "code" ? numbered : [...numbered].sort((x, y) => y.b.score - x.b.score || (y.b.votedRuns ? y.b.score / y.b.votedRuns : 0) - (x.b.votedRuns ? x.b.score / x.b.votedRuns : 0) || (x.n ?? 1e9) - (y.n ?? 1e9));
   const todayMs = board.find((x) => x.way === "1" && x.current)?.totalMs ?? null;
@@ -354,6 +356,13 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
           <button type="button" className={`lab-chip${rankBy === "score" ? " on" : ""}`} onClick={() => setRankBy("score")}>
             Score
           </button>
+          <span className="meta lab-rank-gap">Show</span>
+          <button type="button" className={`lab-chip${!showAll ? " on" : ""}`} onClick={() => setShowAll(false)}>
+            Current
+          </button>
+          <button type="button" className={`lab-chip${showAll ? " on" : ""}`} onClick={() => setShowAll(true)}>
+            All ({board.length})
+          </button>
         </div>
         <div className="lab-board-scroll">
           <table>
@@ -373,7 +382,7 @@ export function LabBench({ world, pages: fixed, choices }: { world: string; page
               </tr>
             </thead>
             <tbody>
-              {ranked.map(({ b, n }) => {
+              {ranked.filter(({ b }) => showAll || b.current).map(({ b, n }) => {
                 const w = WAYS.find((x) => x.id === b.way);
                 const off = broke(b);
                 const name = b.way === "b" ? "+ Backdrops, Sonnet" : (w?.name ?? b.way);
