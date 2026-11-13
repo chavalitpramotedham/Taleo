@@ -17054,3 +17054,11 @@ html[data-night] .lab-board .lab-bad {
   margin-top: 0.8rem;
   padding-top: 0.8rem;
 }
+
+/* The bench's use summary while its numbers load: a bar per number */
+.lab-usage-wait {
+  display: inline-block;
+  background: color-mix(in srgb, var(--rule-strong) 45%, transparent);
+  height: 0.8em;
+  vertical-align: -0.05em;
+}

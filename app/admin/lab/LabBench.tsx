@@ -2014,25 +2014,27 @@ function WaitBar({
 type UsageRow = { paints: number; versions: number; usd: number };
 type Usage = { day: UsageRow; week: UsageRow; all: UsageRow };
 function BenchUsage({ usage }: { usage: Usage | null }) {
-  if (!usage) return null;
-  const rows: [string, UsageRow][] = [
-    ["Last 24 hours", usage.day],
-    ["Last 7 days", usage.week],
-    ["All time", usage.all],
+  // (shown at once: until the numbers come, each is a placeholder bar in
+  // the same place, so nothing below moves when they arrive)
+  const rows: [string, UsageRow | null][] = [
+    ["Last 24 hours", usage?.day ?? null],
+    ["Last 7 days", usage?.week ?? null],
+    ["All time", usage?.all ?? null],
   ];
+  const num = (v: string | undefined, w: string) => (v === undefined ? <b className="skeleton-line lab-usage-wait" style={{ width: w }} aria-hidden /> : <b>{v}</b>);
   return (
-    <div className="lab-usage" aria-label="Bench use">
+    <div className={`lab-usage${usage ? "" : " skeleton-card"}`} aria-label="Bench use" aria-busy={!usage}>
       {rows.map(([label, u]) => (
         <div key={label} className="lab-usage-row">
           <span className="lab-usage-label">{label}</span>
           <span>
-            <b>{u.paints.toLocaleString()}</b> paintings
+            {num(u?.paints.toLocaleString(), "2em")} paintings
           </span>
           <span>
-            <b>{u.versions}</b> {u.versions === 1 ? "version" : "versions"}
+            {num(u ? String(u.versions) : undefined, "1.4em")} {u?.versions === 1 ? "version" : "versions"}
           </span>
           <span>
-            <b>{usd(u.usd)}</b> spent
+            {num(u ? usd(u.usd) : undefined, "3.4em")} spent
           </span>
         </div>
       ))}
