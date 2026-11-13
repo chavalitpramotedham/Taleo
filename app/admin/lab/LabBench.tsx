@@ -256,6 +256,26 @@ export function LabBench({
     // which have no date, keep their order at the end)
     return [...own, ...fixed].map((p, i) => ({ p, i })).sort((a, b) => at(b.p) - at(a.p) || a.i - b.i).map((x) => x.p);
   }, [own, fixed]);
+  // What's prepared ahead (characters' parts, way 5's poses): the Prepare
+  // buttons show a tick once all of it is. (Asked again as pages change,
+  // and after each Prepare.)
+  const [prepared, setPrepared] = useState<{ parts: Ready; poses: Ready } | null>(null);
+  const castKey = useMemo(() => [...new Set(pages.flatMap((p) => p.cast.map((c) => c.name)))].sort().join("|"), [pages]);
+  const checkPrepared = useCallback(async () => {
+    const cast = [...new Map(pages.flatMap((p) => p.cast).map((c) => [c.name, c])).values()];
+    const d = await fetch("/api/admin/bench", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "prepared", characters: choices, cast }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    if (d?.parts && d?.poses) setPrepared(d);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [castKey, choices]);
+  useEffect(() => {
+    void checkPrepared();
+  }, [checkPrepared]);
   const latest = (key: string) => runs.find((r) => r.page === key);
   const runFor = (key: string) => shown[key] ?? latest(key)?.id;
 
@@ -1173,10 +1193,13 @@ export function LabBench({
       ) : (
         <>
           <div className="lab-pages-bar">
-            <GenerateCases choices={choices} pages={pages} onSaved={load} />
-            <PrepareCharacters choices={choices} />
-            <PreparePoses pages={pages} />
             <NewPage choices={choices} onSaved={load} />
+            <GenerateCases choices={choices} pages={pages} onSaved={load} />
+            <span className="lab-bar-dot" aria-hidden="true">
+              ·
+            </span>
+            <PrepareCharacters choices={choices} ready={prepared?.parts} onDone={checkPrepared} />
+            <PreparePoses pages={pages} ready={prepared?.poses} onDone={checkPrepared} />
             <span
               className="lab-pages-filter"
               role="group"
@@ -1897,10 +1920,28 @@ function caseToPage(
   };
 }
 
+/** How much of something is prepared: so many ready of so many. */
+type Ready = { ready: number; of: number };
+
+/** A Prepare button's icon: orange while there's something to prepare (or
+ *  it isn't known yet), a green tick once everything is. */
+function PrepIcon({ ready, busy, icon }: { ready?: Ready; busy: boolean; icon: string }) {
+  const done = !busy && ready && ready.of > 0 && ready.ready >= ready.of;
+  return (
+    <span
+      className={`lab-add-icon${done ? " done" : ""}`}
+      aria-hidden="true"
+      title={ready ? `${ready.ready} of ${ready.of} ready` : undefined}
+    >
+      {done ? "✓" : icon}
+    </span>
+  );
+}
+
 /** "Prepare poses" (way 5): every test page's characters painted in each
  *  pose, ahead and kept - one pose per request, a few at once, with the
  *  count shown as they're done. Poses already made are found at once. */
-function PreparePoses({ pages }: { pages: LabPage[] }) {
+function PreparePoses({ pages, ready, onDone }: { pages: LabPage[]; ready?: Ready; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ n: number; of: number; failed: number } | null>(null);
   const go = async () => {
@@ -1923,13 +1964,12 @@ function PreparePoses({ pages }: { pages: LabPage[] }) {
     };
     await Promise.all(Array.from({ length: 6 }, next));
     setBusy(false);
+    onDone();
   };
   return (
     <span className="lab-prepare">
       <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
-        <span className="lab-add-icon" aria-hidden="true">
-          ✎
-        </span>
+        <PrepIcon ready={ready} busy={busy} icon="✎" />
         {busy ? "Preparing poses..." : "Prepare poses"}
       </button>
       {done && (
@@ -1945,7 +1985,7 @@ function PreparePoses({ pages }: { pages: LabPage[] }) {
  *  once for all ways and pages - so no page waits on them, and every way
  *  paints from the same. (A family's character gets its parts as it's
  *  made, once painting from parts is switched on for everyone.) */
-function PrepareCharacters({ choices }: { choices: CharacterDef[] }) {
+function PrepareCharacters({ choices, ready, onDone }: { choices: CharacterDef[]; ready?: Ready; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const go = async () => {
@@ -1961,13 +2001,12 @@ function PrepareCharacters({ choices }: { choices: CharacterDef[] }) {
     const failed = r.filter((x) => !x.ok).map((x) => x.name);
     setNote(r.length ? `${r.length - failed.length} of ${r.length} ready${failed.length ? ` (not: ${failed.join(", ")})` : ""}` : "Couldn't prepare them just now.");
     setBusy(false);
+    onDone();
   };
   return (
     <span className="lab-prepare">
       <button type="button" className="lab-add" onClick={() => void go()} disabled={busy}>
-        <span className="lab-add-icon" aria-hidden="true">
-          ◐
-        </span>
+        <PrepIcon ready={ready} busy={busy} icon="◐" />
         {busy ? "Preparing characters..." : "Prepare characters"}
       </button>
       {note && <span className="meta">{note}</span>}
@@ -2192,14 +2231,15 @@ function NewPage({
     <section className={open ? "panel lab-new" : "lab-new closed"}>
       <button
         type="button"
-        className={`lab-add${open ? " open" : ""}`}
+        className={`lab-add${open ? " open" : " lab-add-bare"}`}
         onClick={() => setOpen((o) => !o)}
+        title={open ? undefined : "New test page"}
         aria-expanded={open}
       >
         <span className="lab-add-icon" aria-hidden="true">
           +
         </span>
-        {open ? "Close" : "New test page"}
+        {open ? "Close" : <span className="sr-only">New test page</span>}
       </button>
       {open && (
         <div className="lab-form">

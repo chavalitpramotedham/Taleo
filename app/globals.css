@@ -16595,3 +16595,28 @@ html.in-app body {
 .journey-ask p {
   line-height: 1.4;
 }
+/* the bench's tools: "+" alone, then Generate; a dot; then the two
+   Prepare buttons (a green tick on one once all of it is prepared) */
+.lab-add.lab-add-bare {
+  padding: 6px;
+  gap: 0;
+}
+.lab-bar-dot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  font-size: 0;
+}
+.lab-add-icon.done {
+  background: #5f8a45;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+@media (max-width: 640px) {
+  .lab-pages-bar .lab-add.lab-add-bare {
+    padding: 5px;
+  }
+}

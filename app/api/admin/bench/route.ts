@@ -3,8 +3,8 @@ import { currentAdmin } from "@/server/entitlements";
 import { metricsEnabled, pipeline } from "@/server/metrics";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { generateBenchCases } from "@/server/bench-cases";
-import { prepareParts } from "@/server/paint/parts-maker";
-import { prepareSprite } from "@/server/paint/sprite-maker";
+import { partsReady, prepareParts } from "@/server/paint/parts-maker";
+import { prepareSprite, spritesFor } from "@/server/paint/sprite-maker";
 import { SPRITE_POSE_IDS, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterDef } from "@/lib/types";
 import { BENCH_SLOTS, legacyVariant, rankPoints, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
@@ -243,6 +243,19 @@ export async function POST(req: Request) {
   if (b?.kind === "prepare-pose" && b.character && typeof b.pose === "string" && (SPRITE_POSE_IDS as string[]).includes(b.pose)) {
     const ok = await prepareSprite(b.character as CharacterDef, b.pose as SpritePose).catch(() => false);
     return NextResponse.json({ ok });
+  }
+  // What's already prepared: characters with their parts, and poses made,
+  // out of those that can have them (looks only, makes nothing).
+  if (b?.kind === "prepared" && Array.isArray(b.characters) && Array.isArray(b.cast)) {
+    const ok = (c: unknown): c is CharacterDef => Boolean(c && typeof (c as CharacterDef).name === "string");
+    const chars = (b.characters as unknown[]).filter(ok).slice(0, 30);
+    const cast = (b.cast as unknown[]).filter(ok).slice(0, 60);
+    const parts = (await Promise.all(chars.map((c) => partsReady(c).catch(() => false)))).filter((x) => x !== null);
+    const poses = await Promise.all(cast.map((c) => spritesFor({ ...c, id: "hero" }).catch(() => ({}))));
+    return NextResponse.json({
+      parts: { ready: parts.filter(Boolean).length, of: parts.length },
+      poses: { ready: poses.reduce<number>((t, x) => t + Object.keys(x).length, 0), of: cast.length * SPRITE_POSE_IDS.length },
+    });
   }
   if (b?.kind === "prepare" && Array.isArray(b.characters)) {
     const list = (b.characters as CharacterDef[]).filter((c) => c && typeof c.name === "string").slice(0, 30);

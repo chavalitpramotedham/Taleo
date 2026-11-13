@@ -161,6 +161,15 @@ export async function prepareParts(c: CharacterDef): Promise<{ ok: boolean; pres
   return { ok: Boolean(made), preset: false };
 }
 
+/** Whether a character's parts are ready ahead (never makes them); null
+ *  if it can't have any (no portrait). */
+export async function partsReady(c: CharacterDef): Promise<boolean | null> {
+  if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return true;
+  const art = characterArt(c);
+  if (!art) return null;
+  return Boolean(await kept<CharacterParts>(partsKey(art)));
+}
+
 /** Parts still being made: a page that stopped waiting for them hands
  *  this to after(), so they're finished and kept for the next page. */
 const inFlight = new Set<Promise<unknown>>();
