@@ -858,21 +858,7 @@ export function LabBench({
       <OrnamentRule className="lab-divider" />
       <div className="lab-session-head">
         <h2>Benchmarking session</h2>
-        {sessions.length > 0 && (
-          <select
-            className="lab-session-pick"
-            value={session ?? ""}
-            onChange={(e) => showSession(Number(e.target.value))}
-            aria-label="Benchmarking session"
-            title={sessions.find((x) => x.n === session) ? `Since ${dayOf(sessions.find((x) => x.n === session)!.at)}` : undefined}
-          >
-            {[...sessions].reverse().map((x) => (
-              <option key={x.n} value={x.n}>
-                {`Session ${x.n} · v0 ${x.name} · ${x.runs} ${x.runs === 1 ? "run" : "runs"}`}
-              </option>
-            ))}
-          </select>
-        )}
+        {sessions.length > 0 && <SessionPicker sessions={sessions} session={session} onPick={showSession} dayOf={dayOf} />}
       </div>
       <details className="panel lab-settings">
         <summary>
@@ -2013,6 +1999,70 @@ function WaitBar({
  *  included). Counted on the server, over every run. */
 type UsageRow = { paints: number; versions: number; usd: number };
 type Usage = { day: UsageRow; week: UsageRow; all: UsageRow };
+/** The bench session shown: a pill with the session and its v0, opening
+ *  the app's usual dropdown of every session (newest first). */
+function SessionPicker({
+  sessions,
+  session,
+  onPick,
+  dayOf,
+}: {
+  sessions: (BenchSession & { runs: number })[];
+  session: number | null;
+  onPick: (n: number) => void;
+  dayOf: (at: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: Event) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
+  const now = sessions.find((x) => x.n === session) ?? sessions.at(-1)!;
+  return (
+    <div className="lab-session-pick" ref={box}>
+      <button type="button" className={`chip lab-session-chip${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={open} aria-label={`Session ${now.n}, v0 ${now.name} - change`}>
+        Session {now.n} <span className="lab-session-v0">· v0 {now.name}</span>
+        <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden className={`category-caret${open ? " up" : ""}`}>
+          <path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="music-dropdown category-menu lab-session-menu" role="listbox" aria-label="Benchmarking sessions">
+          <p className="music-dropdown-label">Sessions</p>
+          {[...sessions].reverse().map((x) => (
+            <button
+              key={x.n}
+              type="button"
+              role="option"
+              aria-selected={x.n === now.n}
+              className={`music-dropdown-item${x.n === now.n ? " on" : ""}`}
+              onClick={() => {
+                setOpen(false);
+                onPick(x.n);
+              }}
+            >
+              Session {x.n} · v0 {x.name}
+              <small className="lab-session-meta">
+                since {dayOf(x.at)} · {x.runs} {x.runs === 1 ? "run" : "runs"}
+              </small>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BenchUsage({ usage }: { usage: Usage | null }) {
   // (shown at once: until the numbers come, each is a placeholder bar in
   // the same place, so nothing below moves when they arrive)

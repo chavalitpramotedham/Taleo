@@ -17041,14 +17041,21 @@ html[data-night] .lab-board .lab-bad {
   text-align: left;
 }
 .lab-session-pick {
-  font: inherit;
-  font-size: 0.85rem;
-  color: var(--ink);
-  background: var(--paper, transparent);
-  border: 1px solid var(--rule-strong);
-  border-radius: 999px;
-  padding: 0.3rem 0.75rem;
-  max-width: 100%;
+  position: relative;
+}
+.lab-session-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lab-session-v0 {
+  color: var(--ink-faint);
+}
+.lab-session-menu .lab-session-meta {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  font-weight: 400;
 }
 .lab-settings-base {
   border-top: 1px solid var(--rule);
@@ -17062,4 +17069,16 @@ html[data-night] .lab-board .lab-bad {
   background: color-mix(in srgb, var(--rule-strong) 45%, transparent);
   height: 0.8em;
   vertical-align: -0.05em;
+}
+/* (on a phone the picker sits at the left, under the title: its menu opens
+   from the left, its words aligned left) */
+@media (max-width: 560px) {
+  .lab-session-menu {
+    right: auto;
+    left: 0;
+  }
+  .lab-session-menu .music-dropdown-label,
+  .lab-session-menu .music-dropdown-item {
+    text-align: left;
+  }
 }

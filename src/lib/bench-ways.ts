@@ -297,7 +297,7 @@ export interface BenchSession {
  *  live version, 4-RUYP. After that a new session starts by itself
  *  whenever LIVE changes (see the bench's API). */
 export const FIRST_SESSIONS: BenchSession[] = [
-  { n: 1, name: "old v0", base: ["1-UG95", "1-SV11"], at: 0 },
+  { n: 1, name: "1-UG95", base: ["1-UG95", "1-SV11"], at: 0 },
   { n: 2, name: "4-RUYP", base: ["4-RUYP"], at: 1_794_587_680_000 },
 ];
 /** The session a run started at `at` belongs to. */
