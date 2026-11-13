@@ -90,6 +90,8 @@ export async function POST(req: Request) {
   if (benched) {
     parsed.reuse = way;
     parsed.bench = true;
+    // (a current way's own variant; an older name keeps its own name)
+    parsed.benchVariant = /^[1pqx]$/.test(lab ?? "") ? variantOf(lab as BenchSlot) : `old-${lab}`;
   } else {
     // (where a page is set steers its painting: until that's part of a
     // page's signature, only the bench may say)

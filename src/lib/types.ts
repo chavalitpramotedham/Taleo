@@ -246,6 +246,11 @@ export interface IllustrateRequest {
   /** Painted on the admin's bench: also measure how much of each
    *  painter's output was strokes and how much thinking (server only). */
   bench?: boolean;
+  /** On the bench: the variant painting this page (lib/bench-ways). Its
+   *  backdrops and characters' parts are its own - never another
+   *  variant's - so no variant looks cheaper or faster by reusing what a
+   *  different one made. */
+  benchVariant?: string;
   /** Where the page is set, for painting its place once and reusing it
    *  (see server/paint/backdrops): a short id for the place, a standing
    *  description of it (its landmarks and which side each is on), and the

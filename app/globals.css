@@ -16057,3 +16057,133 @@ html[data-night] .policy-body a.btn,
 html[data-night] .policy-body a.btn:hover {
   color: #fff4e2;
 }
+
+/* ---------- the Taleo Journey: a vertical timeline ---------- */
+.journey-sum {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.journey-sum b {
+  color: var(--russet);
+}
+.journey-intro {
+  max-width: 640px;
+  margin: 0 auto 26px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.journey-intro a {
+  color: var(--russet);
+}
+.journey-line {
+  list-style: none;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 0 0 34px;
+  position: relative;
+}
+/* the line itself */
+.journey-line::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(var(--russet), color-mix(in srgb, var(--russet) 25%, transparent));
+}
+.journey-day {
+  position: relative;
+  margin: 0 0 22px;
+}
+.journey-dot {
+  position: absolute;
+  left: -30px;
+  top: 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--page);
+  border: 3px solid var(--russet);
+}
+.journey-day.latest .journey-dot {
+  background: var(--russet);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--russet) 20%, transparent);
+}
+.journey-card {
+  padding: 14px 18px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+.journey-when {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.journey-daynum {
+  font-weight: 700;
+  color: var(--russet);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.journey-today {
+  margin-left: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--russet);
+  color: #fbf4e6;
+  font-size: 0.72rem;
+}
+.policy-body .journey-card h2,
+.journey-card h2 {
+  margin: 4px 0 2px;
+  font-size: 1.3rem;
+}
+.journey-count {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.journey-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.journey-card li {
+  margin: 0 0 4px;
+}
+.journey-shot {
+  margin: 12px 0 0;
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+.journey-shot img {
+  width: min(190px, 52vw);
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid var(--rule);
+  box-shadow: 0 10px 24px -14px rgba(60, 40, 20, 0.45);
+}
+.journey-shot figcaption {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+/* (six links: a little tighter on a phone, so they keep to one line) */
+@media (max-width: 440px) {
+  .site-footer {
+    font-size: 0.84rem;
+  }
+  .site-footer nav {
+    gap: 0 1px;
+  }
+  .site-footer a {
+    padding: 10px 4px;
+  }
+}

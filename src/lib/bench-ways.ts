@@ -38,12 +38,15 @@ export const STYLE: Record<BenchSlot, string> = {
   "1": "s1",
   // s2 (13 Nov): parts made for every character (the parts maker had been
   // refused by the SDK), at most 20 s waited for them
-  p: "s2",
+  // s3 (13 Nov): on the bench, its own parts - never another variant's
+  p: "s3",
   // s1 (13 Nov): first version
-  q: "s1",
+  // s2 (13 Nov): its own backdrops and parts, never another variant's
+  q: "s2",
   // s2 (13 Nov): parts for every character, as p; backdrop shown stroke
   // by stroke while it's painted
-  x: "s2",
+  // s3 (13 Nov): its own backdrops and parts, never another variant's
+  x: "s3",
 };
 
 /** Points for a page's ranking, best first: 4 for the best of four, then

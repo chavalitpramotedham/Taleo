@@ -131,11 +131,13 @@ async function regroup(c: CharacterDef): Promise<CharacterParts | null> {
 
 /** A character's parts: hand-made for the presets that have them, else
  *  regrouped from its portrait (once, then kept). Null: paint it in full. */
-export async function partsFor(c: CharacterDef): Promise<CharacterParts | null> {
+export async function partsFor(c: CharacterDef, benchVariant?: string): Promise<CharacterParts | null> {
   if (c.preset && PRESET_PARTS[c.preset] && !c.svg) return PRESET_PARTS[c.preset];
   const art = characterArt(c);
   if (!art) return null;
-  const p = once(`parts:v1:${hashOf(art)}:${art.length}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
+  // (on the bench, each variant makes and keeps its own: none waits on, or
+  // gets for nothing, what another variant made)
+  const p = once(`parts:v1:${hashOf(art)}:${art.length}${benchVariant ? `:bench:${benchVariant}` : ""}`, () => regroup(c), { ttlS: 90 * 86_400, waitMs: 90_000 });
   inFlight.add(p);
   void p.finally(() => inFlight.delete(p)).catch(() => {});
   return p;

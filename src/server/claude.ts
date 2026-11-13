@@ -716,7 +716,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // past PARTS_WAIT_MS that character is painted in full this time, and
     // its parts go on being made for the pages after.)
     const inTime = <T,>(p: Promise<T>) => Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), PARTS_WAIT_MS))]);
-    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await inTime(partsFor(c).catch(() => null))] as const))) if (p) partsOf.set(id, p);
+    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await inTime(partsFor(c, req.benchVariant).catch(() => null))] as const))) if (p) partsOf.set(id, p);
     notes.parts = { from: [...partsOf.keys()], full: req.cast.filter((c) => !partsOf.has(c.id)).map((c) => c.id), readyMs: Date.now() - began };
   }
   // The cheapest way: when every character has its parts, nobody is drawn
@@ -837,7 +837,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     const place = reuse.backdrops && req.place?.id ? req.place : null;
     const under = place
       ? async function* (stop: AbortSignal, why: () => string | undefined): AsyncGenerator<string> {
-          const key = `bd:v1:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonOf(req.world)}`)}`;
+          // (on the bench, each variant paints and keeps its own)
+          const key = `bd:v1:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonOf(req.world)}`)}${req.benchVariant ? `:bench:${req.benchVariant}` : ""}`;
           const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)
