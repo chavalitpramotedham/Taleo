@@ -14,6 +14,7 @@ import {
   type BenchSlot,
 } from "@/lib/bench-ways";
 import { Painting } from "@/components/art/Painting";
+import { OrnamentRule } from "@/components/Icons";
 import type { CharacterDef, IllustrateRequest } from "@/lib/types";
 
 export interface LabPage {
@@ -854,6 +855,25 @@ export function LabBench({
         </p>
       )}
       <BenchUsage usage={usage} />
+      <OrnamentRule className="lab-divider" />
+      <div className="lab-session-head">
+        <h2>Benchmarking session</h2>
+        {sessions.length > 0 && (
+          <select
+            className="lab-session-pick"
+            value={session ?? ""}
+            onChange={(e) => showSession(Number(e.target.value))}
+            aria-label="Benchmarking session"
+            title={sessions.find((x) => x.n === session) ? `Since ${dayOf(sessions.find((x) => x.n === session)!.at)}` : undefined}
+          >
+            {[...sessions].reverse().map((x) => (
+              <option key={x.n} value={x.n}>
+                {`Session ${x.n} · v0 ${x.name} · ${x.runs} ${x.runs === 1 ? "run" : "runs"}`}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
       <details className="panel lab-settings">
         <summary>
           <b>Bench settings</b>
@@ -904,15 +924,6 @@ export function LabBench({
         )}
       </details>
       <section className="panel lab-board" aria-label="Leaderboard">
-        {sessions.length > 0 && (
-          <div className="lab-sessions" role="group" aria-label="Bench session">
-            {[...sessions].reverse().map((x) => (
-              <button key={x.n} type="button" className={`lab-chip${x.n === session ? " on" : ""}`} onClick={() => showSession(x.n)} title={`Since ${dayOf(x.at)} · ${x.runs} runs`}>
-                Session {x.n} <span className="lab-session-base">· base {x.name}</span>
-              </button>
-            ))}
-          </div>
-        )}
         <div
           className="lab-rank"
           role="group"
