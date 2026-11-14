@@ -397,8 +397,7 @@ function ensureTarget(markup: string, opts: LayoutOptions, notes: string[]): str
   }
   const word = (opts.targetThing ?? "").toLowerCase().replace(/^(the|a|an)\s+/, "").trim();
   if (!word) return markup;
-  const norm = (k: string) => k.replace(/[\s_-]+/g, "");
-  const key = Object.keys(STAMPS).find((k) => norm(k) === norm(word) || norm(k) === norm(word).replace(/s$/, "")) ?? Object.keys(STAMPS).find((k) => norm(word).includes(norm(k)) && k.length > 3);
+  const key = stampFor(word);
   if (!key) return markup;
   const there = [...markup.matchAll(/<stamp\b[^>]*\/>/gi)].find((t) => (attr(t[0], "k") ?? "").toLowerCase() === key);
   if (there) {
@@ -857,6 +856,24 @@ function onlyWhatBelongs(markup: string, opts: LayoutOptions, notes: string[]): 
   return out;
 }
 
+/** The standard piece a thing's name asks for, if there is one: the
+ *  whole name ("treasure chest"), else its last word or any word in it as
+ *  a whole word ("the golden key" - key; never "monkey" - key), plurals
+ *  too. */
+export function stampFor(name: string): string | null {
+  const norm = (k: string) => k.toLowerCase().replace(/[\s_-]+/g, "");
+  const said = name.toLowerCase().replace(/^(the|a|an)\s+/, "").trim();
+  const keys = Object.keys(STAMPS);
+  const whole = keys.find((k) => norm(k) === norm(said) || norm(k) === norm(said).replace(/s$/, ""));
+  if (whole) return whole;
+  const words = said.split(/[^a-z]+/).filter(Boolean).reverse();
+  for (const w of words) {
+    const k = keys.find((k) => k === w || `${k}s` === w || `${k}es` === w);
+    if (k) return k;
+  }
+  return null;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
   markup = onlyKnownTags(markup, notes);
@@ -956,11 +973,45 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     if (k < 0.92)
       for (const p of placed) {
         if ((opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id)) continue;
-        const s2 = Math.max(0.24, Math.round(p.s * k * 100) / 100);
+        // (the story's own - the hero, and whoever the child taps - are
+        // never dwarfed: shrunk by no more than 15%, the giant standing
+        // further back says the rest. At 60% a hero beside a dragon was a
+        // speck the child had to look for - 15 Nov)
+        const own = p.id === opts.heroId || p.id === opts.targetId;
+        const kk = own ? Math.max(0.85, k) : k;
+        if (kk >= 0.98) continue;
+        const s2 = Math.max(0.24, Math.round(p.s * kk * 100) / 100);
         notes.push(`${p.id} made smaller (${p.s.toFixed(2)} to ${s2.toFixed(2)}) beside the giant`);
         p.s = s2;
         p.tag = setAttr(p.tag, "s", s2.toFixed(2));
       }
+  }
+  // 0c. A giant stands a little further back than the others (its feet
+  // higher up the page - more than the 14 that lines up the standing, so it's drawn behind them and, by the picture's
+  // perspective, needn't fill the whole frame), and they stand forward:
+  // the giant still towers, the hero in front still reads as the star.
+  // Not in a close-up.
+  if (opts.usualS && opts.usualS < 1.2 && placed.length > 1) {
+    const giants = placed.filter((p) => (opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id));
+    if (giants.length && giants.length < placed.length) {
+      for (const g of giants)
+        if (g.y > 228) {
+          g.y = 228;
+          g.tag = setAttr(g.tag, "y", "228");
+          const cap = fitS(228);
+          if (g.s > cap) {
+            g.s = cap;
+            g.tag = setAttr(g.tag, "s", cap.toFixed(2));
+          }
+          notes.push(`${g.id}, the giant, stood a little further back`);
+        }
+      for (const p of placed) {
+        // (only those standing on the ground: not a flyer, nor one up a tree)
+        if (giants.includes(p) || p.y >= 246 || p.y < 236) continue;
+        p.y = 246;
+        p.tag = setAttr(p.tag, "y", "246");
+      }
+    }
   }
   // (one character alone still gets its seat, its target and its size)
 

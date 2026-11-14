@@ -279,6 +279,116 @@ function letter(_r: R, p: Palette): Piece {
   return P(`<rect x="-12" y="-8" width="24" height="16" fill="#F4EFE4"/>`, `<rect x="-12" y="-8" width="24" height="16"/><path d="M-12 -8L0 2L12 -8"/>`, `<circle cx="7" cy="3" r="2" fill="${p.bloom1}"/>`);
 }
 
+// ------------------------------------------------------------------ more story things (the objects stories most often turn on)
+
+const GOLD = "#D9B25A";
+const GOLD_DARK = "#A8823A";
+function star(r: R, p: Palette): Piece {
+  // (a big friendly star, points a touch rounded, with a glint)
+  const R1 = 14;
+  const R2 = 6.6;
+  const turn = between(r, -0.12, 0.12);
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const a = -Math.PI / 2 + turn + (i * Math.PI) / 5;
+    const rad = i % 2 ? R2 : R1;
+    return `${f(Math.cos(a) * rad)} ${f(Math.sin(a) * rad)}`;
+  });
+  const d = `M${pts.join("L")}Z`;
+  return P(`<circle r="20" fill="${p.star}" opacity="0.25"/><path d="${d}" fill="${p.star}" stroke="${p.star}" stroke-width="2.2" stroke-linejoin="round"/>`, `<path d="${d}" stroke-width="0.8"/>`, `<path d="M-3 -6q2 -2 4 -1" stroke="#FFFFFF" stroke-width="1.4" fill="none" opacity="0.8"/>`);
+}
+function rocket(r: R, p: Palette): Piece {
+  const body = pick(r, ["#E9E4D8", "#F1EDE3"]);
+  const trim = pick(r, [p.bloom1, p.fabric2, "#B2443A"]);
+  return P(
+    `${ground(16)}<path d="M-13 -14L-24 0L-11 -2Z" fill="${trim}"/><path d="M13 -14L24 0L11 -2Z" fill="${trim}"/><path d="M-12 -4C-14 -40 -10 -62 0 -84C10 -62 14 -40 12 -4Z" fill="${body}"/><path d="M-8 -66C-5 -74 -3 -79 0 -84C3 -79 5 -74 8 -66Z" fill="${trim}"/><path d="M-10 -4H10L8 2H-8Z" fill="${p.stoneDark}"/><circle cx="0" cy="-44" r="7" fill="${p.glass}"/>${shade(0, -40, 10, 30, 0.12)}`,
+    `<path d="M-12 -4C-14 -40 -10 -62 0 -84C10 -62 14 -40 12 -4ZM-13 -14L-24 0L-11 -2M13 -14L24 0L11 -2M-8 -66H8"/><circle cx="0" cy="-44" r="7"/>`,
+    `<circle cx="-2" cy="-46" r="2" fill="#FFFFFF" opacity="0.6"/>`,
+  );
+}
+function ladder(r: R, p: Palette): Piece {
+  const h = between(r, 84, 96);
+  const rungs = Array.from({ length: Math.floor(h / 15) }, (_, i) => `M-11 ${f(-8 - i * 15)}H11`).join("");
+  return P(`<rect x="-15" y="${f(-h)}" width="4" height="${f(h)}" fill="${p.wood}"/><rect x="11" y="${f(-h)}" width="4" height="${f(h)}" fill="${p.wood}"/><path d="${rungs}" stroke="${p.wood}" stroke-width="3.2"/>`, `<path d="M-15 0V${f(-h)}M-11 0V${f(-h)}M11 0V${f(-h)}M15 0V${f(-h)}"/><path d="${rungs}" stroke-width="0.7"/>`);
+}
+function key(_r: R, _p: Palette): Piece {
+  return P(`<circle cx="-9" cy="0" r="6" fill="${GOLD}"/><circle cx="-9" cy="0" r="2.6" fill="#FFF8E8"/><rect x="-3" y="-1.6" width="17" height="3.2" fill="${GOLD}"/><path d="M8 1.6v4h2.5v-4M12 1.6v3h2v-3" fill="${GOLD}"/>`, `<circle cx="-9" cy="0" r="6"/><path d="M-3 -1.6H14V1.6H-3M8 1.6v4h2.5v-4M12 1.6v3h2v-3"/>`, `<path d="M-12 -3q2 -2 4 -1" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.7"/>`);
+}
+function bubbles(r: R, p: Palette): Piece {
+  let paint = "";
+  let ink = "";
+  let detail = "";
+  for (let i = 0; i < 5; i++) {
+    const x = between(r, -16, 16);
+    const y = between(r, -16, 16);
+    const rad = between(r, 4, 9);
+    paint += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rad)}" fill="${p.waterLight}" opacity="0.35"/>`;
+    ink += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rad)}" stroke="${p.water}" stroke-width="0.9"/>`;
+    detail += `<path d="M${f(x - rad * 0.55)} ${f(y - rad * 0.2)}q${f(rad * 0.2)} ${f(-rad * 0.4)} ${f(rad * 0.5)} ${f(-rad * 0.45)}" stroke="#FFFFFF" stroke-width="1.1" fill="none" opacity="0.9"/>`;
+  }
+  return P(paint, ink, detail);
+}
+function acorn(_r: R, p: Palette): Piece {
+  return P(`<ellipse cx="0" cy="2" rx="5" ry="6.5" fill="${p.wood}"/><path d="M-6.5 -2C-6 -8 6 -8 6.5 -2Z" fill="${p.woodDark}"/><path d="M0 -7v-3" stroke="${p.woodDark}" stroke-width="1.4"/>`, `<path d="M-6.5 -2C-6 -8 6 -8 6.5 -2ZM-5 -1C-5 6 -2 8.5 0 8.5C2 8.5 5 6 5 -1"/>`, `<ellipse cx="-2" cy="1" rx="1.2" ry="2" fill="#FFFFFF" opacity="0.35"/>`);
+}
+function pie(r: R, p: Palette): Piece {
+  const fill = pick(r, [p.bloom1, "#7E4A6A", p.bloom2]);
+  return P(`<path d="M-16 -2H16L13 6H-13Z" fill="${p.stone}"/><path d="M-15 -2C-14 -11 14 -11 15 -2Z" fill="#D9B07A"/><path d="M-8 -7L-4 -3M0 -8L4 -3M7 -7L10 -4" stroke="${fill}" stroke-width="2"/>`, `<path d="M-16 -2H16L13 6H-13ZM-15 -2C-14 -11 14 -11 15 -2"/><path d="M-6 -2q2 -2 4 0q2 -2 4 0q2 -2 4 0" stroke-width="0.7"/>`, `<path d="M-2 -14q-2 -3 0 -6M3 -14q-2 -3 0 -6" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.6"/>`);
+}
+function cheese(_r: R, _p: Palette): Piece {
+  return P(`<path d="M-13 6L-13 -4L13 -10L13 6Z" fill="#EBC860"/><path d="M-13 -4L13 -10L5 -12Z" fill="#F3DA86"/>`, `<path d="M-13 6V-4L13 -10V6ZM-13 -4L5 -12L13 -10"/>`, `<circle cx="-6" cy="1" r="2.2" fill="#C99D3A"/><circle cx="4" cy="-2" r="1.6" fill="#C99D3A"/><circle cx="7" cy="3" r="1.4" fill="#C99D3A"/>`);
+}
+function present(r: R, p: Palette): Piece {
+  const box = pick(r, [p.fabric2, p.bloom1, p.bloom3]);
+  const rib = pick(r, [p.bloom2, "#F4EFE4", p.cap]);
+  return P(`<rect x="-12" y="-14" width="24" height="18" fill="${box}"/><rect x="-14" y="-18" width="28" height="5" fill="${box}"/><rect x="-2" y="-18" width="4" height="22" fill="${rib}"/><path d="M0 -18C-8 -26 -11 -18 0 -18C11 -18 8 -26 0 -18Z" fill="${rib}"/>`, `<rect x="-12" y="-13" width="24" height="17"/><rect x="-14" y="-18" width="28" height="5"/><path d="M0 -18C-8 -26 -11 -18 0 -18C11 -18 8 -26 0 -18Z" stroke-width="0.8"/>`);
+}
+function chest(r: R, p: Palette): Piece {
+  const wood = pick(r, [p.wood, p.woodDark]);
+  return P(
+    `${ground(26)}<rect x="-24" y="-24" width="48" height="24" fill="${wood}"/><path d="M-24 -24C-24 -38 24 -38 24 -24Z" fill="${p.woodDark}"/><rect x="-24" y="-26" width="48" height="4" fill="${GOLD_DARK}"/><rect x="-16" y="-34" width="4" height="34" fill="${GOLD}"/><rect x="12" y="-34" width="4" height="34" fill="${GOLD}"/><rect x="-4" y="-24" width="8" height="9" rx="1.5" fill="${GOLD}"/>${shade(0, -16, 22, 12, 0.14)}`,
+    `<path d="M-24 0V-24H24V0ZM-24 -24C-24 -38 24 -38 24 -24"/><rect x="-4" y="-24" width="8" height="9" rx="1.5" stroke-width="0.8"/>`,
+    `<circle cx="0" cy="-19" r="1.3" fill="#3A2A1C"/><path d="M-20 -30l2 -3l2 3l-2 3Z" fill="#FFF3C8" opacity="0.8"/>`,
+  );
+}
+function crown(_r: R, p: Palette): Piece {
+  return P(`<path d="M-13 6L-14 -8L-7 -2L0 -12L7 -2L14 -8L13 6Z" fill="${GOLD}"/><rect x="-13" y="2" width="26" height="4" fill="${GOLD_DARK}"/>`, `<path d="M-13 6L-14 -8L-7 -2L0 -12L7 -2L14 -8L13 6Z"/>`, `<circle cx="0" cy="-1" r="2" fill="${p.bloom1}"/><circle cx="-14" cy="-9" r="1.6" fill="#FFF3C8"/><circle cx="0" cy="-13" r="1.6" fill="#FFF3C8"/><circle cx="14" cy="-9" r="1.6" fill="#FFF3C8"/>`);
+}
+function sledge(r: R, p: Palette): Piece {
+  const seat = pick(r, [p.bloom1, p.wood, p.fabric2]);
+  return P(`${ground(30)}<rect x="-30" y="-20" width="58" height="7" rx="2" fill="${seat}"/><rect x="-22" y="-13" width="4" height="8" fill="${p.woodDark}"/><rect x="16" y="-13" width="4" height="8" fill="${p.woodDark}"/>`, `<path d="M-34 -2H26C32 -2 34 -8 31 -12M-30 -20H28V-13H-30ZM-22 -13V-2M-18 -13V-2M16 -13V-2M20 -13V-2"/>`);
+}
+function drum(r: R, p: Palette): Piece {
+  const c = pick(r, [p.bloom1, p.fabric2]);
+  return P(`<rect x="-12" y="-8" width="24" height="16" fill="${c}"/><ellipse cx="0" cy="-8" rx="12" ry="4" fill="#F4EFE4"/><path d="M-12 -6L-6 8L0 -6L6 8L12 -6" stroke="${p.bloom2}" stroke-width="1.4" fill="none"/>`, `<ellipse cx="0" cy="-8" rx="12" ry="4"/><path d="M-12 -8V8C-12 12 12 12 12 8V-8"/>`);
+}
+function spade(_r: R, p: Palette): Piece {
+  return P(`<rect x="-1.6" y="-38" width="3.2" height="26" fill="${p.wood}"/><path d="M-7 -40H7" stroke="${p.wood}" stroke-width="3"/><path d="M-7 -12H7L6 0Q0 6 -6 0Z" fill="${p.stone}"/>`, `<path d="M-7 -12H7L6 0Q0 6 -6 0ZM-1.6 -12V-38M1.6 -12V-38M-7 -40H7"/>`);
+}
+function map(_r: R, p: Palette): Piece {
+  return P(`<path d="M-15 -10L-5 -12L5 -9L15 -11L15 10L5 12L-5 9L-15 11Z" fill="#EAD9B0"/>`, `<path d="M-15 -10L-5 -12L5 -9L15 -11L15 10L5 12L-5 9L-15 11ZM-5 -12V9M5 -9V12"/>`, `<path d="M-11 6q4 -6 8 -2t8 -6" stroke="${p.bloom1}" stroke-width="0.9" stroke-dasharray="1.6 1.6" fill="none"/><path d="M7 -6l4 4M11 -6l-4 4" stroke="${p.bloom1}" stroke-width="1.2"/>`);
+}
+function carrot(_r: R, p: Palette): Piece {
+  return P(`<path d="M-4 -8C-4 4 -1 12 0 14C1 12 4 4 4 -8Z" fill="#E08A3A"/><path d="M0 -8C-4 -14 -6 -16 -5 -18M0 -8C0 -14 0 -16 1 -19M0 -8C3 -14 6 -15 6 -17" stroke="${p.leaf}" stroke-width="2.2" fill="none"/>`, `<path d="M-4 -8C-4 4 -1 12 0 14C1 12 4 4 4 -8Z"/><path d="M-3 -2h2M-2 4h2" stroke-width="0.7"/>`);
+}
+function egg(r: R, _p: Palette): Piece {
+  const c = pick(r, ["#F4EFE4", "#EADCC0", "#DCE6E8"]);
+  return P(`<path d="M0 -9C5 -9 7 -1 7 2C7 7 4 9 0 9C-4 9 -7 7 -7 2C-7 -1 -5 -9 0 -9Z" fill="${c}"/>`, `<path d="M0 -9C5 -9 7 -1 7 2C7 7 4 9 0 9C-4 9 -7 7 -7 2C-7 -1 -5 -9 0 -9Z"/>`, `<ellipse cx="-2.5" cy="-3" rx="1.3" ry="2.4" fill="#FFFFFF" opacity="0.6"/>`);
+}
+function nest(r: R, p: Palette): Piece {
+  const eggs = Array.from({ length: 3 }, (_, i) => `<ellipse cx="${-7 + i * 7}" cy="-5" rx="3.6" ry="4.4" fill="${pick(r, ["#DCE6E8", "#F4EFE4"])}"/>`).join("");
+  return P(`${eggs}<path d="M-17 -4C-15 6 15 6 17 -4C10 0 -10 0 -17 -4Z" fill="${p.woodDark}"/>`, `${[-7, 0, 7].map((x) => `<path d="M${x - 3.6} -3.4A3.6 4.4 0 1 1 ${x + 3.6} -3.4" stroke-width="0.7"/>`).join("")}<path d="M-17 -4C-15 6 15 6 17 -4M-14 -2q6 3 12 0q6 3 12 0M-12 2q6 2 12 0q6 2 10 -1" stroke-width="0.7"/>`);
+}
+function feather(r: R, p: Palette): Piece {
+  const c = pick(r, [p.bloom3, p.fabric2, p.bloom1, "#F4EFE4"]);
+  return P(`<path d="M0 14C-7 4 -7 -8 0 -16C7 -8 7 4 0 14Z" fill="${c}" opacity="0.85"/>`, `<path d="M0 18V-16M0 -6l-4 -3M0 0l-5 -3M0 6l-4 -3M0 -6l4 -3M0 0l5 -3M0 6l4 -3" stroke-width="0.7"/>`);
+}
+function bell(_r: R, _p: Palette): Piece {
+  return P(`<path d="M-9 6C-9 -4 -7 -10 0 -10C7 -10 9 -4 9 6Z" fill="${GOLD}"/><rect x="-11" y="5" width="22" height="3" rx="1.5" fill="${GOLD_DARK}"/><circle cx="0" cy="10" r="2.4" fill="${GOLD_DARK}"/>`, `<path d="M-9 6C-9 -4 -7 -10 0 -10C7 -10 9 -4 9 6ZM0 -10V-13"/>`, `<path d="M-5 -2q0 -4 3 -6" stroke="#FFFFFF" stroke-width="1.1" fill="none" opacity="0.6"/>`);
+}
+function bone(_r: R, _p: Palette): Piece {
+  return P(`<path d="M-9 -2H9V2H-9Z" fill="#F1EAD8"/><circle cx="-10" cy="-3" r="3.2" fill="#F1EAD8"/><circle cx="-10" cy="3" r="3.2" fill="#F1EAD8"/><circle cx="10" cy="-3" r="3.2" fill="#F1EAD8"/><circle cx="10" cy="3" r="3.2" fill="#F1EAD8"/>`, `<path d="M-8 -2H8M-8 2H8"/><path d="M-8.5 -5.8A3.2 3.2 0 1 0 -12.6 -1.2M-12.6 1.2A3.2 3.2 0 1 0 -8.5 5.8M8.5 -5.8A3.2 3.2 0 1 1 12.6 -1.2M12.6 1.2A3.2 3.2 0 1 1 8.5 5.8" stroke-width="0.8"/>`);
+}
+
 // ------------------------------------------------------------------ effects: what an action leaves in the air
 
 function splash(r: R, p: Palette): Piece {
@@ -360,6 +470,11 @@ export const MORE_STAMPS: Record<string, StampKind> = {
   clock: K("a mantel clock", "32x30", "ground", true, clock),
   frame: K("a framed picture on the wall", "36x30", "wall", true, frame),
   bookshelf: K("a tall bookshelf (indoors)", "60x84", "ground", true, bookshelf),
+  rocket: K("a rocket ship standing ready (big enough to ride in at s 1.6)", "48x86", "ground", false, rocket),
+  ladder: K("a wooden ladder, standing", "30x90", "ground", false, ladder),
+  chest: K("a treasure chest with a golden lock", "48x38", "ground", false, chest),
+  sledge: K("a wooden sledge on its runners", "68x22", "ground", false, sledge),
+  nest: K("a bird's nest with eggs (in a tree or on the ground)", "34x14", "ground", false, nest),
 };
 
 /** Things a character holds: placed at its hand (see poses). */
@@ -380,6 +495,22 @@ export const PROPS: Record<string, StampKind> = {
   wand: K("a star wand", "30x50", "middle", false, wand),
   cake: K("a little cake with a candle", "28x28", "middle", false, cake),
   letter: K("a letter", "24x16", "middle", false, letter),
+  star: K("a big friendly star, glowing (one that has fallen, or is held)", "30x30", "middle", false, star),
+  key: K("a golden key", "30x14", "middle", false, key),
+  acorn: K("an acorn", "14x18", "middle", false, acorn),
+  pie: K("a pie or tart in its dish", "32x18", "middle", false, pie),
+  cheese: K("a wedge of cheese", "26x18", "middle", false, cheese),
+  present: K("a wrapped present with a bow", "28x28", "middle", false, present),
+  crown: K("a golden crown", "28x20", "middle", false, crown),
+  drum: K("a little drum", "26x24", "middle", false, drum),
+  spade: K("a garden spade", "16x46", "middle", false, spade),
+  map: K("a treasure map", "30x24", "middle", false, map),
+  carrot: K("a carrot with its leaves", "12x34", "middle", false, carrot),
+  egg: K("an egg", "14x18", "middle", false, egg),
+  feather: K("a feather", "12x34", "middle", false, feather),
+  bell: K("a little golden bell", "22x24", "middle", false, bell),
+  bone: K("a dog's bone", "28x14", "middle", false, bone),
+  bubbles: K("a few floating soap bubbles", "40x40", "middle", false, bubbles),
 };
 
 /** What an action leaves in the air. */

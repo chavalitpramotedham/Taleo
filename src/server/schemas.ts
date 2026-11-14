@@ -67,10 +67,15 @@ export const SegmentSchema = z.object({
     .describe(
       "First segment only (empty afterwards): what this story is about, for its library card - EXACTLY ONE of these words, as written: Adventure, Bedtime, Bravery, Celebration, Family, Feelings, Friendship, Imagination, Kindness, Mission, Mystery, Nature",
     ),
-  newCharacters: z.array(NewCharacterSchema).describe("Side characters introduced in this segment (empty if none)"),
+  // (the places before the newcomers: a place's backdrop is the slowest
+  // part of a page's painting, and it's begun the moment its place is
+  // written - a newcomer's long model sheet used to hold it back. Not
+  // before the plan: written ahead of it, the places led the story astray
+  // in a blind test, 15 Nov)
   places: z
     .array(PlaceSchema)
     .describe("Places NEW in this segment (empty if every page is set in a place already named). In segment 1, plot the whole book's main places up front (usually 2-4). A place lit differently (the same garden at night) is a new place."),
+  newCharacters: z.array(NewCharacterSchema).describe("Side characters introduced in this segment (empty if none)"),
   pages: z.array(PageSchema),
   choice: z
     .object({

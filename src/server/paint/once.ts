@@ -11,6 +11,8 @@ import { metricsEnabled, pipeline } from "../metrics";
  * Without Redis (a developer's machine) the memory copy does the same job.
  */
 const memory = new Map<string, Promise<unknown>>();
+/** Keys whose making (here) has finished. */
+const finished = new Set<string>();
 
 export async function once<T>(key: string, make: () => Promise<T>, opts: { ttlS: number; waitMs: number; nothingTtlS?: number }): Promise<T> {
   const have = memory.get(key) as Promise<T> | undefined;
@@ -58,21 +60,29 @@ export async function once<T>(key: string, make: () => Promise<T>, opts: { ttlS:
     }
   })();
   memory.set(key, p);
+  p.then(() => finished.add(key), () => {});
   // (with Redis, nothing made isn't held here either: Redis keeps it for
   // its short while, then it's tried again)
   p.then((v) => {
     if ((v === null || v === undefined) && metricsEnabled()) memory.delete(key);
   }, () => {});
   // (a failure isn't kept: the next ask tries again)
-  p.catch(() => memory.delete(key));
-  if (memory.size > 500) memory.delete(memory.keys().next().value!);
+  p.catch(() => (memory.delete(key), finished.delete(key)));
+  if (memory.size > 500) {
+    const old = memory.keys().next().value!;
+    memory.delete(old);
+    finished.delete(old);
+  }
   return p;
 }
 
 /** What's kept under a key, if anything - without making it or waiting
  *  for it (null: nothing kept, or "made, nothing"). */
-export async function kept<T>(key: string): Promise<T | null> {
+export async function kept<T>(key: string, opts: { waitForMaking?: boolean } = {}): Promise<T | null> {
   const have = memory.get(key) as Promise<T> | undefined;
+  // (still being made on this server: waited for - unless the caller
+  // would rather follow it as it's made, see paint/live)
+  if (have && opts.waitForMaking === false && !finished.has(key)) return null;
   if (have) return have.catch(() => null);
   if (!metricsEnabled()) return null;
   const [v] = await pipeline([["GET", key]]).catch(() => [null]);

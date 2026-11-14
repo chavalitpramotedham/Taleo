@@ -67,6 +67,8 @@ export interface TokenUsage {
   output_tokens?: number | null;
   cache_read_input_tokens?: number | null;
   cache_creation_input_tokens?: number | null;
+  /** "fast": written in fast mode, billed at twice the list price */
+  speed?: string | null;
 }
 
 /** Estimated cost in millionths of a dollar ("micro-dollars"), so it can be
@@ -79,7 +81,7 @@ export function estimateMicroUsd(model: string, u: TokenUsage): number {
       (u.cache_read_input_tokens ?? 0) * p.cacheRead +
       (u.cache_creation_input_tokens ?? 0) * p.input * 1.25) /
     1_000_000;
-  return Math.round(usd * 1_000_000);
+  return Math.round(usd * (u.speed === "fast" ? 2 : 1) * 1_000_000);
 }
 
 // ---------------------------------------------------------------- recording

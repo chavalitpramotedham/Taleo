@@ -27,6 +27,8 @@ import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/ar
 import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
 import { kept, once } from "./paint/once";
+import { stampFor } from "./paint/layout";
+import { liveReader, liveWriter } from "./paint/live";
 import { LIVE } from "@/lib/bench-ways";
 import { codePageLayer } from "./paint/page-layer";
 import { spritesFor } from "./paint/sprite-maker";
@@ -44,6 +46,10 @@ const ART_MODEL = process.env.TALEO_ART_MODEL || "claude-opus-5-5";
  *  story writer's). */
 const CHARACTER_MODEL = process.env.TALEO_CHARACTER_MODEL || "claude-opus-5-5";
 const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "low";
+/** The storyteller's fast mode (TALEO_STORY_FAST=1): the same model,
+ *  writing up to 2.5x faster - page 1 sooner at the start and after every
+ *  choice - at twice the price per token. Opus only. */
+const STORY_FAST = process.env.TALEO_STORY_FAST === "1" && /opus-5/.test(STORY_MODEL);
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
 /** The pictures a reader is waiting on (the first page or two of each part - see app/api/illustrate) are painted
  *  by a quicker model: in side-by-side tests Sonnet 5.5 at medium effort
@@ -322,20 +328,41 @@ function completeItems(json: string, key: string): { items: string[]; closed: bo
  */
 export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): AsyncGenerator<SegmentEvent> {
   const { user, norm } = buildSegmentRequest(req);
-  const stream = getClient().beta.messages.stream({
-    model: STORY_MODEL,
-    max_tokens: 16000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    system: [{ type: "text", text: writerPrompt(), cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: user }],
-    output_config: { effort: STORY_EFFORT, format: betaZodOutputFormat(SegmentSchema) },
-  }, { signal });
+  const open = (fast: boolean) =>
+    getClient().beta.messages.stream({
+      model: STORY_MODEL,
+      max_tokens: 16000,
+      betas: ["server-side-fallback-2026-07-01", ...(fast ? (["fast-mode-2026-02-01"] as const) : [])],
+      ...(fast ? { speed: "fast" as const } : {}),
+      fallbacks: "default",
+      system: [{ type: "text", text: writerPrompt(), cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: user }],
+      output_config: { effort: STORY_EFFORT, format: betaZodOutputFormat(SegmentSchema) },
+    }, { signal, ...(fast ? { maxRetries: 0 } : {}) });
+  // (fast mode has its own, smaller allowance: turned away, the part is
+  // written at the ordinary speed instead, never not written)
+  let used = open(STORY_FAST);
+  const stream = (async function* () {
+    if (!STORY_FAST) return yield* used;
+    const it = used[Symbol.asyncIterator]();
+    let first: Awaited<ReturnType<typeof it.next>>;
+    try {
+      first = await it.next();
+    } catch (err) {
+      if (signal?.aborted || (err as { status?: number })?.status !== 429) throw err;
+      used = open(false);
+      return yield* used;
+    }
+    if (first.done) return;
+    yield first.value;
+    for (let n = await it.next(); !n.done; n = await it.next()) yield n.value;
+  })();
 
   let text = "";
   let sent = 0;
   let titleSent = false;
   let settingSent = false;
+  let placesSent = false;
   const usage = streamUsageTracker("story", STORY_MODEL, { label: "storyteller", effort: STORY_EFFORT });
   try {
   for await (const event of stream) {
@@ -368,16 +395,20 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
     // pages: passed on the moment it's whole, so the backdrops and the
     // newcomers' portraits are begun while page 1 is still being written,
     // not after it)
+    // (in two goes: the places the moment they're written - their
+    // backdrops are the slowest part of a painting - then the newcomers)
     if (!settingSent) {
-      const chars0 = completeItems(text, "newCharacters");
       const places0 = completeItems(text, "places");
-      if (chars0?.closed && places0?.closed) {
-        settingSent = true;
+      const chars0 = completeItems(text, "newCharacters");
+      const placesNow = places0?.closed && !placesSent;
+      if (placesNow || (places0?.closed && chars0?.closed)) {
+        if (chars0?.closed) settingSent = true;
+        placesSent = true;
         try {
           const w = /"world"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
           const world = w ? (JSON.parse(`"${w[1]}"`) as string).trim() : "";
-          const newCharacters = chars0.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
-          const places = places0.items.map((p) => PlaceSchema.parse(JSON.parse(p)));
+          const newCharacters = chars0?.closed ? chars0.items.map((c) => NewCharacterSchema.parse(JSON.parse(c))) : [];
+          const places = places0!.items.map((p) => PlaceSchema.parse(JSON.parse(p)));
           const early = normalizeSegment({ title: "", world: "", moral: "", plan: "", keyword: "", newCharacters, places, pages: [], choice: null, ending: false }, { ...norm, isLast: false });
           yield { type: "setting", newCharacters: early.newCharacters, places: early.places ?? [], world };
         } catch {}
@@ -418,7 +449,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   } finally {
     usage.finish();
   }
-  const final = await stream.finalMessage();
+  const final = await used.finalMessage();
   if (final.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (final.stop_reason === "max_tokens") throw new Error("The story came out jumbled. Please try again.");
   const lastText = [...final.content].reverse().find((b) => b.type === "text");
@@ -757,6 +788,49 @@ async function* brushStrokes(
   }
 }
 
+/** A layer begun before its turn: `until(p)` sends on what it paints while
+ *  `p` is awaited (and returns p's value), `rest()` the remainder, picking
+ *  up exactly where it left off. A failure while waiting is held for
+ *  `rest()`, so it lands where the layer's failure would. */
+function aheadOf(gen: AsyncGenerator<string>) {
+  type Step = { ok: true; r: IteratorResult<string> } | { ok: false; e: unknown };
+  let pending: Promise<Step> | null = null;
+  const pull = () => (pending ??= gen.next().then((r): Step => ({ ok: true, r }), (e): Step => ({ ok: false, e })));
+  let over = false;
+  const WAITED = null;
+  return {
+    async *until<T>(p: Promise<T>): AsyncGenerator<string, T> {
+      const waited: Promise<Step | null> = p.then(() => WAITED, () => WAITED);
+      while (!over) {
+        const x = await Promise.race([waited, pull()]);
+        if (x === null) break;
+        // (a failure is left pending, for rest())
+        if (!x.ok) break;
+        pending = null;
+        if (x.r.done) {
+          over = true;
+          break;
+        }
+        yield x.r.value;
+      }
+      return await p;
+    },
+    async *rest(): AsyncGenerator<string> {
+      while (!over) {
+        const x = await pull();
+        pending = null;
+        if (!x.ok) {
+          over = true;
+          throw x.e;
+        }
+        if (x.r.done) break;
+        yield x.r.value;
+      }
+      over = true;
+    },
+  };
+}
+
 /** Two painters at once, one picture: everything the first paints is sent
  *  on as it comes; what the second paints is held until the first has
  *  finished and then follows it, so the second's work always lies on top.
@@ -945,7 +1019,9 @@ function targetDrawn(req: IllustrateRequest): string {
   if (!t || req.cast.some((c) => c.id === t)) return "";
   const norm = (k: string) => k.toLowerCase().replace(/^(the|a|an)\s+/, "").replace(/[\s_-]+/g, "");
   const w = norm(t);
-  if (Object.keys(STAMPS).some((k) => norm(k) === w || norm(k) === w.replace(/s$/, ""))) return "";
+  // (matched as the layout matches it - "the golden key", "a treasure
+  // chest" - so a piece that will be placed isn't also drawn)
+  if (stampFor(t)) return "";
   return ` There is no standard piece for "${t}": DRAW IT YOURSELF inside the target group (5-12 shapes, its colours from the brief, big enough to tap - at least 30 across), exactly where the brief puts it. It MUST be in the picture.`;
 }
 
@@ -1111,10 +1187,28 @@ const lightFor = (place: { about?: string; light?: string }, extra = ""): Light 
  *  scene's details still change on every page: each page's own sky and
  *  foreground, its framing, and the moment's details over it. */
 export async function prepareBackdrop(place: { id: string; about?: string; light?: string }, world: string): Promise<boolean> {
-  const light = lightFor(place);
+  return Boolean(await backdropOnce(place, lightFor(place), world).catch(() => null));
+}
+
+/** A place's backdrop: the one kept, the one being painted (by this
+ *  request or another, on any server), or painted now - and, while it's
+ *  painted, published stroke by stroke for any page waiting on it (see
+ *  paint/live). Never cut off by a reader leaving: it's for every page set
+ *  there. `log` is filled only if it's painted here. */
+function backdropOnce(place: { id: string; about?: string }, light: Light, world: string, log: Record<string, unknown> = {}): Promise<string | null> {
   const key = placeKey(place, light, world);
-  const made = await once(key, () => paintBackdropSvg(place, light, world, key, undefined, {}), { ttlS: 365 * 86_400, waitMs: 180_000, nothingTtlS: 20 }).catch(() => null);
-  return Boolean(made);
+  return once(
+    key,
+    async () => {
+      const w = liveWriter(key);
+      try {
+        return await paintBackdropSvg(place, light, world, key, undefined, log, (s) => w.push(s));
+      } finally {
+        w.end();
+      }
+    },
+    { ttlS: 365 * 86_400, waitMs: 180_000, nothingTtlS: 20 },
+  );
 }
 
 /** Whether a place's backdrop is prepared (never paints it). */
@@ -1327,6 +1421,56 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // (the place's or page's own season over the book's: an autumn wood in a
   // late-summer book is still an autumn wood)
   const season = seasonFor(req.place?.about, `${req.page.picture} ${req.page.text}`, req.world);
+  // (the place's backdrop - the slowest part of most pictures, and needing
+  // nothing below - is begun this moment, not after the characters' parts
+  // have been waited for (up to PARTS_WAIT_MS): the scenery layer below
+  // follows it as it's painted)
+  const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
+  // (this page's framing of it: a modest zoom about the ground line and a
+  // pan, chosen from the page itself - a close-up comes closer. Gentle
+  // enough that a landmark at either side - where the backdrop puts them,
+  // about x 30-370 - stays in the picture: at up to 1.25 and a 24-pixel
+  // pan, a tree on the right bank was cut off)
+  const frameH = hashOf(req.page.text);
+  const zoom = req.camera === "close" ? 1.12 : req.camera === "wide" ? 1 : [1, 1.04, 1.08][frameH % 3];
+  const dx = zoom > 1.05 ? 0 : (((frameH >> 3) % 3) - 1) * 8;
+  const frameOpen = `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">`;
+  // The place's backdrop - the slowest part of most pictures, and needing
+  // nothing below - is begun this moment, and shown as it's painted while
+  // the characters' parts are still being waited for (up to
+  // PARTS_WAIT_MS, with nothing on the page): the scenery layer then goes
+  // on from wherever it got to.
+  let earlyMade = false;
+  const early = reuse.backdrops && req.place?.id && !req.benchVariant && paintsInLayers(req)
+    ? aheadOf(
+        (async function* (place: NonNullable<IllustrateRequest["place"]>): AsyncGenerator<string> {
+          notes.frame = `zoom ${zoom}, pan ${dx}`;
+          const key = placeKey(place, light, req.world);
+          // (prepared ahead - the story's places, begun as they're named -
+          // and finished: whole at once, nothing to pay. One being painted
+          // right now, here or on another server, is followed stroke by
+          // stroke; one nobody has painted is painted now.)
+          const prepared = await kept<string>(key, { waitForMaking: false }).catch(() => null);
+          const backdrop = prepared ? Promise.resolve(prepared) : backdropOnce(place, light, req.world, backdropLog).then((v) => v ?? "");
+          yield frameOpen;
+          let shown = "";
+          if (!prepared)
+            for await (const piece of liveReader(key, backdrop, signal)) {
+              shown += piece;
+              yield piece;
+            }
+          const whole = await backdrop;
+          // (the rest of it, or all of it if what was shown was another
+          // attempt's)
+          if (!shown || !whole.startsWith(shown)) yield whole;
+          else if (whole.length > shown.length) yield whole.slice(shown.length);
+          yield "</g>";
+          const made = Object.keys(backdropLog).length > 2;
+          earlyMade = made;
+          notes.backdrop = prepared ? "prepared ahead" : made ? "painted for this page, kept for the others" : shown ? "being painted for the story: shown as it was painted" : "reused";
+        })(req.place),
+      )
+    : null;
   const expandCtx = (stage: Box | null): ExpandContext => ({
     bookSeed: hashOf(req.storyId || req.world || "taleo"),
     pageSeed: hashOf(`${req.storyId ?? ""}|${req.page.text}`),
@@ -1347,7 +1491,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // past PARTS_WAIT_MS that character is painted in full this time, and
     // its parts go on being made for the pages after.)
     const inTime = <T,>(p: Promise<T>) => Promise.race([p, new Promise<null>((r) => setTimeout(() => r(null), PARTS_WAIT_MS))]);
-    for (const [id, p] of await Promise.all(req.cast.map(async (c) => [c.id, await inTime(partsFor(c, req.benchVariant).catch(() => null))] as const))) if (p) partsOf.set(id, p);
+    const waited = Promise.all(req.cast.map(async (c) => [c.id, await inTime(partsFor(c, req.benchVariant).catch(() => null))] as const));
+    for (const [id, p] of early ? yield* early.until(waited) : await waited) if (p) partsOf.set(id, p);
     notes.parts = { from: [...partsOf.keys()], full: req.cast.filter((c) => !partsOf.has(c.id)).map((c) => c.id), readyMs: Date.now() - began };
   }
   // The cheapest way: when every character has its parts, nobody is drawn
@@ -1357,7 +1502,10 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // their poses.
   const spritesOf = new Map<string, Partial<Record<SpritePose, Sprite>>>();
   if (reuse.sprites && req.cast.length)
-    for (const [id, sp] of await Promise.all(req.cast.map(async (c) => [c.id, await spritesFor(c).catch(() => ({}))] as const))) if (Object.keys(sp).length) spritesOf.set(id, sp);
+  {
+    const waited = Promise.all(req.cast.map(async (c) => [c.id, await spritesFor(c).catch(() => ({}))] as const));
+    for (const [id, sp] of early ? yield* early.until(waited) : await waited) if (Object.keys(sp).length) spritesOf.set(id, sp);
+  }
   // Newcomers: characters with no portrait at all (a squirrel, a bird, an
   // alien the story brings in), so no parts and no poses can exist. They
   // don't stop the composer: it still places everyone, and leaves each
@@ -1563,8 +1711,11 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           // under, so a page that asks while it's being painted waits for
           // that painting rather than starting a second; on the bench,
           // each variant paints its own unless the place was prepared)
+          if (early) {
+            yield* early.rest();
+            if (earlyMade) (logs as Record<string, Record<string, unknown>>).backdrop = backdropLog;
+          } else {
           const key = req.benchVariant ? `bd:v2:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonFor(place.about, "", req.world)}`)}:bench:${req.benchVariant}` : placeKey(place, light, req.world);
-          const backdropLog: Record<string, unknown> = { model: SCENERY_MODEL, measure: Boolean(req.bench) };
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)
           const h = hashOf(req.page.text);
@@ -1579,13 +1730,16 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           // is painted (not blank until it's done); a page that reuses it
           // shows it whole at once.
           let made = false;
-          const live: string[] = [];
-          let settled = false;
-          let wake = () => {};
           // (prepared ahead - "Prepare places", or the story's places - it's
           // here already, whole: no waiting, nothing to pay)
-          const prepared = await kept<string>(placeKey(place, light, req.world)).catch(() => null);
-          const backdrop = prepared ? Promise.resolve(prepared) : once(
+          // (one being painted right now isn't waited for here: it's
+          // followed below, stroke by stroke)
+          const prepared = await kept<string>(placeKey(place, light, req.world), { waitForMaking: false }).catch(() => null);
+          const backdrop = prepared ? Promise.resolve(prepared) : !req.benchVariant ? backdropOnce(place, light, req.world, backdropLog).then((v) => {
+            made = Object.keys(backdropLog).length > 2;
+            if (made) (logs as Record<string, Record<string, unknown>>).backdrop = backdropLog;
+            return v ?? "";
+          }) : once(
             key,
             async () => {
               made = true;
@@ -1596,31 +1750,37 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
                 content: [{ type: "text", text: [world, `THE PLACE: ${place.about || place.id}`, `THE LIGHT: ${light}`, BACKDROP_BRIEF, stageFor({ ...req, page: { ...req.page, characters: ["a", "b"] } }), "Output the SVG markup now."].join("\n\n") }],
               };
               let svg = "";
-              for await (const c of expandStream(brushStrokes(painter, stop, backdropLog, why), { ...expandCtx({ x0: 85, x1: 315, y0: 75, y1: 250 }), pageSeed: hashOf(key) }, newStats())) {
-                svg += c;
-                live.push(c);
-                wake();
+              const w = liveWriter(key);
+              try {
+                for await (const c of expandStream(brushStrokes(painter, stop, backdropLog, why), { ...expandCtx({ x0: 85, x1: 315, y0: 75, y1: 250 }), pageSeed: hashOf(key) }, newStats())) {
+                  svg += c;
+                  w.push(c);
+                }
+              } finally {
+                w.end();
               }
               return svg;
             },
             { ttlS: 30 * 86_400, waitMs: 120_000 },
           );
-          void backdrop.then(
-            () => ((settled = true), wake()),
-            () => ((settled = true), wake()),
-          );
           yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">`;
-          for (;;) {
-            const more = new Promise<void>((r) => (wake = r));
-            while (live.length) yield live.shift()!;
-            if (settled) break;
-            await more;
+          // (painted here, or by someone else - the story's places are
+          // begun as soon as they're named: shown as it's painted either way)
+          let shown = "";
+          if (!prepared) {
+            for await (const piece of liveReader(key, backdrop, stop)) {
+              shown += piece;
+              yield piece;
+            }
           }
           const whole = await backdrop;
-          // (reused, or made by another page: all of it now)
-          if (!made) yield whole;
+          // (the rest of it, or all of it if what was shown was another
+          // attempt's)
+          if (!shown || !whole.startsWith(shown)) yield whole;
+          else if (whole.length > shown.length) yield whole.slice(shown.length);
           yield "</g>";
           notes.backdrop = prepared ? "prepared ahead" : made ? "painted for this page, kept for the others" : "reused";
+          }
           if (reuse.codeLayer) {
             // (this page's own sky and foreground, made in code)
             notes.pageLayer = "made in code";
