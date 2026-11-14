@@ -119,4 +119,15 @@ export const JOURNEY: JourneyDay[] = [
     ],
     shots: [shot("13", "pricing", "A clear page on pricing and the plans"), shot("13", "bench", "Behind the scenes: testing new ways to paint (costs hidden)", true)],
   },
+  {
+    date: "2026-11-14",
+    title: "Experimenting with painter RSI",
+    updates: 15,
+    highlights: [
+      "Every reader's page is now painted the new way, reusing characters and places for quicker pictures.",
+      "Behind the scenes: experimenting with painter RSI. Over 20 rounds in one night, the painter painted a long test book, graded every page and learned from its own mistakes.",
+      "In the trial, pages that missed the story's key thing fell from 9 of 18 to 1. Hugs read as hugs, friends sit at the table and get tucked into bed, and big characters really look big.",
+    ],
+    shots: [shot("14", "painter-rsi", "Painter RSI: the same page at round 0, round 10 and round 20", true)],
+  },
 ];
