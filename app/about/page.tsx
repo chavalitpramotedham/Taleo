@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactForm } from "@/components/ContactForm";
 import { FounderCard } from "@/components/FounderCard";
 import { OG_IMAGE } from "@/lib/seo";
@@ -84,6 +85,10 @@ export default function AboutPage() {
 
         <p>
           That&apos;s what I&apos;m hoping to build with Taleo. A little more imagination, a little more connection, and a few more special moments at bedtime. All from a dad who&apos;s figuring it out along the way.
+        </p>
+
+        <p className="about-journey">
+          <Link href="/journey">Follow how Taleo is growing, day by day, on the Taleo Journey →</Link>
         </p>
 
       </article>

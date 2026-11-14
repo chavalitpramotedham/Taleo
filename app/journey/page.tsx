@@ -64,6 +64,13 @@ export default function JourneyPage() {
                   ))}
                 </ul>
                 {d.shots && d.shots.length > 0 && <JourneyGallery shots={d.shots} day={label} />}
+                {d.links?.map((a) => (
+                  <p key={a.href} className="journey-link">
+                    <a href={a.href} target="_blank" rel="noopener noreferrer">
+                      {a.label} ↗
+                    </a>
+                  </p>
+                ))}
               </div>
             </li>
           );

@@ -23,6 +23,8 @@ export interface JourneyDay {
    *  each caption names what it shows - night mode in night mode, and so
    *  on. Admin pages only ever with everything under their title blurred. */
   shots?: JourneyShot[];
+  /** further reading about the day's work (opens in a new tab) */
+  links?: { href: string; label: string }[];
 }
 export interface JourneyShot {
   src: string;
@@ -130,5 +132,6 @@ export const JOURNEY: JourneyDay[] = [
       "Clearer stories, especially for the youngest: one simple plot, told in order, that a parent can read aloud without a second look. Four test books are in the library to read.",
     ],
     shots: [shot("14", "painter-rsi", "Before and after: one giant, at her size, instead of three", true), shot("14", "painter-live", "Before and after: a cat ten times the hero's size, now drawn that way", true)],
+    links: [{ href: "https://claude.ai/artifact/B2GPvDiMGfkKZKGqdqUX4G", label: "Read the full write-up: how Taleo improved its pictures, speed and stories" }],
   },
 ];

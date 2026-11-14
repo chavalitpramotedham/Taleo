@@ -16358,6 +16358,18 @@ html[data-night] .policy-body a.btn:hover {
   flex-wrap: wrap;
   gap: 4px;
 }
+/* further reading under a day, and the About story's way to the Journey */
+.journey-link,
+.about-journey {
+  margin: 12px 0 0;
+  font-style: italic;
+}
+.journey-link a,
+.about-journey a {
+  color: var(--russet);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .journey-daynum {
   font-weight: 700;
   color: var(--russet);
