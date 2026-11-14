@@ -10,7 +10,7 @@ type Src = "live" | "emulated";
 
 function Card({ round, src, n, width }: { round: number; src: Src; n: number; width: number }) {
   const svg = readPainting(round, src, n);
-  const page = benchPages()[n - 1];
+  const page = benchPages(round)[n - 1];
   return (
     <figure style={{ width, margin: 0, background: "#FBF7EE", padding: 10, borderRadius: 8, boxSizing: "border-box" }}>
       <div style={{ width: "100%", aspectRatio: "4 / 3", background: "#fff" }}>
@@ -44,6 +44,6 @@ export default async function Bench({ searchParams }: { searchParams: Promise<Re
   }
   const round = Number(q.round || 0);
   if (q.page) return shell(<Card round={round} src={src} n={Number(q.page)} width={820} />);
-  const only = q.pages ? q.pages.split(",").map(Number) : benchPages().map((_, i) => i + 1);
+  const only = q.pages ? q.pages.split(",").map(Number) : benchPages(round).map((_, i) => i + 1);
   return shell(only.map((n) => <Card key={n} round={round} src={src} n={n} width={420} />));
 }

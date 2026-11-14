@@ -16,17 +16,19 @@ interface BenchStory {
   segments: { pages: Page[] }[];
 }
 
-export const benchStory = (): BenchStory => JSON.parse(readFileSync(join(BENCH_DIR, "story.json"), "utf8"));
+/** Rounds from 100 on paint the second book (story2.json), a check that
+ *  what helps one book doesn't only fit that book. */
+export const benchStory = (round = 0): BenchStory => JSON.parse(readFileSync(join(BENCH_DIR, round >= 100 ? "story2.json" : "story.json"), "utf8"));
 
 /** Every page of the story, in order (page numbers start at 1). */
-export const benchPages = (): Page[] => benchStory().segments.flatMap((s) => s.pages);
+export const benchPages = (round = 0): Page[] => benchStory(round).segments.flatMap((s) => s.pages);
 
 /** The painter's request for one page, built the way the reader's page
  *  builds it: the characters in the picture, the book's art direction, and
  *  the previous page's brief. */
-export function benchRequest(n: number): IllustrateRequest {
-  const story = benchStory();
-  const pages = benchPages();
+export function benchRequest(n: number, round = 0): IllustrateRequest {
+  const story = benchStory(round);
+  const pages = benchPages(round);
   const page = pages[n - 1];
   if (!page) throw new Error(`No page ${n}`);
   const everyone = [story.hero, ...story.companions, ...story.cast];
@@ -39,14 +41,14 @@ export function benchRequest(n: number): IllustrateRequest {
     // places, and its camera)
     place: story.places.find((p) => p.id === page.place) ?? null,
     camera: page.camera ?? null,
-    pageInPart: pageInPart(n),
+    pageInPart: pageInPart(n, round),
   };
 }
 
 /** The page's place in its part (0 = first after a decision). */
-function pageInPart(n: number): number {
+function pageInPart(n: number, round = 0): number {
   let i = n - 1;
-  for (const s of benchStory().segments) {
+  for (const s of benchStory(round).segments) {
     if (i < s.pages.length) return i;
     i -= s.pages.length;
   }

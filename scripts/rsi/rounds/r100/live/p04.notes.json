@@ -1,0 +1,65 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 4,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "scatter:rain": 1,
+   "scatter:leaves": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "puddle": 2,
+   "kite": 1,
+   "splash": 1,
+   "motion": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hedge"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: companion1 and hedge overlapped: eased apart",
+   "layout: hedge was inside something drawn: moved to its edge",
+   "layout: companion1 was inside something drawn: moved to its edge",
+   "layout: drawn back to front: something drawn, puddle, puddle, companion1, hero, hedge",
+   "hero overlapped another character: eased to x 80",
+   "no piece called \"rain\": left out"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 3
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1373,
+   "firstStrokeMs": 1374,
+   "out": 608,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

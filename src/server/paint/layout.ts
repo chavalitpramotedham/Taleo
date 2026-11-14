@@ -288,7 +288,9 @@ function byDepth(markup: string, notes: string[]): string {
         // (small against the one holding it: under 60% of its height)
         const holder = chars
           .map((c) => ({ x: Number(attr(c.tag!, "x")) || 200, y: Number(attr(c.tag!, "y")) || 246, s: Number(attr(c.tag!, "s")) || 0.6 }))
-          .filter((c) => size < 102 * c.s && Math.abs(cx - c.x) < 80 * c.s && cy < c.y && cy > c.y - 190 * c.s)
+          // (at its hands: not anything over its body - a kite on the wall
+          // behind a close-up was pulled in front of their faces)
+          .filter((c) => size < 102 * c.s && size < 120 && Math.abs(cx - c.x) < 70 * c.s && cy < c.y - 30 * c.s && cy > c.y - 140 * c.s)
           .sort((a, b) => b.y - a.y)[0];
         if (holder) depth = holder.y + 16;
       }
@@ -313,7 +315,7 @@ function byDepth(markup: string, notes: string[]): string {
         // (standing inside a big thing at its depth: moved to its nearer
         // edge, overlapping it by a quarter of the character - touching)
         // (flat things - a rug, a puddle - are stood on, not stood beside)
-        if (b.x1 - b.x0 < 60 || b.y1 - b.y0 < 30 || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
+        if (b.x1 - b.x0 < 60 || b.y1 - b.y0 < 30 || FLAT.test(t.unit.id) || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
         if (x <= b.x0 - half * 0.5 || x >= b.x1 + half * 0.5) continue;
         const nx = x - b.x0 < b.x1 - x ? b.x0 - half * 0.5 : b.x1 + half * 0.5;
         text = text.replace(tag, setAttr(tag, "x", String(Math.round(Math.max(20 + half, Math.min(380 - half, nx))))));
@@ -508,6 +510,56 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
   for (const p of ps) out = out.replace(p.tag, setAttr(setAttr(p.tag, "x", String(Math.round(p.x))), "laid", "1"));
   return out;
 }
+
+/** At the table (lesson 17): whoever sits at a table, across it, is drawn
+ *  behind it - the table over their laps - so the table and what's on it
+ *  show, and their faces above it (sitting in front of it, a bear hid the
+ *  cake). The table goes just after the last of them. */
+function atTheTable(markup: string, notes: string[]): string {
+  const table = /<stamp\b[^>]*\bk\s*=\s*"table"[^>]*\/>/i.exec(markup);
+  if (!table) return markup;
+  const tx = Number(attr(table[0], "x")) || 200;
+  const ty = Number(attr(table[0], "y")) || 246;
+  const ts = Number(attr(table[0], "s")) || 1;
+  const half = 45 * ts;
+  let out = markup.replace(table[0], "");
+  let last = -1;
+  const at: string[] = [];
+  for (const m of out.matchAll(CHAR_TAG)) {
+    if (!m[0].trim().endsWith("/>")) continue;
+    const x = Number(attr(m[0], "x")) || 200;
+    const y = Number(attr(m[0], "y")) || 246;
+    const sit = /\bsit\b/i.test(`${attr(m[0], "legs") ?? ""} ${attr(m[0], "pose") ?? ""}`);
+    if (!sit || Math.abs(x - tx) > half + 20 || Math.abs(y - ty) > 30) continue;
+    let end = m.index! + m[0].length;
+    const after = /^\s*<\/g>/.exec(out.slice(end));
+    if (after && /<g\s+class="target"\s*>\s*$/.test(out.slice(0, m.index!))) end += after[0].length;
+    last = Math.max(last, end);
+    at.push(attr(m[0], "c") ?? "someone");
+  }
+  CHAR_TAG.lastIndex = 0;
+  const t = setAttr(table[0], "near", "1");
+  if (last < 0) return out.slice(0, table.index) + table[0] + out.slice(table.index);
+  notes.push(`${at.join(", ")} sat behind the table`);
+  out = out.slice(0, last) + t + out.slice(last);
+  // (what's on the table - the cake, the cheese - stays on top of it)
+  const top = ty - 56 * ts;
+  const items = itemsOf(out);
+  const ti = items.findIndex((i) => i.kind === "piece" && i.tag === t);
+  const onTop: number[] = [];
+  items.forEach((it, i) => {
+    if (i >= ti || (it.kind !== "piece" && it.kind !== "drawn")) return;
+    const e = it.kind === "piece" ? pieceExtent(it.tag!) : extentOf(it.text);
+    if (!e || Math.abs((e.x0 + e.x1) / 2 - tx) > half || e.y1 < top - 20 || e.y1 > top + 25) return;
+    onTop.push(i);
+  });
+  if (!onTop.length) return out;
+  const moved = onTop.map((i) => items[i].text).join("");
+  return items.map((it, i) => (onTop.includes(i) ? "" : i === ti ? it.text + moved : it.text)).join("");
+}
+
+/** Things on the ground that are stood on, not beside. */
+const FLAT = /^(rug|puddle|pond|dust|path|shadow|footprint|carpet|mat)$/i;
 
 /** What characters ride in: never something they're moved out of. */
 const RIDDEN = /^(boat|hull)$/i;
@@ -727,7 +779,8 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     // other, turned to face: two front views side by side only stood near
     // each other - lesson 17)
     // (but not so close one's head covers the other's face)
-    const half = (110 * Math.min(a.s, b.s) * 0.68) / 2;
+    // (from both their widths: a bunny hugging a bear isn't buried in it)
+    const half = ((110 * a.s + 110 * b.s) / 2) * 0.52 / 2;
     for (const p of [a, b]) if (/^<\s*fig\b/i.test(p.tag)) p.tag = setAttr(p.tag, "v", "three");
     if (Math.abs(b.x - a.x) > half * 2 + 4) notes.push(`${a.id} and ${b.id} brought together for the hug`);
     a.x = mid - half;
@@ -735,6 +788,12 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     a.flip = false;
     b.flip = true;
     a.turns = b.turns = false;
+    // (the smaller one in front, so both faces show)
+    const [small, big] = a.s <= b.s ? [a, b] : [b, a];
+    if (small.y <= big.y) {
+      small.y = big.y + 4;
+      small.tag = setAttr(small.tag, "y", String(Math.round(small.y)));
+    }
   }
   const doer = opts.targetId ? placed.find((p) => p.id === opts.targetId) : null;
   if (doer && (doer.x < 90 || doer.x > 310)) {
@@ -819,7 +878,10 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       const t = tags[ti];
       const tx = Number(attr(t[0], "x"));
       const ts = Number(attr(t[0], "s")) || opts.usualS || 0.6;
+      const hugs = (t: string) => /\bhug\b/.test(attr(t, "arms") ?? "");
       const over = tags.slice(ti + 1).filter((m) => {
+        // (a hug's partner stays in front: it's the hug, not a hiding)
+        if (hugs(m[0]) && hugs(t[0])) return false;
         const x = Number(attr(m[0], "x"));
         const s = Number(attr(m[0], "s")) || opts.usualS || 0.6;
         return Math.abs(x - tx) < (widthAt(s) + widthAt(ts)) / 2 - Math.min(widthAt(s), widthAt(ts)) * 0.15;
@@ -841,6 +903,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     }
   }
   out = inTheBoat(out, notes);
+  out = atTheTable(out, notes);
   out = finalSpacing(out, opts, notes);
   return { markup: out, notes };
 }

@@ -1,0 +1,60 @@
+{
+  "title": "Bramble and the Runaway Kite",
+  "age": "4-5",
+  "minutes": 4,
+  "theme": "friendship",
+  "keyword": "kite",
+  "moral": "Friends help each other up - and down.",
+  "length": "short",
+  "world": "a gentle English countryside in late summer: meadows, an old orchard and a little thatched cottage, soft golden light",
+  "hero": {
+    "id": "hero",
+    "name": "Bramble",
+    "gender": "female",
+    "preset": "bunny",
+    "look": "a small soft grey-brown bunny with long ears, a cream tummy and a pink nose, in a little red dungaree dress",
+    "notes": "Brave and bouncy"
+  },
+  "companions": [
+    {
+      "id": "companion1",
+      "name": "Bun",
+      "gender": "male",
+      "preset": "bear",
+      "look": "a round, gentle honey-brown bear cub with a cream muzzle and small round ears, about one and a half times Bramble's height",
+      "notes": "Careful and kind"
+    }
+  ],
+  "cast": [
+    {
+      "id": "hedge",
+      "name": "Mrs Hedge",
+      "gender": "female",
+      "look": "a tiny old hedgehog lady with brown prickles, a lilac shawl and round spectacles, about as tall as Bramble's knee",
+      "notes": "Always has an umbrella"
+    }
+  ],
+  "places": [
+    { "id": "meadow", "about": "A wide summer meadow of long grass and poppies on a gentle hill, with an old apple orchard on the right and a blue sky with soft clouds.", "light": "day" },
+    { "id": "orchard", "about": "An old apple orchard in golden afternoon light: gnarled apple trees heavy with red apples, long grass, a wooden fence at the back.", "light": "golden" },
+    { "id": "garden", "about": "A cottage garden in the rain: a little thatched cottage on the left with a round green door, a vegetable patch, a garden path with puddles.", "light": "rain" },
+    { "id": "kitchen", "about": "Inside a snug cottage kitchen: a dresser with blue plates on the left, a window with checked curtains, a stove on the right, a stone floor with a rag rug.", "light": "golden" },
+    { "id": "bedroom", "about": "A cosy little bedroom at night: a round window with the moon, a small wooden bed with a patchwork quilt, a lamp glowing on a bedside table.", "light": "night" }
+  ],
+  "segments": [
+    {
+      "pages": [
+        { "text": "Up, up went Bramble's red kite! \"Hold tight, Bun!\" she laughed, running through the poppies.", "picture": "Wide shot of a sunny meadow. Bramble runs through the long grass on the left, holding the string of a bright red diamond kite flying high in the sky on the right, ears streaming back, laughing. Bun jogs behind her, arms out, smiling.", "characters": ["hero", "companion1"], "place": "meadow", "camera": "wide", "action": { "word": "kite", "target": "kite", "sound": "whoosh", "motion": "float" } },
+        { "text": "WHOOSH! A gust snatched the kite, and it landed - plop - at the very top of the tallest apple tree.", "picture": "Mid shot at the edge of the orchard. A tall apple tree on the right with the red kite caught in its top branches, string dangling. Bramble stands on the left pointing up at it, mouth open in surprise. Bun stands beside her with both paws on his cheeks, worried.", "characters": ["hero", "companion1"], "place": "orchard", "camera": "mid", "action": { "word": "snatched", "target": "hero", "sound": "pop", "motion": "wiggle" } },
+        { "text": "\"I'll climb!\" said Bun. Up he went, branch by branch, while Bramble held the bottom of the trunk steady.", "picture": "Mid shot in the golden orchard. Bun climbs the big apple tree in the middle, reaching up towards the red kite caught in the top branches. Bramble stands at the foot of the tree holding the trunk with both paws, looking up, encouraging.", "characters": ["hero", "companion1"], "place": "orchard", "camera": "mid", "action": { "word": "climb", "target": "companion1", "sound": "rustle", "motion": "hop" } }
+      ]
+    },
+    {
+      "pages": [
+        { "text": "Pitter-patter! Rain began to fall. Little Mrs Hedge trotted down the path with her big striped umbrella. \"Room for three!\"", "picture": "Mid shot of a rainy cottage garden. Mrs Hedge, tiny, in the middle of the path, holds up a big red-and-white striped umbrella. Bramble, holding the rescued red kite, and Bun hurry towards her from the left, ducking under the umbrella, smiling. Puddles on the path.", "characters": ["hero", "companion1", "hedge"], "place": "garden", "camera": "mid", "action": { "word": "umbrella", "target": "umbrella", "sound": "splash", "motion": "grow" } },
+        { "text": "Inside, Mrs Hedge poured tea and cut a strawberry cake. \"To kite rescuers!\" she said.", "picture": "Mid shot in the warm kitchen. A round wooden table in the middle with a strawberry cake on it. Bramble and Bun sit at the table on the left, Bun holding a little teacup. Mrs Hedge stands on a stool on the right of the table, pouring from a blue teapot. The red kite leans against the wall.", "characters": ["hero", "companion1", "hedge"], "place": "kitchen", "camera": "mid", "action": { "word": "cake", "target": "cake", "sound": "giggle", "motion": "wiggle" } },
+        { "text": "At bedtime, Bramble gave Bun a great big hug. \"Thank you for climbing,\" she whispered. \"Thank you for holding on,\" said Bun.", "picture": "Close-up in the moonlit bedroom. Bramble and Bun hug each other tightly on the rag rug beside the little bed, eyes closed, smiling. The red kite hangs on the wall above the bed.", "characters": ["hero", "companion1"], "place": "bedroom", "camera": "close", "action": { "word": "hug", "target": "companion1", "sound": "twinkle", "motion": "nod" } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+ "portraits": "Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 11,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "bird": 3,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "log": 1,
+   "boat": 1,
+   "motion": 2,
+   "dust": 1,
+   "sparkles": 1,
+   "tuft": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "hero",
+   "argos"
+  ],
+  "posed": 3,
+  "fixes": [],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"95\" y=\"246\" s=\"1\"/>\n<stamp k=\"hull\" x=\"95\" y=\"246\" s=\"0.9\"/>\n<stamp k=\"log\" x=\"250\" y=\"250\" s=\"2.4\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"150\" s=\"0.45\" lean=\"-8\" arms=\"wave,wave\" legs=\"jump\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"motion\" x=\"82\" y=\"108\" s=\"0.7\"/>\n<g class=\"paint\"><path d=\"M82 112 L106 104 L108 108 L84 116 Z\" fill=\"#F3E6D0\"/></g>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"195\" y=\"232\" s=\"0.8\" lean=\"10\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"right\"/></g>\n<fig c=\"argos\" v=\"three\" x=\"305\" y=\"252\" s=\"0.8\" flip=\"1\" lean=\"-10\" arms=\"reach,down\" legs=\"run\" mood=\"excited\" look=\"left\"/>\n<stamp k=\"motion\" x=\"352\" y=\"215\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"228\" y=\"246\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"195\" y=\"110\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"165\" y=\"252\" s=\"1\"/>",
+   "laid": "\n\n<stamp k=\"log\" x=\"250\" y=\"250\" s=\"2.4\" near=\"1\"/>\n<stamp k=\"boat\" x=\"95\" y=\"246\" s=\"1\" near=\"1\"/><fig c=\"companion1\" v=\"front\" x=\"105\" y=\"150\" s=\"0.45\" lean=\"-8\" arms=\"wave,wave\" legs=\"jump\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"82\" y=\"108\" s=\"0.7\"/>\n<g class=\"paint\"><path d=\"M82 112 L106 104 L108 108 L84 116 Z\" fill=\"#F3E6D0\"/></g>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"195\" y=\"232\" s=\"0.8\" lean=\"10\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<fig c=\"argos\" v=\"three\" x=\"305\" y=\"252\" s=\"0.8\" flip=\"1\" lean=\"-10\" arms=\"reach,down\" legs=\"run\" mood=\"excited\" look=\"left\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"352\" y=\"215\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"228\" y=\"246\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"195\" y=\"110\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"165\" y=\"252\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1421,
+   "firstStrokeMs": 1421,
+   "out": 451,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

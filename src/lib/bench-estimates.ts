@@ -154,6 +154,20 @@ const X14: Estimate = {
   why: "The composer is Sonnet at medium effort: about twice the thinking of low (~4-6k tokens out with its thinking, ~10k in, mostly its cached brief), about 6 cents - around way 3's cost, for placement, context and every named thing checked off. Figures still drawn in code (free). A newcomer adds ~$0.03 and ~15 s.",
 };
 
+// Written 14 Nov 2026 (painter RSI, lesson 17), before its bench run: way 4
+// with the new layout guarantees. The composer is the same Sonnet at medium
+// effort; its brief is ~600 tokens longer (boats, furniture, the story's
+// own things, once each) and it writes a few more tags (4-14, not 2-8);
+// everything else added is layout code (free). On the RSI test book its
+// pages measured 1.3-3 cents each against the same for 4-RUYP.
+const X19: Estimate = {
+  usd: 0.062,
+  ms: 26_000,
+  costPc: 55,
+  timePc: 38,
+  why: "4-RUYP's composer and cost, with a slightly longer brief and a few more tags; the new guarantees (once each, stated sizes, boats, furniture, tucked in, at the table, hugs, the hero never hidden, the layout's final spacing) are all code, so free.",
+};
+
 // Written 14 Nov 2026, before any run: session 2's contenders, each a
 // change of one thing in the live version (4-RUYP).
 // (percentages against the original v0, like the others; the bench shows
@@ -236,6 +250,7 @@ export const ESTIMATES: Record<string, Estimate> = {
   "4-UN3W": X14,
   // (14 Nov: lesson 16 - layout and phrasebook, the same cost)
   "4-RUYP": X14,
+  "4-S99Q": X19,
   // session 2's contenders
   "6-25Q3": M1,
   "7-KWS6": N1,

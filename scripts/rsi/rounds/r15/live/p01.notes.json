@@ -1,0 +1,63 @@
+{
+ "reuse": {
+  "stamps": 12,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "bird": 5,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "boat": 1,
+   "puddle": 2,
+   "motion": 1,
+   "hull": 1,
+   "sparkles": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.50 to 0.33, true to the others",
+   "layout: drawn back to front: something drawn, companion1, puddle, hero, puddle",
+   "layout: hero marked as the tap target",
+   "layout: companion1, hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"200\" y=\"244\" s=\"1.5\"/>\n<fig c=\"hero\" v=\"three\" x=\"165\" y=\"238\" s=\"0.6\" lean=\"-14\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"right\"/>\n<fig c=\"companion1\" v=\"front\" x=\"248\" y=\"222\" s=\"0.5\" arms=\"point,down\" legs=\"stand\" mood=\"talk\" look=\"up\"/>\n<stamp k=\"hull\" x=\"200\" y=\"244\" s=\"1.5\"/>\n<g class=\"paint\"><path d=\"M172 110 L172 175 L215 175 Z\" fill=\"#F3E6D0\"/><circle cx=\"183\" cy=\"160\" r=\"5\" fill=\"#6F8FAF\"/></g>\n<g class=\"ink\"><path d=\"M172 105 L172 178\"/><path d=\"M165 170 L172 140\"/></g>\n<stamp k=\"bird\" x=\"270\" y=\"95\" s=\"2\"/>\n<stamp k=\"bird\" x=\"130\" y=\"80\" s=\"1.5\"/>\n<stamp k=\"bird\" x=\"310\" y=\"70\" s=\"1.2\"/>\n<stamp k=\"motion\" x=\"140\" y=\"150\" s=\"0.8\"/>\n<stamp k=\"puddle\" x=\"130\" y=\"252\" s=\"0.7\"/>\n<stamp k=\"puddle\" x=\"290\" y=\"254\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"120\" s=\"0.7\"/>",
+   "laid": "\n<g class=\"paint\"><path d=\"M172 110 L172 175 L215 175 Z\" fill=\"#F3E6D0\"/><circle cx=\"183\" cy=\"160\" r=\"5\" fill=\"#6F8FAF\"/></g>\n<g class=\"ink\"><path d=\"M172 105 L172 178\"/><path d=\"M165 170 L172 140\"/></g>\n\n<stamp k=\"boat\" x=\"200\" y=\"244\" s=\"1.5\" near=\"1\"/><fig c=\"companion1\" v=\"front\" x=\"248\" y=\"241\" s=\"0.33\" arms=\"point,down\" legs=\"stand\" mood=\"talk\" look=\"up\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n\n<stamp k=\"puddle\" x=\"130\" y=\"252\" s=\"0.7\"/><stamp k=\"bird\" x=\"270\" y=\"95\" s=\"2\"/>\n<stamp k=\"bird\" x=\"130\" y=\"80\" s=\"1.5\"/>\n<stamp k=\"bird\" x=\"310\" y=\"70\" s=\"1.2\"/>\n<stamp k=\"motion\" x=\"140\" y=\"150\" s=\"0.8\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"165\" y=\"241\" s=\"0.6\" lean=\"-14\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"right\" flip=\"0\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"200\" y=\"244\" s=\"1.5\" near=\"1\"/>\n<stamp k=\"puddle\" x=\"290\" y=\"254\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"120\" s=\"0.7\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 3
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1276,
+   "firstStrokeMs": 1276,
+   "out": 471,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

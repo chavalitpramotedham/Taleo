@@ -1,0 +1,67 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "stone": 1,
+   "hold:cup": 1,
+   "table": 1,
+   "cake": 1,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hedge",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hedge resized from 0.50 to 0.29, true to the others",
+   "layout: companion1 resized from 0.90 to 1.09, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: hero turned towards the main action",
+   "layout: drawn back to front: something drawn, hedge, companion1, hero",
+   "layout: hero sat behind the table",
+   "layout: spaced once more, finally",
+   "piece \"stool\" read as \"stone\"",
+   "nothing to hold called \"teapot\": hands left empty"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"228\" s=\"0.5\" flip=\"1\" arms=\"reach,hold\" legs=\"stand\" mood=\"happy\" look=\"left\" hold=\"teapot\"/>\n<g class=\"paint\"><rect x=\"262\" y=\"234\" width=\"30\" height=\"14\" rx=\"3\" fill=\"#5b8fc9\"/><rect x=\"254\" y=\"236\" width=\"10\" height=\"4\" fill=\"#5b8fc9\"/></g>\n<g class=\"ink\"><path d=\"M262 234 L292 234\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"110\" y=\"248\" s=\"0.9\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"248\" s=\"0.75\" flip=\"1\" arms=\"reach,down\" legs=\"sit\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"table\" x=\"215\" y=\"250\" s=\"1.5\" near=\"1\"/>\n<g class=\"target\"><stamp k=\"cake\" x=\"215\" y=\"166\" s=\"1.2\"/></g>\n<stamp k=\"sparkles\" x=\"215\" y=\"140\" s=\"1\"/>\n<g class=\"paint\"><path d=\"M30 120 L44 100 L58 120 L50 240 L38 240 Z\" fill=\"#c0392b\"/><path d=\"M30 120 L44 100 L58 120 Z\" fill=\"#a82a1f\"/></g>\n<g class=\"ink\"><path d=\"M44 100 L44 240\"/><path d=\"M30 120 L58 120\"/></g>",
+   "laid": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<g class=\"paint\"><path d=\"M30 120 L44 100 L58 120 L50 240 L38 240 Z\" fill=\"#c0392b\"/><path d=\"M30 120 L44 100 L58 120 Z\" fill=\"#a82a1f\"/></g>\n<g class=\"ink\"><path d=\"M44 100 L44 240\"/><path d=\"M30 120 L58 120\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"228\" s=\"0.29\" flip=\"1\" arms=\"reach,hold\" legs=\"stand\" mood=\"happy\" look=\"left\" hold=\"teapot\" laid=\"1\"/>\n<g class=\"paint\"><rect x=\"262\" y=\"234\" width=\"30\" height=\"14\" rx=\"3\" fill=\"#5b8fc9\"/><rect x=\"254\" y=\"236\" width=\"10\" height=\"4\" fill=\"#5b8fc9\"/></g>\n<g class=\"ink\"><path d=\"M262 234 L292 234\"/></g>\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"three\" x=\"89\" y=\"248\" s=\"1.09\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"191\" y=\"248\" s=\"0.75\" flip=\"0\" arms=\"reach,down\" legs=\"sit\" mood=\"excited\" look=\"right\" laid=\"1\"/><stamp k=\"table\" x=\"215\" y=\"250\" s=\"1.5\" near=\"1\"/>\n\n<g class=\"target\"><stamp k=\"cake\" x=\"215\" y=\"166\" s=\"1.2\"/></g>\n<stamp k=\"sparkles\" x=\"215\" y=\"140\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 1
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1485,
+   "firstStrokeMs": 1485,
+   "out": 568,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

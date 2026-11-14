@@ -1,0 +1,61 @@
+{
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "sparkles": 1,
+   "tuft": 2,
+   "boat": 1,
+   "hull": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: companion1, something drawn, hero",
+   "layout: hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"hull\" x=\"0\" y=\"0\" s=\"0\"/>\n\nCorrection: I'll give the final output without that stray tag.\n\n<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"0.9\"/>\n<g class=\"paint\"><path d=\"M92 196 Q104 214 116 200 Q124 218 134 204 L132 190 L96 186 Z\" fill=\"#4F6B4A\"/><path d=\"M100 206 Q106 224 112 210\" fill=\"none\" stroke=\"#3E5A3C\" stroke-width=\"3\"/></g>\n<g class=\"target\"><g class=\"paint\"><ellipse cx=\"210\" cy=\"240\" rx=\"62\" ry=\"12\" fill=\"#8A7458\"/><ellipse cx=\"214\" cy=\"239\" rx=\"54\" ry=\"8\" fill=\"#6F5C45\"/><ellipse cx=\"262\" cy=\"238\" rx=\"7\" ry=\"5\" fill=\"#8A7458\"/><ellipse cx=\"250\" cy=\"233\" rx=\"6\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"238\" cy=\"231\" rx=\"6\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"226\" cy=\"231\" rx=\"5\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"215\" cy=\"233\" rx=\"4\" ry=\"3\" fill=\"#8A7458\"/></g><g class=\"ink\"><path d=\"M152 240 Q210 250 268 238\" fill=\"none\" stroke=\"#4A3B2B\" stroke-width=\"2\"/></g></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"160\" y=\"244\" s=\"0.55\" lean=\"18\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"down\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"172\" y=\"178\" s=\"0.3\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"down\"/>\n<stamp k=\"sparkles\" x=\"188\" y=\"120\" s=\"0.5\"/>\n<stamp k=\"tuft\" x=\"110\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"290\" y=\"250\" s=\"1\"/>",
+   "laid": "\n\nCorrection: I'll give the final output without that stray tag.\n\n\n<fig c=\"companion1\" v=\"front\" x=\"172\" y=\"178\" s=\"0.3\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"188\" y=\"120\" s=\"0.5\"/>\n<stamp k=\"tuft\" x=\"110\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"290\" y=\"250\" s=\"1\"/><who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M92 196 Q104 214 116 200 Q124 218 134 204 L132 190 L96 186 Z\" fill=\"#4F6B4A\"/><path d=\"M100 206 Q106 224 112 210\" fill=\"none\" stroke=\"#3E5A3C\" stroke-width=\"3\"/></g>\n<g class=\"target\"><g class=\"paint\"><ellipse cx=\"210\" cy=\"240\" rx=\"62\" ry=\"12\" fill=\"#8A7458\"/><ellipse cx=\"214\" cy=\"239\" rx=\"54\" ry=\"8\" fill=\"#6F5C45\"/><ellipse cx=\"262\" cy=\"238\" rx=\"7\" ry=\"5\" fill=\"#8A7458\"/><ellipse cx=\"250\" cy=\"233\" rx=\"6\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"238\" cy=\"231\" rx=\"6\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"226\" cy=\"231\" rx=\"5\" ry=\"4\" fill=\"#8A7458\"/><ellipse cx=\"215\" cy=\"233\" rx=\"4\" ry=\"3\" fill=\"#8A7458\"/></g><g class=\"ink\"><path d=\"M152 240 Q210 250 268 238\" fill=\"none\" stroke=\"#4A3B2B\" stroke-width=\"2\"/></g></g>\n\n<who c=\"companion1\"/>\n<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"0.9\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"160\" y=\"244\" s=\"0.55\" lean=\"18\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"down\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"130\" y=\"246\" s=\"0.9\" near=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 3
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1283,
+   "firstStrokeMs": 1283,
+   "out": 722,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

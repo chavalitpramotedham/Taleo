@@ -1,0 +1,71 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "bed": 1,
+   "table": 1,
+   "lamp": 1,
+   "zzz": 2,
+   "hearts": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "gran",
+   "argos"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: the bed made to the characters' scale (s 1.5 to 1.91)",
+   "layout: the bed made to the characters' scale (s 1.5 to 1.91)",
+   "layout: the table made to the characters' scale (s 0.8 to 1.85)",
+   "layout: a second bed at the same spot left out",
+   "layout: hero tucked into the bed",
+   "layout: hero resized from 1.00 to 1.02, true to the others",
+   "layout: argos resized from 0.80 to 0.92, true to the others",
+   "layout: gran resized from 1.27 to 1.40, true to the others",
+   "layout: argos and hero overlapped: eased apart",
+   "layout: drawn back to front: companion1, hero, gran, argos",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bed\" x=\"200\" y=\"262\" s=\"1.5\" near=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"190\" y=\"250\" s=\"1.0\" tilt=\"8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"right\"/>\n<stamp k=\"bed\" x=\"200\" y=\"262\" s=\"1.5\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"120\" y=\"170\" s=\"0.6\" tilt=\"10\" arms=\"down,down\" legs=\"stand\" mood=\"sleepy\"/>\n<fig c=\"argos\" v=\"three\" x=\"130\" y=\"268\" s=\"0.8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" tilt=\"10\"/>\n<g class=\"target\"><fig c=\"gran\" v=\"front\" x=\"310\" y=\"282\" s=\"1.27\" flip=\"1\" lean=\"-8\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"left\"/></g>\n<stamp k=\"table\" x=\"360\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<stamp k=\"lamp\" x=\"365\" y=\"190\" s=\"0.6\"/>\n<stamp k=\"zzz\" x=\"140\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"225\" y=\"135\" s=\"0.7\"/>\n<stamp k=\"hearts\" x=\"270\" y=\"150\" s=\"0.7\"/>",
+   "laid": "\n<fig c=\"companion1\" v=\"front\" x=\"115\" y=\"170\" s=\"0.6\" tilt=\"10\" arms=\"down,down\" legs=\"stand\" mood=\"sleepy\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"201\" y=\"240\" s=\"1.02\" tilt=\"8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"bed\" x=\"200\" y=\"262\" s=\"1.91\" near=\"1\"/>\n<g class=\"target\"><fig c=\"gran\" v=\"front\" x=\"334\" y=\"282\" s=\"1.40\" flip=\"1\" lean=\"-8\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>\n<stamp k=\"table\" x=\"360\" y=\"246\" s=\"1.85\" near=\"1\"/>\n<stamp k=\"lamp\" x=\"365\" y=\"190\" s=\"0.6\"/>\n<stamp k=\"zzz\" x=\"140\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"225\" y=\"135\" s=\"0.7\"/>\n<stamp k=\"hearts\" x=\"270\" y=\"150\" s=\"0.7\"/>\n<fig c=\"argos\" v=\"three\" x=\"71\" y=\"268\" s=\"0.92\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" tilt=\"10\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1440,
+   "firstStrokeMs": 1440,
+   "out": 444,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,68 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 5,
+  "scatter": 4,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "cloud": 1,
+   "scatter:rain": 1,
+   "scatter:leaves": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "puddle": 2,
+   "motion": 1,
+   "splash": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hedge"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hedge resized from 0.55 to 0.29, true to the others",
+   "layout: companion1 resized from 0.90 to 1.09, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: hero and hedge overlapped: eased apart",
+   "layout: drawn back to front: something drawn, puddle, puddle, companion1, hero, hedge",
+   "layout: spaced once more, finally",
+   "no piece called \"rain\": left out"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"rain\" x=\"200\" y=\"120\" s=\"1\"/>\n<stamp k=\"puddle\" x=\"110\" y=\"250\" s=\"1\"/>\n<stamp k=\"puddle\" x=\"300\" y=\"252\" s=\"0.9\"/>\n<fig c=\"hedge\" v=\"three\" x=\"230\" y=\"244\" s=\"0.55\" flip=\"1\" arms=\"up,down\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<g class=\"target\"><g class=\"paint\"><path d=\"M170 130 Q230 70 290 130 Z\" fill=\"#c8453b\"/><path d=\"M200 112 Q230 100 230 130 L200 130 Z\" fill=\"#f6efe2\"/><path d=\"M260 112 Q250 100 230 100 L230 130 L260 130 Z\" fill=\"#f6efe2\"/></g><g class=\"ink\"><path d=\"M170 130 Q230 70 290 130 M230 100 L230 188\" fill=\"none\" stroke=\"#5a3a2a\" stroke-width=\"2\"/></g></g>\n<fig c=\"companion1\" v=\"three\" x=\"130\" y=\"258\" s=\"0.9\" lean=\"12\" arms=\"reach,down\" legs=\"run\" mood=\"happy\" look=\"right\"/>\n<fig c=\"hero\" v=\"three\" x=\"195\" y=\"262\" s=\"0.7\" lean=\"12\" arms=\"carry,carry\" legs=\"run\" mood=\"happy\" look=\"right\"/>\n<g class=\"paint\"><path d=\"M180 182 L205 165 L225 190 L200 208 Z\" fill=\"#d94a3a\"/></g><g class=\"ink\"><path d=\"M180 182 L205 165 L225 190 L200 208 Z M202 186 L202 186\" fill=\"none\" stroke=\"#5a3a2a\" stroke-width=\"2\"/></g>\n<stamp k=\"motion\" x=\"75\" y=\"215\" s=\"1\"/>\n<stamp k=\"splash\" x=\"150\" y=\"258\" s=\"0.5\"/>",
+   "laid": "<stamp k=\"rain\" x=\"200\" y=\"120\" s=\"1\"/>\n<g class=\"target\"><g class=\"paint\"><path d=\"M170 130 Q230 70 290 130 Z\" fill=\"#c8453b\"/><path d=\"M200 112 Q230 100 230 130 L200 130 Z\" fill=\"#f6efe2\"/><path d=\"M260 112 Q250 100 230 100 L230 130 L260 130 Z\" fill=\"#f6efe2\"/></g><g class=\"ink\"><path d=\"M170 130 Q230 70 290 130 M230 100 L230 188\" fill=\"none\" stroke=\"#5a3a2a\" stroke-width=\"2\"/></g></g>\n\n<stamp k=\"puddle\" x=\"110\" y=\"250\" s=\"1\"/>\n<stamp k=\"puddle\" x=\"300\" y=\"252\" s=\"0.9\"/>\n<fig c=\"companion1\" v=\"three\" x=\"102\" y=\"255\" s=\"1.09\" lean=\"12\" arms=\"reach,down\" legs=\"run\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/><fig c=\"hero\" v=\"three\" x=\"200\" y=\"255\" s=\"0.7\" lean=\"12\" arms=\"carry,carry\" legs=\"run\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M180 182 L205 165 L225 190 L200 208 Z\" fill=\"#d94a3a\"/></g><g class=\"ink\"><path d=\"M180 182 L205 165 L225 190 L200 208 Z M202 186 L202 186\" fill=\"none\" stroke=\"#5a3a2a\" stroke-width=\"2\"/></g>\n<stamp k=\"motion\" x=\"75\" y=\"215\" s=\"1\"/>\n<stamp k=\"splash\" x=\"150\" y=\"258\" s=\"0.5\"/>\n<fig c=\"hedge\" v=\"three\" x=\"254\" y=\"255\" s=\"0.29\" flip=\"1\" arms=\"up,down\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 2
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1292,
+   "firstStrokeMs": 1292,
+   "out": 617,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

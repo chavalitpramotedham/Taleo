@@ -175,7 +175,12 @@ export const STYLE: Record<BenchSlot, string> = {
   // s18 (14 Nov): lesson 16 - huggers brought together, the main action
   // kept in frame, sitters set on their seats, the tap target always
   // there and marked; a phrasebook of action words into poses
-  x: "s18",
+  // s19 (14 Nov, painter RSI): lesson 17 - each character once, sizes the
+  // sheets state (giants), riders in a boat, furniture to the characters'
+  // scale (tucked into bed, sat behind the table), held things in front of
+  // the holder, the hero never hidden, hugs from the brief, the layout's
+  // spacing final, the paper reserve under every figure
+  x: "s19",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,

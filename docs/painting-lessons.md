@@ -317,3 +317,56 @@ squirrel came out composed and laid out, using a stand-in for the AI
 service.
 
 New codes: 4-RUYP (now live for readers), 5-I117.
+
+**Lesson 17 - what the story needs is there, at its true size, and seen.**
+An overnight run of 20 rounds on an 18-page Odyssey (a giant, a six-headed
+serpent, a boat on every sea page, a bedtime and a birthday supper) and a
+second short book. Each round was repainted, looked at and graded. What
+the live way 4 got wrong, and what now holds:
+- **Each character once.** A composer sometimes writes a tag two or three
+  times: three Pollys, two Odys. Every character now gets one tag. A group
+  (the Sea-Larks) is one character, since its one tag draws all of them.
+- **The size the sheet states.** "About five times Ody's height", "as tall
+  as Ody's waist", "each about as big as Hoot" are read as numbers against
+  the hero. A giant is drawn as big as the picture allows with its face in
+  it. A grown-up's arms are never longer than a body's arms.
+- **Riding in a boat.** A fixed boat, the same on every page, and its near
+  side (`hull`) drawn after the riders. Everyone standing on its deck is
+  put in it, the boat grows to hold them, and they keep their footing up on
+  a wave. Nobody stands on the sea, and no grass grows on it.
+- **Furniture they use.** Furniture is drawn at the characters' scale (a
+  table at library size was knee-high and lost). A sitting character with
+  a bed after it is tucked in to the chest. Diners sit behind the table,
+  and what's on it stays on top.
+- **The story's own things.** Every thing the brief names that no piece
+  covers is drawn, big enough to see. A target with no piece is drawn by
+  the composer, as it is told on the page. A small thing at a character's
+  hands is drawn in front of that character.
+- **Seen.** The hero is never hidden, and nobody is more than half hidden.
+  The layout has the last word on spacing (two spacers disagreeing pushed
+  Gran in front of the table). Drawn shapes and flat pieces (a rug, a
+  puddle) no longer push characters away: a wave pushed Ody out of her
+  boat.
+- **Hugs.** If the brief says two characters hug, they hug. They turn to
+  face each other, half a body apart, with the smaller one in front.
+  Front-view hug arms open round the other instead of crossing the hugger's
+  own chest.
+- **Only what a composer may write.** A stray `<boat>` element hid a whole
+  page, so unknown tags are dropped. The sky belongs to the backdrop (a
+  composer's moon made two moons). A cloud someone sits on stays.
+- **The paper reserve.** Under every painted figure the paper is kept
+  clean, so the scene doesn't show through a body.
+- **Rain only when it rains.** "A rainbow" isn't rain.
+
+Not kept: the composer at high effort cost about 2.2 times as much, with no
+clear gain.
+
+Where: `src/server/paint/layout.ts` (`oncePerCharacter`,
+`furnitureToScale`, `tuckedIn`, `inTheBoat`, `atTheTable`, `finalSpacing`,
+`onlyKnownTags`), `sizeShare` and `huggersOf` in `src/server/claude.ts`,
+the composer's new sections in `src/server/prompts.ts`, the boat and hull
+in `stamps-more.ts`, arms in `poses.ts`, and the reserve in `PaintDefs.tsx`.
+The bench, its two books and every round's paintings and notes are in
+`scripts/rsi/`.
+
+New code: 4-S99Q.

@@ -1,0 +1,68 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 4,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "scatter:rain": 1,
+   "scatter:leaves": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "puddle": 2,
+   "umbrella": 1,
+   "hold:kite": 1,
+   "splash": 1,
+   "motion": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hedge",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hedge resized from 0.50 to 0.29, true to the others",
+   "layout: companion1 resized from 0.90 to 1.09, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: spaced once more, finally",
+   "no piece called \"rain\": left out"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"rain\" x=\"200\" y=\"120\" s=\"1\"/>\n<stamp k=\"puddle\" x=\"110\" y=\"252\" s=\"0.9\"/>\n<stamp k=\"puddle\" x=\"300\" y=\"258\" s=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"235\" y=\"246\" s=\"0.5\" flip=\"1\" arms=\"hold,hold\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<g class=\"target\"><stamp k=\"umbrella\" x=\"235\" y=\"190\" s=\"1.6\"/></g>\n<fig c=\"companion1\" v=\"three\" x=\"105\" y=\"262\" s=\"0.9\" lean=\"12\" arms=\"down,down\" legs=\"run\" mood=\"happy\" look=\"right\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"266\" s=\"0.7\" lean=\"12\" arms=\"carry,down\" legs=\"run\" mood=\"laugh\" look=\"right\" hold=\"kite\"/>\n<stamp k=\"splash\" x=\"150\" y=\"262\" s=\"0.6\"/>\n<stamp k=\"motion\" x=\"60\" y=\"215\" s=\"0.8\"/>",
+   "laid": "<stamp k=\"rain\" x=\"200\" y=\"120\" s=\"1\"/>\n<stamp k=\"puddle\" x=\"110\" y=\"252\" s=\"0.9\"/>\n<stamp k=\"puddle\" x=\"300\" y=\"258\" s=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"239\" y=\"246\" s=\"0.29\" flip=\"1\" arms=\"hold,hold\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n<g class=\"target\"><stamp k=\"umbrella\" x=\"235\" y=\"190\" s=\"1.6\"/></g>\n<fig c=\"companion1\" v=\"three\" x=\"86\" y=\"264\" s=\"1.09\" lean=\"12\" arms=\"down,down\" legs=\"run\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"185\" y=\"264\" s=\"0.7\" lean=\"12\" arms=\"carry,down\" legs=\"run\" mood=\"laugh\" look=\"right\" hold=\"kite\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"splash\" x=\"150\" y=\"262\" s=\"0.6\"/>\n<stamp k=\"motion\" x=\"60\" y=\"215\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 2
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1305,
+   "firstStrokeMs": 1305,
+   "out": 346,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   if (readLedger().spentUsd >= BUDGET_USD) return Response.json({ error: `Budget of $${BUDGET_USD} reached` }, { status: 402 });
 
   if (body.prepare) {
-    const story = benchStory();
+    const story = benchStory(body.round ?? 0);
     const at = { round: body.round ?? -1, page: 0, usd: 0 };
     const out = await painting.run(at, async () => {
       const parts = await Promise.all([story.hero, ...story.companions].map(async (c) => [c.name, await prepareParts(c).catch((e) => String(e))] as const));
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     (body.pages ?? []).map((n) => {
       const at = { round, page: n, usd: 0 };
       return painting.run(at, async () => {
-        const r = benchRequest(n);
+        const r = benchRequest(n, round);
         r.quick = (r.pageInPart ?? 0) < QUICK_PAGES;
         // (a candidate: the live settings with the composer's effort changed)
         if (body.effort) r.reuse = { ...LIVE.settings, painter: { ...LIVE.settings.painter!, effort: body.effort } };
