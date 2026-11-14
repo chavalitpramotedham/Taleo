@@ -901,7 +901,14 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
 /** Who is in bed, from the picture brief ("Ody lies tucked into a wooden
  *  bed"): the character named in that sentence first (lesson 17). */
 function inBedOf(req: IllustrateRequest): string | null {
-  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(tucked\b|in bed|into bed|in (?:her|his|their|the|a|its) (?:\w+ )?bed|lies in|lying in|under the (?:quilt|covers|blanket)|(?:blanket|quilt) (?:round|around|over))\b/i.test(t));
+  // (a bed to sleep in, said with being in it - never a flower bed, a
+  // vegetable bed or a river bed, nor "lies in the grass": Timmy was put to
+  // bed in a garden on a page where he raced his toy car past the
+  // cabbage bed - 15 Nov)
+  const BED = /\b(?<!(?:flower|vegetable|veg|garden|river|sea|reed|strawberry|seed|lettuce|cabbage|carrot|rose|herb|moss|leaf|leaves|mud|pea|bean|tulip|daisy|sand)[ -]?)(?:bed|cot|cradle|crib|bunk|hammock)s?\b/i;
+  const sentence = req.page.picture
+    .split(/(?<=[.;!?])\s+/)
+    .find((t) => /\bunder the (?:quilt|covers|duvet)\b|\b(?:blanket|quilt|duvet) (?:round|around|over|up to)\b/i.test(t) || (BED.test(t) && /\b(tucked|in bed|into bed|in (?:her|his|their|the|a|its|a cosy|a little) (?:\w+ )?(?:bed|cot|cradle|crib|bunk|hammock)|lies in|lying in|asleep|sleeps|sleeping|snuggled)\b/i.test(t)));
   if (!sentence) return null;
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const named = on.map((c) => [c.id, firstNamed(sentence.toLowerCase(), c)] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
