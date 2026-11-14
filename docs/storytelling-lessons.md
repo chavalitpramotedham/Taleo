@@ -50,6 +50,10 @@ What changed:
   well as the prompt - "show the consequence of the choice" was pulling the
   other way). An idea that fits is woven in as a way to tackle the one
   problem; one that doesn't is answered by the aside alone, never forced in.
+  The model kept answering the idea in the page text whatever it was told,
+  so the code now settles it: when the page's opening two sentences already
+  name the idea (the rocket, the dinosaur - characters' names don't count),
+  the separate aside is dropped and the idea is answered once.
 - The word to teach is taken from what the page needs to happen anyway;
   a central character written out again as "new" is folded back into the
   one we have.
