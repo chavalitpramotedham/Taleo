@@ -238,6 +238,14 @@ export async function POST(req: Request) {
           };
           const storyWorld = parsed.kind === "continue" ? parsed.story.world : "";
           for await (const event of streamSegment(parsed, stop.signal)) {
+            // (the setting, before the first page: readied at once, kept
+            // to the server - the reader's app gets it with the pages)
+            if (event.type === "setting") {
+              const world = event.world || storyWorld;
+              readyPlaces(event.places, world);
+              readyCharacters(event.newCharacters, world);
+              continue;
+            }
             send(event);
             if (event.type === "pages") {
               const world = event.world || storyWorld;

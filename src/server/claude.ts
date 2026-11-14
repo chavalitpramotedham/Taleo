@@ -261,6 +261,10 @@ export async function generateSegment(req: StoryRequest): Promise<SegmentRespons
 export type SegmentEvent =
   | { type: "title"; title: string }
   | { type: "pages"; newCharacters: CharacterDef[]; pages: Page[]; places?: StoryPlace[]; world?: string }
+  /** The book's setting, as soon as it is written - before the first page:
+   *  the server starts readying the places and newcomers from it (not sent
+   *  to the reader's app, which gets them with the first pages). */
+  | { type: "setting"; newCharacters: CharacterDef[]; places: StoryPlace[]; world: string }
   | { type: "done"; response: SegmentResponse };
 
 /** Finds the complete top-level items of the JSON array under `"key"` in a
@@ -318,6 +322,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   let text = "";
   let sent = 0;
   let titleSent = false;
+  let settingSent = false;
   const usage = streamUsageTracker("story", STORY_MODEL, { label: "storyteller", effort: STORY_EFFORT });
   try {
   for await (const event of stream) {
@@ -343,6 +348,26 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
           title = (JSON.parse(`"${t[1]}"`) as string).trim();
         } catch {}
         if (title) yield { type: "title", title: title.slice(0, 120) };
+      }
+    }
+
+    // (the setting - world, newcomers, places - is written before the
+    // pages: passed on the moment it's whole, so the backdrops and the
+    // newcomers' portraits are begun while page 1 is still being written,
+    // not after it)
+    if (!settingSent) {
+      const chars0 = completeItems(text, "newCharacters");
+      const places0 = completeItems(text, "places");
+      if (chars0?.closed && places0?.closed) {
+        settingSent = true;
+        try {
+          const w = /"world"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
+          const world = w ? (JSON.parse(`"${w[1]}"`) as string).trim() : "";
+          const newCharacters = chars0.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
+          const places = places0.items.map((p) => PlaceSchema.parse(JSON.parse(p)));
+          const early = normalizeSegment({ title: "", world: "", moral: "", keyword: "", newCharacters, places, pages: [], choice: null, ending: false }, { ...norm, isLast: false });
+          yield { type: "setting", newCharacters: early.newCharacters, places: early.places ?? [], world };
+        } catch {}
       }
     }
 

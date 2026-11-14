@@ -428,6 +428,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // beneath it).
   const [outgoing, setOutgoing] = useState<{ picture: React.ReactNode; words: React.ReactNode; art: string | null; dir: 1 | -1; n: number } | null>(null);
   const currentContentRef = useRef<{ picture: React.ReactNode; words: React.ReactNode; art: string | null }>({ picture: null, words: null, art: null });
+  // A page arrives as one unit: its picture is drawn unseen first (the
+  // watercolour filters take a moment), and only then do the picture and
+  // its words fade in together - the words no longer wait on show while
+  // the picture pops in after them. Which page has been drawn and shown:
+  const [revealed, setRevealed] = useState<string | null>(null);
   // (a page in the middle of turning counts as "something happening")
   useEffect(() => setTurning(Boolean(outgoing)), [outgoing]);
   const indexRef = useRef(index);
@@ -879,6 +884,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const artKey = pendingNext ? null : shown ? pageKey(shown.seg, shown.n) : null;
   const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey);
   let picture: React.ReactNode;
+  let readyKey: string | null = null;
   if (artHeld) {
     picture = (
       <div className="picture-wait canvas-wait" aria-hidden>
@@ -898,6 +904,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     const partial = live[key];
     const fallback = !done && ((readOnly && !picturesPending) || failed[key]) ? composePainting(shown.page, castFor(story, shown.page)) : null;
     const svg = done || partial || fallback;
+    // (a whole picture to show: the page waits for it to be drawn; one
+    // still being painted shows at once, stroke by stroke)
+    if ((done || fallback) && !partial) readyKey = key;
     // What's under the brush, said in a few words while the page is
     // painted (as the homepage's picture does): read from the picture as
     // it arrives - which layer, and whether it's the page's own character
@@ -911,7 +920,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                 onto while it streams in, then fading away once it's done -
                 and the picture itself fades in over it, so it never pops. */}
             <span key={`sheet-${key}`} className={`blank-canvas painted-edge under-canvas ${partial && !done ? "" : "gone"}`} aria-hidden />
-            <div key={`art-${key}`} className="art-fade">
+            <div key={`art-${key}`} className={`art-fade ${!readyKey || revealed === key ? "in" : ""}`}>
               <InteractivePainting
                 ref={paintingRef}
                 svg={svg}
@@ -1213,7 +1222,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         <div className="book-art">{picture}</div>
         <div className="book-text">
           {cover === "open" && textSizeButtons}
-          {words}
+          {/* (held with the picture while the page turns and while its
+              picture is drawn; then in, together) */}
+          <div key={`words-${artKey ?? index}`} className={`page-words ${artHeld || (readyKey && revealed !== readyKey) ? "held" : "in"}`}>
+            {words}
+          </div>
+          <RevealWhenDrawn k={readyKey} shown={revealed === readyKey} onDrawn={setRevealed} />
         </div>
         {outgoing && (
           <>
@@ -1354,6 +1368,25 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 /** The page's tappable moment, in the form the painting needs. */
 /** What's under the brush on this page, from the picture so far: the
  *  page's own character or thing by name, and who else is on it. */
+/** Says when a page's picture has been drawn: two frames after it is put
+ *  on the page (the first frame draws it, unseen), so the page can fade in
+ *  whole rather than its picture popping in after its words. */
+function RevealWhenDrawn({ k, shown, onDrawn }: { k: string | null; shown: boolean; onDrawn: (k: string) => void }) {
+  useEffect(() => {
+    if (!k || shown) return;
+    let b = 0;
+    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => onDrawn(k))));
+    // (a hidden tab draws no frames: never leave the page held)
+    const safety = window.setTimeout(() => onDrawn(k), 700);
+    return () => {
+      cancelAnimationFrame(a);
+      cancelAnimationFrame(b);
+      window.clearTimeout(safety);
+    };
+  }, [k, shown, onDrawn]);
+  return null;
+}
+
 function stageOf(partial: string, page: Page, story: Story): string {
   const cast = [story.hero, ...story.companions, ...story.cast];
   const act = page.action;

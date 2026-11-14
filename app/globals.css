@@ -1264,7 +1264,10 @@ main {
 .art-fade {
   position: absolute;
   inset: 0;
-  animation: paintingIn 0.6s ease both;
+  /* (drawn unseen first - nearly, not quite, transparent, so the browser
+     really draws its watercolour filters now rather than mid-fade - then
+     faded in with its words: see RevealWhenDrawn) */
+  opacity: 0.001;
   /* (a new page's painting is hundreds of shapes: laid out and styled on
      their own, without the rest of the page being looked at again) */
   contain: strict;
@@ -1279,9 +1282,39 @@ main {
     opacity: 0;
   }
 }
+.art-fade.in {
+  opacity: 1;
+  animation: paintingIn 0.55s ease-out both;
+}
 @keyframes paintingIn {
   from {
     opacity: 0;
+    transform: scale(1.012);
+  }
+}
+/* A page's words arrive with its picture, as one page. */
+.page-words.held {
+  opacity: 0;
+}
+.page-words.in {
+  animation: wordsIn 0.55s ease-out both;
+}
+@keyframes wordsIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+/* (the turning leaf is a still copy of the page: nothing on it fades in) */
+.flip-leaf .art-fade,
+.flip-leaf .page-words {
+  animation: none;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-fade.in,
+  .page-words.in {
+    animation-duration: 0.01s;
   }
 }
 /* Waiting for a picture: a blank sheet of watercolour paper, in the same
