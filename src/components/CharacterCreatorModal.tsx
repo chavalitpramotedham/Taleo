@@ -14,7 +14,7 @@ import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingC
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
 import { PhotoProblem, preparePhoto, type CharacterPhoto } from "@/lib/character-photo";
 
-type ChosenPhoto = CharacterPhoto & { preview: string; bytes: number };
+export type ChosenPhoto = CharacterPhoto & { preview: string; bytes: number };
 
 interface Props {
   onClose: () => void;
@@ -315,7 +315,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
  *  small menu to replace or remove it. The photo is made smaller and
  *  re-saved here before it's sent (dropping its location and camera
  *  details), and it's never kept. */
-function PhotoField({
+export function PhotoField({
   photo,
   onChange,
   disabled,

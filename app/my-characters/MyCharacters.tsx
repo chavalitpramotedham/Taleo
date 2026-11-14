@@ -13,7 +13,8 @@ import { GrowingInput } from "@/components/GrowingInput";
 import { DictateButton } from "@/components/DictateButton";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField } from "@/components/CharacterCreatorModal";
+import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField, PhotoField, type ChosenPhoto } from "@/components/CharacterCreatorModal";
+import { PhotoProblem } from "@/lib/character-photo";
 import { GenderPicker } from "@/components/GenderPicker";
 import { DownloadIcon, LeafLoader, MapleMark } from "@/components/Icons";
 import { PageLoading } from "@/components/PageLoading";
@@ -396,6 +397,11 @@ function CharacterEditModal({
   const [progress, setProgress] = useState<CharacterProgress | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // An optional photo to redraw them from (kept only in this popup, sent
+  // only with the painting request), and what was wrong with it, if anything.
+  const [photo, setPhoto] = useState<ChosenPhoto | null>(null);
+  const [photoTrouble, setPhotoTrouble] = useState<string | null>(null);
+  const pickPhoto = useRef<(() => void) | null>(null);
   const saveImage = async () => {
     if (!character.svg || saving) return;
     setSaving(true);
@@ -410,15 +416,18 @@ function CharacterEditModal({
   };
   // (what a redraw costs in credits, if anything)
   const cost = useMakingCost("character");
-  const redraw = async () => {
+  const redraw = async (opts: { withoutPhoto?: boolean } = {}) => {
     if (!change.trim() || stage === "drawing") return;
+    const sending = opts.withoutPhoto ? null : photo;
+    if (opts.withoutPhoto) setPhoto(null);
     setStage("drawing");
     setProgress(null);
     setError(null);
+    setPhotoTrouble(null);
     const mine = (painting.current = new AbortController());
     try {
       const data = await requestCharacter(
-        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender } },
+        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender }, photo: sending ? { data: sending.data, type: sending.type } : undefined },
         setProgress,
         { signal: mine.signal },
       );
@@ -427,7 +436,8 @@ function CharacterEditModal({
       setStage("compare");
     } catch (e) {
       if (e instanceof PaintingCancelled) return; // stopped on purpose
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      if (e instanceof PhotoProblem) setPhotoTrouble(e.message);
+      else setError(e instanceof Error ? e.message : "Something went wrong.");
       setStage("redraw");
     } finally {
       cost.again(); // (the free one may just have been used)
@@ -466,6 +476,7 @@ function CharacterEditModal({
       setBusy(null);
       setRedrawn(null);
       setChange("");
+      setPhoto(null);
       setStage("idle");
       onUpdated(data.character);
     } catch (e) {
@@ -677,6 +688,28 @@ function CharacterEditModal({
                     disabled={stage === "drawing"}
                   />
                 </div>
+                <PhotoField
+                  photo={photo}
+                  onChange={(p) => {
+                    setPhoto(p);
+                    setPhotoTrouble(null);
+                  }}
+                  disabled={stage === "drawing"}
+                  pickRef={pickPhoto}
+                />
+                {photoTrouble && stage !== "drawing" && (
+                  <div className="photo-trouble" role="alert">
+                    <p>{photoTrouble}</p>
+                    <div className="photo-trouble-actions">
+                      <button type="button" className="btn btn-soft btn-sm" onClick={() => pickPhoto.current?.()}>
+                        Choose another photo
+                      </button>
+                      <button type="button" className="btn btn-soft btn-sm" onClick={() => void redraw({ withoutPhoto: true })}>
+                        Redraw without the photo
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <button type="button" className="btn btn-primary btn-block" onClick={() => void redraw()} disabled={!change.trim() || stage === "drawing"}>
                   {stage === "drawing" ? (
                     <>
