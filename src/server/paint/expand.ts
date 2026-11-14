@@ -545,6 +545,39 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   };
   // newcomers' places, as the composer gave them: laid once they're painted
   const newcomerAt = new Map<string, Record<string, string>>();
+  // (those the composer placed: laid in their place in the markup - see
+  // drain)
+  const newcomerInline = new Map<string, Record<string, string>>();
+  const newcomerDone = new Map<string, Sprite | null>();
+  for (const [id, p] of Object.entries(ctx.newcomers ?? {})) p.then((v) => newcomerDone.set(id, v ?? null), () => newcomerDone.set(id, null));
+  // What's written but not yet sent: sent up to the first newcomer not yet
+  // painted (or, at the end, waiting for each in turn).
+  let pending = "";
+  const NPC = /\u0001npc:([^\u0001]*)\u0001/;
+  async function* drain(wait: boolean): AsyncGenerator<string> {
+    for (;;) {
+      const m = NPC.exec(pending);
+      if (!m) {
+        if (pending) yield pending;
+        pending = "";
+        return;
+      }
+      if (m.index) {
+        yield pending.slice(0, m.index);
+        pending = pending.slice(m.index);
+        continue;
+      }
+      const id = m[1];
+      if (!newcomerDone.has(id)) {
+        if (!wait) return;
+        newcomerDone.set(id, (await ctx.newcomers![id].catch(() => null)) ?? null);
+      }
+      pending = pending.slice(m[0].length);
+      const sp = newcomerDone.get(id);
+      if (sp) yield spriteOf(id, { stand: sp }, { ...newcomerInline.get(id)!, pose: "stand" }, true);
+      else fixed(stats, `newcomer "${id}" couldn't be painted: left out`);
+    }
+  }
   const isNewcomer = (id: string) => Boolean(ctx.newcomers && id in ctx.newcomers);
   // a figure for a character that can't be placed: everything up to its
   // </fig> is left out (it would be drawn in the figure's own coordinates
@@ -570,9 +603,16 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         if (isNewcomer(id)) {
           if (fig) out += endFig() + afterFig, (afterFig = "");
           if (!/^<\s*npc\b/i.test(tag)) fixed(stats, `"${id}" is new: placed as a newcomer`);
-          // (inside the tap target: laid inside a target group of its own)
-          const target = open.find((o) => /class="[^"]*\btarget\b/.test(o.tag));
-          newcomerAt.set(id, target ? { ...a, __target: target.tag } : a);
+          // (laid right here, in its place in the picture, once it's
+          // painted: what the composer wrote after it waits for it, so a
+          // dragon standing behind the hero is drawn behind the hero and
+          // never over the key the child taps - it used to come last, on
+          // top of everything, 15 Nov. Inside the tap target, it's inside
+          // that target's group.)
+          if (!newcomerInline.has(id)) {
+            newcomerInline.set(id, a);
+            out += `\u0001npc:${id}\u0001`;
+          }
           if (!stats.figIds.includes(id)) stats.figIds.push(id);
           if (/^<\s*fig\b/i.test(tag) && !tag.trim().endsWith("/>")) skipping = true;
           continue;
@@ -766,8 +806,8 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     if (!cut) continue;
     const ready = buf.slice(0, cut);
     buf = buf.slice(cut);
-    const out = handle(ready);
-    if (out) yield out;
+    pending += handle(ready);
+    yield* drain(false);
   }
   let tail = buf ? handle(buf) : "";
   if (fig) tail += endFig();
@@ -786,9 +826,11 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   }
   // Newcomers, laid where the composer put them once they're painted (they
   // come last: in front of the rest). One that couldn't be painted is noted.
+  // (everything written, each newcomer laid in its place as it comes)
+  pending += tail;
+  tail = "";
+  yield* drain(true);
   if (newcomerAt.size) {
-    if (tail) yield tail;
-    tail = "";
     for (const [id, a] of newcomerAt) {
       const sp = await ctx.newcomers![id].catch(() => null);
       if (!sp) {

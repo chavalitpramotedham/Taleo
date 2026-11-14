@@ -978,9 +978,11 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
         // further back says the rest. At 60% a hero beside a dragon was a
         // speck the child had to look for - 15 Nov)
         const own = p.id === opts.heroId || p.id === opts.targetId;
-        const kk = own ? Math.max(0.85, k) : k;
-        if (kk >= 0.98) continue;
-        const s2 = Math.max(0.24, Math.round(p.s * kk * 100) / 100);
+        // (for them, 85% of their usual size on this page, whatever the
+        // composer started from)
+        const floor = own ? 0.85 * opts.usualS * (opts.sizeOf?.[p.id] ?? 1) : 0;
+        const s2 = Math.max(0.24, floor, Math.round(p.s * k * 100) / 100);
+        if (s2 >= p.s - 0.01) continue;
         notes.push(`${p.id} made smaller (${p.s.toFixed(2)} to ${s2.toFixed(2)}) beside the giant`);
         p.s = s2;
         p.tag = setAttr(p.tag, "s", s2.toFixed(2));
