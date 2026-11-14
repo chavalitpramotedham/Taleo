@@ -1,7 +1,7 @@
 "use client";
 import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { sanitizeSvg, TARGET_CLASS } from "@/lib/svg-sanitize";
-import { bakePainting, bakeWidth, canBake, peekBaked, type Baked } from "@/lib/bake";
+import { bakePainting, bakeWidth, canBake, groundOf, peekBaked, type Baked } from "@/lib/bake";
 import { playSound, sayWord } from "@/lib/sfx";
 import { AMPLITUDE, type MotionId, type SoundId } from "@/lib/actions";
 import { characterArt } from "@/lib/presets";
@@ -66,14 +66,19 @@ export const Painting = memo(function Painting({
     // a page turning is scaled, and would ask for a drawing at another size)
     setWidth(bakeWidth(box.current?.clientWidth || box.current?.getBoundingClientRect().width || 0));
   }, []);
+  // (the colour it's shown over: read again with day/night)
+  const [ground, setGround] = useState("");
+  useLayoutEffect(() => {
+    setGround(groundOf(box.current));
+  }, [night]);
 
   const lastLive = useRef(0);
   const liveCost = useRef(400);
   // (a painting still arriving changes every moment: one drawing at a time
   // is made of whatever has arrived by then, and the next is due a little
   // after it - never put off by the painting changing again meanwhile)
-  const latest = useRef({ clean, width, night, live });
-  latest.current = { clean, width, night, live };
+  const latest = useRef({ clean, width, night, live, ground });
+  latest.current = { clean, width, night, live, ground };
   const liveTimer = useRef<number | null>(null);
   const [kick, setKick] = useState(0);
   const mounted = useRef(true);
@@ -102,7 +107,7 @@ export const Painting = memo(function Painting({
       setPrev(fade && cur ? cur : null);
       setShown({ b, key });
     };
-    const now = peekBaked(clean, width, night, split);
+    const now = peekBaked(clean, width, night, split, ground);
     if (now !== undefined) {
       show(now, false);
       return;
@@ -121,7 +126,7 @@ export const Painting = memo(function Painting({
         // drawn smaller - well under half the pixels to save and show -
         // while the finished one is drawn full size)
         const liveWidth = Math.round((now.width * 2) / 3 / 40) * 40;
-        void bakePainting(now.clean, { width: liveWidth, night: now.night, split: false, soon: true }).then((b) =>
+        void bakePainting(now.clean, { width: liveWidth, night: now.night, split: false, soon: true, ground: now.ground }).then((b) =>
           ready(b).then(() => {
             liveTimer.current = null;
             liveCost.current = performance.now() - t0;
@@ -145,7 +150,7 @@ export const Painting = memo(function Painting({
     // under the figures, and the switch itself stays smooth)
     const again = Boolean(shownRef.current);
     const t = window.setTimeout(
-      () => void bakePainting(clean, { width, night, split, soon: !again }).then((b) => ready(b).then(() => show(b, again))),
+      () => void bakePainting(clean, { width, night, split, soon: !again, ground }).then((b) => ready(b).then(() => show(b, again))),
       again ? 1400 : 0,
     );
     return () => {
@@ -154,7 +159,7 @@ export const Painting = memo(function Painting({
     };
     // (`shown` is read, not followed: a new drawing replaces it)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clean, width, night, live, plain, kick]);
+  }, [clean, width, night, live, plain, kick, ground]);
 
   // the earlier drawing goes once the new one has faded in over it
   useEffect(() => {

@@ -38,9 +38,37 @@ export function bakeWidth(cssWidth: number): number {
   // 2.25 it was three times a phone's pixels, and reading it back held
   // the page for most of a second)
   const desk = typeof window !== "undefined" && !window.matchMedia?.("(pointer: coarse)").matches;
-  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : desk ? 1.5 : 2.25);
-  const px = Math.max(240, Math.min(2200, (cssWidth || W0) * density));
+  // (a phone at its screen's full density - at 2.25 on a 3x iPhone the
+  // picture was stretched by a third and read as soft)
+  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : desk ? 1.5 : 3);
+  const px = Math.max(240, Math.min(desk ? 2200 : 1300, (cssWidth || W0) * density));
   return Math.round(px / 40) * 40;
+}
+
+/** The colour a painting is shown over - its own night paper if it has
+ *  one showing, else the first coloured background behind it - as
+ *  #rrggbb ("" if there's none to be had: then the picture is kept
+ *  see-through). */
+export function groundOf(el: Element | null): string {
+  if (typeof document === "undefined" || !el) return "";
+  const paper = el.querySelector?.(".paint-paper");
+  const fill = paper ? getComputedStyle(paper).fill : "";
+  if (fill && !/^(none|transparent|rgba\(0, 0, 0, 0\))$/.test(fill)) return canonColour(fill);
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const bg = getComputedStyle(n).backgroundColor;
+    if (bg && !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(bg)) return /rgba\([^)]*,\s*0?\.\d+\)$/.test(bg) ? "" : canonColour(bg);
+  }
+  return "";
+}
+/** A colour written any way, as #rrggbb. */
+export const groundOfColour = (c: string) => (typeof document === "undefined" ? "" : canonColour(c));
+let colourCtx: CanvasRenderingContext2D | null = null;
+function canonColour(c: string): string {
+  colourCtx ??= document.createElement("canvas").getContext("2d");
+  if (!colourCtx) return "";
+  colourCtx.fillStyle = "#000";
+  colourCtx.fillStyle = c;
+  return String(colourCtx.fillStyle);
 }
 
 /** How wide (CSS pixels) a book's pictures were last shown on this device:
@@ -92,7 +120,7 @@ function hash(s: string): string {
   return `${(h >>> 0).toString(36)}-${s.length}`;
 }
 
-const keyOf = (clean: string, width: number, night: boolean, split: boolean) => `${hash(clean)}|${width}|${night ? "n" : "d"}|${split ? "s" : "w"}`;
+const keyOf = (clean: string, width: number, night: boolean, split: boolean, ground = "") => `${hash(clean)}|${width}|${ground}|${night ? "n" : "d"}|${split ? "s" : "w"}`;
 
 /** This painting has been drawn already (at any size): it can be put up
  *  at once. */
@@ -106,9 +134,9 @@ export function hasDrawing(clean: string, night: boolean): boolean {
 
 /** Already drawn: the pictures, at once (so a copy of a page - the turning
  *  leaf - shows them on its very first frame). */
-export function peekBaked(clean: string, width: number, night: boolean, split = true): Baked | null | undefined {
-  const e = cache.get(keyOf(clean, width, night, split));
-  if (e) touch(keyOf(clean, width, night, split), e);
+export function peekBaked(clean: string, width: number, night: boolean, split = true, ground = ""): Baked | null | undefined {
+  const e = cache.get(keyOf(clean, width, night, split, ground));
+  if (e) touch(keyOf(clean, width, night, split, ground), e);
   return e?.value;
 }
 
@@ -131,9 +159,9 @@ function evict() {
  *  already made or under way. `soon` puts it ahead of drawings for later
  *  pages. Null if it can't be drawn this way (the page then shows the
  *  painting itself). */
-export function bakePainting(clean: string, opts: { width: number; night: boolean; split?: boolean; soon?: boolean }): Promise<Baked | null> {
+export function bakePainting(clean: string, opts: { width: number; night: boolean; split?: boolean; soon?: boolean; ground?: string }): Promise<Baked | null> {
   const split = opts.split ?? true;
-  const key = keyOf(clean, opts.width, opts.night, split);
+  const key = keyOf(clean, opts.width, opts.night, split, opts.ground);
   const hit = cache.get(key);
   if (hit) {
     touch(key, hit);
@@ -141,7 +169,7 @@ export function bakePainting(clean: string, opts: { width: number; night: boolea
     return hit.promise;
   }
   const entry: Entry = { promise: Promise.resolve(null), urls: [] };
-  entry.promise = (async () => (await fromStore(key, entry.urls)) ?? enqueue(key, Boolean(opts.soon), (pause) => draw(clean, opts.width, opts.night, split, entry.urls, pause)))().then(
+  entry.promise = (async () => (await fromStore(key, entry.urls)) ?? enqueue(key, Boolean(opts.soon), (pause) => draw(clean, opts.width, opts.night, split, entry.urls, pause, opts.ground)))().then(
     (v) => ((entry.value = v), v),
     () => ((entry.value = null), null),
   );
@@ -152,7 +180,7 @@ export function bakePainting(clean: string, opts: { width: number; night: boolea
 
 /** Draw a painting ahead, in a quiet moment (the next page while this one
  *  is read). */
-export function prebake(clean: string, opts: { width: number; night: boolean }) {
+export function prebake(clean: string, opts: { width: number; night: boolean; ground?: string }) {
   if (!clean || !canBake()) return;
   void bakePainting(clean, { ...opts, soon: false });
 }
@@ -250,7 +278,7 @@ function defs(night: boolean): string | null {
 // read before - or a page turned back to after a reload - is never drawn
 // again: its pictures are just read back.
 
-const STORE = "taleo-paintings-v1";
+const STORE = "taleo-paintings-v2";
 const STORE_MAX = 48;
 const storeUrl = (key: string, part: string) => `/__painted/${encodeURIComponent(key)}/${part}`;
 
@@ -297,23 +325,23 @@ async function toStore(key: string, b: Baked) {
   } catch {}
 }
 
-async function draw(clean: string, width: number, night: boolean, split: boolean, urls: string[], pause: () => Promise<void>): Promise<Baked | null> {
+async function draw(clean: string, width: number, night: boolean, split: boolean, urls: string[], pause: () => Promise<void>, ground = ""): Promise<Baked | null> {
   const d = defs(night);
   if (!d || !canBake()) return null;
-  const key = keyOf(clean, width, night, split);
-  const made = await drawFresh(d, clean, width, split, urls, pause);
+  const key = keyOf(clean, width, night, split, ground);
+  const made = await drawFresh(d, clean, width, split, urls, pause, ground);
   if (made) void toStore(key, made);
   return made;
 }
 
-async function drawFresh(d: string, clean: string, width: number, split: boolean, urls: string[], pause: () => Promise<void>): Promise<Baked | null> {
+async function drawFresh(d: string, clean: string, width: number, split: boolean, urls: string[], pause: () => Promise<void>, ground = ""): Promise<Baked | null> {
   const parts = split ? splitAtTarget(clean) : null;
   const height = Math.round((width * H0) / W0);
   if (!parts) {
-    const back = await layer(d, clean, width, height, false, urls, pause);
+    const back = await layer(d, clean, width, height, false, urls, pause, ground);
     return back ? { back } : null;
   }
-  const back = await layer(d, parts.back, width, height, false, urls, pause);
+  const back = await layer(d, parts.back, width, height, false, urls, pause, ground);
   if (!back) return null;
   // (a frame let through between layers)
   await pause();
@@ -327,51 +355,88 @@ async function drawFresh(d: string, clean: string, width: number, split: boolean
  *  part with something on it. Drawn in one go: Safari works out a picture's
  *  watercolour filters over the whole of it however little of it is drawn,
  *  so drawing it in strips (tried first) cost a whole drawing per strip. */
-async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[], pause?: () => Promise<void>): Promise<BakedLayer | null> {
+async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[], pause?: () => Promise<void>, ground = ""): Promise<BakedLayer | null> {
+  // (a layer with only part of the picture on it - the tappable character,
+  // what's in front of it - is drawn at just its own size: its box is
+  // measured from its shapes, never read back from the drawing, which made
+  // the page wait while the drawing was finished)
+  let box = { x: 0, y: 0, w: W0, h: H0 };
+  if (crop) {
+    const b = shapesBox(content);
+    if (!b) return null;
+    box = b;
+  }
+  const k = width / W0;
+  const pw = Math.max(1, Math.round(box.w * k));
+  const ph = Math.max(1, Math.round(box.h * k));
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = pw;
+  canvas.height = ph;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
+  // (the whole picture is laid on the colour it's shown over - the page by
+  // day, the lamplit paper at night - so it can be kept as a JPEG: Safari
+  // takes a third of a second to save a see-through PNG of a phone-sharp
+  // painting, holding the page all the while; a JPEG takes a moment)
+  const opaque = Boolean(ground && !crop);
+  if (opaque) {
+    ctx.fillStyle = ground;
+    ctx.fillRect(0, 0, pw, ph);
+  }
   // (in a few batches of shapes, a frame let through between: each shape's
   // watercolour is its own, so batches drawn one over another make the
   // very same picture - unlike strips, each batch costs only its own share)
   const batches = pause ? inBatches(content, 4) : [content];
   try {
     for (let i = 0; i < batches.length; i++) {
-      const whole = `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${W0} ${H0}">${defsInner}${batches[i]}</svg>`;
+      const whole = `<svg xmlns="${SVG_NS}" width="${pw}" height="${ph}" viewBox="${box.x} ${box.y} ${box.w} ${box.h}">${defsInner}${batches[i]}</svg>`;
       const src = URL.createObjectURL(new Blob([whole], { type: "image/svg+xml" }));
       try {
         const img = new Image();
         img.src = src;
         await img.decode();
-        // (the slow part: the watercolour filters worked out, once)
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, 0, 0, pw, ph);
       } finally {
         URL.revokeObjectURL(src);
       }
       if (pause && i < batches.length - 1) await pause();
     }
-    let box = { x: 0, y: 0, w: W0, h: H0 };
-    let out: HTMLCanvasElement = canvas;
-    if (crop) {
-      const b = opaqueBox(ctx, width, height);
-      if (!b) return null;
-      const c2 = document.createElement("canvas");
-      c2.width = b.w;
-      c2.height = b.h;
-      c2.getContext("2d")!.drawImage(canvas, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
-      out = c2;
-      const k = W0 / width;
-      box = { x: b.x * k, y: b.y * k, w: b.w * k, h: b.h * k };
-    }
-    const blob = await saveCanvas(out);
+    const blob = await saveCanvas(canvas, opaque);
     if (!blob) return null;
     const url = URL.createObjectURL(blob);
     urls.push(url);
     return { url, box, blob } as BakedLayer & { blob: Blob };
   } catch {
     return null;
+  }
+}
+
+/** Where a layer's shapes lie on the 400x300 canvas, with room round them
+ *  for the watercolour's soft, wobbly edges - measured by laying them out
+ *  in a hidden picture (no painting). Null if there's nothing there. */
+function shapesBox(content: string): BakedLayer["box"] | null {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("width", "400");
+  svg.setAttribute("height", "300");
+  svg.setAttribute("viewBox", `0 0 ${W0} ${H0}`);
+  svg.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none";
+  const g = document.createElementNS(SVG_NS, "g");
+  g.innerHTML = content;
+  svg.appendChild(g);
+  document.body.appendChild(svg);
+  try {
+    const r = g.getBBox();
+    if (!r.width || !r.height) return null;
+    const m = 14;
+    const x = Math.max(0, Math.floor(r.x - m));
+    const y = Math.max(0, Math.floor(r.y - m));
+    const x1 = Math.min(W0, Math.ceil(r.x + r.width + m));
+    const y1 = Math.min(H0, Math.ceil(r.y + r.height + m));
+    return x1 > x && y1 > y ? { x, y, w: x1 - x, h: y1 - y } : null;
+  } catch {
+    return null;
+  } finally {
+    svg.remove();
   }
 }
 
@@ -427,7 +492,8 @@ function inBatches(content: string, n: number): string[] {
   return batches;
 }
 
-function saveCanvas(c: HTMLCanvasElement): Promise<Blob | null> {
+function saveCanvas(c: HTMLCanvasElement, opaque = false): Promise<Blob | null> {
+  if (opaque) return new Promise((r) => c.toBlob(r, "image/jpeg", 0.9));
   return new Promise((r) =>
     c.toBlob(
       (b) => {
@@ -439,34 +505,6 @@ function saveCanvas(c: HTMLCanvasElement): Promise<Blob | null> {
       0.92,
     ),
   );
-}
-
-/** The part of a drawn layer with paint on it (a small margin around). */
-function opaqueBox(ctx: CanvasRenderingContext2D, w: number, h: number) {
-  const data = ctx.getImageData(0, 0, w, h).data;
-  let x0 = w;
-  let y0 = h;
-  let x1 = -1;
-  let y1 = -1;
-  // (every other pixel each way is plenty to find the edges)
-  for (let y = 0; y < h; y += 2) {
-    const row = y * w * 4;
-    for (let x = 0; x < w; x += 2) {
-      if (data[row + x * 4 + 3] > 6) {
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
-      }
-    }
-  }
-  if (x1 < 0) return null;
-  const m = 3;
-  x0 = Math.max(0, x0 - m);
-  y0 = Math.max(0, y0 - m);
-  x1 = Math.min(w - 1, x1 + m);
-  y1 = Math.min(h - 1, y1 + m);
-  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
 /** The painting in three: everything drawn before the tappable group, the
@@ -510,7 +548,7 @@ function splitAtTarget(clean: string): { back: string; target: string | null; fr
 // (development only: the drawing step, to try by hand)
 if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
   (window as unknown as { __bakeDebug?: unknown }).__bakeDebug = {
-    bake: (svg: string, width: number) => bakePainting(sanitizeSvg(svg), { width, night: document.documentElement.dataset.night === "1", soon: true }),
+    bake: (svg: string, width: number, ground = "#fbf7ee") => bakePainting(sanitizeSvg(svg), { width, night: document.documentElement.dataset.night === "1", soon: true, ground }),
     split: (svg: string) => splitAtTarget(sanitizeSvg(svg)),
     layer: async (svg: string, width: number) => {
       const urls: string[] = [];

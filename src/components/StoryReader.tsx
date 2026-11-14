@@ -14,7 +14,7 @@ import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { bakeWidth, bookWidth, canBake, hasDrawing, prebake, rememberBookWidth } from "@/lib/bake";
+import { bakeWidth, bookWidth, canBake, groundOf, groundOfColour, hasDrawing, prebake, rememberBookWidth } from "@/lib/bake";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -460,7 +460,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       if (w) rememberBookWidth(w);
       for (const svg of ahead) {
         const clean = sanitizeSvg(svg);
-        if (w) prebake(clean, { width: bakeWidth(w), night });
+        if (w) prebake(clean, { width: bakeWidth(w), night, ground: groundOf(el) });
       }
     }, 1500);
     return () => window.clearTimeout(t);
@@ -472,7 +472,12 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     if (cover !== "closed" || !firstSvg) return;
     const w = bookWidth();
     if (!w) return;
-    const t = window.setTimeout(() => prebake(sanitizeSvg(firstSvg), { width: bakeWidth(w), night: document.documentElement.dataset.night === "1" }), 600);
+    // (the colour the page's picture will sit on: its night paper, or the
+    // book's page)
+    const night = document.documentElement.dataset.night === "1";
+    const page = getComputedStyle(document.documentElement).getPropertyValue("--page").trim();
+    const ground = night ? groundOf(document.querySelector(".paint-paper")?.closest("svg") ?? null) || "#cdbfa3" : page ? groundOfColour(page) : "";
+    const t = window.setTimeout(() => prebake(sanitizeSvg(firstSvg), { width: bakeWidth(w), night, ground }), 600);
     return () => window.clearTimeout(t);
   }, [cover, firstSvg]);
 
