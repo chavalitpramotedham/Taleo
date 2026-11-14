@@ -91,13 +91,7 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
   }
   const state = status ?? "live";
   return (
-    <div className="deploy-marker-row">
-      {/* (a newer version is live: one tap to load it) */}
-      {state === "update" && (
-        <button type="button" className="deploy-refresh" role="menuitem" aria-label="Reload to get the newer version" title="Reload to get the newer version" onClick={() => window.location.reload()}>
-          <ReplayIcon />
-        </button>
-      )}
+    <div className={`deploy-marker-row${state === "update" ? " has-refresh" : ""}`}>
       <button
         type="button"
         className="deploy-marker"
@@ -124,8 +118,14 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
             )}
           </span>
         </span>
-        <InfoIcon />
+        {state !== "update" && <InfoIcon />}
       </button>
+      {/* (a newer version is live: the info mark becomes a refresh, one tap to load it) */}
+      {state === "update" && (
+        <button type="button" className="deploy-refresh" role="menuitem" aria-label="Reload to get the newer version" title="Reload to get the newer version" onClick={() => window.location.reload()}>
+          <ReplayIcon />
+        </button>
+      )}
     </div>
   );
 }

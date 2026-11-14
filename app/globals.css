@@ -12408,21 +12408,24 @@ html[data-night] .nav-begin-pill.is-making::before {
 p.deploy-marker {
   cursor: default;
 }
-/* A newer version is live: a small round refresh button, at the row's
-   left, beside what's live. */
+/* A newer version is live: a small round refresh button takes the info
+   mark's place at the row's right. */
 .deploy-marker-row {
   position: relative;
 }
+.deploy-marker-row.has-refresh .deploy-marker {
+  padding-right: 58px;
+}
 .deploy-refresh {
   position: absolute;
-  left: 16px;
+  right: 14px;
   top: 50%;
   translate: 0 -40%;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--russet) 55%, transparent);
@@ -12431,8 +12434,8 @@ p.deploy-marker {
   cursor: pointer;
 }
 .deploy-refresh svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 @media (hover: hover) {
   .deploy-refresh:hover {
