@@ -14,7 +14,7 @@ import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { bakeWidth, bookWidth, hasDrawing, prebake, rememberBookWidth } from "@/lib/bake";
+import { bakeWidth, bookWidth, canBake, hasDrawing, prebake, rememberBookWidth } from "@/lib/bake";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -940,7 +940,15 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // (a page whose picture is drawn already - see lib/bake - doesn't wait:
   // it lies under the turning page, picture and words, and the turn
   // uncovers it as a real page would)
-  const drawnAlready = Boolean(outgoing && shown?.page.svg && typeof document !== "undefined" && hasDrawing(sanitizeSvg(shown.page.svg), document.documentElement.dataset.night === "1"));
+  // (where paintings are shown as themselves - Chrome, which draws them on
+  // the side while the leaf keeps turning - any finished painting can lie
+  // there too)
+  const drawnAlready = Boolean(
+    outgoing &&
+      shown?.page.svg &&
+      typeof document !== "undefined" &&
+      (canBake() ? hasDrawing(sanitizeSvg(shown.page.svg), document.documentElement.dataset.night === "1") : !live[pageKey(shown.seg, shown.n)]),
+  );
   const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey && !drawnAlready);
   const artKeyRef = useRef(artKey);
   artKeyRef.current = artKey;

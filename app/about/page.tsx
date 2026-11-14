@@ -22,10 +22,12 @@ export const metadata: Metadata = {
 
 /** About Taleo: the founder's story, the "Contact us" form, and who runs it. */
 export default function AboutPage() {
-  // The picture at the top and the painted edge it shows through, asked for
-  // with the page itself (neither is found until the styles have arrived).
-  preload("/about/bedtime-story.webp", { as: "image", fetchPriority: "high" });
-  preload("/art/paint-edge-square.webp", { as: "image", fetchPriority: "high", crossOrigin: "anonymous" });
+  // The painted edge the picture shows through, asked for with the page
+  // (it isn't found until the styles have arrived). The picture itself is
+  // a plain image the browser finds in the page at once - asked for here
+  // instead, every page with a link to this one fetched it too (a link's
+  // prefetch carries the page's preloads), ahead of its own pictures.
+  preload("/art/paint-edge-square.webp", { as: "image", crossOrigin: "anonymous" });
   return (
     <div className="container about">
       <header className="wizard-head">
@@ -33,10 +35,10 @@ export default function AboutPage() {
         {/* Bedtime reading, faded into the page with the same painted edge
             as the story illustrations. */}
         <figure className="about-hero">
-          <svg viewBox="0 0 400 400" className="painted-edge-square" role="img" aria-label="A dad reading a picture book to his laughing baby at bedtime, the moon outside the window">
-            <image href="/about/bedtime-story.webp" width="400" height="400" preserveAspectRatio="xMidYMid slice" />
-            <rect className="paint-dim" width="400" height="400" />
-          </svg>
+          <div className="about-hero-pic painted-edge-square">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/about/bedtime-story.webp" width={400} height={400} fetchPriority="high" decoding="async" alt="A dad reading a picture book to his laughing baby at bedtime, the moon outside the window" />
+          </div>
         </figure>
         <h1>Why I made Taleo</h1>
       </header>

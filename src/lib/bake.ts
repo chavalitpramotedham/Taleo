@@ -302,10 +302,10 @@ async function drawFresh(d: string, clean: string, width: number, split: boolean
   const parts = split ? splitAtTarget(clean) : null;
   const height = Math.round((width * H0) / W0);
   if (!parts) {
-    const back = await layer(d, clean, width, height, false, urls);
+    const back = await layer(d, clean, width, height, false, urls, pause);
     return back ? { back } : null;
   }
-  const back = await layer(d, parts.back, width, height, false, urls);
+  const back = await layer(d, parts.back, width, height, false, urls, pause);
   if (!back) return null;
   // (a frame let through between layers)
   await pause();
@@ -319,20 +319,31 @@ async function drawFresh(d: string, clean: string, width: number, split: boolean
  *  part with something on it. Drawn in one go: Safari works out a picture's
  *  watercolour filters over the whole of it however little of it is drawn,
  *  so drawing it in strips (tried first) cost a whole drawing per strip. */
-async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[]): Promise<BakedLayer | null> {
+async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[], pause?: () => Promise<void>): Promise<BakedLayer | null> {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  const whole = `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${W0} ${H0}">${defsInner}${content}</svg>`;
-  const src = URL.createObjectURL(new Blob([whole], { type: "image/svg+xml" }));
+  // (in a few batches of shapes, a frame let through between: each shape's
+  // watercolour is its own, so batches drawn one over another make the
+  // very same picture - unlike strips, each batch costs only its own share)
+  const batches = pause ? inBatches(content, 4) : [content];
   try {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    // (the slow part: the watercolour filters worked out, once)
-    ctx.drawImage(img, 0, 0, width, height);
+    for (let i = 0; i < batches.length; i++) {
+      const whole = `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${W0} ${H0}">${defsInner}${batches[i]}</svg>`;
+      const src = URL.createObjectURL(new Blob([whole], { type: "image/svg+xml" }));
+      try {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        // (the slow part: the watercolour filters worked out, once)
+        ctx.drawImage(img, 0, 0, width, height);
+      } finally {
+        URL.revokeObjectURL(src);
+      }
+      if (pause && i < batches.length - 1) await pause();
+    }
     let box = { x: 0, y: 0, w: W0, h: H0 };
     let out: HTMLCanvasElement = canvas;
     if (crop) {
@@ -353,9 +364,59 @@ async function layer(defsInner: string, content: string, width: number, height: 
     return { url, box, blob } as BakedLayer & { blob: Blob };
   } catch {
     return null;
-  } finally {
-    URL.revokeObjectURL(src);
   }
+}
+
+/**
+ * A painting's markup in about `n` batches of whole shapes, in their order,
+ * each wrapped in the groups it sits in. A group is only ever split if
+ * splitting it changes nothing: one with its own filter, opacity, mask or
+ * clip is kept whole (its effect is on the group together).
+ */
+function inBatches(content: string, n: number): string[] {
+  const root = document.createElementNS(SVG_NS, "g");
+  root.innerHTML = content;
+  const total = content.length;
+  const most = Math.max(2000, total / n);
+  const whole = (el: Element) => ["filter", "opacity", "mask", "clip-path", "style"].some((a) => el.hasAttribute(a));
+  const tags = new Map<Element, string>();
+  // (a group's own opening tag, from a copy without its contents)
+  const openTag = (g: Element) => {
+    let t = tags.get(g);
+    if (t === undefined) {
+      const bare = (g.cloneNode(false) as Element).outerHTML;
+      t = bare.endsWith("/>") ? bare.slice(0, -2) + ">" : bare.slice(0, bare.lastIndexOf("</g>"));
+      tags.set(g, t);
+    }
+    return t;
+  };
+  // (the units: shapes, or groups kept whole, each with the groups around it)
+  const units: { html: string; wrap: Element[] }[] = [];
+  const walk = (el: Element, wrap: Element[]) => {
+    for (const c of [...el.children]) {
+      if (c.tagName.toLowerCase() === "g" && !whole(c) && c.outerHTML.length > most / 2) walk(c, [...wrap, c]);
+      else units.push({ html: c.outerHTML, wrap });
+    }
+  };
+  walk(root, []);
+  if (units.length < 2) return [content];
+  // (packed into batches of about the same size)
+  const batches: string[] = [];
+  let cur: typeof units = [];
+  let size = 0;
+  const flush = () => {
+    if (!cur.length) return;
+    batches.push(cur.map((u) => u.wrap.reduceRight((inner, g) => openTag(g) + inner + "</g>", u.html)).join(""));
+    cur = [];
+    size = 0;
+  };
+  for (const u of units) {
+    if (size + u.html.length > most && cur.length) flush();
+    cur.push(u);
+    size += u.html.length;
+  }
+  flush();
+  return batches;
 }
 
 function saveCanvas(c: HTMLCanvasElement): Promise<Blob | null> {

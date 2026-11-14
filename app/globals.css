@@ -1480,8 +1480,10 @@ html[data-night] .canvas-wait {
   -webkit-backface-visibility: hidden;
   pointer-events: none;
   will-change: transform;
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.42, 0, 0.5, 1);
+  animation-duration: var(--turn-ms, 0.72s);
+  /* (moving from the first frame - a page lifts at once - then easing
+     down as it lands: an ease-in start read as a lag after the tap) */
+  animation-timing-function: var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1));
   animation-fill-mode: both;
 }
 /* Its picture is placed by the reader (not stuck within the leaf, which
@@ -1508,7 +1510,7 @@ html[data-night] .canvas-wait {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  animation: leafShade 0.8s cubic-bezier(0.42, 0, 0.5, 1) both;
+  animation: leafShade var(--turn-ms, 0.72s) var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1)) both;
 }
 .flip-leaf-next {
   transform-origin: left center;
@@ -1540,9 +1542,6 @@ html[data-night] .canvas-wait {
   0% {
     transform: rotateY(0deg);
   }
-  18% {
-    transform: rotateY(-10deg);
-  }
   100% {
     transform: rotateY(-92deg);
   }
@@ -1550,9 +1549,6 @@ html[data-night] .canvas-wait {
 @keyframes leafTurnPrev {
   0% {
     transform: rotateY(0deg);
-  }
-  18% {
-    transform: rotateY(10deg);
   }
   100% {
     transform: rotateY(92deg);
@@ -1577,8 +1573,10 @@ html[data-night] .canvas-wait {
   bottom: 0;
   z-index: 5;
   pointer-events: none;
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.42, 0, 0.5, 1);
+  animation-duration: var(--turn-ms, 0.72s);
+  /* (moving from the first frame - a page lifts at once - then easing
+     down as it lands: an ease-in start read as a lag after the tap) */
+  animation-timing-function: var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1));
   animation-fill-mode: both;
 }
 .flip-shade-next {
@@ -1601,12 +1599,12 @@ html[data-night] .canvas-wait {
     transform: translateX(0);
     opacity: 0;
   }
-  18% {
-    transform: translateX(-2%);
+  10% {
+    transform: translateX(-1%);
     opacity: 1;
   }
   50% {
-    transform: translateX(-26%);
+    transform: translateX(-29%);
     opacity: 1;
   }
   80% {
@@ -1623,12 +1621,12 @@ html[data-night] .canvas-wait {
     transform: translateX(0);
     opacity: 0;
   }
-  18% {
-    transform: translateX(2%);
+  10% {
+    transform: translateX(1%);
     opacity: 1;
   }
   50% {
-    transform: translateX(26%);
+    transform: translateX(29%);
     opacity: 1;
   }
   80% {
@@ -5770,10 +5768,22 @@ body {
   width: min(100%, 440px);
   margin: 10px auto clamp(22px, 4vw, 34px);
 }
-.about-hero svg {
+.about-hero-pic {
+  position: relative;
+  aspect-ratio: 1;
+}
+.about-hero-pic img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+}
+/* (softly dimmed at night, like the story paintings) */
+html[data-night] .about-hero-pic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 9, 16, 0.18);
 }
 
 /* The small-caps face draws its letters ~1.7px above the middle of its line
