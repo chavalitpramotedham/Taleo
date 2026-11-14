@@ -53,8 +53,10 @@ export function bookWidth(): number {
     // (only if this window is still the size it was: a phone turned on its
     // side shows the pictures at another size)
     const at = Number(localStorage.getItem("taleo.bookw.at"));
-    if (at && at !== window.innerWidth) return 0;
-    return w > 100 ? w : 0;
+    if (w > 100 && at === window.innerWidth) return w;
+    // (never seen here yet: on a phone, the picture is the screen's width
+    // less the book's margins - 365 on a 390 screen)
+    return window.innerWidth < 700 ? window.innerWidth - 25 : 0;
   } catch {
     return 0;
   }
@@ -76,7 +78,9 @@ export function isLowPower(): boolean {
 
 type Entry = { promise: Promise<Baked | null>; value?: Baked | null; urls: string[] };
 const cache = new Map<string, Entry>();
-const CACHE_MAX = 28;
+// (a drawing is about 1MB - Safari saves PNG, the washes being see-through -
+// so a few books' worth, not more)
+const CACHE_MAX = 18;
 
 function hash(s: string): string {
   let h = 2166136261;
@@ -243,7 +247,7 @@ function defs(night: boolean): string | null {
 // again: its pictures are just read back.
 
 const STORE = "taleo-paintings-v1";
-const STORE_MAX = 160;
+const STORE_MAX = 48;
 const storeUrl = (key: string, part: string) => `/__painted/${encodeURIComponent(key)}/${part}`;
 
 async function fromStore(key: string, urls: string[]): Promise<Baked | null> {
@@ -279,7 +283,7 @@ async function toStore(key: string, b: Baked) {
     for (const l of layers) await c.put(storeUrl(key, l.name), new Response(l.blob, { headers: { "content-type": l.blob.type } }));
     await c.put(storeUrl(key, "meta"), new Response(JSON.stringify(layers.map(({ name, box }) => ({ name, box }))), { headers: { "content-type": "application/json" } }));
     // (the oldest drawings make room, now and then)
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.25) {
       const metas = (await c.keys()).filter((r) => r.url.endsWith("/meta"));
       for (const r of metas.slice(0, Math.max(0, metas.length - STORE_MAX))) {
         const base = r.url.slice(0, -"meta".length);
