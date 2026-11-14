@@ -86,6 +86,14 @@ export function PaintDefs() {
           </feComponentTransfer>
         </filter>
 
+        {/* The paper grain, as a small seamless tile drawn once from the
+            noise below (public/art/paper-grain.webp, 2px a unit): laying a
+            picture over it is only copying pixels, where the noise itself
+            was worked out afresh over the whole picture every time it was
+            drawn - every fading stroke, on a phone. */}
+        <pattern id="tl-grain" patternUnits="userSpaceOnUse" width="128" height="128">
+          <image href="/art/paper-grain.webp" width="128" height="128" />
+        </pattern>
         <filter id="tl-paper" x="0" y="0" width="100%" height="100%">
           <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="2" result="noise" />
           <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.42  0 0 0 0 0.32  0 0 0 0.16 0" />

@@ -14,6 +14,7 @@ import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
+import { bakeWidth, prebake } from "@/lib/bake";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -166,15 +167,26 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   const view = views[Math.min(index, views.length - 1)];
   const lastIndex = views.length - 1;
-  // The next pages' paintings are cleaned (made safe to draw) while the
-  // reader is reading this one, so a turn only has to put them up. The
-  // cleaner remembers what it has done; this just does it ahead of time.
+  // The next pages' paintings (and the one before) are cleaned and drawn
+  // while the reader is reading this one, so a turn only has to put up
+  // pictures already made (see lib/bake).
   useEffect(() => {
-    const ahead = views.slice(index, index + 3).flatMap((v) => (v.kind === "page" && v.page.svg ? [v.page.svg] : []));
+    const near = [index + 1, index + 2, index - 1];
+    const ahead = near.flatMap((i) => {
+      const v = views[i];
+      return v?.kind === "page" && v.page.svg ? [v.page.svg] : [];
+    });
     if (!ahead.length) return;
     const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
     const stop = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = idle(() => ahead.forEach((svg) => sanitizeSvg(svg)));
+    const id = idle(() => {
+      const w = document.querySelector(".book-art .painting")?.getBoundingClientRect().width;
+      const night = document.documentElement.dataset.night === "1";
+      for (const svg of ahead) {
+        const clean = sanitizeSvg(svg);
+        if (w) prebake(clean, { width: bakeWidth(w), night });
+      }
+    });
     return () => stop(id);
   }, [views, index]);
   const totalPages = views.filter((v) => v.kind === "page").length;
@@ -936,6 +948,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                 title={shown.page.picture || shown.page.text}
                 className={partial && !done ? "painting live" : "painting"}
                 live={Boolean(partial && !done)}
+                onReady={() => setRevealed(key)}
                 target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
               />
             </div>
@@ -1406,15 +1419,10 @@ function RevealWhenDrawn({ k, shown, onDrawn, now }: { k: string | null; shown: 
     if (!k || shown) return;
     // (a picture being painted is on show already: just noted as shown)
     if (now) return onDrawn(k);
-    let b = 0;
-    const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => onDrawn(k))));
-    // (a hidden tab draws no frames: never leave the page held)
-    const safety = window.setTimeout(() => onDrawn(k), 700);
-    return () => {
-      cancelAnimationFrame(a);
-      cancelAnimationFrame(b);
-      window.clearTimeout(safety);
-    };
+    // (otherwise the painting says when it's drawn - see Painting's
+    // onReady; this only makes sure a page is never left held)
+    const safety = window.setTimeout(() => onDrawn(k), 6000);
+    return () => window.clearTimeout(safety);
   }, [k, shown, onDrawn, now]);
   return null;
 }

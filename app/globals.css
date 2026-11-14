@@ -1321,6 +1321,23 @@ main {
     animation-duration: 0.01s;
   }
 }
+/* A painting is shown as pictures drawn from it (lib/bake): hidden until
+   they're ready, then faded in; a newer drawing (a painting still
+   arriving, or redrawn for night) fades in over the one before. */
+.bake-wait {
+  opacity: 0;
+}
+.bake-shown {
+  animation: bakeIn 0.45s ease-out both;
+}
+.bake-in {
+  animation: bakeIn 0.6s ease-out both;
+}
+@keyframes bakeIn {
+  from {
+    opacity: 0;
+  }
+}
 /* Waiting for a picture: a blank sheet of watercolour paper, in the same
    soft ragged shape (and 4:3 size) as the painting to come, with the
    leaves falling on it. */
@@ -15195,6 +15212,18 @@ html[data-night] .first-steps-go {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  position: relative;
+}
+/* (its pulse is a ring of its own, swelling and fading: moved by the GPU,
+   rather than the row's shadow redrawn every frame) */
+.safety-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 6px rgba(95, 122, 63, 0.32);
+  opacity: 0;
+  pointer-events: none;
   animation: safetyPulse 2.8s ease-in-out infinite;
 }
 .safety-row > span:not(.safety-row-go) {
@@ -15218,12 +15247,14 @@ html[data-night] .first-steps-go {
   flex: none;
 }
 @keyframes safetyPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(95, 122, 63, 0.32);
+  0% {
+    opacity: 1;
+    transform: scale(0.97);
   }
-  50% {
-    box-shadow: 0 0 0 6px rgba(95, 122, 63, 0);
+  50%,
+  100% {
+    opacity: 0;
+    transform: scale(1.02);
   }
 }
 html[data-night] .safety-row {
@@ -17240,4 +17271,61 @@ html[data-night] .lab-board .lab-bad {
 .admin-untitled {
   color: var(--ink-faint);
   font-style: italic;
+}
+
+/* ---------- Light mode (html[data-lite]: a phone with little to spare) ----------
+   Set before the first paint (see LITE_INIT in app/layout). The purely
+   decorative movement rests - it never says anything - and frosted glass,
+   which blurs whatever moves beneath it on every frame, becomes a plain
+   tint. What tells the reader something (a spinner, the microphone
+   listening, a page being painted, the "tap me" hop) keeps moving. */
+html[data-lite] .night-lamp-layer.night-flame,
+html[data-lite] .night-lamp-sway,
+html[data-lite] .night-lamp-halo,
+html[data-lite] .hero-art .hero-brush svg,
+html[data-lite] .steps-wrap.has-more .steps-more,
+html[data-lite] .hero-cta,
+html[data-lite] .floating-cta-btn,
+html[data-lite] .hero-cta::after,
+html[data-lite] .floating-cta-btn::after,
+html[data-lite] .hero-cta .maple-mark,
+html[data-lite] .floating-cta-btn .maple-mark,
+html[data-lite] .account-trigger-pending::after,
+html[data-lite] .lantern-firefly-y,
+html[data-lite] .night-glow-halo,
+html[data-lite] .night-glow-core,
+html[data-lite] .night-glow-shimmer,
+html[data-lite] .firefly,
+html[data-lite] .firefly-light,
+html[data-lite] .skeleton-card::after,
+html[data-lite] .tech-card::after,
+html[data-lite] .tech-more,
+html[data-lite] .tech-more svg,
+html[data-lite] .repainting::after,
+html[data-lite] .reading-flame,
+html[data-lite] .reading-flame-heart,
+html[data-lite] .daily-twinkles i,
+html[data-lite] .allowance-summary::after,
+html[data-lite] .night-toggle.hinted,
+html[data-lite] .night-toggle.hinted::before,
+html[data-lite] .night-stars i,
+html[data-lite] .safety-row,
+html[data-lite] .safety-row::after,
+html[data-lite] .painting.live,
+html[data-lite] .wait-portrait {
+  animation: none !important;
+}
+html[data-lite] .firefly {
+  display: none;
+}
+html[data-lite] * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-lite] .cover-time,
+html[data-lite] .story-preview-close,
+html[data-lite] .nav-btn,
+html[data-lite] .glass-toast,
+html[data-lite] .ongoing-discard {
+  background-color: color-mix(in srgb, var(--page) 90%, transparent) !important;
 }

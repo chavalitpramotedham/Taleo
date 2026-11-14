@@ -377,7 +377,7 @@ export function HeroPainting() {
           )}
           <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
             <rect className="paint-dim" width="400" height="300" />
-            <rect width="400" height="300" filter="url(#tl-paper)" style={{ mixBlendMode: "multiply" }} />
+            <rect width="400" height="300" fill="url(#tl-grain)" style={{ mixBlendMode: "multiply" }} />
           </svg>
         </div>
         <p className={`hero-stage ${stage ? "on" : ""} ${(stage ?? said.current) === QUESTION ? "ask" : ""}`} aria-hidden>
