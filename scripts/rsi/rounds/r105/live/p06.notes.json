@@ -1,0 +1,59 @@
+{
+ "reuse": {
+  "stamps": 4,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "bed": 1,
+   "rug": 1,
+   "hearts": 1,
+   "sparkles": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: the bed made to the characters' scale (s 1.1 to 2.25)",
+   "layout: companion1 resized from 1.60 to 1.35, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero and companion1 brought together for the hug",
+   "layout: drawn back to front: bed, rug, companion1, hero, something drawn"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bed\" x=\"110\" y=\"215\" s=\"1.1\"/>\n<stamp k=\"rug\" x=\"200\" y=\"248\" s=\"1.5\"/>\n<g class=\"paint\"><path d=\"M205 40 L232 68 L205 96 L178 68 Z\" fill=\"#c9372c\"/><path d=\"M205 40 L205 96\" fill=\"none\" stroke=\"#8a2119\"/></g>\n<g class=\"ink\"><path d=\"M178 68 L232 68\"/><path d=\"M205 96 C195 108 215 114 203 126\"/></g>\n<stamp k=\"sparkles\" x=\"270\" y=\"90\" s=\"0.8\"/>\n<fig c=\"hero\" v=\"three\" x=\"175\" y=\"245\" s=\"1.3\" flip=\"0\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"245\" y=\"248\" s=\"1.6\" flip=\"1\" lean=\"-6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\"/></g>\n<stamp k=\"hearts\" x=\"210\" y=\"85\" s=\"0.9\"/>",
+   "laid": "<stamp k=\"bed\" x=\"110\" y=\"215\" s=\"2.25\"/>\n<stamp k=\"rug\" x=\"200\" y=\"248\" s=\"1.5\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"248\" y=\"250\" s=\"1.35\" flip=\"1\" lean=\"-6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\" laid=\"1\"/></g>\n<stamp k=\"hearts\" x=\"210\" y=\"85\" s=\"0.9\"/><stamp k=\"sparkles\" x=\"270\" y=\"90\" s=\"0.8\"/>\n<fig c=\"hero\" v=\"three\" x=\"172\" y=\"250\" s=\"1.3\" flip=\"0\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M205 40 L232 68 L205 96 L178 68 Z\" fill=\"#c9372c\"/><path d=\"M205 40 L205 96\" fill=\"none\" stroke=\"#8a2119\"/></g>\n<g class=\"ink\"><path d=\"M178 68 L232 68\"/><path d=\"M205 96 C195 108 215 114 203 126\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1552,
+   "firstStrokeMs": 1552,
+   "out": 386,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

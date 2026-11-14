@@ -1,0 +1,65 @@
+{
+ "reuse": {
+  "stamps": 6,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "bed": 1,
+   "rug": 1,
+   "sparkles": 1,
+   "hearts": 1,
+   "tuft": 2
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: 1 sky piece left to the backdrop",
+   "layout: the bed made to the characters' scale (s 1.1 to 2.25)",
+   "layout: companion1 resized from 1.55 to 1.35, true to the others",
+   "layout: hero resized from 1.10 to 1.20, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero and companion1 brought together for the hug",
+   "layout: companion1 was inside bed: moved to its edge",
+   "layout: hero was inside bed: moved to its edge",
+   "layout: drawn back to front: bed, rug, companion1, hero, something drawn",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bed\" x=\"330\" y=\"236\" s=\"1.1\"/>\n<stamp k=\"rug\" x=\"200\" y=\"246\" s=\"1.5\"/>\n<g class=\"paint\"><path d=\"M178 56 L204 82 L178 108 L152 82 Z\" fill=\"#c8402f\"/><path d=\"M178 56 L204 82 L178 82 Z\" fill=\"#e0604a\"/></g>\n<g class=\"ink\"><path d=\"M178 56 L204 82 L178 108 L152 82 Z\" fill=\"none\" stroke=\"#5a2a20\" stroke-width=\"2\"/><path d=\"M178 56 L178 108 M152 82 L204 82\" stroke=\"#5a2a20\" stroke-width=\"1.5\"/><path d=\"M178 108 Q170 120 178 130 Q186 140 176 150\" fill=\"none\" stroke=\"#5a2a20\" stroke-width=\"1.5\"/></g>\n<stamp k=\"moon\" x=\"120\" y=\"60\" s=\"1\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"232\" y=\"248\" s=\"1.55\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\"/></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"168\" y=\"248\" s=\"1.1\" lean=\"6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"95\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"200\" y=\"80\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"265\" y=\"250\" s=\"1.2\"/>",
+   "laid": "<stamp k=\"bed\" x=\"330\" y=\"236\" s=\"2.25\"/>\n<stamp k=\"rug\" x=\"200\" y=\"246\" s=\"1.5\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"129\" y=\"250\" s=\"1.35\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\" laid=\"1\"/></g><who c=\"companion1\"/>\n<fig c=\"hero\" v=\"three\" x=\"191\" y=\"250\" s=\"1.20\" lean=\"6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"95\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"200\" y=\"80\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"265\" y=\"250\" s=\"1.2\"/>\n<who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M178 56 L204 82 L178 108 L152 82 Z\" fill=\"#c8402f\"/><path d=\"M178 56 L204 82 L178 82 Z\" fill=\"#e0604a\"/></g>\n<g class=\"ink\"><path d=\"M178 56 L204 82 L178 108 L152 82 Z\" fill=\"none\" stroke=\"#5a2a20\" stroke-width=\"2\"/><path d=\"M178 56 L178 108 M152 82 L204 82\" stroke=\"#5a2a20\" stroke-width=\"1.5\"/><path d=\"M178 108 Q170 120 178 130 Q186 140 176 150\" fill=\"none\" stroke=\"#5a2a20\" stroke-width=\"1.5\"/></g>\n\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1448,
+   "firstStrokeMs": 1448,
+   "out": 596,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,64 @@
+{
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "boulder": 1,
+   "stone": 1,
+   "boat": 1,
+   "hull": 1,
+   "tuft": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: companion1, something drawn, something drawn, hero",
+   "layout: the boat made big enough for its riders (s 0.6 to 0.83)",
+   "layout: hero put in the boat",
+   "no piece called \"pebbles\": left out"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"130\" y=\"240\" s=\"0.6\"/>\n<g class=\"paint\"><path d=\"M92 196 Q100 208 112 200 Q120 212 128 204 L126 192 Z\" fill=\"#4F6B4A\"/></g>\n<g class=\"ink\"><path d=\"M96 200 Q104 210 112 204 M114 200 Q122 210 128 202\" stroke=\"#2F4A32\" fill=\"none\"/></g>\n<stamp k=\"hull\" x=\"130\" y=\"240\" s=\"0.6\"/>\n<stamp k=\"boulder\" x=\"300\" y=\"200\" s=\"0.6\"/>\n<stamp k=\"stone\" x=\"270\" y=\"232\" s=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"320\" cy=\"170\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"350\" cy=\"182\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"335\" cy=\"198\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M316 178 L316 184 M346 190 L346 195 M331 206 L331 211\" stroke=\"#3A2E22\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"240\" rx=\"55\" ry=\"12\" fill=\"#8A7A62\"/><ellipse cx=\"215\" cy=\"238\" rx=\"50\" ry=\"9\" fill=\"#B9A685\"/><ellipse cx=\"256\" cy=\"232\" rx=\"8\" ry=\"5\" fill=\"#8A7A62\"/><ellipse cx=\"244\" cy=\"230\" rx=\"6\" ry=\"4\" fill=\"#8A7A62\"/><ellipse cx=\"233\" cy=\"230\" rx=\"5\" ry=\"3\" fill=\"#8A7A62\"/><ellipse cx=\"223\" cy=\"231\" rx=\"5\" ry=\"3\" fill=\"#8A7A62\"/><ellipse cx=\"212\" cy=\"232\" rx=\"4\" ry=\"3\" fill=\"#8A7A62\"/></g>\n<g class=\"ink\"><path d=\"M165 240 Q215 252 265 238\" stroke=\"#5E5240\" fill=\"none\"/></g>\n</g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"238\" s=\"0.55\" lean=\"18\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"right\"/>\n<fig c=\"companion1\" v=\"front\" x=\"178\" y=\"150\" s=\"0.3\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"down\"/>\n<who c=\"companion1\"/>\n<stamp k=\"tuft\" x=\"150\" y=\"248\" s=\"1\"/>\n<stamp k=\"pebbles\" x=\"200\" y=\"250\" s=\"1\"/>",
+   "laid": "\n<fig c=\"companion1\" v=\"front\" x=\"178\" y=\"150\" s=\"0.3\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"boulder\" x=\"300\" y=\"200\" s=\"0.6\"/>\n<stamp k=\"stone\" x=\"270\" y=\"232\" s=\"1\"/>\n<g class=\"paint\"><path d=\"M92 196 Q100 208 112 200 Q120 212 128 204 L126 192 Z\" fill=\"#4F6B4A\"/></g>\n<g class=\"ink\"><path d=\"M96 200 Q104 210 112 204 M114 200 Q122 210 128 202\" stroke=\"#2F4A32\" fill=\"none\"/></g>\n<who c=\"hero\"/>\n<g class=\"paint\"><ellipse cx=\"320\" cy=\"170\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"350\" cy=\"182\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"335\" cy=\"198\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M316 178 L316 184 M346 190 L346 195 M331 206 L331 211\" stroke=\"#3A2E22\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"240\" rx=\"55\" ry=\"12\" fill=\"#8A7A62\"/><ellipse cx=\"215\" cy=\"238\" rx=\"50\" ry=\"9\" fill=\"#B9A685\"/><ellipse cx=\"256\" cy=\"232\" rx=\"8\" ry=\"5\" fill=\"#8A7A62\"/><ellipse cx=\"244\" cy=\"230\" rx=\"6\" ry=\"4\" fill=\"#8A7A62\"/><ellipse cx=\"233\" cy=\"230\" rx=\"5\" ry=\"3\" fill=\"#8A7A62\"/><ellipse cx=\"223\" cy=\"231\" rx=\"5\" ry=\"3\" fill=\"#8A7A62\"/><ellipse cx=\"212\" cy=\"232\" rx=\"4\" ry=\"3\" fill=\"#8A7A62\"/></g>\n<g class=\"ink\"><path d=\"M165 240 Q215 252 265 238\" stroke=\"#5E5240\" fill=\"none\"/></g>\n</g>\n\n<stamp k=\"boat\" x=\"130\" y=\"240\" s=\"0.83\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"167\" y=\"238\" s=\"0.55\" lean=\"18\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"right\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"130\" y=\"240\" s=\"0.83\" near=\"1\"/>\n<who c=\"companion1\"/>\n<stamp k=\"tuft\" x=\"150\" y=\"248\" s=\"1\"/>\n<stamp k=\"pebbles\" x=\"200\" y=\"250\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1257,
+   "firstStrokeMs": 1257,
+   "out": 920,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

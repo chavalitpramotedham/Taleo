@@ -1,0 +1,60 @@
+{
+ "reuse": {
+  "stamps": 6,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "bed": 1,
+   "rug": 1,
+   "sparkles": 1,
+   "hearts": 1,
+   "tuft": 2
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: the bed made to the characters' scale (s 1.1 to 2.25)",
+   "layout: companion1 resized from 1.50 to 1.35, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero and companion1 brought together for the hug",
+   "layout: drawn back to front: something drawn, bed, rug, companion1, hero"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bed\" x=\"330\" y=\"236\" s=\"1.1\"/>\n<stamp k=\"rug\" x=\"200\" y=\"248\" s=\"1.5\"/>\n<g class=\"paint\"><path d=\"M150 40 L180 14 L210 40 L180 66 Z\" fill=\"#c8402f\"/><path d=\"M180 66 Q170 76 180 86 Q190 96 180 106\" fill=\"none\" stroke=\"#8a6a4a\"/></g>\n<g class=\"ink\"><path d=\"M150 40 L210 40 M180 14 L180 66\" fill=\"none\" stroke=\"#6b2a20\" stroke-width=\"2\"/></g>\n<stamp k=\"sparkles\" x=\"270\" y=\"90\" s=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"165\" y=\"246\" s=\"1.2\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"238\" y=\"248\" s=\"1.5\" flip=\"1\" lean=\"-6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"left\"/></g>\n<stamp k=\"hearts\" x=\"200\" y=\"70\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"290\" y=\"250\" s=\"1\"/>",
+   "laid": "<g class=\"paint\"><path d=\"M150 40 L180 14 L210 40 L180 66 Z\" fill=\"#c8402f\"/><path d=\"M180 66 Q170 76 180 86 Q190 96 180 106\" fill=\"none\" stroke=\"#8a6a4a\"/></g>\n<g class=\"ink\"><path d=\"M150 40 L210 40 M180 14 L180 66\" fill=\"none\" stroke=\"#6b2a20\" stroke-width=\"2\"/></g>\n\n<stamp k=\"bed\" x=\"330\" y=\"236\" s=\"2.25\"/>\n<stamp k=\"rug\" x=\"200\" y=\"248\" s=\"1.5\"/><stamp k=\"sparkles\" x=\"270\" y=\"90\" s=\"1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"238\" y=\"250\" s=\"1.35\" flip=\"1\" lean=\"-6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>\n<stamp k=\"hearts\" x=\"200\" y=\"70\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"290\" y=\"250\" s=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"165\" y=\"250\" s=\"1.2\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 10
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1376,
+   "firstStrokeMs": 1376,
+   "out": 455,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

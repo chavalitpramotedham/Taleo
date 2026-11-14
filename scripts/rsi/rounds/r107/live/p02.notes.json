@@ -1,0 +1,64 @@
+{
+ "reuse": {
+  "stamps": 10,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "appletree": 1,
+   "leaf": 2,
+   "motion": 1,
+   "tuft": 3
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.98 to 1.19, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: companion1 turned to face the others",
+   "layout: companion1 was inside appletree: moved to its edge",
+   "layout: drawn back to front: something drawn, appletree, companion1, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"appletree\" x=\"300\" y=\"236\" s=\"2.1\"/>\n<g class=\"paint\"><path d=\"M296 70 L316 62 L332 78 L314 96 Z\" fill=\"#d9362c\"/><path d=\"M314 96 L318 118 L312 136\" fill=\"none\" stroke=\"#f2efe6\" stroke-width=\"2\"/></g>\n<g class=\"ink\"><path d=\"M296 70 L332 78 M316 62 L314 96\" stroke=\"#7a2a20\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M314 96 Q322 112 312 136\" stroke=\"#5a4a38\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<stamp k=\"leaf\" x=\"270\" y=\"100\" s=\"1.2\"/>\n<stamp k=\"leaf\" x=\"340\" y=\"120\" s=\"1.2\"/>\n<stamp k=\"motion\" x=\"262\" y=\"84\" s=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"215\" y=\"244\" s=\"0.98\" flip=\"0\" lean=\"-4\" tilt=\"-6\" arms=\"cover,cover\" legs=\"stand\" mood=\"worried\" look=\"up\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"140\" y=\"248\" s=\"0.88\" lean=\"-6\" tilt=\"-10\" arms=\"point,down\" legs=\"stand\" mood=\"surprised\" look=\"up\"/></g>\n<stamp k=\"tuft\" x=\"120\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"170\" y=\"252\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"238\" y=\"250\" s=\"1.2\"/>",
+   "laid": "<g class=\"paint\"><path d=\"M296 70 L316 62 L332 78 L314 96 Z\" fill=\"#d9362c\"/><path d=\"M314 96 L318 118 L312 136\" fill=\"none\" stroke=\"#f2efe6\" stroke-width=\"2\"/></g>\n<g class=\"ink\"><path d=\"M296 70 L332 78 M316 62 L314 96\" stroke=\"#7a2a20\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M314 96 Q322 112 312 136\" stroke=\"#5a4a38\" stroke-width=\"1.5\" fill=\"none\"/></g>\n\n<stamp k=\"appletree\" x=\"300\" y=\"236\" s=\"2.1\"/><stamp k=\"leaf\" x=\"270\" y=\"100\" s=\"1.2\"/>\n<stamp k=\"leaf\" x=\"340\" y=\"120\" s=\"1.2\"/>\n<stamp k=\"motion\" x=\"262\" y=\"84\" s=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"213\" y=\"246\" s=\"1.19\" flip=\"1\" lean=\"-4\" tilt=\"-6\" arms=\"cover,cover\" legs=\"stand\" mood=\"worried\" look=\"up\" laid=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"99\" y=\"246\" s=\"0.88\" lean=\"-6\" tilt=\"-10\" arms=\"point,down\" legs=\"stand\" mood=\"surprised\" look=\"up\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"tuft\" x=\"120\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"170\" y=\"252\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"238\" y=\"250\" s=\"1.2\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 9
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1346,
+   "firstStrokeMs": 1346,
+   "out": 553,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

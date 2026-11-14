@@ -1,0 +1,67 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 5,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "stone": 1,
+   "chair": 1,
+   "hold:cup": 1,
+   "table": 1,
+   "cake": 1,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hedge",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hedge resized from 0.50 to 0.29, true to the others",
+   "layout: companion1 resized from 0.90 to 1.09, true to the others",
+   "layout: hero resized from 0.62 to 0.65, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: drawn back to front: hedge, chair, companion1, hero",
+   "layout: hero sat behind the table",
+   "layout: spaced once more, finally",
+   "piece \"stool\" read as \"stone\""
+  ],
+  "composed": {
+   "wrote": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"228\" s=\"0.5\" flip=\"1\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"table\" x=\"205\" y=\"236\" s=\"1.5\" near=\"1\"/>\n<g class=\"target\"><stamp k=\"cake\" x=\"205\" y=\"152\" s=\"1.2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"110\" y=\"248\" s=\"0.9\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"165\" y=\"250\" s=\"0.62\" arms=\"clap,clap\" legs=\"sit\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"chair\" x=\"135\" y=\"250\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"205\" y=\"130\" s=\"0.8\"/>",
+   "laid": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"228\" s=\"0.29\" flip=\"1\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n\n\n<who c=\"companion1\"/>\n<stamp k=\"chair\" x=\"135\" y=\"250\" s=\"0.9\"/>\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"three\" x=\"90\" y=\"248\" s=\"1.09\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"185\" y=\"250\" s=\"0.65\" arms=\"clap,clap\" legs=\"sit\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/><stamp k=\"table\" x=\"205\" y=\"236\" s=\"1.5\" near=\"1\"/><g class=\"target\"><stamp k=\"cake\" x=\"205\" y=\"152\" s=\"1.2\"/></g>\n<stamp k=\"sparkles\" x=\"205\" y=\"130\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 1
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1413,
+   "firstStrokeMs": 1413,
+   "out": 354,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

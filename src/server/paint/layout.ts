@@ -30,6 +30,8 @@ export interface LayoutOptions {
   /** the page's tap target when it's a thing, not a character ("kite",
    *  "the pumpkin"): made sure of (lesson 16) */
   targetThing?: string | null;
+  /** who is in bed, from the brief ("tucked into bed"), if anyone */
+  inBed?: string | null;
   /** who hugs whom, from the brief (two ids), if it says so */
   huggers?: [string, string] | null;
   /** the hero's id: never hidden behind anyone (lesson 17) */
@@ -315,7 +317,7 @@ function byDepth(markup: string, notes: string[]): string {
         // (standing inside a big thing at its depth: moved to its nearer
         // edge, overlapping it by a quarter of the character - touching)
         // (flat things - a rug, a puddle - are stood on, not stood beside)
-        if (b.x1 - b.x0 < 60 || b.y1 - b.y0 < 30 || FLAT.test(t.unit.id) || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
+        if (b.x1 - b.x0 < 60 || b.y1 - b.y0 < 30 || FLAT.test(t.unit.id) || t.unit.id in FURNITURE || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
         if (x <= b.x0 - half * 0.5 || x >= b.x1 + half * 0.5) continue;
         const nx = x - b.x0 < b.x1 - x ? b.x0 - half * 0.5 : b.x1 + half * 0.5;
         text = text.replace(tag, setAttr(tag, "x", String(Math.round(Math.max(20 + half, Math.min(380 - half, nx))))));
@@ -476,6 +478,7 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
     ps.push({ tag: t, id: attr(t, "c") ?? attr(t, "id") ?? "", x: Number(attr(t, "x")) || 200, y: Number(attr(t, "y")) || 246, s: Number(attr(t, "s")) || opts.usualS || 0.6, touching: /\b(hold|hug|reach|point)\b/.test(arms) || Boolean(attr(t, "hold")), ride: attr(t, "ride") === "1" });
   }
   CHAR_TAG.lastIndex = 0;
+  const origTags = ps.map((p) => p.tag);
   const free = ps.filter((p) => !p.ride).sort((a, b) => a.x - b.x);
   let moved = false;
   for (let pass = 0; pass < 3; pass++)
@@ -506,8 +509,36 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
     if (shift && hi - lo < 380) for (const p of free) p.x += shift;
   }
   if (moved) notes.push("spaced once more, finally");
+  // (two hugging face each other, whatever moved them)
+  const huggers = free.filter((p) => /\bhug\b/.test(attr(p.tag, "arms") ?? ""));
+  if (huggers.length === 2) {
+    const [l, r] = [...huggers].sort((a, b) => a.x - b.x);
+    l.tag = setAttr(l.tag, "flip", "0");
+    r.tag = setAttr(r.tag, "flip", "1");
+    const gap = (widthAt(l.s) + widthAt(r.s)) / 2 * 0.44;
+    if (r.x - l.x > gap + 4) {
+      const mid = (l.x + r.x) / 2;
+      l.x = mid - gap / 2;
+      r.x = mid + gap / 2;
+    }
+    // (nobody caught inside the hug: Argos sat between Gran and Ody and hid
+    // her - whoever overlaps the pair goes out past its nearer side)
+    const left = l.x - widthAt(l.s) / 2;
+    const right = r.x + widthAt(r.s) / 2;
+    const mid = (l.x + r.x) / 2;
+    for (const o of free) {
+      if (o === l || o === r) continue;
+      const w = widthAt(o.s) / 2;
+      if (o.x + w * 0.6 < left || o.x - w * 0.6 > right) continue;
+      o.x = o.x < mid ? left - w * 0.8 : right + w * 0.8;
+      // (kept in the picture: if it can't be, the far side)
+      if (o.x - w < 0) o.x = right + w * 0.8;
+      else if (o.x + w > 400) o.x = left - w * 0.8;
+      notes.push(`${o.id} moved out of the hug`);
+    }
+  }
   let out = markup;
-  for (const p of ps) out = out.replace(p.tag, setAttr(setAttr(p.tag, "x", String(Math.round(p.x))), "laid", "1"));
+  ps.forEach((p, i) => (out = out.replace(origTags[i], setAttr(setAttr(p.tag, "x", String(Math.round(p.x))), "laid", "1"))));
   return out;
 }
 
@@ -556,6 +587,50 @@ function atTheTable(markup: string, notes: string[]): string {
   if (!onTop.length) return out;
   const moved = onTop.map((i) => items[i].text).join("");
   return items.map((it, i) => (onTop.includes(i) ? "" : i === ti ? it.text + moved : it.text)).join("");
+}
+
+/** Things in the picture (lesson 17): a prop or a story thing - a kite, an
+ *  umbrella - wholly inside the frame (a kite "high in the sky" was put
+ *  above it); and nothing but what a character holds, or what an action
+ *  leaves in the air, drawn over a character's face (a kite meant for the
+ *  wall covered a bunny's face) - such a piece goes behind them. */
+function propsSeen(markup: string, notes: string[]): string {
+  let out = markup;
+  for (const m of [...out.matchAll(/<stamp\b[^>]*\/>/gi)]) {
+    const k = (attr(m[0], "k") ?? "").toLowerCase();
+    if (!(k in PROPS)) continue;
+    const e = pieceExtent(m[0]);
+    if (!e) continue;
+    let dx = 0, dy = 0;
+    if (e.y0 < 8) dy = 8 - e.y0;
+    if (e.x0 < 6) dx = 6 - e.x0;
+    else if (e.x1 > 394) dx = 394 - e.x1;
+    if (!dx && !dy) continue;
+    const t = setAttr(setAttr(m[0], "x", String(Math.round((Number(attr(m[0], "x")) || 200) + dx))), "y", String(Math.round((Number(attr(m[0], "y")) || 240) + dy)));
+    out = out.replace(m[0], t);
+    notes.push(`the ${k} brought into the picture`);
+  }
+  // faces: [x, top, bottom, half-width] of each character's head
+  const faces = [...out.matchAll(CHAR_TAG)]
+    .filter((m) => m[0].trim().endsWith("/>"))
+    .map((m) => ({ tag: m[0], at: m.index!, x: Number(attr(m[0], "x")) || 200, y: Number(attr(m[0], "y")) || 246, s: Number(attr(m[0], "s")) || 0.6 }));
+  CHAR_TAG.lastIndex = 0;
+  for (const m of [...out.matchAll(/<stamp\b[^>]*\/>/gi)]) {
+    const k = (attr(m[0], "k") ?? "").toLowerCase();
+    // (an umbrella is held up over heads: that's its place)
+    if (k in EFFECTS || k === "umbrella" || /\bnear\s*=\s*"(?:1|true)"/i.test(m[0])) continue;
+    const e = pieceExtent(m[0]);
+    if (!e) continue;
+    const at = out.indexOf(m[0]);
+    const covered = faces.find((f) => f.at < at && e.x1 > f.x - 30 * f.s && e.x0 < f.x + 30 * f.s && e.y1 > f.y - 165 * f.s && e.y0 < f.y - 105 * f.s);
+    if (!covered) continue;
+    const ci = out.indexOf(covered.tag);
+    if (ci < 0) continue;
+    out = out.replace(m[0], "");
+    out = out.slice(0, ci) + m[0] + out.slice(ci);
+    notes.push(`the ${k} put behind ${attr(covered.tag, "c") ?? "someone"}, off their face`);
+  }
+  return out;
 }
 
 /** Things on the ground that are stood on, not beside. */
@@ -669,6 +744,23 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   markup = onlyKnownTags(markup, notes);
   markup = oncePerCharacter(markup, opts, notes);
   markup = furnitureToScale(markup, opts, notes);
+  // (the brief puts them in bed: they sit up in it, the bed in front - so
+  // the tuck below holds whatever the composer wrote)
+  if (opts.inBed) {
+    const bed = /<stamp\b[^>]*\bk\s*=\s*"bed"[^>]*\/>/i.exec(markup);
+    const who = [...markup.matchAll(CHAR_TAG)].find((m) => (attr(m[0], "c") ?? attr(m[0], "id")) === opts.inBed && m[0].trim().endsWith("/>"));
+    CHAR_TAG.lastIndex = 0;
+    if (who) {
+      const bx = bed ? Number(attr(bed[0], "x")) || 200 : Number(attr(who[0], "x")) || 200;
+      const by = bed ? Number(attr(bed[0], "y")) || 250 : 252;
+      const bs = bed ? Number(attr(bed[0], "s")) || 1.2 : 1.4;
+      let out = bed ? markup.replace(/<stamp\b[^>]*\bk\s*=\s*"bed"[^>]*\/>/gi, "") : markup;
+      const fig = setAttr(setAttr(setAttr(who[0], "legs", "sit"), "x", String(Math.round(bx + 10 * bs))), "mood", attr(who[0], "mood") ?? "sleepy");
+      out = out.replace(who[0], `${fig}<stamp k="bed" x="${bx}" y="${by}" s="${bs}" near="1"/>`);
+      notes.push(`${opts.inBed} in bed, as the brief says`);
+      markup = out;
+    }
+  }
   markup = tuckedIn(markup, notes);
   // (the brief says they hug: they do - lesson 17)
   if (opts.huggers)
@@ -780,7 +872,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     // each other - lesson 17)
     // (but not so close one's head covers the other's face)
     // (from both their widths: a bunny hugging a bear isn't buried in it)
-    const half = ((110 * a.s + 110 * b.s) / 2) * 0.52 / 2;
+    const half = ((110 * a.s + 110 * b.s) / 2) * 0.44 / 2;
     for (const p of [a, b]) if (/^<\s*fig\b/i.test(p.tag)) p.tag = setAttr(p.tag, "v", "three");
     if (Math.abs(b.x - a.x) > half * 2 + 4) notes.push(`${a.id} and ${b.id} brought together for the hug`);
     a.x = mid - half;
@@ -905,5 +997,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   out = inTheBoat(out, notes);
   out = atTheTable(out, notes);
   out = finalSpacing(out, opts, notes);
+  out = propsSeen(out, notes);
   return { markup: out, notes };
 }

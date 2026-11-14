@@ -760,6 +760,16 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
  *  so it is layered whenever those are (both hands the quick model, which
  *  paints without thinking first). A page with nobody and nothing on its
  *  stage is always one painter. */
+/** Who is in bed, from the picture brief ("Ody lies tucked into a wooden
+ *  bed"): the character named in that sentence first (lesson 17). */
+function inBedOf(req: IllustrateRequest): string | null {
+  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(tucked (?:in|into|up)|in bed|into bed|lies in|lying in|under the (?:quilt|covers|blanket))\b/i.test(t));
+  if (!sentence) return null;
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const named = on.map((c) => [c.id, sentence.toLowerCase().indexOf(c.name.toLowerCase().replace(/^the\s+/, ""))] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
+  return named[0]?.[0] ?? null;
+}
+
 /** Who hugs whom, from the picture brief: the two characters named in the
  *  sentence that says "hug" (lesson 17). */
 function huggersOf(req: IllustrateRequest): [string, string] | null {
@@ -1339,7 +1349,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),

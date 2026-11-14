@@ -1,0 +1,70 @@
+{
+ "portraits": "Mrs Hedge painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "stone": 1,
+   "hold:cup": 1,
+   "cake": 2,
+   "table": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hedge",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second hero, companion1, hedge left out",
+   "layout: a second table at the same spot left out",
+   "layout: a second table at the same spot left out",
+   "layout: hedge resized from 0.50 to 0.29, true to the others",
+   "layout: companion1 resized from 0.85 to 1.09, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: drawn back to front: hedge, something drawn, something drawn, companion1, hero",
+   "layout: hero sat behind the table",
+   "layout: spaced once more, finally",
+   "layout: the cake put behind hero, off their face",
+   "layout: the cake put behind hero, off their face",
+   "piece \"stool\" read as \"stone\"",
+   "no piece called \"steam\": left out"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"224\" s=\"0.5\" flip=\"1\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"down\"/>\n<stamp k=\"table\" x=\"200\" y=\"226\" s=\"1.5\" near=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"100\" y=\"250\" s=\"0.85\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"160\" y=\"250\" s=\"0.72\" arms=\"reach,down\" legs=\"sit\" mood=\"excited\" look=\"right\"/>\n<g class=\"target\"><stamp k=\"cake\" x=\"205\" y=\"148\" s=\"1.2\"/></g>\n<stamp k=\"table\" x=\"200\" y=\"246\" s=\"1.5\" near=\"1\"/>\n\nWait, the output must be tags only; final answer follows.\n\n<who c=\"hedge\"/>\n<g class=\"paint\"><rect x=\"268\" y=\"226\" width=\"44\" height=\"20\" rx=\"4\" fill=\"#b9854f\"/></g>\n<g class=\"ink\"><path d=\"M268 246 L312 246\"/></g>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"226\" s=\"0.5\" flip=\"1\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<g class=\"paint\"><ellipse cx=\"250\" cy=\"170\" rx=\"9\" ry=\"7\" fill=\"#3a6fb0\"/><rect x=\"240\" y=\"176\" width=\"20\" height=\"2\" fill=\"#3a6fb0\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"95\" y=\"248\" s=\"0.85\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"150\" y=\"250\" s=\"0.72\" arms=\"reach,down\" legs=\"sit\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"table\" x=\"205\" y=\"248\" s=\"1.4\" near=\"1\"/>\n<g class=\"target\"><stamp k=\"cake\" x=\"205\" y=\"170\" s=\"1.2\"/></g>\n<g class=\"paint\"><path d=\"M20 240 L34 130 L44 134 L34 244 Z\" fill=\"#c8392f\"/><path d=\"M34 130 L50 150 L44 134 Z\" fill=\"#e6b84a\"/></g>\n<g class=\"ink\"><path d=\"M20 240 L34 130 L44 134 L34 244 Z\" fill=\"none\"/><path d=\"M34 150 L46 200\"/></g>\n<stamp k=\"steam\" x=\"255\" y=\"165\" s=\"1\"/>",
+   "laid": "<who c=\"hedge\"/>\n<stamp k=\"stool\" x=\"290\" y=\"246\" s=\"0.8\" near=\"1\"/>\n<fig c=\"hedge\" v=\"three\" x=\"290\" y=\"224\" s=\"0.29\" flip=\"1\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"down\" laid=\"1\"/>\n\n<who c=\"companion1\"/>\n<g class=\"paint\"><path d=\"M20 240 L34 130 L44 134 L34 244 Z\" fill=\"#c8392f\"/><path d=\"M34 130 L50 150 L44 134 Z\" fill=\"#e6b84a\"/></g>\n<g class=\"ink\"><path d=\"M20 240 L34 130 L44 134 L34 244 Z\" fill=\"none\"/><path d=\"M34 150 L46 200\"/></g>\n\n<who c=\"hero\"/>\n<g class=\"paint\"><rect x=\"268\" y=\"226\" width=\"44\" height=\"20\" rx=\"4\" fill=\"#b9854f\"/></g>\n<g class=\"ink\"><path d=\"M268 246 L312 246\"/></g>\n\n\n\n\n\nWait, the output must be tags only; final answer follows.\n\n<who c=\"hedge\"/>\n<fig c=\"companion1\" v=\"three\" x=\"80\" y=\"250\" s=\"1.09\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/><who c=\"companion1\"/>\n\n<who c=\"hero\"/>\n\n\n\n<stamp k=\"cake\" x=\"205\" y=\"170\" s=\"1.2\"/><stamp k=\"cake\" x=\"205\" y=\"148\" s=\"1.2\"/><fig c=\"hero\" v=\"three\" x=\"180\" y=\"250\" s=\"0.72\" arms=\"reach,down\" legs=\"sit\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/><stamp k=\"table\" x=\"205\" y=\"248\" s=\"1.4\" near=\"1\"/><g class=\"paint\"><ellipse cx=\"250\" cy=\"170\" rx=\"9\" ry=\"7\" fill=\"#3a6fb0\"/><rect x=\"240\" y=\"176\" width=\"20\" height=\"2\" fill=\"#3a6fb0\"/></g><g class=\"target\"></g>\n<g class=\"target\"></g><stamp k=\"steam\" x=\"255\" y=\"165\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hedge"
+  ],
+  "full": [],
+  "readyMs": 2
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1344,
+   "firstStrokeMs": 1344,
+   "out": 929,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

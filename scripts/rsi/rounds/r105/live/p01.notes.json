@@ -1,0 +1,60 @@
+{
+ "reuse": {
+  "stamps": 11,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "wildflowers": 3,
+   "motion": 1,
+   "kite": 1,
+   "tuft": 2,
+   "leaf": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.62 to 0.74, true to the others"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"150\" y=\"244\" s=\"0.62\" lean=\"8\" arms=\"reach,reach\" legs=\"run\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"wildflowers\" x=\"200\" y=\"246\" s=\"1.3\"/>\n<stamp k=\"wildflowers\" x=\"120\" y=\"250\" s=\"1.2\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"240\" y=\"250\" s=\"0.55\" lean=\"14\" arms=\"reach,down\" legs=\"run\" mood=\"laugh\" look=\"up\"/>\n<stamp k=\"motion\" x=\"195\" y=\"205\" s=\"0.9\"/>\n<g class=\"target\"><stamp k=\"kite\" x=\"320\" y=\"105\" s=\"1.8\"/></g>\n<g class=\"ink\"><path d=\"M262 185 Q290 150 318 118\" fill=\"none\" stroke=\"#6b4a3a\" stroke-width=\"1.5\"/></g>\n<stamp k=\"wildflowers\" x=\"270\" y=\"252\" s=\"1.3\"/>\n<stamp k=\"tuft\" x=\"225\" y=\"254\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"252\" s=\"1.2\"/>\n<stamp k=\"leaf\" x=\"105\" y=\"200\" s=\"1\"/>",
+   "laid": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"150\" y=\"247\" s=\"0.74\" lean=\"8\" arms=\"reach,reach\" legs=\"run\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"wildflowers\" x=\"200\" y=\"246\" s=\"1.3\"/>\n<stamp k=\"wildflowers\" x=\"120\" y=\"250\" s=\"1.2\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"240\" y=\"247\" s=\"0.55\" lean=\"14\" arms=\"reach,down\" legs=\"run\" mood=\"laugh\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"195\" y=\"205\" s=\"0.9\"/>\n<g class=\"target\"><stamp k=\"kite\" x=\"320\" y=\"105\" s=\"1.8\"/></g>\n<g class=\"ink\"><path d=\"M262 185 Q290 150 318 118\" fill=\"none\" stroke=\"#6b4a3a\" stroke-width=\"1.5\"/></g>\n<stamp k=\"wildflowers\" x=\"270\" y=\"252\" s=\"1.3\"/>\n<stamp k=\"tuft\" x=\"225\" y=\"254\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"252\" s=\"1.2\"/>\n<stamp k=\"leaf\" x=\"105\" y=\"200\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 1
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1442,
+   "firstStrokeMs": 1442,
+   "out": 423,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,72 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 5,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "bed": 1,
+   "lamp": 1,
+   "table": 1,
+   "zzz": 2
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "argos",
+   "gran"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: the bed made to the characters' scale (s 1.5 to 1.91)",
+   "layout: the bed made to the characters' scale (s 1.5 to 1.91)",
+   "layout: the table made to the characters' scale (s 1.1 to 1.85)",
+   "layout: hero in bed, as the brief says",
+   "layout: hero tucked into the bed",
+   "layout: argos resized from 0.90 to 0.92, true to the others",
+   "layout: gran resized from 1.30 to 1.49, true to the others",
+   "layout: hero and argos overlapped: eased apart",
+   "layout: argos and gran overlapped: eased apart",
+   "layout: argos turned towards the main action",
+   "layout: drawn back to front: companion1, lamp, hero, something drawn, argos, gran",
+   "layout: hero sat behind the table",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bed\" x=\"190\" y=\"262\" s=\"1.5\" near=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"165\" y=\"252\" s=\"1.1\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"right\"/>\n<stamp k=\"bed\" x=\"190\" y=\"268\" s=\"1.5\" near=\"1\"/>\n<fig c=\"argos\" v=\"three\" x=\"262\" y=\"262\" s=\"0.9\" flip=\"1\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n<g class=\"target\"><fig c=\"gran\" v=\"front\" x=\"318\" y=\"300\" s=\"1.3\" flip=\"1\" tilt=\"8\" lean=\"-8\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"left\"/></g>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"150\" s=\"0.6\" tilt=\"10\" arms=\"down,down\" legs=\"stand\" mood=\"sleepy\" look=\"down\"/>\n<stamp k=\"table\" x=\"85\" y=\"250\" s=\"1.1\" near=\"1\"/>\n<stamp k=\"lamp\" x=\"70\" y=\"195\" s=\"0.7\"/>\n<stamp k=\"zzz\" x=\"250\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"125\" y=\"110\" s=\"0.6\"/>\n<g class=\"paint\"><circle cx=\"100\" cy=\"183\" r=\"9\" fill=\"#C8A04A\"/><circle cx=\"100\" cy=\"183\" r=\"6\" fill=\"#F3E6D0\"/></g><g class=\"ink\"><circle cx=\"100\" cy=\"183\" r=\"9\" fill=\"none\" stroke=\"#5A4630\" stroke-width=\"2\"/><path d=\"M100 177 L102 183 L100 189 L98 183 Z\" fill=\"#B2443A\"/></g>",
+   "laid": "\n<fig c=\"companion1\" v=\"front\" x=\"7\" y=\"150\" s=\"0.6\" tilt=\"10\" arms=\"down,down\" legs=\"stand\" mood=\"sleepy\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"bed\" x=\"190\" y=\"262\" s=\"1.91\" near=\"1\"/>\n\n<stamp k=\"lamp\" x=\"70\" y=\"195\" s=\"0.7\"/>\n<fig c=\"hero\" v=\"front\" x=\"97\" y=\"245\" s=\"1.1\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"right\" flip=\"0\" laid=\"1\"/><stamp k=\"table\" x=\"85\" y=\"250\" s=\"1.85\" near=\"1\"/>\n<g class=\"paint\"><circle cx=\"100\" cy=\"183\" r=\"9\" fill=\"#C8A04A\"/><circle cx=\"100\" cy=\"183\" r=\"6\" fill=\"#F3E6D0\"/></g><g class=\"ink\"><circle cx=\"100\" cy=\"183\" r=\"9\" fill=\"none\" stroke=\"#5A4630\" stroke-width=\"2\"/><path d=\"M100 177 L102 183 L100 189 L98 183 Z\" fill=\"#B2443A\"/></g>\n<fig c=\"argos\" v=\"three\" x=\"207\" y=\"262\" s=\"0.92\" flip=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\" laid=\"1\"/>\n<stamp k=\"zzz\" x=\"250\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"125\" y=\"110\" s=\"0.6\"/>\n<g class=\"target\"><fig c=\"gran\" v=\"front\" x=\"311\" y=\"300\" s=\"1.49\" flip=\"1\" tilt=\"8\" lean=\"-8\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 13
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1451,
+   "firstStrokeMs": 1451,
+   "out": 586,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
