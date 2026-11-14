@@ -17275,9 +17275,8 @@ html[data-night] .lab-board .lab-bad {
 
 /* ---------- Light mode (html[data-lite]: a phone with little to spare) ----------
    Set before the first paint (see LITE_INIT in app/layout). The purely
-   decorative movement rests - it never says anything - and frosted glass,
-   which blurs whatever moves beneath it on every frame, becomes a plain
-   tint. What tells the reader something (a spinner, the microphone
+   decorative movement rests - it never says anything. (Frosted glass is
+   already plain on touch screens: see "snappier on phones".) What tells the reader something (a spinner, the microphone
    listening, a page being painted, the "tap me" hop) keeps moving. */
 html[data-lite] .night-lamp-layer.night-flame,
 html[data-lite] .night-lamp-sway,
@@ -17317,15 +17316,4 @@ html[data-lite] .wait-portrait {
 }
 html[data-lite] .firefly {
   display: none;
-}
-html[data-lite] * {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-html[data-lite] .cover-time,
-html[data-lite] .story-preview-close,
-html[data-lite] .nav-btn,
-html[data-lite] .glass-toast,
-html[data-lite] .ongoing-discard {
-  background-color: color-mix(in srgb, var(--page) 90%, transparent) !important;
 }

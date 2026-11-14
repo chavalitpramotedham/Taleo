@@ -145,15 +145,15 @@ const LEAVES_BACK = `try{if(sessionStorage.getItem("taleo.pulled")){sessionStora
  */
 const IN_APP = `try{(function(){var u=navigator.userAgent,d=document.documentElement,f=null;try{var m=/[?&]inapp=([01])/.exec(location.search);if(m)sessionStorage.setItem("taleo.inapp",m[1]);f=sessionStorage.getItem("taleo.inapp")}catch(e){}var ios=/iPhone|iPad|iPod/.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);var app=function(){return !!(window.TelegramWebviewProxy||window.TelegramWebview||window.TelegramWebviewProxyProto)||/Telegram|FBAN|FBAV|FB_IAB|Instagram|Line\\/|MicroMessenger|LinkedInApp|Twitter|Snapchat|Pinterest/.test(u)};var want=function(){return f==="1"||(f!=="0"&&ios&&!navigator.standalone&&(!/Safari\\//.test(u)||app()))};var b=function(){return document.body};var on=function(){if(d.classList.contains("in-app"))return;d.classList.add("in-app");try{Object.defineProperty(window,"scrollY",{configurable:true,get:function(){return b()?b().scrollTop:0}});Object.defineProperty(window,"pageYOffset",{configurable:true,get:function(){return b()?b().scrollTop:0}})}catch(e){}var to=function(x,y){if(!b())return;if(typeof x==="object"&&x)b().scrollTo(x);else b().scrollTo(x||0,y||0)};window.scrollTo=to;window.scroll=to;window.scrollBy=function(x,y){if(!b())return;if(typeof x==="object"&&x)b().scrollBy(x);else b().scrollBy(x||0,y||0)};var hook=function(){b().addEventListener("scroll",function(){window.dispatchEvent(new Event("scroll"))},{passive:true})};if(b())hook();else document.addEventListener("DOMContentLoaded",hook)};if(want())on();else if(ios&&f!=="0")document.addEventListener("DOMContentLoaded",function(){if(want()){var y=window.pageYOffset;on();b().scrollTop=y}})})()}catch(e){}`;
 
-/** Runs right after the menu bar's markup: notes its height as --topbar-h. */
 /** Light mode for a phone or computer with little to spare (few cores or
  *  little memory - not told by Apple's browser - data saver, or reduced
  *  motion), or one seen stumbling (a short look at its frames once the
  *  page has loaded): the purely decorative movement (fireflies, the lamp's
- *  sway, glimmers and sheens) rests, and frosted glass becomes a plain
- *  tint, leaving the phone free for the story. localStorage "taleo.lite"
+ *  sway, glimmers and sheens) rests, leaving the phone free for the
+ *  story. localStorage "taleo.lite"
  *  = "1" or "0" sets it either way. */
 const LITE_INIT = `try{(function(){var d=document.documentElement,n=navigator,s=null;try{s=localStorage.getItem("taleo.lite")||sessionStorage.getItem("taleo.lite.auto")}catch(e){}var on=function(){d.dataset.lite="1"};if(s==="0")return;if(s==="1")return on();var apple=n.vendor==="Apple Computer, Inc.";if((!apple&&(n.hardwareConcurrency||8)<=4)||(n.deviceMemory||8)<=3||(n.connection&&n.connection.saveData)||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches))return on();var look=function(){var last=0,slow=0,count=0,t0=0;var f=function(t){if(!t0)t0=t;if(last&&t-last>50)slow++;last=t;count++;if(t-t0<4000)requestAnimationFrame(f);else if(slow>=8&&document.visibilityState==="visible"){on();try{sessionStorage.setItem("taleo.lite.auto","1")}catch(e){}}};requestAnimationFrame(f)};if(document.readyState==="complete")setTimeout(look,1500);else addEventListener("load",function(){setTimeout(look,1500)})})()}catch(e){}`;
+/** Runs right after the menu bar's markup: notes its height as --topbar-h. */
 const TOPBAR_HEIGHT = `try{(function(){var b=document.querySelector(".topbar");if(b)document.documentElement.style.setProperty("--topbar-h",Math.round(b.getBoundingClientRect().height)+"px")})()}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
