@@ -16364,14 +16364,7 @@ html[data-night] .policy-body a.btn:hover {
 /* further reading under a day, and the About story's way to the Journey */
 .journey-link,
 .about-journey {
-  margin: 12px 0 0;
-  font-style: italic;
-}
-.journey-link a,
-.about-journey a {
-  color: var(--russet);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  margin: 14px 0 0;
 }
 .journey-daynum {
   font-weight: 700;

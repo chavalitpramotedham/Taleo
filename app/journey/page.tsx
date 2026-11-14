@@ -66,8 +66,11 @@ export default function JourneyPage() {
                 {d.shots && d.shots.length > 0 && <JourneyGallery shots={d.shots} day={label} />}
                 {d.links?.map((a) => (
                   <p key={a.href} className="journey-link">
-                    <a href={a.href} target="_blank" rel="noopener noreferrer">
-                      {a.label} ↗
+                    <a className="founder-pill" href={a.href} target="_blank" rel="noopener noreferrer">
+                      {a.label}
+                      <span className="founder-pill-arrow" aria-hidden>
+                        →
+                      </span>
                     </a>
                   </p>
                 ))}

@@ -348,9 +348,9 @@ export function HeroPainting() {
 
   return (
     <>
-    // (the page's own early script starts the painting before this is
-    // hydrated - classes, start time, picture sources - on purpose: React
-    // is told not to mind)
+    {/* (the page's own early script starts the painting before this is
+        hydrated - classes, start time, picture sources - on purpose: React
+        is told not to mind) */}
     <figure className="hero-art hero-paint" suppressHydrationWarning>
       <div ref={wrap} className="hero-paint-canvas hero-paint-pending" suppressHydrationWarning style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms`, "--paint-ms": `${PAINT_MS}ms` } as React.CSSProperties}>
         {/* The scene as a stack of layers, one per part, in paint order. */}

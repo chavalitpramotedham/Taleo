@@ -88,7 +88,12 @@ export default function AboutPage() {
         </p>
 
         <p className="about-journey">
-          <Link href="/journey">Follow how Taleo is growing, day by day, on the Taleo Journey →</Link>
+          <Link className="founder-pill" href="/journey">
+            Follow Taleo&apos;s journey, day by day
+            <span className="founder-pill-arrow" aria-hidden>
+              →
+            </span>
+          </Link>
         </p>
 
       </article>
