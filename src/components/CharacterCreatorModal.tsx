@@ -12,9 +12,15 @@ import { PaintingCancelled, requestCharacter, type CharacterProgress } from "@/l
 import { CreditCost, MakeLabel, useMakingCost } from "@/components/CreditCost";
 import { StopPaintingConfirm, useLeaveWarning } from "@/components/StopPaintingConfirm";
 import { CharacterProgressBar } from "@/components/CharacterProgressBar";
-import { PhotoProblem, preparePhoto, type CharacterPhoto } from "@/lib/character-photo";
+import { MARK_COLOUR, PhotoProblem, markPhoto, preparePhoto, type CharacterPhoto, type PhotoPoint } from "@/lib/character-photo";
 
-export type ChosenPhoto = CharacterPhoto & { preview: string; bytes: number };
+type ReadyPhoto = CharacterPhoto & { preview: string; bytes: number };
+/** A photo ready to send. Once who they mean is circled, `whole` keeps the
+ *  whole photo, to circle again or go back to. */
+export type ChosenPhoto = ReadyPhoto & { whole?: ReadyPhoto };
+
+/** What's sent with a painting request. */
+export const photoToSend = (p: ChosenPhoto | null) => (p ? { data: p.data, type: p.type, ...(p.marked ? { marked: true } : {}) } : undefined);
 
 interface Props {
   onClose: () => void;
@@ -48,6 +54,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
   // What was wrong with the photo, when it couldn't be used.
   const [photoTrouble, setPhotoTrouble] = useState<string | null>(null);
   const pickPhoto = useRef<(() => void) | null>(null);
+  const markRef = useRef<(() => void) | null>(null);
 
   // Leaving while they're being painted asks first: stopping throws the
   // painting away, staying lets it finish.
@@ -92,7 +99,7 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
     const mine = (painting.current = new AbortController());
     try {
       const data = await requestCharacter(
-        { description, name: name.trim() || undefined, photo: sending ? { data: sending.data, type: sending.type } : undefined },
+        { description, name: name.trim() || undefined, photo: photoToSend(sending) },
         setProgress,
         { signal: mine.signal },
       );
@@ -119,12 +126,18 @@ export function CharacterCreatorModal({ onClose, onConfirmed, existing }: Props)
       }}
       disabled={drawing || confirming}
       pickRef={pickPhoto}
+      markRef={markRef}
     />
   );
   const trouble = photoTrouble && !drawing && (
     <div className="photo-trouble" role="alert">
       <p>{photoTrouble}</p>
       <div className="photo-trouble-actions">
+        {photo && !photo.marked && (
+          <button type="button" className="btn btn-soft btn-sm" onClick={() => markRef.current?.()}>
+            Circle who you mean
+          </button>
+        )}
         <button type="button" className="btn btn-soft btn-sm" onClick={() => pickPhoto.current?.()}>
           Choose another photo
         </button>
@@ -320,12 +333,15 @@ export function PhotoField({
   onChange,
   disabled,
   pickRef,
+  markRef,
 }: {
   photo: ChosenPhoto | null;
   onChange: (p: ChosenPhoto | null) => void;
   disabled?: boolean;
   /** Set to a function opening the photo picker (for "choose another"). */
   pickRef?: React.MutableRefObject<(() => void) | null>;
+  /** Set to a function opening "circle who you mean". */
+  markRef?: React.MutableRefObject<(() => void) | null>;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLButtonElement>(null);
@@ -335,6 +351,28 @@ export function PhotoField({
   const [menuAt, setMenuAt] = useState<{ top: number; left: number; width: number } | null>(null);
   const pick = () => input.current?.click();
   if (pickRef) pickRef.current = pick;
+  // Circling who they mean, on a photo with more than one person or thing
+  const [marking, setMarking] = useState(false);
+  if (markRef) markRef.current = () => setMarking(true);
+  const marked = async (loop: PhotoPoint[] | null) => {
+    setMarking(false);
+    if (!photo) return;
+    const whole = photo.whole ?? photo;
+    if (!loop) {
+      // (the whole photo again, if it had been circled)
+      onChange(whole);
+      return;
+    }
+    setBusy(true);
+    setProblem(null);
+    try {
+      onChange({ ...(await markPhoto(whole.preview, loop)), whole });
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : "That photo couldn't be used.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const got = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -413,7 +451,7 @@ export function PhotoField({
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photo.preview} alt="" />
-            <span className="photo-drop-tag">Photo added</span>
+            <span className="photo-drop-tag">{photo.marked ? "Circled" : "Photo added"}</span>
           </>
         ) : busy ? (
           <span className="photo-drop-empty">
@@ -433,7 +471,13 @@ export function PhotoField({
           </span>
         )}
       </button>
+      {photo && !problem && (
+        <button type="button" className="photo-mark-link" onClick={() => setMarking(true)} disabled={disabled || busy}>
+          {photo.marked ? "Circle again" : "More than one in the photo? Circle who you mean"}
+        </button>
+      )}
       <p className="photo-drop-note">{problem ? <span className="error">{problem}</span> : "Only used to paint them - never kept."}</p>
+      {marking && photo && <PhotoMarker src={(photo.whole ?? photo).preview} onDone={(loop) => void marked(loop)} onCancel={() => setMarking(false)} canUseWhole={Boolean(photo.whole)} />}
       <input ref={input} type="file" accept="image/*" hidden onChange={got} aria-label="Choose a photo" />
       {open &&
         createPortal(
@@ -461,6 +505,17 @@ export function PhotoField({
               className="music-dropdown-item"
               onClick={() => {
                 setMenuAt(null);
+                setMarking(true);
+              }}
+            >
+              Circle who you mean
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="music-dropdown-item"
+              onClick={() => {
+                setMenuAt(null);
                 onChange(null);
               }}
             >
@@ -470,6 +525,104 @@ export function PhotoField({
           document.body,
         )}
     </div>
+  );
+}
+
+/** "Circle who you mean": the photo, large, to draw a loop round one
+ *  person or thing with a finger or the mouse. The loop is drawn as it's
+ *  made; a loop too small to mean anything is ignored. */
+function PhotoMarker({
+  src,
+  onDone,
+  onCancel,
+  canUseWhole,
+}: {
+  src: string;
+  onDone: (loop: PhotoPoint[] | null) => void;
+  onCancel: () => void;
+  /** The photo was circled before: offer to use all of it again. */
+  canUseWhole: boolean;
+}) {
+  const box = useRef<HTMLDivElement>(null);
+  const [loop, setLoop] = useState<PhotoPoint[]>([]);
+  const drawing = useRef(false);
+  const at = (e: React.PointerEvent): PhotoPoint | null => {
+    const r = box.current?.getBoundingClientRect();
+    if (!r || !r.width || !r.height) return null;
+    return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) };
+  };
+  const down = (e: React.PointerEvent) => {
+    const p = at(e);
+    if (!p) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drawing.current = true;
+    setLoop([p]);
+  };
+  const move = (e: React.PointerEvent) => {
+    if (!drawing.current) return;
+    const p = at(e);
+    if (!p) return;
+    setLoop((l) => {
+      const last = l[l.length - 1];
+      // (a point every few pixels' worth is plenty)
+      return last && Math.hypot(p.x - last.x, p.y - last.y) < 0.006 ? l : [...l, p];
+    });
+  };
+  const up = () => {
+    drawing.current = false;
+  };
+  const xs = loop.map((p) => p.x);
+  const ys = loop.map((p) => p.y);
+  const big = loop.length > 4 && Math.max(...xs) - Math.min(...xs) > 0.04 && Math.max(...ys) - Math.min(...ys) > 0.04;
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      onCancel();
+    };
+    document.addEventListener("keydown", key, { capture: true });
+    return () => document.removeEventListener("keydown", key, { capture: true });
+  }, [onCancel]);
+  return createPortal(
+    <div className="modal-backdrop redraw-backdrop photo-marker-backdrop" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-panel photo-marker" role="dialog" aria-modal="true" aria-label="Circle who you mean" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>Circle who you mean</h3>
+          <button type="button" className="icon-btn" onClick={onCancel} aria-label="Close">
+            ✕
+          </button>
+        </div>
+        <p className="meta">Draw a loop around the one to paint with your finger. Everyone else in the photo is left out.</p>
+        <div ref={box} className="photo-marker-stage" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="Your photo" draggable={false} />
+          <svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden>
+            {loop.length > 1 && (
+              <>
+                <polyline className="photo-marker-halo" points={loop.map((p) => `${p.x},${p.y}`).join(" ")} />
+                <polyline className="photo-marker-line" style={{ stroke: MARK_COLOUR }} points={loop.map((p) => `${p.x},${p.y}`).join(" ")} />
+              </>
+            )}
+          </svg>
+        </div>
+        <div className="redraw-choices">
+          <button type="button" className="btn btn-primary btn-block" onClick={() => onDone(loop)} disabled={!big}>
+            Use who I circled
+          </button>
+          {loop.length > 0 && (
+            <button type="button" className="btn btn-soft btn-block" onClick={() => setLoop([])}>
+              Start the circle again
+            </button>
+          )}
+          {canUseWhole && (
+            <button type="button" className="btn btn-soft btn-block" onClick={() => onDone(null)}>
+              Use the whole photo
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

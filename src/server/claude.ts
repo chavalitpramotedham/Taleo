@@ -1709,7 +1709,7 @@ async function characterBrief(req: CharacterRequest): Promise<string | null> {
     const res = await getClient().beta.messages.create({
       model: BRIEF_MODEL,
       max_tokens: 1500,
-      system: characterBriefPrompt(Boolean(req.photo)),
+      system: characterBriefPrompt(Boolean(req.photo), Boolean(req.photo?.marked)),
       messages: [{ role: "user", content: req.photo ? [photoBlock(req.photo), { type: "text", text: about }] : about }],
       output_config: { effort: "low" },
     });
@@ -1761,10 +1761,13 @@ export async function designCharacter(req: CharacterRequest, onProgress?: (p: Ch
     "\nA photo of them is attached. Paint its main subject (the one the description is about): follow its colours, markings, proportions and distinctive features as closely as you can, as a storybook watercolour character in our style - not a photographic likeness. The parent's words win wherever they differ from the photo.";
   // (when redrawing, the photo is the new look: it wins over the current
   // model sheet, which only fills in what the photo can't show)
+  const markNote = req.photo?.marked
+    ? " The parent has circled who they mean with a hand-drawn pink-red loop: paint only the one inside it, never anyone else in the photo, and never the loop itself."
+    : "";
   const redrawNote = req.current
     ? " For this redraw, the photo shows how they should look now: where it differs from their current model sheet, follow the photo."
     : "";
-  const out = await streamCharacterDesign(req.photo ? [photoBlock(req.photo), { type: "text", text: user + photoNote + redrawNote }] : user, onProgress, signal);
+  const out = await streamCharacterDesign(req.photo ? [photoBlock(req.photo), { type: "text", text: user + photoNote + markNote + redrawNote }] : user, onProgress, signal);
   const svg = sanitizeSvg(out.svg);
   return {
     character: {

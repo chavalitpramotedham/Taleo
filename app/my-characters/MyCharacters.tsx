@@ -13,7 +13,7 @@ import { GrowingInput } from "@/components/GrowingInput";
 import { DictateButton } from "@/components/DictateButton";
 import { useCharacterLimit } from "@/lib/useCharacterLimit";
 import { CharacterPortrait } from "@/components/art/Painting";
-import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField, PhotoField, type ChosenPhoto } from "@/components/CharacterCreatorModal";
+import { CharacterCreatorModal, CharacterNotesField, CharacterRelationshipsField, PhotoField, photoToSend, type ChosenPhoto } from "@/components/CharacterCreatorModal";
 import { PhotoProblem } from "@/lib/character-photo";
 import { GenderPicker } from "@/components/GenderPicker";
 import { DownloadIcon, LeafLoader, MapleMark } from "@/components/Icons";
@@ -402,6 +402,7 @@ function CharacterEditModal({
   const [photo, setPhoto] = useState<ChosenPhoto | null>(null);
   const [photoTrouble, setPhotoTrouble] = useState<string | null>(null);
   const pickPhoto = useRef<(() => void) | null>(null);
+  const markPhotoRef = useRef<(() => void) | null>(null);
   const saveImage = async () => {
     if (!character.svg || saving) return;
     setSaving(true);
@@ -427,7 +428,7 @@ function CharacterEditModal({
     const mine = (painting.current = new AbortController());
     try {
       const data = await requestCharacter(
-        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender }, photo: sending ? { data: sending.data, type: sending.type } : undefined },
+        { description: change.trim(), name: character.name, current: { look: character.look, notes: character.notes, relationships: character.relationships ?? null, gender: character.gender }, photo: photoToSend(sending) },
         setProgress,
         { signal: mine.signal },
       );
@@ -696,11 +697,17 @@ function CharacterEditModal({
                   }}
                   disabled={stage === "drawing"}
                   pickRef={pickPhoto}
+                  markRef={markPhotoRef}
                 />
                 {photoTrouble && stage !== "drawing" && (
                   <div className="photo-trouble" role="alert">
                     <p>{photoTrouble}</p>
                     <div className="photo-trouble-actions">
+                      {photo && !photo.marked && (
+                        <button type="button" className="btn btn-soft btn-sm" onClick={() => markPhotoRef.current?.()}>
+                          Circle who you mean
+                        </button>
+                      )}
                       <button type="button" className="btn btn-soft btn-sm" onClick={() => pickPhoto.current?.()}>
                         Choose another photo
                       </button>

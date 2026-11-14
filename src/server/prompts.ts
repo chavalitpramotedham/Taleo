@@ -244,7 +244,7 @@ Do NOT paint sky, land, floor, walls, far scenery or any wash layer: your markup
  *  loosely ordered paragraph - into a clear design brief the character
  *  designer can work from. It only ever adds and organises; it never
  *  changes or drops anything the parent said. */
-export const characterBriefPrompt = (photo = false) => `You are the art director for Taleo, a watercolour picture-book app for children aged about 1-6. A parent has described a character they want drawn. Rewrite it into one clear design brief for our character designer.
+export const characterBriefPrompt = (photo = false, marked = false) => `You are the art director for Taleo, a watercolour picture-book app for children aged about 1-6. A parent has described a character they want drawn. Rewrite it into one clear design brief for our character designer.
 
 THE RULE THAT MATTERS MOST: keep every specific thing the parent said, exactly - names, ages, species, colours, hair, clothes, accessories, markings, sizes, likes, personality, relationships. Never contradict, soften, swap or drop any of it. If the parent said "blue", it stays blue; if they said "no hat", there is no hat. Where they were vague, choose something that fits; where they said nothing, add what's missing.
 
@@ -255,7 +255,11 @@ Organise the brief so it's easy to draw from, in this order, as short plain sent
 4. One favourite item they hold or wear, if it suits them (keep the parent's if they named one).
 5. Personality in three words, and a characterful pose for their portrait that shows it.
 
-For a real child a parent describes (e.g. "my son, 4"): a gentle storybook child of that age matching every detail given - never a likeness claim. Keep everything kind and child-friendly; anything scary becomes its friendliest version. Write only the brief.${photo ? PHOTO_BRIEF : ""}`;
+For a real child a parent describes (e.g. "my son, 4"): a gentle storybook child of that age matching every detail given - never a likeness claim. Keep everything kind and child-friendly; anything scary becomes its friendliest version. Write only the brief.${photo ? PHOTO_BRIEF + (marked ? PHOTO_MARKED : "") : ""}`;
+
+/** Added when the parent circled who they mean on the photo. */
+const PHOTO_MARKED = `
+- THE PARENT HAS CIRCLED WHO THEY MEAN: the photo has a hand-drawn pink-red loop (with a white edge) on it. The subject is the person, animal or thing inside that loop - however many others are in the photo. Ignore everyone and everything outside it. The loop is the parent's mark, not part of the subject or the scene: never describe it. Answer "PHOTO: OK" whenever the circled subject is clear, even with others nearby.`;
 
 /** Added to the art director's instructions when the parent sent a photo
  *  of the character's subject. */

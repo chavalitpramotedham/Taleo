@@ -8287,6 +8287,71 @@ html[data-night] .step-art img {
 html[data-night] .photo-drop-tag {
   background: rgba(28, 22, 30, 0.85);
 }
+/* "More than one in the photo? Circle who you mean" - a quiet link under
+   the photo */
+.photo-mark-link {
+  display: block;
+  margin: 6px auto 0;
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--accent, #b0603a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.photo-mark-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Circling who they mean: the photo, large, drawn on with a finger */
+.photo-marker-backdrop {
+  z-index: 1200;
+}
+.photo-marker {
+  max-width: min(560px, calc(100vw - 32px));
+}
+.photo-marker-stage {
+  position: relative;
+  margin: 10px auto 14px;
+  width: fit-content;
+  max-width: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+  border-radius: 10px;
+  overflow: hidden;
+  line-height: 0;
+}
+.photo-marker-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: min(56vh, 520px);
+  pointer-events: none;
+}
+.photo-marker-stage svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.photo-marker-stage polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.photo-marker-halo {
+  stroke: #fff;
+  stroke-width: 9px;
+}
+.photo-marker-line {
+  stroke-width: 4.5px;
+}
 .photo-drop-note {
   margin: 0;
   font-size: 0.86rem;

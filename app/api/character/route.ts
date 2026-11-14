@@ -98,11 +98,11 @@ export async function POST(req: Request) {
     kind: "character" as const,
     sub: current ? "a saved character painted again" : "a new character",
     what: `${name ? `${name}: ` : ""}${description}`,
-    cases: [current ? "painted again" : "a new character", name ? "named by the parent" : "no name given", photo ? "with a photo" : "no photo"],
+    cases: [current ? "painted again" : "a new character", name ? "named by the parent" : "no name given", photo ? (photo.marked ? "with a photo, who they mean circled" : "with a photo") : "no photo"],
     userId: user?.id ?? null,
     tier,
     req,
-    request: { description, name, current, jobId, photo: photo ? { type: photo.type, bytes: photoBytes(photo) } : undefined },
+    request: { description, name, current, jobId, photo: photo ? { type: photo.type, bytes: photoBytes(photo), marked: photo.marked } : undefined },
     mock: !hasApiKey(),
   });
   if (!g.ok) {
