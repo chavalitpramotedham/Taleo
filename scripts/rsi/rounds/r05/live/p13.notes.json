@@ -1,0 +1,65 @@
+{
+ "portraits": "Sissy painted from their portrait in this book",
+ "reuse": {
+  "stamps": 9,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "boat": 1,
+   "hull": 1,
+   "splash": 2,
+   "sparkles": 1,
+   "motion": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hero",
+   "companion1",
+   "sissy"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hero resized from 0.60 to 0.65, true to the others",
+   "layout: companion1 resized from 0.50 to 0.49, true to the others",
+   "layout: hero turned towards the main action",
+   "layout: drawn back to front: hero, companion1, sissy",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"sissy\"/>\n<g class=\"target\"><fig c=\"sissy\" v=\"front\" x=\"200\" y=\"262\" s=\"0.9\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"up\"/></g>\n<stamp k=\"boat\" x=\"215\" y=\"170\" s=\"1\" near=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"225\" y=\"164\" s=\"0.6\" lean=\"-8\" tilt=\"-8\" arms=\"hold,hold\" legs=\"stand\" mood=\"laugh\" look=\"left\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"185\" y=\"164\" s=\"0.5\" lean=\"0\" tilt=\"0\" arms=\"hug,hug\" legs=\"stand\" mood=\"scared\" look=\"down\"/>\n<stamp k=\"hull\" x=\"215\" y=\"170\" s=\"1\"/>\n<stamp k=\"splash\" x=\"320\" y=\"238\" s=\"1.3\"/>\n<stamp k=\"splash\" x=\"150\" y=\"256\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"260\" y=\"100\" s=\"1\"/>\n<stamp k=\"motion\" x=\"270\" y=\"150\" s=\"0.8\"/>",
+   "laid": "<who c=\"sissy\"/>\n<stamp k=\"boat\" x=\"215\" y=\"170\" s=\"1\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"225\" y=\"168\" s=\"0.65\" lean=\"-8\" tilt=\"-8\" arms=\"hold,hold\" legs=\"stand\" mood=\"laugh\" look=\"left\" flip=\"1\" ride=\"1\" laid=\"1\"/>\n\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"front\" x=\"185\" y=\"168\" s=\"0.49\" lean=\"0\" tilt=\"0\" arms=\"hug,hug\" legs=\"stand\" mood=\"scared\" look=\"down\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"215\" y=\"170\" s=\"1\" near=\"1\"/>\n\n<stamp k=\"splash\" x=\"320\" y=\"238\" s=\"1.3\"/>\n<stamp k=\"splash\" x=\"150\" y=\"256\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"260\" y=\"100\" s=\"1\"/>\n<stamp k=\"motion\" x=\"270\" y=\"150\" s=\"0.8\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"sissy\" v=\"front\" x=\"200\" y=\"262\" s=\"0.9\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"up\" flip=\"0\" laid=\"1\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "sissy"
+  ],
+  "full": [],
+  "readyMs": 3
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1612,
+   "firstStrokeMs": 1612,
+   "out": 396,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,61 @@
+{
+ "portraits": "Sissy painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "bird": 1,
+   "butterfly": 1,
+   "boat": 1,
+   "hull": 1,
+   "sparkles": 1,
+   "hearts": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "sissy"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: hero, sissy",
+   "layout: the boat made big enough for its riders (s 1.5 to 2.25)",
+   "layout: hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"sissy\"/>\n<fig c=\"sissy\" v=\"front\" x=\"285\" y=\"300\" s=\"1.3\" flip=\"1\" lean=\"-8\" tilt=\"-12\" arms=\"down,down\" legs=\"stand\" mood=\"shy\" look=\"down\"/>\n<stamp k=\"boat\" x=\"130\" y=\"318\" s=\"1.5\" near=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"140\" y=\"308\" s=\"1.5\" lean=\"8\" tilt=\"6\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"right\"/></g>\n<stamp k=\"hull\" x=\"130\" y=\"318\" s=\"1.5\"/>\n<g class=\"paint\"><circle cx=\"228\" cy=\"196\" r=\"9\" fill=\"#C0392B\"/><path d=\"M219 196 Q228 184 237 196 Z\" fill=\"#B2443A\"/><circle cx=\"228\" cy=\"184\" r=\"3\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M219 197 Q228 200 237 197\" fill=\"none\" stroke=\"#2A1E15\" stroke-width=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"170\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"215\" y=\"150\" s=\"0.7\"/>",
+   "laid": "<who c=\"sissy\"/>\n<stamp k=\"boat\" x=\"130\" y=\"318\" s=\"2.25\" near=\"1\"/><g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"140\" y=\"300\" s=\"1.5\" lean=\"8\" tilt=\"6\" arms=\"reach,reach\" legs=\"sit\" mood=\"happy\" look=\"right\" flip=\"0\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"130\" y=\"318\" s=\"2.25\" near=\"1\"/>\n\n<g class=\"paint\"><circle cx=\"228\" cy=\"196\" r=\"9\" fill=\"#C0392B\"/><path d=\"M219 196 Q228 184 237 196 Z\" fill=\"#B2443A\"/><circle cx=\"228\" cy=\"184\" r=\"3\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M219 197 Q228 200 237 197\" fill=\"none\" stroke=\"#2A1E15\" stroke-width=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"170\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"215\" y=\"150\" s=\"0.7\"/>\n\n<who c=\"hero\"/>\n<fig c=\"sissy\" v=\"front\" x=\"285\" y=\"300\" s=\"1.3\" flip=\"1\" lean=\"-8\" tilt=\"-12\" arms=\"down,down\" legs=\"stand\" mood=\"shy\" look=\"down\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "sissy"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1445,
+   "firstStrokeMs": 1445,
+   "out": 429,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

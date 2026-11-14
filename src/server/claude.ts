@@ -1025,6 +1025,8 @@ async function* laidOut(src: AsyncIterable<string>, opts: LayoutOptions, stats: 
   for await (const s of src) all += s;
   const { markup, notes } = layoutComposed(all, opts);
   stats.fixes.push(...notes.map((n) => `layout: ${n}`));
+  // (what the composer wrote and what was drawn, for the bench's notes)
+  stats.composed = { wrote: all.slice(0, 6000), laid: markup.slice(0, 6000) };
   yield markup;
 }
 

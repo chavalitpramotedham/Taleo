@@ -1,0 +1,62 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "puddle": 1,
+   "splash": 1,
+   "tuft": 2
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "polly",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.93 to 1.23, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: polly was inside something drawn: moved to its edge",
+   "layout: drawn back to front: puddle, something drawn, polly, hero, companion1",
+   "layout: companion1 drawn behind hero, the main action's target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<fig c=\"polly\" v=\"front\" x=\"262\" y=\"250\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"left\"/>\n<stamp k=\"splash\" x=\"205\" y=\"246\" s=\"0.8\"/>\n<stamp k=\"puddle\" x=\"215\" y=\"248\" s=\"0.8\"/>\n<g class=\"paint\"><path d=\"M200 200 Q240 170 290 195 Q320 215 285 235 Q240 248 205 232 Q180 215 200 200 Z\" fill=\"#8FB07A\"/><ellipse cx=\"228\" cy=\"196\" rx=\"14\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"262\" cy=\"216\" rx=\"14\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"302\" cy=\"206\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M200 200 Q240 170 290 195 Q320 215 285 235 Q240 248 205 232 Q180 215 200 200 Z\" fill=\"none\" stroke=\"#4F6B45\" stroke-width=\"2\"/><path d=\"M215 210 Q250 190 280 215 M225 230 Q255 215 295 225\" fill=\"none\" stroke=\"#4F6B45\" stroke-width=\"2\"/><path d=\"M222 204 l-3 -8 M232 204 l3 -8 M257 224 l-3 -8 M267 224 l3 -8 M298 213 l-2 -7 M307 213 l3 -7\" stroke=\"#8C6A48\" stroke-width=\"2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"246\" s=\"0.45\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"right\"/>\n<g class=\"target\"><who c=\"hero\"/><fig c=\"hero\" v=\"three\" x=\"140\" y=\"248\" s=\"0.8\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\"/></g>\n<stamp k=\"tuft\" x=\"85\" y=\"250\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"175\" y=\"252\" s=\"0.7\"/>",
+   "laid": "<who c=\"polly\"/>\n<stamp k=\"puddle\" x=\"215\" y=\"248\" s=\"0.8\"/>\n<g class=\"paint\"><path d=\"M200 200 Q240 170 290 195 Q320 215 285 235 Q240 248 205 232 Q180 215 200 200 Z\" fill=\"#8FB07A\"/><ellipse cx=\"228\" cy=\"196\" rx=\"14\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"262\" cy=\"216\" rx=\"14\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"302\" cy=\"206\" rx=\"12\" ry=\"8\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M200 200 Q240 170 290 195 Q320 215 285 235 Q240 248 205 232 Q180 215 200 200 Z\" fill=\"none\" stroke=\"#4F6B45\" stroke-width=\"2\"/><path d=\"M215 210 Q250 190 280 215 M225 230 Q255 215 295 225\" fill=\"none\" stroke=\"#4F6B45\" stroke-width=\"2\"/><path d=\"M222 204 l-3 -8 M232 204 l3 -8 M257 224 l-3 -8 M267 224 l3 -8 M298 213 l-2 -7 M307 213 l3 -7\" stroke=\"#8C6A48\" stroke-width=\"2\"/></g>\n\n<fig c=\"polly\" v=\"front\" x=\"312\" y=\"250\" s=\"1.23\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"left\" laid=\"1\"/>\n<stamp k=\"splash\" x=\"205\" y=\"246\" s=\"0.8\"/><who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"88\" y=\"247\" s=\"0.45\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"right\" flip=\"0\" laid=\"1\"/><g class=\"target\"><who c=\"hero\"/><fig c=\"hero\" v=\"three\" x=\"157\" y=\"247\" s=\"0.8\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"tuft\" x=\"85\" y=\"250\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"175\" y=\"252\" s=\"0.7\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1640,
+   "firstStrokeMs": 1640,
+   "out": 768,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

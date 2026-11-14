@@ -1,0 +1,63 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "puddle": 1,
+   "splash": 1,
+   "tuft": 2
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "polly",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.93 to 1.23, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: polly was inside something drawn: moved to its edge",
+   "layout: drawn back to front: something drawn, puddle, something drawn, polly, hero, companion1",
+   "layout: companion1 drawn behind hero, the main action's target",
+   "hero overlapped another character: eased to x 339",
+   "no piece called \"pebbles\": left out"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<fig c=\"polly\" v=\"front\" x=\"280\" y=\"250\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"down\"/>\n<g class=\"paint\"><path d=\"M215 238 Q250 205 300 215 Q345 225 350 245 Q300 256 235 252 Z\" fill=\"#7FA66A\"/><path d=\"M225 226 Q260 240 310 228\" fill=\"none\" stroke=\"#5E8A4F\" stroke-width=\"4\"/></g>\n<g class=\"ink\"><path d=\"M222 240 Q260 214 300 226 Q335 236 345 246\" fill=\"none\" stroke=\"#3E6A38\" stroke-width=\"2\"/><path d=\"M230 248 Q280 232 335 244\" fill=\"none\" stroke=\"#3E6A38\" stroke-width=\"2\"/></g>\n<stamp k=\"puddle\" x=\"215\" y=\"248\" s=\"0.9\"/>\n<stamp k=\"splash\" x=\"215\" y=\"244\" s=\"0.8\"/>\n<g class=\"paint\"><ellipse cx=\"248\" cy=\"222\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/><ellipse cx=\"288\" cy=\"216\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/><ellipse cx=\"322\" cy=\"226\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M242 231v8M254 231v8M282 225v8M294 225v8M316 235v8M328 235v8\" stroke=\"#5A4630\" stroke-width=\"2\"/><circle cx=\"244\" cy=\"220\" r=\"1.5\"/><circle cx=\"285\" cy=\"214\" r=\"1.5\"/><circle cx=\"319\" cy=\"224\" r=\"1.5\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"104\" y=\"244\" s=\"0.42\" lean=\"4\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"shy\" look=\"right\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"140\" y=\"250\" s=\"0.75\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\"/></g>\n<stamp k=\"tuft\" x=\"82\" y=\"252\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"190\" y=\"254\" s=\"1\"/>\n<stamp k=\"pebbles\" x=\"150\" y=\"256\" s=\"1\"/>",
+   "laid": "<who c=\"polly\"/>\n<g class=\"paint\"><ellipse cx=\"248\" cy=\"222\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/><ellipse cx=\"288\" cy=\"216\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/><ellipse cx=\"322\" cy=\"226\" rx=\"15\" ry=\"10\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M242 231v8M254 231v8M282 225v8M294 225v8M316 235v8M328 235v8\" stroke=\"#5A4630\" stroke-width=\"2\"/><circle cx=\"244\" cy=\"220\" r=\"1.5\"/><circle cx=\"285\" cy=\"214\" r=\"1.5\"/><circle cx=\"319\" cy=\"224\" r=\"1.5\"/></g>\n\n<stamp k=\"puddle\" x=\"215\" y=\"248\" s=\"0.9\"/><g class=\"paint\"><path d=\"M215 238 Q250 205 300 215 Q345 225 350 245 Q300 256 235 252 Z\" fill=\"#7FA66A\"/><path d=\"M225 226 Q260 240 310 228\" fill=\"none\" stroke=\"#5E8A4F\" stroke-width=\"4\"/></g>\n<g class=\"ink\"><path d=\"M222 240 Q260 214 300 226 Q335 236 345 246\" fill=\"none\" stroke=\"#3E6A38\" stroke-width=\"2\"/><path d=\"M230 248 Q280 232 335 244\" fill=\"none\" stroke=\"#3E6A38\" stroke-width=\"2\"/></g>\n\n<stamp k=\"splash\" x=\"215\" y=\"244\" s=\"0.8\"/>\n<fig c=\"polly\" v=\"front\" x=\"181\" y=\"250\" s=\"1.23\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"down\"/><who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"96\" y=\"247\" s=\"0.42\" lean=\"4\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"shy\" look=\"right\" flip=\"0\"/><g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"148\" y=\"247\" s=\"0.75\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\" flip=\"0\"/></g>\n<stamp k=\"tuft\" x=\"82\" y=\"252\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"190\" y=\"254\" s=\"1\"/>\n<stamp k=\"pebbles\" x=\"150\" y=\"256\" s=\"1\"/>\n<who c=\"hero\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1713,
+   "firstStrokeMs": 1713,
+   "out": 843,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

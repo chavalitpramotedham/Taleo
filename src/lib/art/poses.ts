@@ -134,7 +134,7 @@ const ARM_FRONT: Record<ArmPose, [number, number, number]> = {
   up: [0.32, -1.0, 0.1],
   hip: [0.16, 0.66, 0.55],
   point: [1.0, -0.15, 0.06],
-  reach: [0.95, 0.3, 0.08],
+  reach: [0.88, 0.3, 0.16],
   hold: [-0.5, 0.6, 0.3],
   hug: [-0.82, 0.3, 0.32],
   carry: [-0.3, 0.42, 0.42],
@@ -149,7 +149,7 @@ const ARM_THREE: Record<ArmPose, [number, number, number]> = {
   up: [0.24, -1.0, 0.1],
   hip: [-0.25, 0.66, 0.48],
   point: [1.0, -0.12, 0.06],
-  reach: [1.0, 0.25, 0.08],
+  reach: [0.92, 0.25, 0.16],
   hold: [0.78, 0.55, 0.26],
   hug: [0.72, 0.3, 0.32],
   carry: [0.68, 0.4, 0.4],
@@ -168,7 +168,10 @@ export function arm(view: PartView, build: Build, side: "near" | "far", pose: Ar
   const a = view.anchors;
   const sh = side === "near" ? a.shoulderL : a.shoulderR;
   const sw = Math.max(26, Math.abs(a.shoulderR[0] - a.shoulderL[0]));
-  const L = Math.max(32, sw * (three ? 1.2 : 1.0) * (build.arm ?? 1));
+  // (from the shoulders' width, but never longer than a body's arm: a
+  // broad figure - a shawl, a giant's tunic - had arms like poles reaching
+  // across the room. About a third of the 170-tall figure at most.)
+  const L = Math.min(62 * (build.arm ?? 1), Math.max(32, sw * (three ? 1.2 : 1.0) * (build.arm ?? 1)));
   const w0 = Math.max(8, sw * 0.32);
   const w1 = w0 * 0.72;
   const out = three ? 1 : side === "near" ? -1 : 1;

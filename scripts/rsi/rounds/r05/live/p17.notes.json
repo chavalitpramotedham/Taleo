@@ -1,0 +1,64 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "table": 1,
+   "notes": 1,
+   "sparkles": 1,
+   "hold:wand": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "gran",
+   "hero",
+   "argos"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: gran resized from 0.80 to 1.01, true to the others",
+   "layout: companion1 resized from 0.50 to 0.45, true to the others",
+   "layout: argos and gran overlapped: eased apart",
+   "layout: drawn back to front: companion1, gran, hero, argos",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"table\" x=\"200\" y=\"226\" s=\"1.5\" near=\"1\"/>\n<fig c=\"gran\" v=\"front\" x=\"318\" y=\"244\" s=\"0.8\" flip=\"1\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" tilt=\"-8\" look=\"left\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"146\" rx=\"46\" ry=\"14\" fill=\"#E8C95A\"/><ellipse cx=\"200\" cy=\"140\" rx=\"46\" ry=\"12\" fill=\"#F2D878\"/><rect x=\"198\" y=\"122\" width=\"4\" height=\"14\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><ellipse cx=\"200\" cy=\"140\" rx=\"46\" ry=\"12\" fill=\"none\" stroke=\"#8A6A20\" stroke-width=\"1.5\"/><path d=\"M200 122 q3 -6 0 -9 q-3 3 0 9\" fill=\"#F2A03A\"/></g>\n<fig c=\"hero\" v=\"three\" x=\"108\" y=\"244\" s=\"0.72\" arms=\"reach,hold\" legs=\"sit\" lean=\"12\" mood=\"excited\" look=\"right\" hold=\"wand\"/>\n<g class=\"paint\"><path d=\"M142 150 l30 -6 l2 5 l-30 8z\" fill=\"#C9D2D6\"/><rect x=\"134\" y=\"152\" width=\"10\" height=\"4\" fill=\"#8C6A48\"/></g>\n<g class=\"target\"><fig c=\"argos\" v=\"three\" x=\"262\" y=\"262\" s=\"0.75\" flip=\"1\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" tilt=\"-10\" look=\"up\"/></g>\n<g class=\"paint\"><path d=\"M244 232 q-2 8 0 11 q3 -3 0 -11\" fill=\"#9FC4D6\"/></g>\n<fig c=\"companion1\" v=\"front\" x=\"228\" y=\"150\" s=\"0.5\" arms=\"wave,wave\" legs=\"stand\" mood=\"talk\" look=\"ahead\"/>\n<stamp k=\"notes\" x=\"262\" y=\"95\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"108\" s=\"0.8\"/>",
+   "laid": "<stamp k=\"table\" x=\"200\" y=\"226\" s=\"1.5\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"226\" y=\"150\" s=\"0.45\" arms=\"wave,wave\" legs=\"stand\" mood=\"talk\" look=\"ahead\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"notes\" x=\"262\" y=\"95\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"108\" s=\"0.8\"/>\n<fig c=\"gran\" v=\"front\" x=\"324\" y=\"244\" s=\"1.01\" flip=\"1\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" tilt=\"-8\" look=\"left\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"146\" rx=\"46\" ry=\"14\" fill=\"#E8C95A\"/><ellipse cx=\"200\" cy=\"140\" rx=\"46\" ry=\"12\" fill=\"#F2D878\"/><rect x=\"198\" y=\"122\" width=\"4\" height=\"14\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><ellipse cx=\"200\" cy=\"140\" rx=\"46\" ry=\"12\" fill=\"none\" stroke=\"#8A6A20\" stroke-width=\"1.5\"/><path d=\"M200 122 q3 -6 0 -9 q-3 3 0 9\" fill=\"#F2A03A\"/></g>\n<fig c=\"hero\" v=\"three\" x=\"106\" y=\"244\" s=\"0.72\" arms=\"reach,hold\" legs=\"sit\" lean=\"12\" mood=\"excited\" look=\"right\" hold=\"wand\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M142 150 l30 -6 l2 5 l-30 8z\" fill=\"#C9D2D6\"/><rect x=\"134\" y=\"152\" width=\"10\" height=\"4\" fill=\"#8C6A48\"/></g>\n<g class=\"paint\"><path d=\"M244 232 q-2 8 0 11 q3 -3 0 -11\" fill=\"#9FC4D6\"/></g>\n<g class=\"target\"><fig c=\"argos\" v=\"three\" x=\"251\" y=\"262\" s=\"0.75\" flip=\"1\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" tilt=\"-10\" look=\"up\" laid=\"1\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1329,
+   "firstStrokeMs": 1329,
+   "out": 693,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

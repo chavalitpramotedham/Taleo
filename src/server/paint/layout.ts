@@ -241,7 +241,7 @@ function byDepth(markup: string, notes: string[]): string {
       // with it, in front: lesson 17)
       if (it.kind === "drawn") {
         const e = extentOf(it.text);
-        if (e && Math.max(e.x1 - e.x0, e.y1 - e.y0) < 80) {
+        if (e && Math.max(e.x1 - e.x0, e.y1 - e.y0) < 70 * (Number(attr(tag, "s")) || 0.6) + 30) {
           to = j;
           continue;
         }
@@ -279,12 +279,14 @@ function byDepth(markup: string, notes: string[]): string {
       // (something small drawn over a character's body - held, worn, shown -
       // is just in front of that character, wherever it was written)
       let depth = ext?.y1 ?? 0;
-      if (ext && Math.max(ext.x1 - ext.x0, ext.y1 - ext.y0) < 80) {
+      if (ext) {
         const cx = (ext.x0 + ext.x1) / 2;
         const cy = (ext.y0 + ext.y1) / 2;
+        const size = Math.max(ext.x1 - ext.x0, ext.y1 - ext.y0);
+        // (small against the one holding it: under 60% of its height)
         const holder = chars
           .map((c) => ({ x: Number(attr(c.tag!, "x")) || 200, y: Number(attr(c.tag!, "y")) || 246, s: Number(attr(c.tag!, "s")) || 0.6 }))
-          .filter((c) => Math.abs(cx - c.x) < 70 * c.s && cy < c.y && cy > c.y - 190 * c.s)
+          .filter((c) => size < 102 * c.s && Math.abs(cx - c.x) < 80 * c.s && cy < c.y && cy > c.y - 190 * c.s)
           .sort((a, b) => b.y - a.y)[0];
         if (holder) depth = holder.y + 16;
       }
@@ -294,7 +296,10 @@ function byDepth(markup: string, notes: string[]): string {
   }
   units.sort((a, b) => a.from - b.from);
   // (each unit's own text, characters moved out of big things first)
-  const things = units.filter((u) => u.unit.thing && u.unit.box);
+  // (only the library's big pieces push a character out: a drawn shape is
+  // as often a wave, a tangle of wool or a cheese they stand at or on -
+  // lesson 17: Ody was pushed out of her boat by a drawn wave)
+  const things = units.filter((u) => u.unit.thing && u.unit.box && u.unit.id !== "something drawn");
   for (const u of units) {
     let text = items.slice(u.from, u.to + 1).map((x) => x.text).join("");
     if (!u.unit.thing) {
@@ -398,6 +403,105 @@ function writeSizes(markup: string, placed: { start: number; end: number; tag: s
   return out;
 }
 
+/** Furniture the characters use, and how big it is against a character
+ *  at the page's usual size: a table's top at a child's waist, a bed as
+ *  long as a grown-up (lesson 17 - a table at its library size was knee
+ *  high and lost behind the dog). */
+const FURNITURE: Record<string, number> = { table: 1.45, bed: 1.5, chair: 1.15, armchair: 1.2, cupboard: 1.2, bookshelf: 1.25, fireplace: 1.3, toybox: 1.1, door: 1.15, loom: 1.4 };
+function furnitureToScale(markup: string, opts: LayoutOptions, notes: string[]): string {
+  if (!opts.usualS) return markup;
+  return markup.replace(/<stamp\b[^>]*\/>/gi, (tag) => {
+    const k = (attr(tag, "k") ?? "").toLowerCase();
+    const want = FURNITURE[k];
+    if (!want) return tag;
+    const s = Number(attr(tag, "s")) || 1;
+    const floor = Math.round(opts.usualS! * want * 100) / 100;
+    if (s >= floor * 0.85) return tag;
+    notes.push(`the ${k} made to the characters' scale (s ${s} to ${floor})`);
+    return setAttr(tag, "s", String(floor));
+  });
+}
+
+/** Tucked in (lesson 17): a sitting character with a bed written just
+ *  after it is lowered so the quilt comes up to its chest - in the bed,
+ *  not standing behind it - and a second bed at the same spot (the
+ *  composer sometimes writes one before and one after) is left out. */
+function tuckedIn(markup: string, notes: string[]): string {
+  let out = markup;
+  // (the same piece of furniture twice at one spot: the later one kept)
+  const pieces = [...out.matchAll(/<stamp\b[^>]*\/>/gi)].map((m) => ({ tag: m[0], k: (attr(m[0], "k") ?? "").toLowerCase(), x: Number(attr(m[0], "x")) || 0, y: Number(attr(m[0], "y")) || 0 }));
+  for (let i = 0; i < pieces.length; i++)
+    for (let j = i + 1; j < pieces.length; j++) {
+      const a = pieces[i], b = pieces[j];
+      if (a.k !== b.k || !(a.k in FURNITURE) || Math.abs(a.x - b.x) > 40 || Math.abs(a.y - b.y) > 25) continue;
+      out = out.replace(a.tag, "");
+      notes.push(`a second ${a.k} at the same spot left out`);
+      break;
+    }
+  for (const m of [...out.matchAll(/(<\s*fig\b[^>]*\/>)(\s*(?:<\/g>)?\s*)(<stamp\b[^>]*\bk\s*=\s*"bed"[^>]*\/>)/gi)]) {
+    const fig = m[1];
+    const bed = m[3];
+    if (!/\bsit\b/i.test(`${attr(fig, "legs") ?? ""} ${attr(fig, "pose") ?? ""}`)) continue;
+    const bx = Number(attr(bed, "x")) || 200;
+    const by = Number(attr(bed, "y")) || 250;
+    const bs = Number(attr(bed, "s")) || 1;
+    const s = Number(attr(fig, "s")) || 0.6;
+    if (Math.abs((Number(attr(fig, "x")) || 200) - bx) > 60 * bs) continue;
+    // (the quilt's top is about 40*bs above the bed's feet; a sitting
+    // character's chest about 0.4 of its sitting height above its seat)
+    const y = Math.round(by - 40 * bs + 0.4 * 170 * s * 0.8);
+    out = out.replace(fig, setAttr(fig, "y", String(y)));
+    notes.push(`${attr(fig, "c") ?? "someone"} tucked into the bed`);
+  }
+  return out;
+}
+
+/** The last word on spacing (lesson 17): after everything else has moved
+ *  people about, anyone still overlapping more than a touch is eased
+ *  apart once more, and every tag is marked as laid out, so the drawing
+ *  stage keeps these places rather than spacing them its own way (two
+ *  spacers disagreeing had Gran pushed in front of the supper table). */
+function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): string {
+  type P = { tag: string; id: string; x: number; y: number; s: number; touching: boolean; ride: boolean };
+  const ps: P[] = [];
+  for (const m of markup.matchAll(CHAR_TAG)) {
+    if (!m[0].trim().endsWith("/>")) continue;
+    const t = m[0];
+    const arms = `${attr(t, "arms") ?? ""} ${attr(t, "pose") ?? ""}`.toLowerCase();
+    ps.push({ tag: t, id: attr(t, "c") ?? attr(t, "id") ?? "", x: Number(attr(t, "x")) || 200, y: Number(attr(t, "y")) || 246, s: Number(attr(t, "s")) || opts.usualS || 0.6, touching: /\b(hold|hug|reach|point)\b/.test(arms) || Boolean(attr(t, "hold")), ride: attr(t, "ride") === "1" });
+  }
+  CHAR_TAG.lastIndex = 0;
+  const free = ps.filter((p) => !p.ride).sort((a, b) => a.x - b.x);
+  let moved = false;
+  for (let pass = 0; pass < 3; pass++)
+    for (let i = 0; i + 1 < free.length; i++) {
+      const a = free[i], b = free[i + 1];
+      // (the hero is never hidden: whoever stands next to it, unless
+      // hugging it, stays clear of its body - lesson 17 - even nearer
+      // the viewer, where others may cross)
+      const hugging = /\bhug\b/.test(`${attr(a.tag, "arms") ?? ""} ${attr(b.tag, "arms") ?? ""}`);
+      const hero = (a.id === opts.heroId || b.id === opts.heroId) && !hugging;
+      if (apartInDepth(a, b) && !hero) continue;
+      const allowed = hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
+      const need = (widthAt(a.s) + widthAt(b.s)) / 2 - Math.min(widthAt(a.s), widthAt(b.s)) * allowed;
+      if (b.x - a.x >= need) continue;
+      const push = (need - (b.x - a.x)) / 2;
+      a.x -= push;
+      b.x += push;
+      moved = true;
+    }
+  if (free.length) {
+    const lo = Math.min(...free.map((p) => p.x - widthAt(p.s) / 2));
+    const hi = Math.max(...free.map((p) => p.x + widthAt(p.s) / 2));
+    const shift = lo < 10 ? 10 - lo : hi > 390 ? 390 - hi : 0;
+    if (shift && hi - lo < 380) for (const p of free) p.x += shift;
+  }
+  if (moved) notes.push("spaced once more, finally");
+  let out = markup;
+  for (const p of ps) out = out.replace(p.tag, setAttr(setAttr(p.tag, "x", String(Math.round(p.x))), "laid", "1"));
+  return out;
+}
+
 /** What characters ride in: never something they're moved out of. */
 const RIDDEN = /^(boat|hull)$/i;
 
@@ -482,6 +586,8 @@ function inTheBoat(markup: string, notes: string[]): string {
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
   markup = oncePerCharacter(markup, opts, notes);
+  markup = furnitureToScale(markup, opts, notes);
+  markup = tuckedIn(markup, notes);
   const placed: Placed[] = [];
   for (const m of markup.matchAll(CHAR_TAG)) {
     const tag = m[0];
@@ -689,5 +795,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     }
   }
   out = inTheBoat(out, notes);
+  out = finalSpacing(out, opts, notes);
   return { markup: out, notes };
 }

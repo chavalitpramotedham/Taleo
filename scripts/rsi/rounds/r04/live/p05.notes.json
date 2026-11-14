@@ -1,0 +1,60 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "splash": 1,
+   "puddle": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "polly",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.93 to 1.29, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: drawn back to front: something drawn, polly, hero, companion1",
+   "layout: companion1 drawn behind hero, the main action's target",
+   "hero overlapped another character: eased to x 143"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<fig c=\"polly\" v=\"front\" x=\"268\" y=\"262\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-6\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"left\"/>\n<stamp k=\"splash\" x=\"205\" y=\"252\" s=\"0.8\"/>\n<stamp k=\"puddle\" x=\"215\" y=\"254\" s=\"0.8\" near=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"270\" cy=\"215\" rx=\"58\" ry=\"20\" fill=\"#7FA66A\"/><ellipse cx=\"250\" cy=\"205\" rx=\"26\" ry=\"10\" fill=\"#8FB87A\"/><ellipse cx=\"300\" cy=\"212\" rx=\"22\" ry=\"9\" fill=\"#6F955A\"/><ellipse cx=\"236\" cy=\"196\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"268\" cy=\"192\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"300\" cy=\"196\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M215 215 Q250 190 290 220\" fill=\"none\" stroke=\"#4F7A45\" stroke-width=\"2\"/><path d=\"M240 215 Q270 235 305 205\" fill=\"none\" stroke=\"#4F7A45\" stroke-width=\"2\"/><path d=\"M233 203 L231 212 M239 203 L240 212 M265 199 L263 208 M271 199 L272 208 M297 203 L295 212 M303 203 L304 212\" stroke=\"#8C6A48\" stroke-width=\"2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"100\" y=\"246\" s=\"0.4\" lean=\"0\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"right\"/>\n<g class=\"target\"><who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"130\" y=\"250\" s=\"0.78\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\"/></g>\n<g class=\"ink\"><ellipse cx=\"130\" cy=\"252\" rx=\"30\" ry=\"4\" fill=\"none\" stroke=\"#6B4A30\" stroke-width=\"1\"/><path d=\"M60 250 l4 -6 M70 251 l3 -5 M180 252 l4 -6 M320 262 l4 -6\" stroke=\"#6B4A30\" stroke-width=\"2\"/></g>",
+   "laid": "<who c=\"polly\"/>\n<g class=\"paint\"><ellipse cx=\"270\" cy=\"215\" rx=\"58\" ry=\"20\" fill=\"#7FA66A\"/><ellipse cx=\"250\" cy=\"205\" rx=\"26\" ry=\"10\" fill=\"#8FB87A\"/><ellipse cx=\"300\" cy=\"212\" rx=\"22\" ry=\"9\" fill=\"#6F955A\"/><ellipse cx=\"236\" cy=\"196\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"268\" cy=\"192\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"300\" cy=\"196\" rx=\"13\" ry=\"9\" fill=\"#F3E6D0\"/></g>\n<g class=\"ink\"><path d=\"M215 215 Q250 190 290 220\" fill=\"none\" stroke=\"#4F7A45\" stroke-width=\"2\"/><path d=\"M240 215 Q270 235 305 205\" fill=\"none\" stroke=\"#4F7A45\" stroke-width=\"2\"/><path d=\"M233 203 L231 212 M239 203 L240 212 M265 199 L263 208 M271 199 L272 208 M297 203 L295 212 M303 203 L304 212\" stroke=\"#8C6A48\" stroke-width=\"2\"/></g>\n\n<fig c=\"polly\" v=\"front\" x=\"268\" y=\"262\" s=\"1.29\" flip=\"1\" lean=\"0\" tilt=\"-6\" arms=\"hold,hold\" legs=\"sit\" mood=\"sad\" look=\"left\"/>\n<stamp k=\"splash\" x=\"205\" y=\"252\" s=\"0.8\"/>\n<stamp k=\"puddle\" x=\"215\" y=\"254\" s=\"0.8\" near=\"1\"/><who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"89\" y=\"248\" s=\"0.4\" lean=\"0\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"worried\" look=\"right\" flip=\"0\"/><g class=\"target\"><who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"141\" y=\"248\" s=\"0.78\" lean=\"8\" tilt=\"6\" arms=\"reach,hold\" legs=\"tiptoe\" mood=\"determined\" look=\"right\" flip=\"0\"/></g>\n<g class=\"ink\"><ellipse cx=\"130\" cy=\"252\" rx=\"30\" ry=\"4\" fill=\"none\" stroke=\"#6B4A30\" stroke-width=\"1\"/><path d=\"M60 250 l4 -6 M70 251 l3 -5 M180 252 l4 -6 M320 262 l4 -6\" stroke=\"#6B4A30\" stroke-width=\"2\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 11
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1448,
+   "firstStrokeMs": 1448,
+   "out": 841,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
