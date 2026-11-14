@@ -23,6 +23,8 @@ export function StoryProgressBar({
   shapes,
   hint,
   target = EXPECTED_SHAPES,
+  writing = "Writing what happens next…",
+  done = "Opening the page…",
 }: {
   /** when this wait began (ms) */
   started: number;
@@ -33,6 +35,9 @@ export function StoryProgressBar({
   hint?: string;
   /** strokes at which the page opens (the bar is full) */
   target?: number;
+  /** said while the words are being written, and once the bar is full */
+  writing?: string;
+  done?: string;
 }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -46,9 +51,9 @@ export function StoryProgressBar({
       ? 100
       : 48 + 52 * Math.min(1, shapes / target);
   const label = !painting
-    ? "Writing what happens next…"
-    : shapes === null
-      ? "Opening the page…"
+    ? writing
+    : shapes === null || shapes >= target
+      ? done
       : shapes > 0
         ? `Painting the page… ${shapes} brush strokes`
         : "Painting the page…";
@@ -62,7 +67,7 @@ export function StoryProgressBar({
       <div className="char-progress-track" aria-hidden>
         <span className="char-progress-fill" style={{ transform: `scaleX(${pct / 100})` }} />
       </div>
-      {hint && <p className="char-progress-hint">{hint}</p>}
+      {hint && label !== done && <p className="char-progress-hint">{hint}</p>}
     </div>
   );
 }

@@ -91,6 +91,20 @@ export function getAudioContext(): AudioContext | null {
   }
 }
 
+/** Makes the AudioContext ahead of time, in a quiet moment after the page
+ *  has loaded. Making one is slow - 140ms of a blocked page on a Mac - and
+ *  left to the first tap it landed in that tap's own frame: the first
+ *  night-mode switch, the first page turn, juddered. Made early it starts
+ *  paused (no tap yet), and the first tap only has to wake it, which is
+ *  cheap. */
+export function prewarmAudio() {
+  if (ctx || typeof window === "undefined") return;
+  try {
+    const Ctor = getCtor();
+    if (Ctor) ctx = new Ctor();
+  } catch {}
+}
+
 /** Call synchronously inside a real tap/click handler (ideally the very first
  *  one on the page) to get the AudioContext running on iOS Safari, where it's
  *  otherwise created in a "suspended" state and its first sound can be lost

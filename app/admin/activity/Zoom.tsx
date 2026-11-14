@@ -67,7 +67,10 @@ export function ZoomPicture({ src, className, width, height, lazy = false, recor
   // arrived it is drawn a single time onto a canvas at the size it's
   // shown, and that still image takes its place (the full-size view still
   // opens the drawing itself, sharp at any size).
-  const small = Boolean(lazy && width && height);
+  // (only a drawing gains from it: a photo-like picture - the journey's
+  // screenshots - is a flat image already, and copying it again as it
+  // scrolled into view cost the page its smooth scrolling)
+  const small = Boolean(lazy && width && height) && !/\.(?:webp|png|jpe?g|avif|gif)(?:$|\?)/i.test(src);
   const [flat, setFlat] = useState<string | null>(null);
   const made = useRef<string | null>(null);
   useEffect(() => () => void (made.current && URL.revokeObjectURL(made.current)), []);

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { unlockAudio } from "@/lib/sfx";
-import { sleepAudio, stirAudio, wakeAudio } from "@/lib/audio-context";
+import { prewarmAudio, sleepAudio, stirAudio, wakeAudio } from "@/lib/audio-context";
 import { holdMusic } from "@/lib/music";
 import { cancelSpeech } from "@/lib/speech";
 import { unlockSpeech } from "@/lib/speech";
@@ -21,6 +21,11 @@ export function AudioUnlock() {
       window.removeEventListener("touchend", unlock);
       window.removeEventListener("keydown", unlock);
     };
+    // (the slow part - making the audio - done in a quiet moment after the
+    // page has loaded, not in the first tap: see prewarmAudio)
+    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1));
+    let idle = 0;
+    const later = window.setTimeout(() => (idle = ric(prewarmAudio, { timeout: 3000 }) as number), 2500);
     window.addEventListener("pointerdown", unlock, { once: true, passive: true });
     window.addEventListener("touchend", unlock, { once: true, passive: true });
     window.addEventListener("keydown", unlock, { once: true });
@@ -45,6 +50,8 @@ export function AudioUnlock() {
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", onVisibility);
     return () => {
+      window.clearTimeout(later);
+      if (idle) (window.cancelIdleCallback ?? clearTimeout)(idle);
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", onVisibility);
       window.removeEventListener("pointerdown", wakeAudio);

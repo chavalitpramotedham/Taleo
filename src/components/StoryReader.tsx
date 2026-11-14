@@ -261,15 +261,20 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const firstReady = Boolean(firstPage?.svg) || firstUnderWay;
   const firstHasWords = Boolean(firstPage);
   const firstFailed = Boolean(failed[pageKey(0, 0)]);
+  // A new story: the cover shows the progress bar filling - written, then
+  // painted - and "Open the book" comes when the first picture is nearly
+  // done, for the reader to open themselves. A slow painter never keeps it
+  // shut: with the words there, the book can be opened after a while
+  // anyway; and if something went wrong it opens by itself.
+  const [slowFirst, setSlowFirst] = useState(false);
   useEffect(() => {
     if (cover !== "closed" || !isNew || hasOpened) return;
     if (error || firstFailed) return openBook();
-    // (with the words there but no picture yet, the book still opens after
-    // a short wait: a slow painter never keeps the story shut)
-    if (!firstReady && !firstHasWords) return;
-    const t = window.setTimeout(openBook, firstReady ? 900 : PICTURE_WAIT_MS);
+    if (firstReady || !firstHasWords) return;
+    const t = window.setTimeout(() => setSlowFirst(true), PICTURE_WAIT_MS);
     return () => window.clearTimeout(t);
   }, [cover, firstReady, firstHasWords, firstFailed, error, openBook, isNew, hasOpened]);
+  const canOpenFirst = !isNew || hasOpened ? Boolean(firstPage) : firstReady || (firstHasWords && slowFirst);
 
   // ---------------------------------------------------------------- writing
   // Leaving the story cancels a segment still being written: it couldn't be
@@ -1256,7 +1261,28 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         )}
       </div>
         )}
-        {cover !== "open" && <BookCover painting={coverStage} story={story} isHeading={cover === "closed"} opening={cover === "opening"} canOpen={Boolean(firstPage)} ready={!isNew || hasOpened} onOpen={() => go(1)} />}
+        {cover !== "open" && (
+          <BookCover
+            painting={coverStage}
+            story={story}
+            isHeading={cover === "closed"}
+            opening={cover === "opening"}
+            canOpen={canOpenFirst}
+            ready={!isNew || hasOpened}
+            onOpen={() => go(1)}
+            progress={
+              <StoryProgressBar
+                started={progressStart}
+                painting={Boolean(firstPage)}
+                shapes={firstPage?.svg ? null : countShapes(live[pageKey(0, 0)])}
+                target={RELEASE_SHAPES}
+                writing={story.title ? "Writing the first page…" : "Writing your story…"}
+                done="Ready - open the book!"
+                hint={LOADING_LINES[loadingLine]}
+              />
+            }
+          />
+        )}
       </div>
 
       <nav className={`reader-nav ${cover === "opening" ? "hidden-until-open" : ""}`} aria-label="Turn the page">

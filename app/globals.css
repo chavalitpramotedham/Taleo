@@ -6327,6 +6327,49 @@ html[data-night] .reader-tools .music-control-tune {
   letter-spacing: 0.06em;
   opacity: 0.85;
 }
+/* A new story's progress on its cover: the decision pages' bar, in the
+   cover's gilt on the leather. */
+.book-cover-progress {
+  margin-top: auto;
+  width: min(100%, 300px);
+  text-align: left;
+}
+.book-cover-progress .char-progress {
+  margin: 0;
+  padding: 10px 12px 8px;
+  border-color: color-mix(in srgb, var(--gilt) 45%, transparent);
+  background: rgba(0, 0, 0, 0.16);
+}
+.book-cover-progress .char-progress-label {
+  white-space: normal;
+  color: var(--gilt);
+  font-family: var(--font-caps);
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+}
+.book-cover-progress .char-progress-pct {
+  color: color-mix(in srgb, var(--gilt) 80%, white);
+}
+.book-cover-progress .char-progress-track {
+  background: rgba(255, 240, 210, 0.18);
+}
+.book-cover-progress .char-progress-fill {
+  background: linear-gradient(90deg, #c9a14e, #f0d38a);
+}
+.book-cover-progress .char-progress-hint {
+  color: color-mix(in srgb, var(--gilt) 70%, transparent);
+  font-size: 0.78rem;
+}
+/* (the button arrives when the bar is full - a little glow to say so) */
+.book-cover-progress + .book-cover-open {
+  animation: coverOpenIn 0.6s ease-out both;
+}
+@keyframes coverOpenIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
 .book-cover-open {
   background: none;
   border: 0;

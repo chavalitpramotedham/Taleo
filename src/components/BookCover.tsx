@@ -23,6 +23,7 @@ export function BookCover({
   ready,
   onOpen,
   painting,
+  progress,
   isHeading = false,
 }: {
   story: Story;
@@ -38,6 +39,10 @@ export function BookCover({
    *  ("Washing in the sky…") - shown in place of "Painting the first
    *  page…" once the picture has begun to arrive. */
   painting?: string | null;
+  /** A new story's progress, from writing to the first page painted (in
+   *  place of the one-line status): the reader watches it fill, and opens
+   *  the book themselves once it's ready. */
+  progress?: React.ReactNode;
   /** The page's main heading while the book is closed (the reader's own
    *  title only shows once it's open) - for screen readers and search. */
   isHeading?: boolean;
@@ -64,13 +69,15 @@ export function BookCover({
             )}
           </div>
           <p className="book-cover-starring">Starring {starring}</p>
-          {status && (
+          {progress && !ready ? (
+            <div className="book-cover-progress">{progress}</div>
+          ) : status && (
             <div className="book-cover-status">
               {!first?.svg && <LeafLoader size={22} />}
               <span>{status}</span>
             </div>
           )}
-          {canOpen && (ready || !first?.svg) && !opening && (
+          {canOpen && !opening && (
             <button type="button" className="book-cover-open" onClick={onOpen}>
               Open the book
             </button>
