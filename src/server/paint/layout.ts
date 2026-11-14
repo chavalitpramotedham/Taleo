@@ -1013,6 +1013,28 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       }
     }
   }
+  // 0d. Three or more standing in a row read as a line-up, flat across the
+  // picture: those only looking on (not the hero, not whoever the child
+  // taps, not in a hug) stand a step further back and a touch smaller, so
+  // the picture has a near and a far and the story's own stand forward.
+  // Not in a close-up, nor where a giant is already standing back.
+  if (opts.usualS && opts.usualS < 1.2) {
+    const onGround = placed.filter((p) => p.y >= 236 && p.y <= 256 && !/\bsit\b/i.test(`${attr(p.tag, "pose") ?? ""} ${attr(p.tag, "legs") ?? ""}`));
+    const giantBack = placed.some((p) => (opts.sizeOf?.[p.id] ?? 1) > 1.5 && p.y <= 228);
+    const held = new Set([opts.heroId, opts.targetId, ...(opts.huggers ?? []), ...(opts.perched ?? []).flatMap(([a, b]) => [a, b]), opts.inBed].filter(Boolean) as string[]);
+    if (onGround.length >= 3 && !giantBack) {
+      const lookers = onGround.filter((p) => !held.has(p.id) && !p.touching);
+      // (never everyone back: at least one stays in front with the hero)
+      for (const p of lookers.slice(0, onGround.length - 2)) {
+        // (16 back: just past the 14 that lines up the standing - further,
+        // and an onlooker at the side stood on the backdrop's wall)
+        p.y = 230;
+        p.s = Math.round(p.s * 0.92 * 100) / 100;
+        p.tag = setAttr(setAttr(p.tag, "y", "230"), "s", p.s.toFixed(2));
+        notes.push(`${p.id} stands a step further back, looking on`);
+      }
+    }
+  }
   // (one character alone still gets its seat, its target and its size)
 
   // 1. Ease apart anyone overlapping more than a touch, left to right,
