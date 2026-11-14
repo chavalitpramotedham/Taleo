@@ -39,6 +39,27 @@ export function bakeWidth(cssWidth: number): number {
   return Math.round(px / 40) * 40;
 }
 
+/** How wide (CSS pixels) a book's pictures were last shown on this device:
+ *  a book's first page can be drawn ahead, while its cover is up. */
+export function rememberBookWidth(w: number) {
+  try {
+    localStorage.setItem("taleo.bookw", String(Math.round(w)));
+    localStorage.setItem("taleo.bookw.at", String(window.innerWidth));
+  } catch {}
+}
+export function bookWidth(): number {
+  try {
+    const w = Number(localStorage.getItem("taleo.bookw"));
+    // (only if this window is still the size it was: a phone turned on its
+    // side shows the pictures at another size)
+    const at = Number(localStorage.getItem("taleo.bookw.at"));
+    if (at && at !== window.innerWidth) return 0;
+    return w > 100 ? w : 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** A phone or computer with little to spare (few cores, little memory, or
  *  asking to save data). Apple's browser doesn't say how many cores or how
  *  much memory it has (an iPhone reports few cores), so it's never judged

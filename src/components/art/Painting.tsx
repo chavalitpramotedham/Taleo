@@ -62,7 +62,9 @@ export const Painting = memo(function Painting({
     if (!canBake()) {
       return setPlain(true);
     }
-    setWidth(bakeWidth(box.current?.getBoundingClientRect().width ?? 0));
+    // (its laid-out width, not as it looks mid-animation: a book opening or
+    // a page turning is scaled, and would ask for a drawing at another size)
+    setWidth(bakeWidth(box.current?.clientWidth || box.current?.getBoundingClientRect().width || 0));
   }, []);
 
   const lastLive = useRef(0);

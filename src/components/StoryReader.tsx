@@ -14,7 +14,7 @@ import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { bakeWidth, hasDrawing, prebake } from "@/lib/bake";
+import { bakeWidth, bookWidth, hasDrawing, prebake, rememberBookWidth } from "@/lib/bake";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -468,8 +468,10 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     });
     if (!ahead.length) return;
     const t = window.setTimeout(() => {
-      const w = document.querySelector(".book-art .painting")?.getBoundingClientRect().width;
+      const el = document.querySelector<SVGSVGElement>(".book-art .painting");
+      const w = el?.clientWidth || el?.getBoundingClientRect().width;
       const night = document.documentElement.dataset.night === "1";
+      if (w) rememberBookWidth(w);
       for (const svg of ahead) {
         const clean = sanitizeSvg(svg);
         if (w) prebake(clean, { width: bakeWidth(w), night });
@@ -477,6 +479,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     }, 1500);
     return () => window.clearTimeout(t);
   }, [views, index, revealed, turning]);
+  // (and the first page's, while the cover is up - at the size the book's
+  // pictures were last shown on this device - so opening it is instant)
+  const firstSvg = views[0]?.kind === "page" ? views[0].page.svg : null;
+  useEffect(() => {
+    if (cover !== "closed" || !firstSvg) return;
+    const w = bookWidth();
+    if (!w) return;
+    const t = window.setTimeout(() => prebake(sanitizeSvg(firstSvg), { width: bakeWidth(w), night: document.documentElement.dataset.night === "1" }), 600);
+    return () => window.clearTimeout(t);
+  }, [cover, firstSvg]);
 
   const indexRef = useRef(index);
   indexRef.current = index;
