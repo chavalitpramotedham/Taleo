@@ -16,7 +16,7 @@
  * The tappable character is drawn apart (with what's in front of it drawn
  * apart too), so it can still move on its own when tapped.
  */
-import { TARGET_CLASS } from "./svg-sanitize";
+import { sanitizeSvg, TARGET_CLASS } from "./svg-sanitize";
 
 /** A drawn layer: a picture (object URL) over the whole 400x300 canvas, or
  *  just `box` of it (in canvas units). */
@@ -28,13 +28,13 @@ const H0 = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 /** Pixels across to draw a painting at, for one shown `cssWidth` across:
- *  sharp on the screen it's on - up to 2.5 pixels a point, which on a 3x
+ *  sharp on the screen it's on - up to 2.25 pixels a point, which on a 3x
  *  iPhone reads as crisp as the painting itself (1.6, tried first, was
  *  plainly soft) - rounded so the same picture at nearly the same size is
  *  drawn once. */
 export function bakeWidth(cssWidth: number): number {
   const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : 2.5);
+  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : 2.25);
   const px = Math.max(240, Math.min(2200, (cssWidth || W0) * density));
   return Math.round(px / 40) * 40;
 }
@@ -64,6 +64,16 @@ function hash(s: string): string {
 }
 
 const keyOf = (clean: string, width: number, night: boolean, split: boolean) => `${hash(clean)}|${width}|${night ? "n" : "d"}|${split ? "s" : "w"}`;
+
+/** This painting has been drawn already (at any size): it can be put up
+ *  at once. */
+export function hasDrawing(clean: string, night: boolean): boolean {
+  if (!clean || !canBake()) return false;
+  const head = `${hash(clean)}|`;
+  const tail = `|${night ? "n" : "d"}|s`;
+  for (const [k, e] of cache) if (k.startsWith(head) && k.endsWith(tail) && e.value) return true;
+  return false;
+}
 
 /** Already drawn: the pictures, at once (so a copy of a page - the turning
  *  leaf - shows them on its very first frame). */
@@ -102,7 +112,7 @@ export function bakePainting(clean: string, opts: { width: number; night: boolea
     return hit.promise;
   }
   const entry: Entry = { promise: Promise.resolve(null), urls: [] };
-  entry.promise = enqueue(key, Boolean(opts.soon), (pause) => draw(clean, opts.width, opts.night, split, entry.urls, pause)).then(
+  entry.promise = (async () => (await fromStore(key, entry.urls)) ?? enqueue(key, Boolean(opts.soon), (pause) => draw(clean, opts.width, opts.night, split, entry.urls, pause)))().then(
     (v) => ((entry.value = v), v),
     () => ((entry.value = null), null),
   );
@@ -143,13 +153,15 @@ function pump() {
   const i = queue.findIndex((j) => j.soon);
   const job = queue.splice(i >= 0 ? i : 0, 1)[0];
   busy = true;
-  // Between strips of a drawing, the page gets a frame (and, for a drawing
-  // only wanted later, waits for a quiet moment), so drawing never holds
-  // it up for long.
+  // Between the layers of a drawing, the page gets a frame (and, for a
+  // drawing only wanted later, waits for a quiet moment).
   const pause = () =>
     new Promise<void>((r) => {
-      if (job.soon) requestAnimationFrame(() => window.setTimeout(r, 0));
-      else (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 60)))(() => r(), { timeout: 800 });
+      // (never waiting on a frame alone: a page out of sight draws none)
+      const t = window.setTimeout(r, 120);
+      const go = () => (window.clearTimeout(t), window.setTimeout(r, 0));
+      if (job.soon) requestAnimationFrame(go);
+      else (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 60)))(go, { timeout: 800 });
     });
   const go = () =>
     job
@@ -157,7 +169,8 @@ function pump() {
       .then(job.done, job.fail)
       .finally(() => {
         busy = false;
-        pump();
+        // (a frame between drawings, however many are waiting)
+        window.setTimeout(pump, 16);
       });
   if (job.soon) go();
   else {
@@ -182,10 +195,8 @@ export function canBake(): boolean {
   try {
     asked = localStorage.getItem("taleo.bake");
   } catch {}
-  // (off for everyone for now: on an iPhone, at full sharpness, pictures
-  // never appeared - not yet tried in Safari itself. "taleo.bake" = "1"
-  // turns it on to try.)
-  support = works && asked === "1";
+  const apple = typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
+  support = works && (asked === "1" || (asked !== "0" && apple));
   return support;
 }
 
@@ -205,53 +216,102 @@ function defs(night: boolean): string | null {
   return defsMarkup;
 }
 
+// ------------------------------------------------------------------ kept
+// Drawings are kept on the device (the browser's Cache Storage), so a book
+// read before - or a page turned back to after a reload - is never drawn
+// again: its pictures are just read back.
+
+const STORE = "taleo-paintings-v1";
+const STORE_MAX = 160;
+const storeUrl = (key: string, part: string) => `/__painted/${encodeURIComponent(key)}/${part}`;
+
+async function fromStore(key: string, urls: string[]): Promise<Baked | null> {
+  if (typeof caches === "undefined") return null;
+  try {
+    const c = await caches.open(STORE);
+    const meta = await c.match(storeUrl(key, "meta"));
+    if (!meta) return null;
+    const m = (await meta.json()) as { name: "back" | "target" | "front"; box: BakedLayer["box"] }[];
+    const out: Partial<Baked> = {};
+    for (const l of m) {
+      const r = await c.match(storeUrl(key, l.name));
+      if (!r) return null;
+      const url = URL.createObjectURL(await r.blob());
+      urls.push(url);
+      out[l.name] = { url, box: l.box };
+    }
+    return out.back ? (out as Baked) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function toStore(key: string, b: Baked) {
+  if (typeof caches === "undefined") return;
+  try {
+    const c = await caches.open(STORE);
+    const layers = (["back", "target", "front"] as const).flatMap((name) => {
+      const l = b[name] as (BakedLayer & { blob?: Blob }) | undefined;
+      return l?.blob ? [{ name, box: l.box, blob: l.blob }] : [];
+    });
+    if (!layers.length) return;
+    for (const l of layers) await c.put(storeUrl(key, l.name), new Response(l.blob, { headers: { "content-type": l.blob.type } }));
+    await c.put(storeUrl(key, "meta"), new Response(JSON.stringify(layers.map(({ name, box }) => ({ name, box }))), { headers: { "content-type": "application/json" } }));
+    // (the oldest drawings make room, now and then)
+    if (Math.random() < 0.1) {
+      const metas = (await c.keys()).filter((r) => r.url.endsWith("/meta"));
+      for (const r of metas.slice(0, Math.max(0, metas.length - STORE_MAX))) {
+        const base = r.url.slice(0, -"meta".length);
+        await Promise.all(["meta", "back", "target", "front"].map((p) => c.delete(base + p)));
+      }
+    }
+  } catch {}
+}
+
 async function draw(clean: string, width: number, night: boolean, split: boolean, urls: string[], pause: () => Promise<void>): Promise<Baked | null> {
   const d = defs(night);
   if (!d || !canBake()) return null;
+  const key = keyOf(clean, width, night, split);
+  const made = await drawFresh(d, clean, width, split, urls, pause);
+  if (made) void toStore(key, made);
+  return made;
+}
+
+async function drawFresh(d: string, clean: string, width: number, split: boolean, urls: string[], pause: () => Promise<void>): Promise<Baked | null> {
   const parts = split ? splitAtTarget(clean) : null;
   const height = Math.round((width * H0) / W0);
   if (!parts) {
-    const back = await layer(d, clean, width, height, false, urls, pause);
+    const back = await layer(d, clean, width, height, false, urls);
     return back ? { back } : null;
   }
-  const back = await layer(d, parts.back, width, height, false, urls, pause);
+  const back = await layer(d, parts.back, width, height, false, urls);
   if (!back) return null;
-  const target = parts.target ? await layer(d, parts.target, width, height, true, urls, pause) : null;
-  const front = parts.front ? await layer(d, parts.front, width, height, true, urls, pause) : null;
+  // (a frame let through between layers)
+  await pause();
+  const target = parts.target ? await layer(d, parts.target, width, height, true, urls) : null;
+  await pause();
+  const front = parts.front ? await layer(d, parts.front, width, height, true, urls) : null;
   return { back, ...(target ? { target } : {}), ...(front ? { front } : {}) };
 }
 
 /** One layer drawn to a picture: the whole canvas, or (`crop`) only the
- *  part with something on it. Drawn in strips across, a frame let through
- *  between each: the watercolour filters are worked out strip by strip
- *  (the browser only works out what each strip shows), so the page is
- *  never held up for more than a moment. */
-async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[], pause: () => Promise<void>): Promise<BakedLayer | null> {
+ *  part with something on it. Drawn in one go: Safari works out a picture's
+ *  watercolour filters over the whole of it however little of it is drawn,
+ *  so drawing it in strips (tried first) cost a whole drawing per strip. */
+async function layer(defsInner: string, content: string, width: number, height: number, crop: boolean, urls: string[]): Promise<BakedLayer | null> {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  const n = Math.max(3, Math.min(14, Math.round(height / 56)));
+  const whole = `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${W0} ${H0}">${defsInner}${content}</svg>`;
+  const src = URL.createObjectURL(new Blob([whole], { type: "image/svg+xml" }));
   try {
-    for (let i = 0; i < n; i++) {
-      const y0 = Math.round((i * height) / n);
-      const y1 = Math.round(((i + 1) * height) / n);
-      const vy = (y0 * H0) / height;
-      const vh = ((y1 - y0) * H0) / height;
-      const strip = `<svg xmlns="${SVG_NS}" width="${width}" height="${y1 - y0}" viewBox="0 ${vy} ${W0} ${vh}" preserveAspectRatio="none">${defsInner}${content}</svg>`;
-      const src = URL.createObjectURL(new Blob([strip], { type: "image/svg+xml" }));
-      try {
-        const img = new Image();
-        img.src = src;
-        await img.decode();
-        // (the slow part: this strip's watercolour worked out, once)
-        ctx.drawImage(img, 0, y0, width, y1 - y0);
-      } finally {
-        URL.revokeObjectURL(src);
-      }
-      await pause();
-    }
+    const img = new Image();
+    img.src = src;
+    await img.decode();
+    // (the slow part: the watercolour filters worked out, once)
+    ctx.drawImage(img, 0, 0, width, height);
     let box = { x: 0, y: 0, w: W0, h: H0 };
     let out: HTMLCanvasElement = canvas;
     if (crop) {
@@ -269,9 +329,11 @@ async function layer(defsInner: string, content: string, width: number, height: 
     if (!blob) return null;
     const url = URL.createObjectURL(blob);
     urls.push(url);
-    return { url, box };
+    return { url, box, blob } as BakedLayer & { blob: Blob };
   } catch {
     return null;
+  } finally {
+    URL.revokeObjectURL(src);
   }
 }
 
@@ -353,4 +415,21 @@ function splitAtTarget(clean: string): { back: string; target: string | null; fr
   }
   const shapes = (el: Element) => el.querySelector("path,circle,ellipse,rect,polygon,polyline,line") !== null;
   return { back: back.innerHTML, target: shapes(only) ? only.innerHTML : null, front: shapes(front) ? front.innerHTML : null };
+}
+
+// (development only: the drawing step, to try by hand)
+if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+  (window as unknown as { __bakeDebug?: unknown }).__bakeDebug = {
+    bake: (svg: string, width: number) => bakePainting(sanitizeSvg(svg), { width, night: document.documentElement.dataset.night === "1", soon: true }),
+    split: (svg: string) => splitAtTarget(sanitizeSvg(svg)),
+    layer: async (svg: string, width: number) => {
+      const urls: string[] = [];
+      const d = defs(document.documentElement.dataset.night === "1");
+      try {
+        return { d: Boolean(d), r: await layer(d!, sanitizeSvg(svg), width, Math.round((width * 3) / 4), false, urls) };
+      } catch (e) {
+        return { err: String(e) };
+      }
+    },
+  };
 }

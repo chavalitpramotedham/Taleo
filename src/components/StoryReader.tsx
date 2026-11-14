@@ -14,7 +14,7 @@ import { holdAudioOpen, wakeAudio } from "@/lib/audio-context";
 import { cancelSpeech, onSpeechProgress, prefetchSpeech, setSpeechStory, speakText, unlockSpeech, type SpeechProgress } from "@/lib/speech";
 import { composePainting } from "@/lib/art/compose";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { bakeWidth, prebake } from "@/lib/bake";
+import { bakeWidth, hasDrawing, prebake } from "@/lib/bake";
 import { Painting, CharacterPortrait, InteractivePainting, type InteractivePaintingHandle, type TapTarget } from "./art/Painting";
 import { DictateButton } from "./DictateButton";
 import { BookCover, coverStyle } from "./BookCover";
@@ -167,28 +167,6 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 
   const view = views[Math.min(index, views.length - 1)];
   const lastIndex = views.length - 1;
-  // The next pages' paintings (and the one before) are cleaned and drawn
-  // while the reader is reading this one, so a turn only has to put up
-  // pictures already made (see lib/bake).
-  useEffect(() => {
-    const near = [index + 1, index + 2, index - 1];
-    const ahead = near.flatMap((i) => {
-      const v = views[i];
-      return v?.kind === "page" && v.page.svg ? [v.page.svg] : [];
-    });
-    if (!ahead.length) return;
-    const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
-    const stop = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = idle(() => {
-      const w = document.querySelector(".book-art .painting")?.getBoundingClientRect().width;
-      const night = document.documentElement.dataset.night === "1";
-      for (const svg of ahead) {
-        const clean = sanitizeSvg(svg);
-        if (w) prebake(clean, { width: bakeWidth(w), night });
-      }
-    });
-    return () => stop(id);
-  }, [views, index]);
   const totalPages = views.filter((v) => v.kind === "page").length;
 
   // The picture shown alongside choices / endings is the most recent page's.
@@ -452,6 +430,31 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const [revealed, setRevealed] = useState<string | null>(null);
   // (a page in the middle of turning counts as "something happening")
   useEffect(() => setTurning(Boolean(outgoing)), [outgoing]);
+  // The next pages' paintings (and the one before) are cleaned and drawn
+  // while the reader is reading this one, so a turn only has to put up
+  // pictures already made (see lib/bake). Only once this page is up and
+  // still: drawing never competes with a page turning or fading in.
+  useEffect(() => {
+    if (turning) return;
+    const here = views[index];
+    if (here?.kind === "page" && revealed !== pageKey(here.seg, here.n)) return;
+    const near = [index + 1, index + 2, index - 1];
+    const ahead = near.flatMap((i) => {
+      const v = views[i];
+      return v?.kind === "page" && v.page.svg ? [v.page.svg] : [];
+    });
+    if (!ahead.length) return;
+    const t = window.setTimeout(() => {
+      const w = document.querySelector(".book-art .painting")?.getBoundingClientRect().width;
+      const night = document.documentElement.dataset.night === "1";
+      for (const svg of ahead) {
+        const clean = sanitizeSvg(svg);
+        if (w) prebake(clean, { width: bakeWidth(w), night });
+      }
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [views, index, revealed, turning]);
+
   const indexRef = useRef(index);
   indexRef.current = index;
   /** True while sitting on a choice the child hasn't answered: no reading ahead. */
@@ -899,7 +902,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // (slow to draw) waits under falling leaves until the turning page has
   // gone, then fades in - so the turn never waits on it.
   const artKey = pendingNext ? null : shown ? pageKey(shown.seg, shown.n) : null;
-  const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey);
+  // (a page whose picture is drawn already - see lib/bake - doesn't wait:
+  // it lies under the turning page, picture and words, and the turn
+  // uncovers it as a real page would)
+  const drawnAlready = Boolean(outgoing && shown?.page.svg && typeof document !== "undefined" && hasDrawing(sanitizeSvg(shown.page.svg), document.documentElement.dataset.night === "1"));
+  const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey && !drawnAlready);
+  const artKeyRef = useRef(artKey);
+  artKeyRef.current = artKey;
+  const leafUncovered = useRef<string | null>(null);
+  if (Boolean(outgoing) && drawnAlready && !pendingNext && artKey) leafUncovered.current = artKey;
+  // (and once uncovered by the turn, it stays as it is - no fade after)
+  const underLeaf = Boolean(artKey) && leafUncovered.current === artKey;
   let picture: React.ReactNode;
   let readyKey: string | null = null;
   let liveKey: string | null = null;
@@ -941,14 +954,16 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                 onto while it streams in, then fading away once it's done -
                 and the picture itself fades in over it, so it never pops. */}
             <span key={`sheet-${key}`} className={`blank-canvas painted-edge under-canvas ${partial && !done ? "" : "gone"}`} aria-hidden />
-            <div key={`art-${key}`} className={`art-fade ${!readyKey || revealed === key ? "in" : ""}`}>
+            <div key={`art-${key}`} className={`art-fade ${underLeaf ? "in now" : !readyKey || revealed === key ? "in" : ""}`}>
               <InteractivePainting
                 ref={paintingRef}
                 svg={svg}
                 title={shown.page.picture || shown.page.text}
                 className={partial && !done ? "painting live" : "painting"}
                 live={Boolean(partial && !done)}
-                onReady={() => setRevealed(key)}
+                // (only the page on show says so: the copy of the last page
+                // on the turning leaf would otherwise claim it's back)
+                onReady={() => artKeyRef.current === key && setRevealed(key)}
                 target={tapTarget(shown.page, [story.hero, ...story.companions, ...story.cast], story.age)}
               />
             </div>
@@ -1246,7 +1261,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           {cover === "open" && textSizeButtons}
           {/* (held with the picture while the page turns and while its
               picture is drawn; then in, together) */}
-          <div key={`words-${artKey ?? index}`} className={`page-words ${artHeld || (readyKey && revealed !== readyKey) ? "held" : "in"}`}>
+          <div key={`words-${artKey ?? index}`} className={`page-words ${underLeaf ? "in now" : artHeld || (readyKey && revealed !== readyKey) ? "held" : "in"}`}>
             {words}
           </div>
           <RevealWhenDrawn k={readyKey ?? liveKey} shown={revealed === (readyKey ?? liveKey)} onDrawn={setRevealed} now={Boolean(liveKey)} />

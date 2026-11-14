@@ -1300,14 +1300,16 @@ main {
 .page-words.held {
   opacity: 0;
 }
+/* (the words with the picture: same moment, same fade) */
 .page-words.in {
-  animation: wordsIn 0.8s 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  animation: pageIn 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
 }
-@keyframes wordsIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
+/* A page already drawn lies ready under the turning page: the turn itself
+   uncovers it, nothing fades. */
+.art-fade.in.now,
+.page-words.in.now {
+  animation: none;
+  opacity: 1;
 }
 /* (the turning leaf is a still copy of the page: nothing on it fades in) */
 .flip-leaf .art-fade,

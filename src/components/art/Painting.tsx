@@ -59,7 +59,9 @@ export const Painting = memo(function Painting({
   // (measured before the first frame, so a painting already drawn - the
   // copy of a page on the turning leaf - shows at once)
   useLayoutEffect(() => {
-    if (!canBake()) return setPlain(true);
+    if (!canBake()) {
+      return setPlain(true);
+    }
     setWidth(bakeWidth(box.current?.getBoundingClientRect().width ?? 0));
   }, []);
 
