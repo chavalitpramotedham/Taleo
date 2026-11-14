@@ -1,5 +1,5 @@
 {
- "spentUsd": 4.028985,
+ "spentUsd": 4.260447,
  "calls": [
   {
    "at": "2026-11-13T22:40:38.963Z",
@@ -1184,6 +1184,150 @@
    "label": "composer",
    "model": "claude-sonnet-5-5",
    "usd": 0.019832
+  },
+  {
+   "at": "2026-11-14T02:33:36.038Z",
+   "round": 10,
+   "page": 1,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.009598
+  },
+  {
+   "at": "2026-11-14T02:33:36.278Z",
+   "round": 10,
+   "page": 13,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01043
+  },
+  {
+   "at": "2026-11-14T02:33:36.312Z",
+   "round": 10,
+   "page": 18,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.010952
+  },
+  {
+   "at": "2026-11-14T02:33:36.400Z",
+   "round": 10,
+   "page": 8,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01058
+  },
+  {
+   "at": "2026-11-14T02:33:36.479Z",
+   "round": 10,
+   "page": 14,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.009538
+  },
+  {
+   "at": "2026-11-14T02:33:36.607Z",
+   "round": 10,
+   "page": 15,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01089
+  },
+  {
+   "at": "2026-11-14T02:33:37.941Z",
+   "round": 10,
+   "page": 11,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.012052
+  },
+  {
+   "at": "2026-11-14T02:33:37.968Z",
+   "round": 10,
+   "page": 7,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.012786
+  },
+  {
+   "at": "2026-11-14T02:33:38.117Z",
+   "round": 10,
+   "page": 16,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.013724
+  },
+  {
+   "at": "2026-11-14T02:33:38.218Z",
+   "round": 10,
+   "page": 3,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01254
+  },
+  {
+   "at": "2026-11-14T02:33:38.440Z",
+   "round": 10,
+   "page": 2,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.013456
+  },
+  {
+   "at": "2026-11-14T02:33:38.663Z",
+   "round": 10,
+   "page": 10,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01277
+  },
+  {
+   "at": "2026-11-14T02:33:38.673Z",
+   "round": 10,
+   "page": 9,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.014424
+  },
+  {
+   "at": "2026-11-14T02:33:38.798Z",
+   "round": 10,
+   "page": 12,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.0147
+  },
+  {
+   "at": "2026-11-14T02:33:39.462Z",
+   "round": 10,
+   "page": 5,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.014726
+  },
+  {
+   "at": "2026-11-14T02:33:39.644Z",
+   "round": 10,
+   "page": 4,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01491
+  },
+  {
+   "at": "2026-11-14T02:33:40.008Z",
+   "round": 10,
+   "page": 17,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.016124
+  },
+  {
+   "at": "2026-11-14T02:33:40.712Z",
+   "round": 10,
+   "page": 6,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.017262
   }
  ]
 }

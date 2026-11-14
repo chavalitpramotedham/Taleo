@@ -136,7 +136,9 @@ const ARM_FRONT: Record<ArmPose, [number, number, number]> = {
   point: [1.0, -0.15, 0.06],
   reach: [0.88, 0.3, 0.16],
   hold: [-0.5, 0.6, 0.3],
-  hug: [-0.82, 0.3, 0.32],
+  // (open and round, to go round whoever is in the hug: crossed over its
+  // own chest it hugged itself - lesson 17)
+  hug: [0.6, 0.18, 0.34],
   carry: [-0.3, 0.42, 0.42],
   clap: [-0.62, 0.05, 0.3],
   chin: [-0.5, -0.2, 0.4],

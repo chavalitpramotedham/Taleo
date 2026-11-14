@@ -5502,6 +5502,10 @@ html[data-night] .story-preview-close {
 html[data-night] .paint-paper {
   fill: #cdbfa3;
 }
+/* The paper kept clean under every painted figure (see tl-paint). */
+html[data-night] {
+  --paint-reserve: #cdbfa3;
+}
 html[data-night] .paint-dim {
   fill: rgba(14, 9, 16, 0.18);
 }

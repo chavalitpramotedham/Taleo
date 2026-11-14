@@ -57,7 +57,19 @@ export function PaintDefs() {
           <feComposite in="wob" in2="inner" operator="out" result="edge" />
           <feGaussianBlur in="edge" stdDeviation="0.8" result="edgeS" />
           <feColorMatrix in="edgeS" type="matrix" values="0.72 0 0 0 0  0 0.68 0 0 0  0 0 0.64 0 0  0 0 0 0.45 0" result="edgeD" />
+          {/* The paper reserve: a watercolourist keeps the white of the paper
+              where a figure will go, so the washes behind never show through
+              it. Every solid shape (not the see-through glazes and shadows)
+              lays a patch of clean paper, just inside its own wobbling edge,
+              under its pigment. */}
+          <feComponentTransfer in="wob" result="solid">
+            <feFuncA type="discrete" tableValues="0 0 0 0 0 0 0 0 0 1" />
+          </feComponentTransfer>
+          <feMorphology in="solid" operator="erode" radius="0.8" result="solidIn" />
+          <feFlood style={{ floodColor: "var(--paint-reserve, #FBF7EE)" }} result="paper" />
+          <feComposite in="paper" in2="solidIn" operator="in" result="reserve" />
           <feMerge>
+            <feMergeNode in="reserve" />
             <feMergeNode in="pig2" />
             <feMergeNode in="shade" />
             <feMergeNode in="light" />

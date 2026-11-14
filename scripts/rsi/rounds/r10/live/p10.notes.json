@@ -1,0 +1,58 @@
+{
+ "portraits": "the Sea-Larks painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "bird": 3,
+   "boulder": 1,
+   "sparkles": 2,
+   "tuft": 2
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "larks",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: larks resized from 0.90 to 1.20, true to the others",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"larks\"/>\n<stamp k=\"boulder\" x=\"300\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<fig c=\"larks\" v=\"three\" x=\"300\" y=\"215\" s=\"0.9\" flip=\"1\" lean=\"-8\" tilt=\"-8\" arms=\"reach,down\" legs=\"stand\" mood=\"laugh\" look=\"left\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"160\" y=\"300\" s=\"1.5\" lean=\"0\" tilt=\"6\" arms=\"up,up\" legs=\"stand\" mood=\"excited\" look=\"up\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<path d=\"M200 70 Q226 52 252 38 Q236 62 214 92 Q204 88 200 70 Z\" fill=\"#6F8FAF\"/>\n<path d=\"M205 76 Q226 60 246 44 Q232 66 214 86 Z\" fill=\"#9DB6D0\"/>\n<path d=\"M252 38 Q244 56 232 70 Q240 52 252 38 Z\" fill=\"#B8CCE0\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M198 94 Q222 66 252 38\" fill=\"none\" stroke=\"#3E5B7A\" stroke-width=\"2\"/>\n<path d=\"M214 78 L206 74 M222 68 L214 62 M230 60 L224 52 M238 52 L234 44\" stroke=\"#3E5B7A\" stroke-width=\"1\"/>\n<path d=\"M214 78 L222 82 M224 68 L232 72 M234 58 L240 62\" stroke=\"#3E5B7A\" stroke-width=\"1\"/>\n</g>\n</g>\n<stamp k=\"sparkles\" x=\"232\" y=\"62\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"268\" y=\"48\" s=\"0.7\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"318\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"205\" y=\"322\" s=\"1.2\"/>",
+   "laid": "<who c=\"larks\"/>\n<stamp k=\"boulder\" x=\"300\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<fig c=\"larks\" v=\"three\" x=\"304\" y=\"215\" s=\"1.20\" flip=\"1\" lean=\"-8\" tilt=\"-8\" arms=\"reach,down\" legs=\"stand\" mood=\"laugh\" look=\"left\" laid=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"156\" y=\"300\" s=\"1.5\" lean=\"0\" tilt=\"6\" arms=\"up,up\" legs=\"stand\" mood=\"excited\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<path d=\"M200 70 Q226 52 252 38 Q236 62 214 92 Q204 88 200 70 Z\" fill=\"#6F8FAF\"/>\n<path d=\"M205 76 Q226 60 246 44 Q232 66 214 86 Z\" fill=\"#9DB6D0\"/>\n<path d=\"M252 38 Q244 56 232 70 Q240 52 252 38 Z\" fill=\"#B8CCE0\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M198 94 Q222 66 252 38\" fill=\"none\" stroke=\"#3E5B7A\" stroke-width=\"2\"/>\n<path d=\"M214 78 L206 74 M222 68 L214 62 M230 60 L224 52 M238 52 L234 44\" stroke=\"#3E5B7A\" stroke-width=\"1\"/>\n<path d=\"M214 78 L222 82 M224 68 L232 72 M234 58 L240 62\" stroke=\"#3E5B7A\" stroke-width=\"1\"/>\n</g>\n</g>\n<stamp k=\"sparkles\" x=\"232\" y=\"62\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"268\" y=\"48\" s=\"0.7\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"318\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"205\" y=\"322\" s=\"1.2\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "larks"
+  ],
+  "full": [],
+  "readyMs": 20
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1493,
+   "firstStrokeMs": 1493,
+   "out": 649,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
