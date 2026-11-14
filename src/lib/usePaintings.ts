@@ -4,6 +4,9 @@ import type { Story } from "./types";
 import { castFor, pageKey } from "./story-utils";
 import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
 
+/** How many shapes a picture's markup holds so far. */
+const countShapes = (svg: string) => (svg.match(/<(path|rect|circle|ellipse|polygon|polyline|line)\b/g) || []).length;
+
 // Every page is asked for the moment its words exist: no picture waits for
 // another to finish. A part has five pages at most, so ten covers a whole
 // new part even while the last one's paintings (or a page having its second
@@ -81,6 +84,10 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
       const prev = idx > 0 ? s.segments[seg].pages[idx - 1] : s.segments[seg - 1]?.pages.slice(-1)[0];
       let text = "";
       let last = 0;
+      // (after painting starts over: what was on show, kept until caught up)
+      let lastShown = "";
+      let shownShapes = 0;
+      let restarted = false;
       let refused = false;
       try {
         heard();
@@ -129,11 +136,21 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           // (painted from reused pieces, it went wrong part-way: it starts
           // again, painted the ordinary way - what came before is dropped)
           const again = text.lastIndexOf(RESTART);
-          if (again >= 0) text = text.slice(again + RESTART.length);
+          if (again >= 0) {
+            text = text.slice(again + RESTART.length);
+            // (what's on show stays until the fresh start has caught up
+            // with it, rather than the page going blank)
+            shownShapes = Math.max(shownShapes, countShapes(lastShown));
+            restarted = true;
+          }
           const now = performance.now();
           if (now - last > 250 && focusRef.current === key) {
+            const markup = extractSvgMarkup(text);
+            if (restarted && countShapes(markup) < shownShapes) continue;
+            restarted = false;
+            lastShown = markup;
             last = now;
-            setLive((l) => ({ ...l, [key]: extractSvgMarkup(text) }));
+            setLive((l) => ({ ...l, [key]: markup }));
           }
         }
         const svg = sanitizeSvg(extractSvgMarkup(text.replace(DONE, "")));

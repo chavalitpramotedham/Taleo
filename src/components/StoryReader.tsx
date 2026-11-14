@@ -890,6 +890,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const artHeld = pendingNext || Boolean(outgoing && artKey && outgoing.art !== artKey);
   let picture: React.ReactNode;
   let readyKey: string | null = null;
+  let liveKey: string | null = null;
   if (artHeld) {
     picture = (
       <div className="picture-wait canvas-wait" aria-hidden>
@@ -912,6 +913,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     // (a whole picture to show: the page waits for it to be drawn; one
     // still being painted shows at once, stroke by stroke)
     if ((done || fallback) && !partial) readyKey = key;
+    // (a page seen while it's painted is already showing: when it's
+    // finished it stays shown, never hidden to be drawn unseen again)
+    if (partial && !done) liveKey = key;
     // What's under the brush, said in a few words while the page is
     // painted (as the homepage's picture does): read from the picture as
     // it arrives - which layer, and whether it's the page's own character
@@ -1232,7 +1236,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           <div key={`words-${artKey ?? index}`} className={`page-words ${artHeld || (readyKey && revealed !== readyKey) ? "held" : "in"}`}>
             {words}
           </div>
-          <RevealWhenDrawn k={readyKey} shown={revealed === readyKey} onDrawn={setRevealed} />
+          <RevealWhenDrawn k={readyKey ?? liveKey} shown={revealed === (readyKey ?? liveKey)} onDrawn={setRevealed} now={Boolean(liveKey)} />
         </div>
         {outgoing && (
           <>
@@ -1397,9 +1401,11 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 /** Says when a page's picture has been drawn: two frames after it is put
  *  on the page (the first frame draws it, unseen), so the page can fade in
  *  whole rather than its picture popping in after its words. */
-function RevealWhenDrawn({ k, shown, onDrawn }: { k: string | null; shown: boolean; onDrawn: (k: string) => void }) {
+function RevealWhenDrawn({ k, shown, onDrawn, now }: { k: string | null; shown: boolean; onDrawn: (k: string) => void; now?: boolean }) {
   useEffect(() => {
     if (!k || shown) return;
+    // (a picture being painted is on show already: just noted as shown)
+    if (now) return onDrawn(k);
     let b = 0;
     const a = requestAnimationFrame(() => (b = requestAnimationFrame(() => onDrawn(k))));
     // (a hidden tab draws no frames: never leave the page held)
@@ -1409,7 +1415,7 @@ function RevealWhenDrawn({ k, shown, onDrawn }: { k: string | null; shown: boole
       cancelAnimationFrame(b);
       window.clearTimeout(safety);
     };
-  }, [k, shown, onDrawn]);
+  }, [k, shown, onDrawn, now]);
   return null;
 }
 

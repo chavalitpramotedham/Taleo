@@ -79,8 +79,26 @@ function paintOnto(host: SVGGElement, clean: string, fade: boolean) {
   // (finished: one look over the whole picture, in case it isn't what
   // was streamed)
   if (!fade && next.innerHTML === host.innerHTML) return;
-  if (!grow(host, next, fade && !calm)) host.replaceChildren(...Array.from(next.childNodes));
+  if (!grow(host, next, fade && !calm)) settle(host, next, !calm);
 }
+
+/** The picture differs from what's shown (the finished one isn't quite
+ *  what was streamed, or painting started over): what matches stays as it
+ *  is, and only what's different is swapped - fading in, never popping. */
+function settle(host: SVGGElement, next: Element, fade: boolean) {
+  const have = Array.from(host.children);
+  const want = Array.from(next.children);
+  let same = 0;
+  while (same < have.length && same < want.length && have[same].outerHTML === want[same].outerHTML) same++;
+  for (const el of have.slice(same)) el.remove();
+  for (const el of want.slice(same)) {
+    host.appendChild(el);
+    if (fade) el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, easing: "ease-out" });
+  }
+}
+
+/** How long a newly painted shape takes to fade in. */
+const FADE_MS = 750;
 
 /** Adds what `next` has beyond `old`, looking only down the last branch
  *  (the one still open while painting): a few nodes per chunk, however
@@ -100,7 +118,7 @@ function grow(old: Element, next: Element, fade: boolean): boolean {
   }
   for (const el of want.slice(have.length)) {
     old.appendChild(el);
-    if (fade) el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 480, easing: "ease-out" });
+    if (fade) el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, easing: "ease-out" });
   }
   return true;
 }
