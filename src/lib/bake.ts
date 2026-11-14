@@ -28,24 +28,27 @@ const H0 = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 /** Pixels across to draw a painting at, for one shown `cssWidth` across:
- *  sharp enough for the screen (a soft watercolour needs less than the
- *  screen's full density), rounded so the same picture at nearly the same
- *  size is drawn once. */
+ *  sharp on the screen it's on - up to 2.5 pixels a point, which on a 3x
+ *  iPhone reads as crisp as the painting itself (1.6, tried first, was
+ *  plainly soft) - rounded so the same picture at nearly the same size is
+ *  drawn once. */
 export function bakeWidth(cssWidth: number): number {
   const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-  const touch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
-  const slow = isLowPower();
-  const density = Math.min(dpr, slow ? 1.25 : touch ? 1.6 : 2);
-  const px = Math.max(240, Math.min(1400, (cssWidth || W0) * density));
+  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : 2.5);
+  const px = Math.max(240, Math.min(2200, (cssWidth || W0) * density));
   return Math.round(px / 40) * 40;
 }
 
 /** A phone or computer with little to spare (few cores, little memory, or
- *  asking to save data). */
+ *  asking to save data). Apple's browser doesn't say how many cores or how
+ *  much memory it has (an iPhone reports few cores), so it's never judged
+ *  by those. */
 export function isLowPower(): boolean {
   if (typeof navigator === "undefined") return false;
   const n = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-  return (n.hardwareConcurrency ?? 8) <= 4 || (n.deviceMemory ?? 8) <= 3 || Boolean(n.connection?.saveData);
+  if (n.connection?.saveData) return true;
+  if (n.vendor === "Apple Computer, Inc.") return false;
+  return (n.hardwareConcurrency ?? 8) <= 4 || (n.deviceMemory ?? 8) <= 3;
 }
 
 // ------------------------------------------------------------------ cache
