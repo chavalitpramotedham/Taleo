@@ -1,0 +1,53 @@
+{
+ "portraits": "the Crumb Mice painted from their portrait in this book",
+ "reuse": {
+  "stamps": 0,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {},
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "mice",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.88 to 1.09, true to the others",
+   "layout: mice resized from 0.72 to 1.09, true to the others",
+   "layout: companion1 and mice overlapped: eased apart",
+   "layout: spaced once more, finally",
+   "no parts for \"mice\": placed from its poses"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"215\" y=\"244\" s=\"0.88\" lean=\"0\" tilt=\"-8\" arms=\"hip,point\" legs=\"stand\" mood=\"worried\" look=\"left\"/>\n<g class=\"paint\"><ellipse cx=\"305\" cy=\"196\" rx=\"20\" ry=\"52\" fill=\"#E8C766\"/></g>\n<who c=\"mice\"/>\n<g class=\"target\"><fig c=\"mice\" v=\"three\" x=\"275\" y=\"250\" s=\"0.72\" flip=\"1\" arms=\"shrug,point\" legs=\"stand\" mood=\"shy\" look=\"left\"/></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"130\" y=\"262\" s=\"0.81\" lean=\"4\" tilt=\"8\" arms=\"hip,down\" legs=\"crouch\" mood=\"calm\" look=\"right\"/>\n<g class=\"paint\"><ellipse cx=\"368\" cy=\"250\" rx=\"30\" ry=\"16\" fill=\"#C9A27A\"/><ellipse cx=\"358\" cy=\"236\" rx=\"8\" ry=\"7\" fill=\"#E8D5BC\"/><ellipse cx=\"374\" cy=\"234\" rx=\"8\" ry=\"7\" fill=\"#E8D5BC\"/></g>\n<g class=\"ink\"><path d=\"M338 250 Q368 262 396 250\" fill=\"none\" stroke=\"#6B4A2E\" stroke-width=\"2\"/><path d=\"M110 266 l-6 -8 M150 268 l5 -8 M250 252 l-5 -7\"/></g>",
+   "laid": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"213\" y=\"247\" s=\"1.09\" lean=\"0\" tilt=\"-8\" arms=\"hip,point\" legs=\"stand\" mood=\"worried\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"305\" cy=\"196\" rx=\"20\" ry=\"52\" fill=\"#E8C766\"/></g>\n<who c=\"mice\"/>\n<g class=\"target\"><fig c=\"mice\" v=\"three\" x=\"299\" y=\"247\" s=\"1.09\" flip=\"1\" arms=\"shrug,point\" legs=\"stand\" mood=\"shy\" look=\"left\" laid=\"1\"/></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"108\" y=\"262\" s=\"0.81\" lean=\"4\" tilt=\"8\" arms=\"hip,down\" legs=\"crouch\" mood=\"calm\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"368\" cy=\"250\" rx=\"30\" ry=\"16\" fill=\"#C9A27A\"/><ellipse cx=\"358\" cy=\"236\" rx=\"8\" ry=\"7\" fill=\"#E8D5BC\"/><ellipse cx=\"374\" cy=\"234\" rx=\"8\" ry=\"7\" fill=\"#E8D5BC\"/></g>\n<g class=\"ink\"><path d=\"M338 250 Q368 262 396 250\" fill=\"none\" stroke=\"#6B4A2E\" stroke-width=\"2\"/><path d=\"M110 266 l-6 -8 M150 268 l5 -8 M250 252 l-5 -7\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "mice"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

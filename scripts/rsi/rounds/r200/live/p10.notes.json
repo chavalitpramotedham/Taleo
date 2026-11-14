@@ -1,0 +1,59 @@
+{
+ "portraits": "Brom painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "hold:lantern": 1,
+   "sparkles": 2,
+   "lantern": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "brom"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn once each: a second hero, brom left out",
+   "layout: brom resized from 1.70 to 1.66, true to the others",
+   "layout: hero and brom overlapped: eased apart",
+   "layout: brom marked as the tap target",
+   "layout: hero drawn behind brom, the main action's target"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"brom\" v=\"three\" x=\"245\" y=\"300\" s=\"1.7\" flip=\"1\" lean=\"0\" tilt=\"-6\" arms=\"hug,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<fig c=\"hero\" v=\"three\" x=\"140\" y=\"300\" s=\"1.3\" lean=\"-4\" tilt=\"-12\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"right\" hold=\"lantern\"/>\n<stamp k=\"sparkles\" x=\"190\" y=\"170\" s=\"1.2\"/>\n\nWait, the output must be tags only and the target wrapper is required; here is the final version:\n\n<g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"250\" y=\"310\" s=\"1.7\" flip=\"1\" lean=\"0\" tilt=\"-6\" arms=\"hold,hold\" legs=\"sit\" mood=\"happy\" look=\"left\"/></g>\n<fig c=\"hero\" v=\"three\" x=\"135\" y=\"310\" s=\"1.35\" lean=\"-4\" tilt=\"-12\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"right\" hold=\"lantern\"/>\n<stamp k=\"lantern\" x=\"178\" y=\"205\" s=\"1.4\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"160\" s=\"1.2\"/>",
+   "laid": "<fig c=\"hero\" v=\"three\" x=\"131\" y=\"300\" s=\"1.3\" lean=\"-4\" tilt=\"-12\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/><g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"254\" y=\"300\" s=\"1.66\" flip=\"1\" lean=\"0\" tilt=\"-6\" arms=\"hug,down\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>\n\n<stamp k=\"sparkles\" x=\"190\" y=\"170\" s=\"1.2\"/>\n\nWait, the output must be tags only and the target wrapper is required; here is the final version:\n\n\n\n<stamp k=\"lantern\" x=\"178\" y=\"205\" s=\"1.4\"/>\n<stamp k=\"sparkles\" x=\"200\" y=\"160\" s=\"1.2\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "brom"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1776,
+   "firstStrokeMs": 1776,
+   "out": 409,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

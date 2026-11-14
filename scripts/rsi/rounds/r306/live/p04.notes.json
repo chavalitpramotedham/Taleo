@@ -1,0 +1,55 @@
+{
+ "portraits": "Duchess painted from their portrait in this book",
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "zzz": 1,
+   "dust": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "duchess",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: duchess resized from 1.60 to 1.38, true to the others",
+   "layout: companion1 resized from 0.55 to 0.68, true to the others",
+   "layout: companion1 made smaller (0.68 to 0.31) beside the giant",
+   "layout: hero made smaller (0.50 to 0.24) beside the giant"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"duchess\" v=\"front\" x=\"285\" y=\"252\" s=\"1.6\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n<stamp k=\"zzz\" x=\"250\" y=\"95\" s=\"1.2\"/>\n<fig c=\"companion1\" v=\"three\" x=\"100\" y=\"246\" s=\"0.55\" lean=\"6\" tilt=\"0\" arms=\"hold,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"170\" y=\"248\" s=\"0.5\" lean=\"6\" tilt=\"-6\" arms=\"cover,reach\" legs=\"tiptoe\" mood=\"excited\" look=\"right\"/></g>\n<stamp k=\"dust\" x=\"140\" y=\"246\" s=\"0.5\"/>",
+   "laid": "<fig c=\"duchess\" v=\"front\" x=\"285\" y=\"252\" s=\"1.38\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\" laid=\"1\"/>\n<stamp k=\"zzz\" x=\"250\" y=\"95\" s=\"1.2\"/>\n<fig c=\"companion1\" v=\"three\" x=\"100\" y=\"247\" s=\"0.31\" lean=\"6\" tilt=\"0\" arms=\"hold,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"170\" y=\"247\" s=\"0.24\" lean=\"6\" tilt=\"-6\" arms=\"cover,reach\" legs=\"tiptoe\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"dust\" x=\"140\" y=\"246\" s=\"0.5\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "duchess"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,61 @@
+{
+ "portraits": "the Pinch Twins painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "boat": 1,
+   "splash": 2,
+   "sparkles": 1,
+   "hull": 1,
+   "cloud": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "crabs",
+   "companion1"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: crabs resized from 0.42 to 0.30, true to the others",
+   "layout: companion1 resized from 0.45 to 0.30, true to the others",
+   "layout: drawn back to front: hero, crabs, companion1",
+   "layout: hero, crabs, companion1 put in the boat",
+   "no parts for \"crabs\": placed from its poses"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"200\" y=\"248\" s=\"1.5\"/>\n<fig c=\"crabs\" v=\"front\" x=\"262\" y=\"236\" s=\"0.42\" flip=\"1\" arms=\"wave,down\" legs=\"sit\" mood=\"excited\" look=\"down\"/>\n<fig c=\"companion1\" v=\"three\" x=\"140\" y=\"236\" s=\"0.45\" lean=\"6\" arms=\"point,down\" legs=\"stand\" mood=\"surprised\" look=\"down\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"200\" y=\"240\" s=\"0.51\" lean=\"-14\" arms=\"reach,reach\" legs=\"sit\" mood=\"determined\" look=\"ahead\"/></g>\n<stamp k=\"hull\" x=\"200\" y=\"248\" s=\"1.5\"/>\n<stamp k=\"splash\" x=\"125\" y=\"252\" s=\"0.5\"/>\n<stamp k=\"splash\" x=\"285\" y=\"252\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"145\" y=\"205\" s=\"0.8\"/>",
+   "laid": "\n<stamp k=\"boat\" x=\"200\" y=\"248\" s=\"1.5\" near=\"1\"/><g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"200\" y=\"223\" s=\"0.51\" lean=\"-14\" arms=\"reach,reach\" legs=\"sit\" mood=\"determined\" look=\"ahead\" flip=\"0\" ride=\"1\" laid=\"1\"/></g>\n\n<stamp k=\"splash\" x=\"125\" y=\"252\" s=\"0.5\"/>\n<stamp k=\"splash\" x=\"285\" y=\"252\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"145\" y=\"205\" s=\"0.8\"/>\n<fig c=\"crabs\" v=\"front\" x=\"262\" y=\"228\" s=\"0.30\" flip=\"1\" arms=\"wave,down\" legs=\"sit\" mood=\"excited\" look=\"down\" ride=\"1\" laid=\"1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"140\" y=\"245\" s=\"0.30\" lean=\"6\" arms=\"point,down\" legs=\"stand\" mood=\"surprised\" look=\"down\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"200\" y=\"248\" s=\"1.5\" near=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "crabs"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,59 @@
+{
+ "portraits": "the Cloud Queen painted from their portrait in this book",
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "sparkles": 2,
+   "notes": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "queen",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"queen\"/>\n<fig c=\"queen\" v=\"front\" x=\"150\" y=\"300\" s=\"1.5\" flip=\"0\" lean=\"8\" tilt=\"-8\" arms=\"reach,down\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"target\"><who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"300\" y=\"320\" s=\"1.5\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"up\"/></g>\n<g class=\"paint\"><circle cx=\"258\" cy=\"236\" r=\"17\" fill=\"#C9CED3\"/><rect x=\"246\" y=\"228\" width=\"24\" height=\"5\" fill=\"#E4E8EC\"/><rect x=\"266\" y=\"232\" width=\"12\" height=\"4\" fill=\"#C9CED3\"/><circle cx=\"280\" cy=\"234\" r=\"4\" fill=\"#C9CED3\"/></g>\n<g class=\"ink\"><circle cx=\"258\" cy=\"236\" r=\"17\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"2\"/><circle cx=\"258\" cy=\"236\" r=\"8\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"1.5\"/><path d=\"M266 232 L278 236\" stroke=\"#6B7178\" stroke-width=\"2\"/><circle cx=\"280\" cy=\"234\" r=\"4\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"1.5\"/></g>\n<stamp k=\"sparkles\" x=\"190\" y=\"90\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"258\" y=\"205\" s=\"0.8\"/>\n<stamp k=\"notes\" x=\"235\" y=\"170\" s=\"0.8\"/>",
+   "laid": "<who c=\"queen\"/>\n<fig c=\"queen\" v=\"front\" x=\"141\" y=\"300\" s=\"1.5\" flip=\"0\" lean=\"8\" tilt=\"-8\" arms=\"reach,down\" legs=\"stand\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<g class=\"target\"><who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"306\" y=\"320\" s=\"1.5\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"up\" laid=\"1\"/></g>\n<g class=\"paint\"><circle cx=\"258\" cy=\"236\" r=\"17\" fill=\"#C9CED3\"/><rect x=\"246\" y=\"228\" width=\"24\" height=\"5\" fill=\"#E4E8EC\"/><rect x=\"266\" y=\"232\" width=\"12\" height=\"4\" fill=\"#C9CED3\"/><circle cx=\"280\" cy=\"234\" r=\"4\" fill=\"#C9CED3\"/></g>\n<g class=\"ink\"><circle cx=\"258\" cy=\"236\" r=\"17\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"2\"/><circle cx=\"258\" cy=\"236\" r=\"8\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"1.5\"/><path d=\"M266 232 L278 236\" stroke=\"#6B7178\" stroke-width=\"2\"/><circle cx=\"280\" cy=\"234\" r=\"4\" fill=\"none\" stroke=\"#6B7178\" stroke-width=\"1.5\"/></g>\n<stamp k=\"sparkles\" x=\"190\" y=\"90\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"258\" y=\"205\" s=\"0.8\"/>\n<stamp k=\"notes\" x=\"235\" y=\"170\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "queen"
+  ],
+  "full": [],
+  "readyMs": 15
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1628,
+   "firstStrokeMs": 1628,
+   "out": 549,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

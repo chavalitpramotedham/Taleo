@@ -1,0 +1,53 @@
+{
+ "reuse": {
+  "stamps": 7,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "sparkles": 2,
+   "dust": 3,
+   "tuft": 2,
+   "hold:lantern": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 1.10 to 1.15, true to the others",
+   "layout: drawn back to front: companion1, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"hero\" v=\"front\" x=\"170\" y=\"246\" s=\"0.8\" lean=\"-4\" tilt=\"-12\" arms=\"up,reach\" legs=\"sit\" mood=\"laugh\" look=\"right\" hold=\"lantern\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"268\" y=\"236\" s=\"1.1\" lean=\"-20\" tilt=\"15\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"left\"/></g>\n<stamp k=\"sparkles\" x=\"170\" y=\"120\" s=\"1\"/>\n<stamp k=\"dust\" x=\"120\" y=\"236\" s=\"1\"/>\n<stamp k=\"dust\" x=\"215\" y=\"242\" s=\"0.9\"/>\n<stamp k=\"dust\" x=\"320\" y=\"238\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"270\" y=\"95\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"300\" y=\"252\" s=\"1\"/>",
+   "laid": "<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"273\" y=\"236\" s=\"1.15\" lean=\"-20\" tilt=\"15\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"170\" y=\"120\" s=\"1\"/>\n<stamp k=\"dust\" x=\"120\" y=\"236\" s=\"1\"/>\n<stamp k=\"dust\" x=\"215\" y=\"242\" s=\"0.9\"/>\n<stamp k=\"dust\" x=\"320\" y=\"238\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"270\" y=\"95\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"300\" y=\"252\" s=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"165\" y=\"246\" s=\"0.8\" lean=\"-4\" tilt=\"-12\" arms=\"up,reach\" legs=\"sit\" mood=\"laugh\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

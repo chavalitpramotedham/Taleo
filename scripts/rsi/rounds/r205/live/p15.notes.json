@@ -1,0 +1,69 @@
+{
+ "portraits": "Brom, the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "scatter:snow": 1,
+   "motion": 1,
+   "sparkles": 2,
+   "dust": 1
+  },
+  "figs": 4,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "brom",
+   "companion1",
+   "hero",
+   "hares"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: brom resized from 0.75 to 1.21, true to the others",
+   "layout: companion1 resized from 0.70 to 1.01, true to the others",
+   "layout: companion1 made smaller (1.01 to 0.45) beside the giant",
+   "layout: hero made smaller (0.70 to 0.32) beside the giant",
+   "layout: brom turned towards the main action",
+   "layout: spaced once more, finally",
+   "hares overlapped another character: eased to x 144",
+   "\"hares\" wasn't placed: placed in code"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"110\" cy=\"244\" rx=\"60\" ry=\"5\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"85\" cy=\"232\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"87\" cy=\"214\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"83\" cy=\"201\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"91\" cy=\"201\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M80 210 Q87 202 94 210 L93 214 Q87 209 81 214Z\" fill=\"#B2443A\"/><ellipse cx=\"135\" cy=\"205\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"137\" cy=\"187\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"133\" cy=\"174\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"141\" cy=\"174\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M130 183 Q137 175 144 183 L143 187 Q137 182 131 187Z\" fill=\"#6F8FAF\"/><ellipse cx=\"170\" cy=\"234\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"172\" cy=\"216\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"168\" cy=\"203\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"176\" cy=\"203\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M165 212 Q172 204 179 212 L178 216 Q172 211 166 216Z\" fill=\"#D3A24F\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\"><circle cx=\"87\" cy=\"214\" r=\"8\"/><circle cx=\"137\" cy=\"187\" r=\"8\"/><circle cx=\"172\" cy=\"216\" r=\"8\"/><ellipse cx=\"85\" cy=\"232\" rx=\"9\" ry=\"12\"/><ellipse cx=\"135\" cy=\"205\" rx=\"9\" ry=\"12\"/><ellipse cx=\"170\" cy=\"234\" rx=\"9\" ry=\"12\"/></g>\n<g class=\"detail\"><circle cx=\"90\" cy=\"213\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"140\" cy=\"186\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"175\" cy=\"215\" r=\"1.4\" fill=\"#2A2426\"/></g>\n<stamp k=\"motion\" x=\"135\" y=\"228\" s=\"0.6\"/>\n<who c=\"brom\"/>\n<fig c=\"brom\" v=\"three\" x=\"330\" y=\"246\" s=\"0.75\" lean=\"-8\" tilt=\"-15\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"up\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"235\" y=\"248\" s=\"0.7\" lean=\"6\" arms=\"reach,down\" legs=\"walk\" mood=\"laugh\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"195\" y=\"238\" s=\"0.7\" flip=\"1\" lean=\"-8\" tilt=\"-8\" arms=\"reach,wave\" legs=\"jump\" mood=\"laugh\"/></g>\n<stamp k=\"sparkles\" x=\"215\" y=\"120\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"90\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"230\" y=\"248\" s=\"0.6\"/>",
+   "laid": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"110\" cy=\"244\" rx=\"60\" ry=\"5\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"85\" cy=\"232\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"87\" cy=\"214\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"83\" cy=\"201\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"91\" cy=\"201\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M80 210 Q87 202 94 210 L93 214 Q87 209 81 214Z\" fill=\"#B2443A\"/><ellipse cx=\"135\" cy=\"205\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"137\" cy=\"187\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"133\" cy=\"174\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"141\" cy=\"174\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M130 183 Q137 175 144 183 L143 187 Q137 182 131 187Z\" fill=\"#6F8FAF\"/><ellipse cx=\"170\" cy=\"234\" rx=\"9\" ry=\"12\" fill=\"#F6F4F8\"/><circle cx=\"172\" cy=\"216\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"168\" cy=\"203\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"176\" cy=\"203\" rx=\"2.5\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M165 212 Q172 204 179 212 L178 216 Q172 211 166 216Z\" fill=\"#D3A24F\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\"><circle cx=\"87\" cy=\"214\" r=\"8\"/><circle cx=\"137\" cy=\"187\" r=\"8\"/><circle cx=\"172\" cy=\"216\" r=\"8\"/><ellipse cx=\"85\" cy=\"232\" rx=\"9\" ry=\"12\"/><ellipse cx=\"135\" cy=\"205\" rx=\"9\" ry=\"12\"/><ellipse cx=\"170\" cy=\"234\" rx=\"9\" ry=\"12\"/></g>\n<g class=\"detail\"><circle cx=\"90\" cy=\"213\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"140\" cy=\"186\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"175\" cy=\"215\" r=\"1.4\" fill=\"#2A2426\"/></g>\n<stamp k=\"motion\" x=\"135\" y=\"228\" s=\"0.6\"/>\n<who c=\"brom\"/>\n<fig c=\"brom\" v=\"three\" x=\"314\" y=\"244\" s=\"1.21\" lean=\"-8\" tilt=\"-15\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"up\" flip=\"1\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"220\" y=\"244\" s=\"0.45\" lean=\"6\" arms=\"reach,down\" legs=\"walk\" mood=\"laugh\" flip=\"0\" laid=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"178\" y=\"244\" s=\"0.32\" flip=\"1\" lean=\"-8\" tilt=\"-8\" arms=\"reach,wave\" legs=\"jump\" mood=\"laugh\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"215\" y=\"120\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"90\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"230\" y=\"248\" s=\"0.6\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "brom",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 18
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1742,
+   "firstStrokeMs": 1742,
+   "out": 1243,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

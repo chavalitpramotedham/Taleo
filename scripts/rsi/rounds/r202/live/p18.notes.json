@@ -1,0 +1,59 @@
+{
+ "reuse": {
+  "stamps": 8,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "window": 1,
+   "bed": 1,
+   "rug": 1,
+   "lamp": 1,
+   "lantern": 1,
+   "sparkles": 1,
+   "zzz": 2
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: hero in bed, as the brief says",
+   "layout: hero tucked into the bed",
+   "layout: companion1 resized from 0.75 to 1.19, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: drawn back to front: window, hero, rug, something drawn, companion1",
+   "layout: companion1 drawn behind hero, the main action's target"
+  ],
+  "composed": {
+   "wrote": "<g class=\"paint\"><ellipse cx=\"200\" cy=\"246\" rx=\"60\" ry=\"6\" fill=\"#2b2a4a\" opacity=\"0.3\"/></g>\n<stamp k=\"rug\" x=\"205\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"window\" x=\"120\" y=\"150\" s=\"1\"/>\n<stamp k=\"lamp\" x=\"300\" y=\"215\" s=\"0.5\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"200\" y=\"222\" s=\"0.8\" lean=\"0\" tilt=\"10\" arms=\"down,hold\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/></g>\n<stamp k=\"bed\" x=\"200\" y=\"242\" s=\"1.5\" near=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"260\" y=\"256\" s=\"0.75\" lean=\"0\" tilt=\"10\" arms=\"hug,hug\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n<stamp k=\"lantern\" x=\"305\" y=\"205\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"305\" y=\"180\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"225\" y=\"110\" s=\"0.9\"/>\n<stamp k=\"zzz\" x=\"280\" y=\"170\" s=\"0.7\"/>\n<g class=\"ink\"><path d=\"M150 252 q10 4 20 0 M230 254 q10 4 20 0\" stroke=\"#5a3a2a\" fill=\"none\" stroke-width=\"2\"/></g>",
+   "laid": "<stamp k=\"window\" x=\"120\" y=\"150\" s=\"1\"/><fig c=\"companion1\" v=\"front\" x=\"280\" y=\"256\" s=\"1.19\" lean=\"0\" tilt=\"10\" arms=\"hug,hug\" legs=\"sit\" mood=\"sleepy\" look=\"down\" flip=\"0\" laid=\"1\"/><g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"195\" y=\"226\" s=\"0.8\" lean=\"0\" tilt=\"10\" arms=\"down,hold\" legs=\"sit\" mood=\"sleepy\" look=\"down\" bed=\"1\" flip=\"0\" laid=\"1\"/><stamp k=\"bed\" x=\"200\" y=\"242\" s=\"1.5\" near=\"1\"/></g>\n<stamp k=\"rug\" x=\"205\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"lamp\" x=\"300\" y=\"215\" s=\"0.5\"/>\n<who c=\"hero\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"246\" rx=\"60\" ry=\"6\" fill=\"#2b2a4a\" opacity=\"0.3\"/></g>\n\n\n<who c=\"companion1\"/>\n\n<stamp k=\"lantern\" x=\"305\" y=\"205\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"305\" y=\"180\" s=\"0.8\"/>\n<stamp k=\"zzz\" x=\"225\" y=\"110\" s=\"0.9\"/>\n<stamp k=\"zzz\" x=\"280\" y=\"170\" s=\"0.7\"/>\n<g class=\"ink\"><path d=\"M150 252 q10 4 20 0 M230 254 q10 4 20 0\" stroke=\"#5a3a2a\" fill=\"none\" stroke-width=\"2\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

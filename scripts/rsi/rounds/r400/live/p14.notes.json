@@ -1,0 +1,65 @@
+{
+ "portraits": "Ember painted from their portrait in this book",
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "sparkles": 3,
+   "notes": 3
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "ember",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: ember resized from 0.61 to 1.20, true to the others",
+   "layout: companion1 resized from 0.40 to 0.30, true to the others",
+   "layout: companion1 and ember overlapped: eased apart",
+   "layout: ember turned to face the others",
+   "layout: companion1 drawn behind ember, the main action's target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"ember\"/>\n<g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"215\" y=\"244\" s=\"0.61\" flip=\"0\" lean=\"-6\" tilt=\"-20\" arms=\"up,up\" legs=\"sit\" mood=\"happy\" look=\"up\"/></g>\n<stamp k=\"sparkles\" x=\"250\" y=\"90\" s=\"1.4\"/>\n<stamp k=\"notes\" x=\"190\" y=\"85\" s=\"1.4\"/>\n<stamp k=\"notes\" x=\"285\" y=\"100\" s=\"1.2\"/>\n<stamp k=\"sparkles\" x=\"160\" y=\"120\" s=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"100\" y=\"246\" s=\"0.51\" lean=\"0\" tilt=\"-6\" arms=\"up,hold\" legs=\"stand\" mood=\"happy\" look=\"up\"/>\n<g class=\"paint\"><circle cx=\"124\" cy=\"150\" r=\"9\" fill=\"#C9CED3\"/><rect x=\"118\" y=\"141\" width=\"12\" height=\"5\" fill=\"#C9CED3\"/><circle cx=\"124\" cy=\"150\" r=\"4\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><circle cx=\"124\" cy=\"150\" r=\"9\" fill=\"none\" stroke=\"#6b6f74\" stroke-width=\"1.5\"/><line x1=\"133\" y1=\"150\" x2=\"140\" y2=\"146\" stroke=\"#6b6f74\" stroke-width=\"2\"/></g>\n<stamp k=\"notes\" x=\"130\" y=\"125\" s=\"0.8\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"160\" y=\"250\" s=\"0.4\" lean=\"8\" tilt=\"8\" arms=\"up,up\" legs=\"kick\" mood=\"laugh\" look=\"up\"/>\n<stamp k=\"sparkles\" x=\"160\" y=\"170\" s=\"0.7\"/>",
+   "laid": "<who c=\"ember\"/>\n<fig c=\"companion1\" v=\"three\" x=\"151\" y=\"248\" s=\"0.30\" lean=\"8\" tilt=\"8\" arms=\"up,up\" legs=\"kick\" mood=\"laugh\" look=\"up\" flip=\"0\" laid=\"1\"/><g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"224\" y=\"244\" s=\"1.20\" flip=\"1\" lean=\"-6\" tilt=\"-20\" arms=\"up,up\" legs=\"sit\" mood=\"happy\" look=\"up\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"250\" y=\"90\" s=\"1.4\"/>\n<stamp k=\"notes\" x=\"190\" y=\"85\" s=\"1.4\"/>\n<stamp k=\"notes\" x=\"285\" y=\"100\" s=\"1.2\"/>\n<stamp k=\"sparkles\" x=\"160\" y=\"120\" s=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"100\" y=\"248\" s=\"0.51\" lean=\"0\" tilt=\"-6\" arms=\"up,hold\" legs=\"stand\" mood=\"happy\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><circle cx=\"124\" cy=\"150\" r=\"9\" fill=\"#C9CED3\"/><rect x=\"118\" y=\"141\" width=\"12\" height=\"5\" fill=\"#C9CED3\"/><circle cx=\"124\" cy=\"150\" r=\"4\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><circle cx=\"124\" cy=\"150\" r=\"9\" fill=\"none\" stroke=\"#6b6f74\" stroke-width=\"1.5\"/><line x1=\"133\" y1=\"150\" x2=\"140\" y2=\"146\" stroke=\"#6b6f74\" stroke-width=\"2\"/></g>\n<stamp k=\"notes\" x=\"130\" y=\"125\" s=\"0.8\"/>\n<who c=\"companion1\"/>\n\n<stamp k=\"sparkles\" x=\"160\" y=\"170\" s=\"0.7\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "ember"
+  ],
+  "full": [],
+  "readyMs": 15
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1462,
+   "firstStrokeMs": 1462,
+   "out": 593,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

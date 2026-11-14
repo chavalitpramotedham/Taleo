@@ -1,0 +1,58 @@
+{
+ "portraits": "Brom painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 3,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "stone": 1,
+   "lantern": 1,
+   "sparkles": 3,
+   "notes": 1,
+   "scatter:snow": 2,
+   "scatter:stars": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "brom",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: brom resized from 0.61 to 1.18, true to the others",
+   "layout: companion1 resized from 0.55 to 0.68, true to the others",
+   "layout: drawn back to front: brom, companion1, hero"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"stone\" x=\"200\" y=\"244\" s=\"1.6\" near=\"1\"/>\n<fig c=\"brom\" v=\"three\" x=\"310\" y=\"240\" s=\"0.61\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"up\"/>\n<fig c=\"hero\" v=\"front\" x=\"110\" y=\"242\" s=\"0.5\" lean=\"0\" tilt=\"-6\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"up\"/>\n<fig c=\"companion1\" v=\"front\" x=\"205\" y=\"244\" s=\"0.55\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"excited\" look=\"up\"/>\n<g class=\"target\"><stamp k=\"lantern\" x=\"200\" y=\"214\" s=\"1.3\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"195\" s=\"1.5\"/>\n<stamp k=\"sparkles\" x=\"110\" y=\"120\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"110\" s=\"1\"/>\n<stamp k=\"notes\" x=\"250\" y=\"150\" s=\"0.9\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>",
+   "laid": "<stamp k=\"stone\" x=\"200\" y=\"244\" s=\"1.6\" near=\"1\"/>\n<fig c=\"brom\" v=\"three\" x=\"310\" y=\"242\" s=\"1.18\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"up\" laid=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"205\" y=\"242\" s=\"0.68\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"excited\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\"><stamp k=\"lantern\" x=\"200\" y=\"214\" s=\"1.3\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"195\" s=\"1.5\"/>\n<stamp k=\"sparkles\" x=\"110\" y=\"120\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"110\" s=\"1\"/>\n<stamp k=\"notes\" x=\"250\" y=\"150\" s=\"0.9\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>\n<fig c=\"hero\" v=\"front\" x=\"110\" y=\"242\" s=\"0.5\" lean=\"0\" tilt=\"-6\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"up\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "brom"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,75 @@
+{
+ "portraits": "Captain Tusk, the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "bird": 3,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "motion": 1,
+   "lantern": 1,
+   "sparkles": 1,
+   "tuft": 1,
+   "dust": 1
+  },
+  "figs": 4,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "tusk",
+   "companion1",
+   "hero",
+   "hares"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: tusk resized from 0.50 to 0.84, true to the others",
+   "layout: companion1 resized from 0.50 to 0.63, true to the others",
+   "layout: hero made smaller (0.42 to 0.38) beside the giant",
+   "layout: companion1 made smaller (0.63 to 0.57) beside the giant",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: drawn back to front: something drawn, tusk, companion1, hero",
+   "layout: spaced once more, finally",
+   "layout: the lantern put behind companion1, off their face",
+   "hares overlapped another character: eased to x 132",
+   "\"hares\" wasn't placed: placed in code"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"108\" cy=\"240\" rx=\"40\" ry=\"4\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"86\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"86\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"83\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"89\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M80 218 Q86 211 92 218Z\" fill=\"#B2443A\"/><ellipse cx=\"108\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"108\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"105\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"111\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M102 218 Q108 211 114 218Z\" fill=\"#6F8FAF\"/><ellipse cx=\"130\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"130\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"127\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"133\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M124 218 Q130 211 136 218Z\" fill=\"#D3A24F\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\"><circle cx=\"86\" cy=\"221\" r=\"6\"/><circle cx=\"108\" cy=\"221\" r=\"6\"/><circle cx=\"130\" cy=\"221\" r=\"6\"/></g>\n<g class=\"detail\"><circle cx=\"88\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/><circle cx=\"110\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/><circle cx=\"132\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/></g>\n<path d=\"M70 244 L225 244 L235 252 L82 252Z\" fill=\"#8A5A3A\" stroke=\"#4F3A2A\" stroke-width=\"1.5\"/>\n<path d=\"M62 252 Q150 262 250 254\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"2\"/>\n<rect x=\"72\" y=\"236\" width=\"150\" height=\"10\" rx=\"3\" fill=\"#B07A4C\" stroke=\"#4F3A2A\" stroke-width=\"1.5\"/>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"300\" y=\"246\" s=\"0.5\" lean=\"18\" tilt=\"-5\" arms=\"reach,down\" legs=\"walk\" mood=\"happy\" look=\"right\"/></g>\n<path d=\"M285 175 Q240 200 225 240\" fill=\"none\" stroke=\"#6B4A2E\" stroke-width=\"2.5\"/>\n<stamp k=\"motion\" x=\"345\" y=\"215\" s=\"0.8\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"238\" s=\"0.42\" legs=\"sit\" arms=\"wave,down\" mood=\"laugh\" look=\"right\"/>\n<fig c=\"companion1\" v=\"three\" x=\"205\" y=\"238\" s=\"0.5\" legs=\"sit\" arms=\"up,down\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"lantern\" x=\"222\" y=\"175\" s=\"1.1\"/>\n<stamp k=\"sparkles\" x=\"222\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"60\" y=\"256\" s=\"1\"/>\n<stamp k=\"dust\" x=\"62\" y=\"248\" s=\"0.7\"/>",
+   "laid": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"108\" cy=\"240\" rx=\"40\" ry=\"4\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"86\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"86\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"83\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"89\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M80 218 Q86 211 92 218Z\" fill=\"#B2443A\"/><ellipse cx=\"108\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"108\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"105\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"111\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M102 218 Q108 211 114 218Z\" fill=\"#6F8FAF\"/><ellipse cx=\"130\" cy=\"233\" rx=\"7\" ry=\"9\" fill=\"#F6F4F8\"/><circle cx=\"130\" cy=\"221\" r=\"6\" fill=\"#F6F4F8\"/><ellipse cx=\"127\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><ellipse cx=\"133\" cy=\"211\" rx=\"2\" ry=\"7\" fill=\"#F6F4F8\"/><path d=\"M124 218 Q130 211 136 218Z\" fill=\"#D3A24F\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\"><circle cx=\"86\" cy=\"221\" r=\"6\"/><circle cx=\"108\" cy=\"221\" r=\"6\"/><circle cx=\"130\" cy=\"221\" r=\"6\"/></g>\n<g class=\"detail\"><circle cx=\"88\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/><circle cx=\"110\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/><circle cx=\"132\" cy=\"221\" r=\"1\" fill=\"#2A2426\"/></g>\n<path d=\"M70 244 L225 244 L235 252 L82 252Z\" fill=\"#8A5A3A\" stroke=\"#4F3A2A\" stroke-width=\"1.5\"/>\n<path d=\"M62 252 Q150 262 250 254\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"2\"/>\n<rect x=\"72\" y=\"236\" width=\"150\" height=\"10\" rx=\"3\" fill=\"#B07A4C\" stroke=\"#4F3A2A\" stroke-width=\"1.5\"/>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"300\" y=\"246\" s=\"0.84\" lean=\"18\" tilt=\"-5\" arms=\"reach,down\" legs=\"walk\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<path d=\"M285 175 Q240 200 225 240\" fill=\"none\" stroke=\"#6B4A2E\" stroke-width=\"2.5\"/>\n<stamp k=\"motion\" x=\"345\" y=\"215\" s=\"0.8\"/>\n<stamp k=\"lantern\" x=\"222\" y=\"175\" s=\"1.1\"/><fig c=\"companion1\" v=\"three\" x=\"214\" y=\"238\" s=\"0.57\" legs=\"sit\" arms=\"up,down\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n\n<stamp k=\"sparkles\" x=\"222\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"60\" y=\"256\" s=\"1\"/>\n<stamp k=\"dust\" x=\"62\" y=\"248\" s=\"0.7\"/>\n<fig c=\"hero\" v=\"three\" x=\"161\" y=\"238\" s=\"0.38\" legs=\"sit\" arms=\"wave,down\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "tusk",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 17
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1634,
+   "firstStrokeMs": 1634,
+   "out": 1295,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

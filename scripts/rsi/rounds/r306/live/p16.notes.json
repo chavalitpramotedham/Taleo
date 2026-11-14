@@ -1,0 +1,64 @@
+{
+ "portraits": "the Crumb Mice, Duchess painted from their portrait in this book",
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "notes": 1,
+   "sparkles": 1
+  },
+  "figs": 5,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "mice",
+   "tilly",
+   "duchess"
+  ],
+  "posed": 5,
+  "fixes": [
+   "layout: companion1 resized from 0.50 to 0.63, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: drawn back to front: something drawn, something drawn, something drawn, companion1, hero",
+   "layout: spaced once more, finally",
+   "\"mice\" wasn't placed: placed in code",
+   "tilly overlapped another character: eased to x 321",
+   "\"tilly\" wasn't placed: placed in code",
+   "duchess overlapped another character: eased to x 79",
+   "\"duchess\" wasn't placed: placed in code"
+  ],
+  "composed": {
+   "wrote": "<who c=\"duchess\"/>\n<g class=\"paint\"><ellipse cx=\"338\" cy=\"214\" rx=\"60\" ry=\"42\" fill=\"#A9A39A\"/><ellipse cx=\"338\" cy=\"222\" rx=\"44\" ry=\"28\" fill=\"#D8D4CC\"/><path d=\"M290 186 L296 160 L316 178Z\" fill=\"#A9A39A\"/><path d=\"M386 186 L380 160 L360 178Z\" fill=\"#A9A39A\"/><path d=\"M296 176 L299 168 L308 176Z\" fill=\"#E8A9A0\"/><path d=\"M380 176 L377 168 L368 176Z\" fill=\"#E8A9A0\"/><ellipse cx=\"338\" cy=\"226\" rx=\"9\" ry=\"6\" fill=\"#E8A9A0\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#5a4a3a\" stroke-width=\"1.3\" stroke-linecap=\"round\"><ellipse cx=\"338\" cy=\"214\" rx=\"60\" ry=\"42\"/><path d=\"M316 204 Q322 208 328 204 M348 204 Q354 208 360 204\"/><path d=\"M338 232 Q332 238 326 234 M338 232 Q344 238 350 234\"/><path d=\"M318 222 L298 218 M318 227 L298 229 M358 222 L378 218 M358 227 L378 229\"/></g>\n<g class=\"paint\"><ellipse cx=\"338\" cy=\"208\" rx=\"6\" ry=\"2\" fill=\"#3a2a1a\" opacity=\"0.5\"/></g>\n<stamp k=\"notes\" x=\"300\" y=\"150\" s=\"0.7\"/>\n<who c=\"tilly\"/>\n<g class=\"paint\"><ellipse cx=\"92\" cy=\"244\" rx=\"30\" ry=\"5\" fill=\"#6b5a40\" opacity=\"0.28\"/><ellipse cx=\"92\" cy=\"198\" rx=\"30\" ry=\"34\" fill=\"#F2EEE4\"/><path d=\"M64 190 Q44 176 52 160 Q58 156 56 168 Q58 180 68 186Z\" fill=\"#F2EEE4\"/><path d=\"M72 166 Q92 150 112 166Z\" fill=\"#F2EEE4\"/><circle cx=\"92\" cy=\"152\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"80\" cy=\"205\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"104\" cy=\"205\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"92\" cy=\"214\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"84\" cy=\"188\" r=\"2.5\" fill=\"#3a2a1a\"/><circle cx=\"100\" cy=\"188\" r=\"2.5\" fill=\"#3a2a1a\"/><ellipse cx=\"78\" cy=\"196\" rx=\"4\" ry=\"2.5\" fill=\"#E8A9A0\"/><ellipse cx=\"106\" cy=\"196\" rx=\"4\" ry=\"2.5\" fill=\"#E8A9A0\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\" stroke-linecap=\"round\"><ellipse cx=\"92\" cy=\"198\" rx=\"30\" ry=\"34\"/><path d=\"M64 190 Q44 176 52 160 Q58 156 56 168 Q58 180 68 186\"/><path d=\"M72 166 Q92 150 112 166Z\"/><path d=\"M88 198 Q92 202 96 198\"/><path d=\"M120 196 Q134 198 138 210\"/><path d=\"M82 232 L80 244 M102 232 L104 244\"/></g>\n<g class=\"paint\"><path d=\"M52 160 Q50 168 48 176\" stroke=\"#9CC3E0\" stroke-width=\"2\" fill=\"none\"/><ellipse cx=\"46\" cy=\"224\" rx=\"14\" ry=\"6\" fill=\"#F2EEE4\"/><path d=\"M40 224 Q46 232 52 224\" fill=\"#6F8FAF\"/></g>\n<g class=\"ink\"><ellipse cx=\"46\" cy=\"224\" rx=\"14\" ry=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\"/></g>\n<g class=\"target\"><who c=\"mice\"/>\n<g class=\"paint\"><path d=\"M158 244 Q176 238 194 244 Q176 250 158 244Z\" fill=\"#6b5a40\" opacity=\"0.28\"/><path d=\"M196 244 Q214 238 232 244 Q214 250 196 244Z\" fill=\"#6b5a40\" opacity=\"0.28\"/><path d=\"M178 226 Q176 238 180 246 Q192 249 204 246 Q208 238 204 226Z\" fill=\"#A98463\"/><path d=\"M158 232 Q160 242 164 246 Q174 248 182 246 Q184 240 180 232Z\" fill=\"#A98463\"/><path d=\"M204 232 Q208 242 212 246 Q222 248 230 246 Q232 240 226 232Z\" fill=\"#A98463\"/><path d=\"M184 236 L200 236 L201 246 Q192 249 183 246Z\" fill=\"#6F8FAF\"/><path d=\"M162 238 L176 238 L177 246 Q170 248 162 246Z\" fill=\"#B2443A\"/><path d=\"M210 238 L224 238 L225 246 Q218 248 210 246Z\" fill=\"#D3A24F\"/><ellipse cx=\"191\" cy=\"214\" rx=\"14\" ry=\"12\" fill=\"#A98463\"/><ellipse cx=\"171\" cy=\"220\" rx=\"13\" ry=\"11\" fill=\"#A98463\"/><ellipse cx=\"219\" cy=\"220\" rx=\"13\" ry=\"11\" fill=\"#A98463\"/><circle cx=\"181\" cy=\"204\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"201\" cy=\"204\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"163\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"179\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"211\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"227\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><path d=\"M178 232 Q170 236 174 232 M204 232 Q212 236 208 232\" stroke=\"#A98463\" stroke-width=\"4\" fill=\"none\"/><path d=\"M160 244 Q148 240 146 228\" stroke=\"#E8A9A0\" stroke-width=\"2.5\" fill=\"none\"/><path d=\"M230 244 Q242 240 244 228\" stroke=\"#E8A9A0\" stroke-width=\"2.5\" fill=\"none\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#5a4128\" stroke-width=\"1.2\" stroke-linecap=\"round\"><ellipse cx=\"191\" cy=\"214\" rx=\"14\" ry=\"12\"/><ellipse cx=\"171\" cy=\"220\" rx=\"13\" ry=\"11\"/><ellipse cx=\"219\" cy=\"220\" rx=\"13\" ry=\"11\"/><path d=\"M178 232 Q170 236 174 232 M204 232 Q212 236 208 232\"/><path d=\"M187 218 Q191 221 195 218 M167 224 Q171 227 175 224 M215 224 Q219 227 223 224\"/></g>\n<g class=\"detail\"><circle cx=\"186\" cy=\"212\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"196\" cy=\"212\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"166\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"176\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"214\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"224\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/></g></g>\n<stamp k=\"sparkles\" x=\"192\" y=\"188\" s=\"0.8\"/>\n<fig c=\"companion1\" v=\"front\" x=\"262\" y=\"254\" s=\"0.5\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<fig c=\"hero\" v=\"front\" x=\"214\" y=\"254\" s=\"0.4\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"right\"/>\n<g class=\"paint\"><ellipse cx=\"238\" cy=\"258\" rx=\"62\" ry=\"10\" fill=\"#F2EEE4\"/><ellipse cx=\"238\" cy=\"256\" rx=\"48\" ry=\"6\" fill=\"#DCE6F0\"/></g>\n<g class=\"ink\"><ellipse cx=\"238\" cy=\"258\" rx=\"62\" ry=\"10\" fill=\"none\" stroke=\"#6F8FAF\" stroke-width=\"1.3\"/></g>",
+   "laid": "<who c=\"duchess\"/>\n<g class=\"paint\"><ellipse cx=\"92\" cy=\"244\" rx=\"30\" ry=\"5\" fill=\"#6b5a40\" opacity=\"0.28\"/><ellipse cx=\"92\" cy=\"198\" rx=\"30\" ry=\"34\" fill=\"#F2EEE4\"/><path d=\"M64 190 Q44 176 52 160 Q58 156 56 168 Q58 180 68 186Z\" fill=\"#F2EEE4\"/><path d=\"M72 166 Q92 150 112 166Z\" fill=\"#F2EEE4\"/><circle cx=\"92\" cy=\"152\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"80\" cy=\"205\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"104\" cy=\"205\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"92\" cy=\"214\" r=\"4\" fill=\"#6F8FAF\"/><circle cx=\"84\" cy=\"188\" r=\"2.5\" fill=\"#3a2a1a\"/><circle cx=\"100\" cy=\"188\" r=\"2.5\" fill=\"#3a2a1a\"/><ellipse cx=\"78\" cy=\"196\" rx=\"4\" ry=\"2.5\" fill=\"#E8A9A0\"/><ellipse cx=\"106\" cy=\"196\" rx=\"4\" ry=\"2.5\" fill=\"#E8A9A0\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\" stroke-linecap=\"round\"><ellipse cx=\"92\" cy=\"198\" rx=\"30\" ry=\"34\"/><path d=\"M64 190 Q44 176 52 160 Q58 156 56 168 Q58 180 68 186\"/><path d=\"M72 166 Q92 150 112 166Z\"/><path d=\"M88 198 Q92 202 96 198\"/><path d=\"M120 196 Q134 198 138 210\"/><path d=\"M82 232 L80 244 M102 232 L104 244\"/></g>\n<g class=\"paint\"><path d=\"M52 160 Q50 168 48 176\" stroke=\"#9CC3E0\" stroke-width=\"2\" fill=\"none\"/><ellipse cx=\"46\" cy=\"224\" rx=\"14\" ry=\"6\" fill=\"#F2EEE4\"/><path d=\"M40 224 Q46 232 52 224\" fill=\"#6F8FAF\"/></g>\n<g class=\"ink\"><ellipse cx=\"46\" cy=\"224\" rx=\"14\" ry=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\"/></g>\n<g class=\"target\"><who c=\"mice\"/>\n<g class=\"paint\"><path d=\"M158 244 Q176 238 194 244 Q176 250 158 244Z\" fill=\"#6b5a40\" opacity=\"0.28\"/><path d=\"M196 244 Q214 238 232 244 Q214 250 196 244Z\" fill=\"#6b5a40\" opacity=\"0.28\"/><path d=\"M178 226 Q176 238 180 246 Q192 249 204 246 Q208 238 204 226Z\" fill=\"#A98463\"/><path d=\"M158 232 Q160 242 164 246 Q174 248 182 246 Q184 240 180 232Z\" fill=\"#A98463\"/><path d=\"M204 232 Q208 242 212 246 Q222 248 230 246 Q232 240 226 232Z\" fill=\"#A98463\"/><path d=\"M184 236 L200 236 L201 246 Q192 249 183 246Z\" fill=\"#6F8FAF\"/><path d=\"M162 238 L176 238 L177 246 Q170 248 162 246Z\" fill=\"#B2443A\"/><path d=\"M210 238 L224 238 L225 246 Q218 248 210 246Z\" fill=\"#D3A24F\"/><ellipse cx=\"191\" cy=\"214\" rx=\"14\" ry=\"12\" fill=\"#A98463\"/><ellipse cx=\"171\" cy=\"220\" rx=\"13\" ry=\"11\" fill=\"#A98463\"/><ellipse cx=\"219\" cy=\"220\" rx=\"13\" ry=\"11\" fill=\"#A98463\"/><circle cx=\"181\" cy=\"204\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"201\" cy=\"204\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"163\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"179\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"211\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><circle cx=\"227\" cy=\"211\" r=\"7\" fill=\"#E8A9A0\"/><path d=\"M178 232 Q170 236 174 232 M204 232 Q212 236 208 232\" stroke=\"#A98463\" stroke-width=\"4\" fill=\"none\"/><path d=\"M160 244 Q148 240 146 228\" stroke=\"#E8A9A0\" stroke-width=\"2.5\" fill=\"none\"/><path d=\"M230 244 Q242 240 244 228\" stroke=\"#E8A9A0\" stroke-width=\"2.5\" fill=\"none\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#5a4128\" stroke-width=\"1.2\" stroke-linecap=\"round\"><ellipse cx=\"191\" cy=\"214\" rx=\"14\" ry=\"12\"/><ellipse cx=\"171\" cy=\"220\" rx=\"13\" ry=\"11\"/><ellipse cx=\"219\" cy=\"220\" rx=\"13\" ry=\"11\"/><path d=\"M178 232 Q170 236 174 232 M204 232 Q212 236 208 232\"/><path d=\"M187 218 Q191 221 195 218 M167 224 Q171 227 175 224 M215 224 Q219 227 223 224\"/></g>\n<g class=\"detail\"><circle cx=\"186\" cy=\"212\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"196\" cy=\"212\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"166\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"176\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"214\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/><circle cx=\"224\" cy=\"218\" r=\"1.8\" fill=\"#3a2a1a\"/></g></g>\n<stamp k=\"notes\" x=\"300\" y=\"150\" s=\"0.7\"/>\n<who c=\"tilly\"/>\n<g class=\"paint\"><ellipse cx=\"338\" cy=\"214\" rx=\"60\" ry=\"42\" fill=\"#A9A39A\"/><ellipse cx=\"338\" cy=\"222\" rx=\"44\" ry=\"28\" fill=\"#D8D4CC\"/><path d=\"M290 186 L296 160 L316 178Z\" fill=\"#A9A39A\"/><path d=\"M386 186 L380 160 L360 178Z\" fill=\"#A9A39A\"/><path d=\"M296 176 L299 168 L308 176Z\" fill=\"#E8A9A0\"/><path d=\"M380 176 L377 168 L368 176Z\" fill=\"#E8A9A0\"/><ellipse cx=\"338\" cy=\"226\" rx=\"9\" ry=\"6\" fill=\"#E8A9A0\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#5a4a3a\" stroke-width=\"1.3\" stroke-linecap=\"round\"><ellipse cx=\"338\" cy=\"214\" rx=\"60\" ry=\"42\"/><path d=\"M316 204 Q322 208 328 204 M348 204 Q354 208 360 204\"/><path d=\"M338 232 Q332 238 326 234 M338 232 Q344 238 350 234\"/><path d=\"M318 222 L298 218 M318 227 L298 229 M358 222 L378 218 M358 227 L378 229\"/></g>\n<g class=\"paint\"><ellipse cx=\"338\" cy=\"208\" rx=\"6\" ry=\"2\" fill=\"#3a2a1a\" opacity=\"0.5\"/></g>\n<stamp k=\"sparkles\" x=\"192\" y=\"188\" s=\"0.8\"/>\n<g class=\"paint\"><ellipse cx=\"238\" cy=\"258\" rx=\"62\" ry=\"10\" fill=\"#F2EEE4\"/><ellipse cx=\"238\" cy=\"256\" rx=\"48\" ry=\"6\" fill=\"#DCE6F0\"/></g>\n<g class=\"ink\"><ellipse cx=\"238\" cy=\"258\" rx=\"62\" ry=\"10\" fill=\"none\" stroke=\"#6F8FAF\" stroke-width=\"1.3\"/></g>\n<fig c=\"companion1\" v=\"front\" x=\"266\" y=\"254\" s=\"0.63\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"210\" y=\"254\" s=\"0.4\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "mice",
+   "tilly",
+   "duchess"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

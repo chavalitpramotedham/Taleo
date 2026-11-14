@@ -393,8 +393,8 @@ EACH CHARACTER: one tag (put the characters further back first)
 - c: the character's id, exactly as its sheet gives it (CHARACTER "..."). Every character in the picture gets one tag. v: "front", or "three" (three-quarter, facing the viewer's right; flip="1" turns it to face left - turn characters towards what they look at or talk to).
 - x, y: where its feet stand (the ground is at about y 240-250; characters stay inside the stage). s: size (1 = its own 200x200 canvas; a main character in a mid shot about ${SIZES.mid}, a wide shot ${SIZES.wide}, a close-up ${SIZES.close} with its feet below the picture's bottom edge; the page's SIZE line gives this page's exact range - keep to it, characters must read clearly). Keep sizes true to each other (a baby much smaller than a grown-up).
 - lean: degrees the whole body leans (-25 to 25: running, stretching, staggering). tilt: degrees the head turns (-25 to 25: curious, laughing, sad).
-- arms: the near arm, then the far arm, each one of: ${ARM_POSES.map((k) => `${k} (${ARM_HINTS[k]})`).join("; ")}.
-- legs: one of: ${LEG_POSES.join(", ")}. (For "sit", put y where the seat is.)
+- arms: the near arm, then the far arm, each one of: ${ARM_POSES.map((k) => `${k} (${ARM_HINTS[k]})`).join("; ")}. Give the two arms DIFFERENT jobs unless the action truly takes both hands (hug, carry, clap, shrug, holding one thing): one waves, points, reaches or holds, the other rests down or on a hip. Two mirrored arms look stiff.
+- legs: one of: ${LEG_POSES.join(", ")}. (For "sit", put y where the seat's top is: the figure bends at the knees, its feet on the floor below. A character on a chair, bench, box, rock, sledge, step or the ground SITS - legs="sit" - not stands.)
 - mood: one of: ${MOODS.join(", ")}. Choose the feeling of this moment for each character, not just "happy".
 - look: where the eyes look, one of ${LOOKS.join(", ")} - towards whoever or whatever they're attending to (on a flipped figure, "right" is still the picture's right).
 - hold (optional): something from the list of things to hold below; it goes in the near hand (or both hands, with "hold" or "hug").
@@ -405,18 +405,18 @@ ACTION WORDS INTO POSES - a phrasebook (combine, and always add the feeling):
   give, offer, show: arms="reach,down" facing the one receiving, hold="..." the thing, mood="happy"
   wave, greet: arms="wave,down" mood="happy" look at them
   point, notice: arms="point,down" look the same way, mood="surprised" or "excited"
-  cheer, celebrate, jump for joy: arms="up,up" legs="jump" mood="laugh"
+  cheer, celebrate, jump for joy: arms="up,wave" legs="jump" mood="laugh"
   dance: arms="up,wave" legs="kick" (or "jump") mood="laugh", partners facing
-  run, chase, hurry: arms="down,down" legs="run" lean="12", motion lines behind
+  run, chase, hurry: arms="down,down" legs="run" lean="12" (the arms swing by themselves), motion lines behind
   walk, stroll: legs="walk", arms swing by themselves
   hug, cuddle: arms="hug,hug" for both, facing each other, close
   hide: legs="crouch" arms="cover,down" with the cover written after them (near="1")
   peek, spy: arms="cover,reach" or "reach,down", tilt="10", look at what they peek at, half behind something
   think, wonder: arms="chin,hip" mood="calm", tilt="8"
   shrug, don't know: arms="shrug,shrug" mood="worried"
-  laugh, giggle: arms="clap,clap" or "hip,hip" mood="laugh"
+  laugh, giggle: arms="clap,clap" or "hip,cover" mood="laugh"
   cry, sad: arms="hold,hold" mood="sad" tilt="-10"
-  scared, startled: arms="up,up" legs="crouch" mood="scared" lean="-8"
+  scared, startled: arms="up,cover" legs="crouch" mood="scared" lean="-8"
   sleepy, asleep: legs="sit" mood="sleepy" tilt="10"
   sit, rest, ride: legs="sit", y on the seat (the seat written before them, near="1")
   climb, reach high: arms="up,reach" legs="tiptoe", the tree or ladder written before them (near="1")

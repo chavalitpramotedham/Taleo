@@ -180,7 +180,14 @@ export const STYLE: Record<BenchSlot, string> = {
   // scale (tucked into bed, sat behind the table), held things in front of
   // the holder, the hero never hidden, hugs from the brief, the layout's
   // spacing final, the paper reserve under every figure
-  x: "s19",
+  // s20 (14 Nov, painter RSI part 2): lesson 18 - real knees (thigh, shin
+  // and a knee; sitters' hips on the seat), legs shown under round bodies,
+  // different jobs for the two arms, giants shown by everyone else being
+  // smaller, groups placed whole from their portrait, riders on
+  // shoulders, heads and backs, in-bed and hugs read from the words too,
+  // close-ups of two or more smaller, the composer's notes and drafts left
+  // out, pictures up to 200k
+  x: "s20",
   // s1 (13 Nov): first version
   // s2 (13 Nov): as p s6
   // s3 (13 Nov): as x s8, and six more prepared poses (laugh, sad, carry,

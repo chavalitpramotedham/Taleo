@@ -1,0 +1,66 @@
+{
+ "portraits": "the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "hold:lantern": 1,
+   "sparkles": 1,
+   "ticks": 1,
+   "tuft": 2,
+   "dust": 1,
+   "motion": 1,
+   "cloud": 2,
+   "bird": 1,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hares"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.90 to 1.09, true to the others",
+   "layout: hares resized from 0.75 to 0.52, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: drawn back to front: companion1, hero, hares",
+   "layout: spaced once more, finally",
+   "no parts for \"hares\": placed from its poses"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"150\" y=\"244\" s=\"0.9\" lean=\"-4\" tilt=\"-8\" arms=\"cover,down\" legs=\"stand\" mood=\"scared\" look=\"right\"/>\n<who c=\"hares\"/>\n<g class=\"target\"><fig c=\"hares\" v=\"three\" x=\"290\" y=\"240\" s=\"0.75\" flip=\"1\" lean=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"excited\" look=\"left\"/></g>\n<stamp k=\"dust\" x=\"335\" y=\"244\" s=\"0.8\"/>\n<stamp k=\"motion\" x=\"340\" y=\"200\" s=\"0.7\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"80\" y=\"250\" s=\"0.85\" lean=\"-12\" tilt=\"-8\" arms=\"up,hold\" legs=\"jump\" mood=\"surprised\" look=\"right\" hold=\"lantern\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"150\" s=\"0.8\"/>\n<stamp k=\"ticks\" x=\"215\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"120\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"230\" y=\"249\" s=\"1\"/>",
+   "laid": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"168\" y=\"245\" s=\"1.09\" lean=\"-4\" tilt=\"-8\" arms=\"cover,down\" legs=\"stand\" mood=\"scared\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<who c=\"hares\"/>\n<fig c=\"hero\" v=\"front\" x=\"62\" y=\"245\" s=\"0.85\" lean=\"-12\" tilt=\"-8\" arms=\"up,hold\" legs=\"jump\" mood=\"surprised\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"150\" s=\"0.8\"/>\n<stamp k=\"ticks\" x=\"215\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"tuft\" x=\"120\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"230\" y=\"249\" s=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hares\" v=\"three\" x=\"290\" y=\"245\" s=\"0.52\" flip=\"1\" lean=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"excited\" look=\"left\" laid=\"1\"/></g>\n<stamp k=\"dust\" x=\"335\" y=\"244\" s=\"0.8\"/>\n<stamp k=\"motion\" x=\"340\" y=\"200\" s=\"0.7\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

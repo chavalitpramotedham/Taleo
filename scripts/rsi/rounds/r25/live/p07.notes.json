@@ -1,0 +1,63 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "scatter:stars": 1,
+   "splash": 1,
+   "sparkles": 1,
+   "boat": 1,
+   "hull": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.60 to 1.15, true to the others",
+   "layout: hero made smaller (0.50 to 0.24) beside the giant",
+   "layout: companion1 made smaller (0.30 to 0.24) beside the giant",
+   "layout: drawn back to front: companion1, something drawn, polly, hero, something drawn",
+   "layout: hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<g class=\"target\"><fig c=\"polly\" v=\"front\" x=\"105\" y=\"236\" s=\"0.6\" flip=\"0\" lean=\"6\" tilt=\"8\" arms=\"carry,carry\" legs=\"stand\" mood=\"calm\" look=\"right\"/></g>\n<stamp k=\"boat\" x=\"255\" y=\"244\" s=\"0.9\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"240\" y=\"236\" s=\"0.5\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"wave,wave\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<g class=\"paint\"><circle cx=\"285\" cy=\"205\" r=\"24\" fill=\"#E8B93A\"/><rect x=\"262\" y=\"205\" width=\"46\" height=\"22\" rx=\"4\" fill=\"#E8B93A\"/></g>\n<g class=\"ink\"><path d=\"M262 205 Q285 214 308 205\" fill=\"none\" stroke=\"#9A7420\" stroke-width=\"2\"/><path d=\"M262 216 L308 216\" stroke=\"#9A7420\" stroke-width=\"2\"/><path d=\"M272 190 Q285 196 298 190\" fill=\"none\" stroke=\"#9A7420\" stroke-width=\"2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"285\" y=\"190\" s=\"0.3\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"hull\" x=\"255\" y=\"244\" s=\"0.9\"/>\n<stamp k=\"splash\" x=\"190\" y=\"244\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"320\" y=\"165\" s=\"0.7\"/>\n<g class=\"ink\"><path d=\"M160 250 Q180 253 200 250\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/><path d=\"M300 252 Q320 255 340 252\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/><path d=\"M60 248 Q75 251 90 248\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/></g>",
+   "laid": "<who c=\"polly\"/>\n<fig c=\"companion1\" v=\"front\" x=\"285\" y=\"190\" s=\"0.24\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n\n<stamp k=\"splash\" x=\"190\" y=\"244\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"320\" y=\"165\" s=\"0.7\"/>\n\n<who c=\"hero\"/>\n<g class=\"paint\"><circle cx=\"285\" cy=\"205\" r=\"24\" fill=\"#E8B93A\"/><rect x=\"262\" y=\"205\" width=\"46\" height=\"22\" rx=\"4\" fill=\"#E8B93A\"/></g>\n<g class=\"ink\"><path d=\"M262 205 Q285 214 308 205\" fill=\"none\" stroke=\"#9A7420\" stroke-width=\"2\"/><path d=\"M262 216 L308 216\" stroke=\"#9A7420\" stroke-width=\"2\"/><path d=\"M272 190 Q285 196 298 190\" fill=\"none\" stroke=\"#9A7420\" stroke-width=\"2\"/></g>\n\n<g class=\"target\"><fig c=\"polly\" v=\"front\" x=\"105\" y=\"236\" s=\"1.15\" flip=\"0\" lean=\"6\" tilt=\"8\" arms=\"carry,carry\" legs=\"stand\" mood=\"calm\" look=\"right\" laid=\"1\"/></g><who c=\"companion1\"/>\n<stamp k=\"boat\" x=\"255\" y=\"244\" s=\"0.9\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"240\" y=\"231\" s=\"0.24\" flip=\"1\" lean=\"-4\" tilt=\"-8\" arms=\"wave,wave\" legs=\"sit\" mood=\"happy\" look=\"left\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"255\" y=\"244\" s=\"0.9\" near=\"1\"/>\n<g class=\"ink\"><path d=\"M160 250 Q180 253 200 250\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/><path d=\"M300 252 Q320 255 340 252\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/><path d=\"M60 248 Q75 251 90 248\" fill=\"none\" stroke=\"#DDE8EC\" stroke-width=\"2\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1476,
+   "firstStrokeMs": 1476,
+   "out": 708,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

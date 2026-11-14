@@ -1,0 +1,63 @@
+{
+ "portraits": "Octavia painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "motion": 1,
+   "boulder": 1,
+   "book": 4,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "octavia",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second octavia left out",
+   "layout: octavia resized from 0.93 to 1.18, true to the others",
+   "layout: companion1 resized from 0.50 to 0.49, true to the others",
+   "layout: drawn back to front: companion1, octavia, hero",
+   "layout: octavia marked as the tap target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"octavia\" v=\"front\" x=\"215\" y=\"240\" s=\"0.93\" arms=\"up,hold\" legs=\"sit\" mood=\"surprised\" tilt=\"-6\" look=\"left\"/>\n\nWait, I must output only tags; final answer follows.\n\n<stamp k=\"boulder\" x=\"215\" y=\"244\" s=\"2.2\" near=\"1\"/>\n<who c=\"octavia\"/>\n<g class=\"target\"><fig c=\"octavia\" v=\"front\" x=\"215\" y=\"222\" s=\"0.93\" arms=\"up,hold\" legs=\"sit\" mood=\"talk\" tilt=\"-6\" look=\"left\" hold=\"book\"/></g>\n<stamp k=\"book\" x=\"165\" y=\"170\" s=\"1.3\"/>\n<stamp k=\"book\" x=\"265\" y=\"170\" s=\"1.3\"/>\n<stamp k=\"book\" x=\"150\" y=\"205\" s=\"1.2\"/>\n<stamp k=\"book\" x=\"282\" y=\"205\" s=\"1.2\"/>\n<stamp k=\"sparkles\" x=\"215\" y=\"85\" s=\"0.8\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"95\" y=\"248\" s=\"0.7\" arms=\"hold,hold\" legs=\"crouch\" mood=\"happy\" look=\"right\"/>\n<ellipse cx=\"95\" cy=\"190\" rx=\"52\" ry=\"62\" fill=\"#BFE6EA\" fill-opacity=\"0.25\" stroke=\"#FFFFFF\" stroke-opacity=\"0.7\" stroke-width=\"2\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"110\" y=\"120\" s=\"0.5\" arms=\"wave,down\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"motion\" x=\"125\" y=\"130\" s=\"0.5\"/>",
+   "laid": "<fig c=\"companion1\" v=\"three\" x=\"135\" y=\"120\" s=\"0.49\" arms=\"wave,down\" legs=\"stand\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"125\" y=\"130\" s=\"0.5\"/>\n\nWait, I must output only tags; final answer follows.\n\n<stamp k=\"boulder\" x=\"215\" y=\"244\" s=\"2.2\" near=\"1\"/>\n<who c=\"octavia\"/>\n\n<stamp k=\"book\" x=\"165\" y=\"170\" s=\"1.3\"/>\n<stamp k=\"book\" x=\"265\" y=\"170\" s=\"1.3\"/>\n<stamp k=\"book\" x=\"150\" y=\"205\" s=\"1.2\"/>\n<stamp k=\"book\" x=\"282\" y=\"205\" s=\"1.2\"/>\n<stamp k=\"sparkles\" x=\"215\" y=\"85\" s=\"0.8\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"octavia\" v=\"front\" x=\"215\" y=\"240\" s=\"1.18\" arms=\"up,hold\" legs=\"sit\" mood=\"surprised\" tilt=\"-6\" look=\"left\" flip=\"0\" laid=\"1\"/></g>\n<ellipse cx=\"95\" cy=\"190\" rx=\"52\" ry=\"62\" fill=\"#BFE6EA\" fill-opacity=\"0.25\" stroke=\"#FFFFFF\" stroke-opacity=\"0.7\" stroke-width=\"2\"/>\n<who c=\"companion1\"/>\n<fig c=\"hero\" v=\"front\" x=\"70\" y=\"248\" s=\"0.7\" arms=\"hold,hold\" legs=\"crouch\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "octavia"
+  ],
+  "full": [],
+  "readyMs": 13
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1502,
+   "firstStrokeMs": 1502,
+   "out": 563,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,57 @@
+{
+ "reuse": {
+  "stamps": 6,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "sparkles": 1,
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: 3 empty tags in the composer's notes left out",
+   "layout: unknown tags left out: invoke",
+   "layout: companion1 resized from 1.00 to 1.19, true to the others",
+   "layout: drawn back to front: hero, something drawn, companion1",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig> and <stamp> tags only; scenery is painted by another hand. I need jam jars drawn myself, a flour sack, and sunbeams.\n\nPlan: Bao climbs on the left, with the jar stack as a drawn thing written before her. Bolt is on the right, reaching up with the spoon. The flour sack goes behind, drawn first, on the right at the back.\n\nJars: three stacked at left, x 130-190. Jar 1 at the bottom (y 245, top 215), jar 2 (top 185), jar 3 (top 155). Bao stands on jar 2 or 3, reaching to a lid above. A fourth jar sits higher on the left, with its lid at about y 120. Bao at s 0.8 has her feet on jar 3 at y 185, and her hand reaches up to the lid of jar 4 at about y 120. Her head top is at 185-136 = 49, which is slightly high, so I'll put her feet at y 195 on a jar top at 195. Jars: bottom y 245 to 215 (width 50), second 215 to 195? I'll make jars 30 tall: j1 215-245, j2 195-225, offset. Simpler: Bao's feet at y 190 on j2 (top 190), with j1 under it from 190 to 245 (a tall jar). A higher jar j3 sits at the left behind her with its lid at y 140.\n\nBolt: s 1.0 at x 255, y 245, arms reach up, holding the spoon at about x 280, y 170. Bolt faces left, flipped. His hands are at x - 30, y - 75, so the spoon goes there, aimed at Bao at x 170. Bolt at x 250: hands at 220, 170. The spoon is drawn as a gold line from (222,175) up to (205,130), with a bowl at the top. Bao at x 160 reaches down.\n\n<who> markers go before each character.\n\n\n<invoke name=\"x\">\n</invoke>\njson\n<g class=\"paint\"><path d=\"M285 245 Q270 175 300 160 Q330 175 322 245 Z\" fill=\"#E6D9B8\"/><rect x=\"288\" y=\"158\" width=\"30\" height=\"8\" rx=\"3\" fill=\"#C9B88F\"/></g><g class=\"ink\"><path d=\"M285 245 Q270 175 300 160 Q330 175 322 245 Z\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/><path d=\"M296 190 Q304 180 312 190\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.2\"/></g>\n<g class=\"paint\"><path d=\"M215 0 L245 0 L190 240 L150 240 Z\" fill=\"#FFF3B0\" opacity=\"0.25\"/></g>\n<g class=\"paint\"><rect x=\"118\" y=\"190\" width=\"56\" height=\"55\" rx=\"8\" fill=\"#B8453A\" opacity=\"0.85\"/><rect x=\"122\" y=\"183\" width=\"48\" height=\"8\" rx=\"3\" fill=\"#D3A24F\"/><rect x=\"126\" y=\"205\" width=\"40\" height=\"22\" rx=\"3\" fill=\"#F4EEE2\"/><rect x=\"108\" y=\"140\" width=\"52\" height=\"50\" rx=\"8\" fill=\"#7A3B6B\" opacity=\"0.85\"/><rect x=\"112\" y=\"133\" width=\"44\" height=\"8\" rx=\"3\" fill=\"#D3A24F\"/></g><g class=\"ink\"><rect x=\"118\" y=\"190\" width=\"56\" height=\"55\" rx=\"8\" fill=\"none\" stroke=\"#5A3A2A\" stroke-width=\"1.5\"/><rect x=\"108\" y=\"140\" width=\"52\" height=\"50\" rx=\"8\" fill=\"none\" stroke=\"#5A3A2A\" stroke-width=\"1.5\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"255\" y=\"245\" s=\"1.0\" flip=\"1\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"130\" rx=\"9\" ry=\"12\" fill=\"#E8C766\"/><rect x=\"213\" y=\"140\" width=\"5\" height=\"38\" rx=\"2\" fill=\"#E8C766\" transform=\"rotate(10 215 160)\"/></g><g class=\"ink\"><ellipse cx=\"215\" cy=\"130\" rx=\"9\" ry=\"12\" fill=\"none\" stroke=\"#8A6A20\" stroke-width=\"1.5\"/></g>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"152\" y=\"190\" s=\"0.8\" lean=\"8\" tilt=\"-8\" arms=\"up,reach\" legs=\"tiptoe\" mood=\"determined\" look=\"up\"/></g>\n<stamp k=\"sparkles\" x=\"214\" y=\"115\" s=\"1\"/>\n<g class=\"ink\"><path d=\"M100 246 l4 -8 M106 246 l2 -6 M270 247 l4 -8 M276 247 l2 -6\" stroke=\"#5A6A3A\" stroke-width=\"1.5\"/></g>",
+   "laid": " and  tags only; scenery is painted by another hand. I need jam jars drawn myself, a flour sack, and sunbeams.\n\nPlan: Bao climbs on the left, with the jar stack as a drawn thing written before her. Bolt is on the right, reaching up with the spoon. The flour sack goes behind, drawn first, on the right at the back.\n\nJars: three stacked at left, x 130-190. Jar 1 at the bottom (y 245, top 215), jar 2 (top 185), jar 3 (top 155). Bao stands on jar 2 or 3, reaching to a lid above. A fourth jar sits higher on the left, with its lid at about y 120. Bao at s 0.8 has her feet on jar 3 at y 185, and her hand reaches up to the lid of jar 4 at about y 120. Her head top is at 185-136 = 49, which is slightly high, so I'll put her feet at y 195 on a jar top at 195. Jars: bottom y 245 to 215 (width 50), second 215 to 195? I'll make jars 30 tall: j1 215-245, j2 195-225, offset. Simpler: Bao's feet at y 190 on j2 (top 190), with j1 under it from 190 to 245 (a tall jar). A higher jar j3 sits at the left behind her with its lid at y 140.\n\nBolt: s 1.0 at x 255, y 245, arms reach up, holding the spoon at about x 280, y 170. Bolt faces left, flipped. His hands are at x - 30, y - 75, so the spoon goes there, aimed at Bao at x 170. Bolt at x 250: hands at 220, 170. The spoon is drawn as a gold line from (222,175) up to (205,130), with a bowl at the top. Bao at x 160 reaches down.\n\n markers go before each character.\n\n\n\n\njson\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"149\" y=\"190\" s=\"0.8\" lean=\"8\" tilt=\"-8\" arms=\"up,reach\" legs=\"tiptoe\" mood=\"determined\" look=\"up\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"214\" y=\"115\" s=\"1\"/><who c=\"companion1\"/>\n<g class=\"paint\"><path d=\"M285 245 Q270 175 300 160 Q330 175 322 245 Z\" fill=\"#E6D9B8\"/><rect x=\"288\" y=\"158\" width=\"30\" height=\"8\" rx=\"3\" fill=\"#C9B88F\"/></g><g class=\"ink\"><path d=\"M285 245 Q270 175 300 160 Q330 175 322 245 Z\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/><path d=\"M296 190 Q304 180 312 190\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.2\"/></g>\n<g class=\"paint\"><path d=\"M215 0 L245 0 L190 240 L150 240 Z\" fill=\"#FFF3B0\" opacity=\"0.25\"/></g>\n<g class=\"paint\"><rect x=\"118\" y=\"190\" width=\"56\" height=\"55\" rx=\"8\" fill=\"#B8453A\" opacity=\"0.85\"/><rect x=\"122\" y=\"183\" width=\"48\" height=\"8\" rx=\"3\" fill=\"#D3A24F\"/><rect x=\"126\" y=\"205\" width=\"40\" height=\"22\" rx=\"3\" fill=\"#F4EEE2\"/><rect x=\"108\" y=\"140\" width=\"52\" height=\"50\" rx=\"8\" fill=\"#7A3B6B\" opacity=\"0.85\"/><rect x=\"112\" y=\"133\" width=\"44\" height=\"8\" rx=\"3\" fill=\"#D3A24F\"/></g><g class=\"ink\"><rect x=\"118\" y=\"190\" width=\"56\" height=\"55\" rx=\"8\" fill=\"none\" stroke=\"#5A3A2A\" stroke-width=\"1.5\"/><rect x=\"108\" y=\"140\" width=\"52\" height=\"50\" rx=\"8\" fill=\"none\" stroke=\"#5A3A2A\" stroke-width=\"1.5\"/></g>\n\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"front\" x=\"258\" y=\"245\" s=\"1.19\" flip=\"1\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"130\" rx=\"9\" ry=\"12\" fill=\"#E8C766\"/><rect x=\"213\" y=\"140\" width=\"5\" height=\"38\" rx=\"2\" fill=\"#E8C766\" transform=\"rotate(10 215 160)\"/></g><g class=\"ink\"><ellipse cx=\"215\" cy=\"130\" rx=\"9\" ry=\"12\" fill=\"none\" stroke=\"#8A6A20\" stroke-width=\"1.5\"/></g>\n<g class=\"ink\"><path d=\"M100 246 l4 -8 M106 246 l2 -6 M270 247 l4 -8 M276 247 l2 -6\" stroke=\"#5A6A3A\" stroke-width=\"1.5\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

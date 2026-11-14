@@ -1,0 +1,90 @@
+{
+ "portraits": "Dad, the Pinch Twins, Octavia, the Cloud Queen, Ember painted from their portrait in this book",
+ "reuse": {
+  "stamps": 14,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "bunting": 1,
+   "bucket": 1,
+   "stone": 1,
+   "chair": 1,
+   "hold:cup": 1,
+   "table": 1,
+   "motion": 1,
+   "dust": 1,
+   "cup": 1,
+   "sparkles": 1,
+   "tuft": 2,
+   "cloud": 1,
+   "bird": 2,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 7,
+  "torsos": 6,
+  "heads": 6,
+  "figIds": [
+   "crabs",
+   "octavia",
+   "dad",
+   "queen",
+   "ember",
+   "hero",
+   "companion1"
+  ],
+  "posed": 7,
+  "fixes": [
+   "layout: a second chair at the same spot left out",
+   "layout: ember resized from 0.56 to 1.10, true to the others",
+   "layout: octavia resized from 0.50 to 1.13, true to the others",
+   "layout: queen resized from 0.47 to 0.84, true to the others",
+   "layout: dad resized from 0.47 to 0.84, true to the others",
+   "layout: companion1 resized from 0.40 to 0.28, true to the others",
+   "layout: crabs made smaller (0.36 to 0.24) beside the giant",
+   "layout: hero made smaller (0.47 to 0.24) beside the giant",
+   "layout: companion1 made smaller (0.28 to 0.24) beside the giant",
+   "layout: octavia and hero overlapped: eased apart",
+   "layout: companion1 and dad overlapped: eased apart",
+   "layout: companion1 turned towards the main action",
+   "layout: drawn back to front: bunting, crabs, octavia, ember, dad, queen, something drawn, hero, companion1",
+   "layout: dad, queen drawn behind ember, the main action's target",
+   "layout: ember, hero, companion1 sat behind the table",
+   "layout: spaced once more, finally",
+   "no parts for \"crabs\": placed from its poses",
+   "piece \"smoke\" read as \"stone\""
+  ],
+  "composed": {
+   "wrote": "<who c=\"ember\"/>\n<g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"250\" y=\"225\" s=\"0.56\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" look=\"left\"/></g>\n<stamp k=\"motion\" x=\"215\" y=\"140\" s=\"0.6\"/>\n<who c=\"octavia\"/>\n<stamp k=\"bucket\" x=\"85\" y=\"238\" s=\"0.01\"/>\n<g class=\"paint\"><path d=\"M60 250 L66 215 L116 215 L122 250 Z\" fill=\"#9AA3AB\"/></g>\n<g class=\"ink\"><path d=\"M60 250 L66 215 L116 215 L122 250 Z\" fill=\"none\" stroke=\"#5A646C\" stroke-width=\"2\"/><path d=\"M64 224 L118 224\" stroke=\"#5A646C\" stroke-width=\"1.5\"/></g>\n<fig c=\"octavia\" v=\"front\" x=\"91\" y=\"232\" s=\"0.5\" lean=\"0\" tilt=\"6\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"paint\"><path d=\"M60 250 L66 222 L116 222 L122 250 Z\" fill=\"#9AA3AB\"/></g>\n<g class=\"ink\"><path d=\"M60 250 L66 222 L116 222 L122 250 Z\" fill=\"none\" stroke=\"#5A646C\" stroke-width=\"2\"/></g>\n<who c=\"queen\"/>\n<fig c=\"queen\" v=\"front\" x=\"335\" y=\"225\" s=\"0.47\" flip=\"1\" lean=\"0\" tilt=\"6\" arms=\"hold,down\" legs=\"sit\" mood=\"calm\" look=\"left\"/>\n<who c=\"dad\"/>\n<fig c=\"dad\" v=\"front\" x=\"215\" y=\"215\" s=\"0.47\" lean=\"4\" tilt=\"0\" arms=\"reach,hold\" legs=\"stand\" mood=\"happy\" look=\"down\"/>\n<stamp k=\"table\" x=\"195\" y=\"238\" s=\"1.9\" near=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"195\" cy=\"136\" rx=\"26\" ry=\"9\" fill=\"#F4E4D0\"/><rect x=\"170\" y=\"116\" width=\"50\" height=\"20\" rx=\"3\" fill=\"#F0B6C0\"/><rect x=\"170\" y=\"116\" width=\"50\" height=\"7\" rx=\"3\" fill=\"#FFFFFF\"/><rect x=\"193\" y=\"104\" width=\"4\" height=\"12\" fill=\"#E3B23C\"/></g>\n<g class=\"ink\"><rect x=\"170\" y=\"116\" width=\"50\" height=\"20\" rx=\"3\" fill=\"none\" stroke=\"#8A5A4A\" stroke-width=\"1.5\"/><path d=\"M195 100 q-3 -4 0 -7 q3 3 0 7\" fill=\"#E8833A\"/></g>\n<g class=\"paint\"><path d=\"M228 130 h16 v-8 h-16 z\" fill=\"#C9CED3\"/><path d=\"M230 122 q6 -10 12 0\" fill=\"#C9CED3\"/></g>\n<stamp k=\"smoke\" x=\"235\" y=\"105\" s=\"0.01\"/>\n<stamp k=\"dust\" x=\"245\" y=\"112\" s=\"0.5\"/>\n<stamp k=\"cup\" x=\"150\" y=\"148\" s=\"0.01\"/>\n<who c=\"crabs\"/>\n<fig c=\"crabs\" v=\"front\" x=\"248\" y=\"138\" s=\"0.36\" lean=\"0\" tilt=\"0\" arms=\"wave,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"chair\" x=\"130\" y=\"248\" s=\"0.7\" near=\"1\"/>\n<stamp k=\"chair\" x=\"170\" y=\"248\" s=\"0.7\" near=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"135\" y=\"240\" s=\"0.47\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"up\" hold=\"cup\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"175\" y=\"242\" s=\"0.4\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"sparkles\" x=\"135\" y=\"130\" s=\"0.6\"/>\n<stamp k=\"tuft\" x=\"110\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"280\" y=\"252\" s=\"1\"/>\n<stamp k=\"bunting\" x=\"200\" y=\"85\" s=\"1.6\"/>",
+   "laid": "<who c=\"ember\"/>\n<stamp k=\"bunting\" x=\"200\" y=\"85\" s=\"1.6\"/>\n<who c=\"octavia\"/>\n<stamp k=\"bucket\" x=\"85\" y=\"238\" s=\"0.01\"/>\n<fig c=\"crabs\" v=\"front\" x=\"233\" y=\"138\" s=\"0.24\" lean=\"0\" tilt=\"0\" arms=\"wave,down\" legs=\"sit\" mood=\"happy\" look=\"left\" flip=\"0\" laid=\"1\"/><fig c=\"octavia\" v=\"front\" x=\"75\" y=\"232\" s=\"1.13\" lean=\"0\" tilt=\"6\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M60 250 L66 222 L116 222 L122 250 Z\" fill=\"#9AA3AB\"/></g>\n<g class=\"ink\"><path d=\"M60 250 L66 222 L116 222 L122 250 Z\" fill=\"none\" stroke=\"#5A646C\" stroke-width=\"2\"/></g>\n<who c=\"queen\"/>\n<fig c=\"dad\" v=\"front\" x=\"198\" y=\"215\" s=\"0.84\" lean=\"4\" tilt=\"0\" arms=\"reach,hold\" legs=\"stand\" mood=\"happy\" look=\"down\" flip=\"0\" laid=\"1\"/><fig c=\"queen\" v=\"front\" x=\"368\" y=\"225\" s=\"0.84\" flip=\"1\" lean=\"0\" tilt=\"6\" arms=\"hold,down\" legs=\"sit\" mood=\"calm\" look=\"left\" laid=\"1\"/><g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"287\" y=\"225\" s=\"1.10\" flip=\"1\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" look=\"left\" laid=\"1\"/></g>\n\n<who c=\"dad\"/>\n\n\n\n\n<g class=\"paint\"><path d=\"M228 130 h16 v-8 h-16 z\" fill=\"#C9CED3\"/><path d=\"M230 122 q6 -10 12 0\" fill=\"#C9CED3\"/></g>\n<stamp k=\"smoke\" x=\"235\" y=\"105\" s=\"0.01\"/>\n\n\n<who c=\"crabs\"/>\n\n\n<stamp k=\"chair\" x=\"170\" y=\"248\" s=\"0.7\" near=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M60 250 L66 215 L116 215 L122 250 Z\" fill=\"#9AA3AB\"/></g>\n<g class=\"ink\"><path d=\"M60 250 L66 215 L116 215 L122 250 Z\" fill=\"none\" stroke=\"#5A646C\" stroke-width=\"2\"/><path d=\"M64 224 L118 224\" stroke=\"#5A646C\" stroke-width=\"1.5\"/></g>\n\n<who c=\"companion1\"/>\n<fig c=\"hero\" v=\"front\" x=\"147\" y=\"240\" s=\"0.24\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"up\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"161\" y=\"242\" s=\"0.24\" flip=\"0\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/><stamp k=\"table\" x=\"195\" y=\"238\" s=\"1.9\" near=\"1\"/><stamp k=\"motion\" x=\"215\" y=\"140\" s=\"0.6\"/><g class=\"paint\"><ellipse cx=\"195\" cy=\"136\" rx=\"26\" ry=\"9\" fill=\"#F4E4D0\"/><rect x=\"170\" y=\"116\" width=\"50\" height=\"20\" rx=\"3\" fill=\"#F0B6C0\"/><rect x=\"170\" y=\"116\" width=\"50\" height=\"7\" rx=\"3\" fill=\"#FFFFFF\"/><rect x=\"193\" y=\"104\" width=\"4\" height=\"12\" fill=\"#E3B23C\"/></g><g class=\"ink\"><rect x=\"170\" y=\"116\" width=\"50\" height=\"20\" rx=\"3\" fill=\"none\" stroke=\"#8A5A4A\" stroke-width=\"1.5\"/><path d=\"M195 100 q-3 -4 0 -7 q3 3 0 7\" fill=\"#E8833A\"/></g><stamp k=\"dust\" x=\"245\" y=\"112\" s=\"0.5\"/><stamp k=\"cup\" x=\"150\" y=\"148\" s=\"0.01\"/>\n<stamp k=\"sparkles\" x=\"135\" y=\"130\" s=\"0.6\"/>\n<stamp k=\"tuft\" x=\"110\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"280\" y=\"252\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "dad",
+   "crabs",
+   "octavia",
+   "queen",
+   "ember"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

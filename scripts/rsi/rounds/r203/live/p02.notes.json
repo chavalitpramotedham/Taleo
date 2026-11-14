@@ -1,0 +1,54 @@
+{
+ "reuse": {
+  "stamps": 3,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "dust": 1,
+   "motion": 1,
+   "cloud": 1,
+   "scatter:snow": 1,
+   "scatter:grass": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.66 to 0.74, true to the others",
+   "layout: hero turned to face the others",
+   "layout: drawn back to front: hero, something drawn, companion1"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"150\" y=\"248\" s=\"0.66\" flip=\"0\" lean=\"15\" tilt=\"0\" arms=\"reach,reach\" legs=\"run\" mood=\"determined\" look=\"right\"/>\n<stamp k=\"motion\" x=\"105\" y=\"215\" s=\"1\"/>\n<g class=\"paint\"><path d=\"M175 232 L275 232 L282 222 L182 222 Z\" fill=\"#B2443A\"/><path d=\"M178 238 L280 238 L275 232 L175 232 Z\" fill=\"#8F3329\"/><path d=\"M270 222 Q292 218 296 208 L284 224 Z\" fill=\"#B2443A\"/></g>\n<g class=\"ink\"><path d=\"M170 241 Q230 246 290 241\" stroke=\"#5a3a2a\" stroke-width=\"2\" fill=\"none\"/><path d=\"M182 222 L275 222\" stroke=\"#5a3a2a\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"238\" y=\"226\" s=\"0.5\" flip=\"0\" lean=\"8\" tilt=\"0\" arms=\"hold,hold\" legs=\"sit\" mood=\"laugh\" look=\"right\"/></g>\n<g class=\"paint\"><path d=\"M276 228 Q300 226 312 232\" stroke=\"#8a5a3a\" stroke-width=\"2\" fill=\"none\"/><rect x=\"287\" y=\"230\" width=\"9\" height=\"11\" rx=\"2\" fill=\"#E8C766\"/><circle cx=\"291\" cy=\"236\" r=\"9\" fill=\"#E8C766\" opacity=\"0.3\"/></g>\n<g class=\"ink\"><path d=\"M288 230 Q291 226 294 230\" stroke=\"#6b4a1e\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M286 241 L297 241\" stroke=\"#6b4a1e\" stroke-width=\"1.5\"/></g>\n<stamp k=\"dust\" x=\"170\" y=\"244\" s=\"0.8\"/>\n<g class=\"ink\"><path d=\"M100 252 l8 -4 M130 255 l8 -3 M310 250 l8 -4 M80 246 l6 -2\" stroke=\"#8a8fb0\" stroke-width=\"1.5\" fill=\"none\"/></g>",
+   "laid": "<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"238\" y=\"226\" s=\"0.5\" flip=\"1\" lean=\"8\" tilt=\"0\" arms=\"hold,hold\" legs=\"sit\" mood=\"laugh\" look=\"right\" laid=\"1\"/></g>\n<g class=\"paint\"><path d=\"M276 228 Q300 226 312 232\" stroke=\"#8a5a3a\" stroke-width=\"2\" fill=\"none\"/><rect x=\"287\" y=\"230\" width=\"9\" height=\"11\" rx=\"2\" fill=\"#E8C766\"/><circle cx=\"291\" cy=\"236\" r=\"9\" fill=\"#E8C766\" opacity=\"0.3\"/></g>\n<g class=\"ink\"><path d=\"M288 230 Q291 226 294 230\" stroke=\"#6b4a1e\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M286 241 L297 241\" stroke=\"#6b4a1e\" stroke-width=\"1.5\"/></g>\n<stamp k=\"dust\" x=\"170\" y=\"244\" s=\"0.8\"/>\n<g class=\"paint\"><path d=\"M175 232 L275 232 L282 222 L182 222 Z\" fill=\"#B2443A\"/><path d=\"M178 238 L280 238 L275 232 L175 232 Z\" fill=\"#8F3329\"/><path d=\"M270 222 Q292 218 296 208 L284 224 Z\" fill=\"#B2443A\"/></g>\n<g class=\"ink\"><path d=\"M170 241 Q230 246 290 241\" stroke=\"#5a3a2a\" stroke-width=\"2\" fill=\"none\"/><path d=\"M182 222 L275 222\" stroke=\"#5a3a2a\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"front\" x=\"150\" y=\"248\" s=\"0.74\" flip=\"0\" lean=\"15\" tilt=\"0\" arms=\"reach,reach\" legs=\"run\" mood=\"determined\" look=\"right\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"105\" y=\"215\" s=\"1\"/>\n<g class=\"ink\"><path d=\"M100 252 l8 -4 M130 255 l8 -3 M310 250 l8 -4 M80 246 l6 -2\" stroke=\"#8a8fb0\" stroke-width=\"1.5\" fill=\"none\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

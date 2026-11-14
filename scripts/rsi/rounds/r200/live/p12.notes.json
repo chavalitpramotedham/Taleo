@@ -1,0 +1,64 @@
+{
+ "portraits": "Brom painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "cloud": 2,
+   "bird": 2,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "tuft": 2
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "brom",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: 2 sky pieces left to the backdrop",
+   "layout: companion1 resized from 0.70 to 1.09, true to the others",
+   "layout: brom resized from 0.80 to 1.24, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: drawn back to front: brom, companion1, hero, something drawn",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"cloud\" x=\"90\" y=\"215\" s=\"1.3\"/>\n<stamp k=\"cloud\" x=\"320\" y=\"222\" s=\"1.2\"/>\n<g class=\"paint\"><path d=\"M268 150 L268 215 L318 215 L318 150 Z\" fill=\"#9AA3A8\"/><path d=\"M262 150 L324 150 L318 138 L268 138 Z\" fill=\"#B7C0C4\"/></g>\n<g class=\"ink\"><path d=\"M268 150 L268 215 L318 215 L318 150 Z\" fill=\"none\" stroke=\"#4A5358\" stroke-width=\"2\"/><path d=\"M268 172 L318 172 M268 194 L318 194 M293 150 L293 172 M280 172 L280 194 M303 172 L303 194\" stroke=\"#4A5358\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><path d=\"M268 156 Q252 156 252 168\" fill=\"none\" stroke=\"#3A3A3E\" stroke-width=\"4\"/></g>\n<g class=\"ink\"><path d=\"M268 156 Q252 156 252 168\" fill=\"none\" stroke=\"#2A2A2E\" stroke-width=\"2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"238\" s=\"0.7\" lean=\"0\" tilt=\"-10\" arms=\"down,down\" legs=\"sit\" mood=\"sad\" look=\"down\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"165\" y=\"248\" s=\"0.8\" flip=\"0\" tilt=\"6\" arms=\"hip,hip\" legs=\"stand\" mood=\"worried\" look=\"right\"/>\n<who c=\"brom\"/>\n<g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"305\" y=\"252\" s=\"0.8\" flip=\"1\" lean=\"-4\" tilt=\"-12\" arms=\"point,down\" legs=\"stand\" mood=\"sad\" look=\"left\"/></g>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"250\" y=\"252\" s=\"1.2\"/>",
+   "laid": "\n\n<g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"305\" y=\"250\" s=\"1.24\" flip=\"1\" lean=\"-4\" tilt=\"-12\" arms=\"point,down\" legs=\"stand\" mood=\"sad\" look=\"left\" laid=\"1\"/></g>\n<stamp k=\"tuft\" x=\"140\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"250\" y=\"252\" s=\"1.2\"/><who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"83\" y=\"238\" s=\"1.09\" lean=\"0\" tilt=\"-10\" arms=\"down,down\" legs=\"sit\" mood=\"sad\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"187\" y=\"250\" s=\"0.8\" flip=\"0\" tilt=\"6\" arms=\"hip,hip\" legs=\"stand\" mood=\"worried\" look=\"right\" laid=\"1\"/>\n<who c=\"brom\"/>\n<g class=\"paint\"><path d=\"M268 150 L268 215 L318 215 L318 150 Z\" fill=\"#9AA3A8\"/><path d=\"M262 150 L324 150 L318 138 L268 138 Z\" fill=\"#B7C0C4\"/></g>\n<g class=\"ink\"><path d=\"M268 150 L268 215 L318 215 L318 150 Z\" fill=\"none\" stroke=\"#4A5358\" stroke-width=\"2\"/><path d=\"M268 172 L318 172 M268 194 L318 194 M293 150 L293 172 M280 172 L280 194 M303 172 L303 194\" stroke=\"#4A5358\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><path d=\"M268 156 Q252 156 252 168\" fill=\"none\" stroke=\"#3A3A3E\" stroke-width=\"4\"/></g>\n<g class=\"ink\"><path d=\"M268 156 Q252 156 252 168\" fill=\"none\" stroke=\"#2A2A2E\" stroke-width=\"2\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "brom"
+  ],
+  "full": [],
+  "readyMs": 9
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1459,
+   "firstStrokeMs": 1459,
+   "out": 686,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

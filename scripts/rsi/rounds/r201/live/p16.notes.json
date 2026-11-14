@@ -1,0 +1,65 @@
+{
+ "portraits": "Brom, Grandpa Tove painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "door": 1,
+   "sparkles": 2,
+   "motion": 1,
+   "lantern": 1,
+   "cloud": 1,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "brom",
+   "grandpa"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: grandpa resized from 0.50 to 0.63, true to the others",
+   "layout: brom resized from 0.56 to 1.23, true to the others",
+   "layout: companion1 resized from 0.30 to 0.63, true to the others",
+   "layout: hero resized from 0.30 to 0.37, true to the others",
+   "layout: drawn back to front: companion1, hero, brom, grandpa",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"grandpa\"/>\n<stamp k=\"door\" x=\"95\" y=\"240\" s=\"1.1\" near=\"1\"/>\n<g class=\"target\"><fig c=\"grandpa\" v=\"three\" x=\"95\" y=\"240\" s=\"0.5\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"wave,hip\" legs=\"stand\" mood=\"happy\" look=\"right\"/></g>\n<stamp k=\"sparkles\" x=\"85\" y=\"110\" s=\"1\"/>\n<stamp k=\"lantern\" x=\"52\" y=\"150\" s=\"0.6\"/>\n<who c=\"brom\"/>\n<fig c=\"brom\" v=\"three\" x=\"290\" y=\"250\" s=\"0.56\" flip=\"1\" lean=\"-3\" tilt=\"-6\" arms=\"carry,carry\" legs=\"walk\" mood=\"happy\" look=\"left\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"268\" y=\"152\" s=\"0.3\" lean=\"0\" tilt=\"6\" arms=\"hug,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"298\" y=\"152\" s=\"0.3\" lean=\"0\" tilt=\"-6\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"120\" s=\"1\"/>\n<stamp k=\"motion\" x=\"345\" y=\"225\" s=\"0.7\"/>",
+   "laid": "<who c=\"grandpa\"/>\n<stamp k=\"door\" x=\"95\" y=\"240\" s=\"1.1\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"213\" y=\"152\" s=\"0.63\" lean=\"0\" tilt=\"6\" arms=\"hug,down\" legs=\"sit\" mood=\"happy\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<who c=\"brom\"/>\n<fig c=\"hero\" v=\"front\" x=\"365\" y=\"152\" s=\"0.37\" lean=\"0\" tilt=\"-6\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"120\" s=\"1\"/>\n<stamp k=\"motion\" x=\"345\" y=\"225\" s=\"0.7\"/>\n<who c=\"companion1\"/>\n<fig c=\"brom\" v=\"three\" x=\"277\" y=\"245\" s=\"1.23\" flip=\"1\" lean=\"-3\" tilt=\"-6\" arms=\"carry,carry\" legs=\"walk\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"grandpa\" v=\"three\" x=\"95\" y=\"245\" s=\"0.63\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"wave,hip\" legs=\"stand\" mood=\"happy\" look=\"right\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"85\" y=\"110\" s=\"1\"/>\n<stamp k=\"lantern\" x=\"52\" y=\"150\" s=\"0.6\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "brom",
+   "grandpa"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

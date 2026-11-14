@@ -251,6 +251,9 @@ export const ESTIMATES: Record<string, Estimate> = {
   // (14 Nov: lesson 16 - layout and phrasebook, the same cost)
   "4-RUYP": X14,
   "4-S99Q": X19,
+  // (14 Nov: lesson 18 - limbs, groups, riders, giants; layout and pose
+  // code, the same calls)
+  "4-VT2Q": X19,
   // session 2's contenders
   "6-25Q3": M1,
   "7-KWS6": N1,

@@ -1,0 +1,50 @@
+{
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "hearts": 1,
+   "sparkles": 2
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero and companion1 brought together for the hug"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"222\" y=\"290\" s=\"1.5\" lean=\"-4\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"sleepy\" look=\"left\"/></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"170\" y=\"296\" s=\"1.4\" flip=\"0\" lean=\"6\" tilt=\"10\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"hearts\" x=\"196\" y=\"95\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"130\" y=\"130\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"120\" s=\"0.9\"/>",
+   "laid": "<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"231\" y=\"293\" s=\"1.5\" lean=\"-4\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"sleepy\" look=\"left\" flip=\"1\" laid=\"1\"/></g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"161\" y=\"293\" s=\"1.4\" flip=\"0\" lean=\"6\" tilt=\"10\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<stamp k=\"hearts\" x=\"196\" y=\"95\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"130\" y=\"130\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"300\" y=\"120\" s=\"0.9\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

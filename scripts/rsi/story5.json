@@ -1,0 +1,448 @@
+{
+  "title": "Nell and the Dragon's Lost Song",
+  "age": "4-5",
+  "minutes": 8,
+  "theme": "kindness",
+  "keyword": "Song",
+  "moral": "Listening carefully is the kindest kind of help.",
+  "length": "odyssey",
+  "world": "A windy seaside kingdom of lighthouses, cliffs and clouds: a striped red-and-white lighthouse on a green headland, a turquoise sea with a sunken library of coral beneath it, a palace made of clouds above, and a smoky dragon mountain to the north. Soft watercolour light: breezy blue mornings, a green-gold underwater glow, a pink cloud palace, an orange volcano sunset and a starry night. Recurring colours: Nell's yellow raincoat (#E3B23C) and green wellies (#5E7E4A), Pebble's red scarf (#B2443A), and the dragon's music box, a small round silver box with a winding handle (#C9CED3).",
+  "hero": {
+    "id": "hero",
+    "name": "Nell",
+    "gender": "female",
+    "preset": null,
+    "look": "a 6-year-old girl, small and quick, head about a third of her height; pale freckled skin (#F0CDB0); bright ginger hair (#C46A3A) in two short bunches; big round red glasses (#B2443A); a yellow raincoat (#E3B23C) with a hood down and big pockets; a navy striped jumper peeking out (#2F3E55); green wellington boots (#5E7E4A); wide grey-green eyes behind the glasses, freckles, a wide grin; a lighthouse-keeper's daughter, curious and a good listener",
+    "svg": "<g class=\"wash\"><ellipse cx=\"100\" cy=\"104\" rx=\"78\" ry=\"74\" fill=\"#DCE3E1\" opacity=\".55\"/></g><g class=\"paint\"><ellipse cx=\"100\" cy=\"189\" rx=\"42\" ry=\"6\" fill=\"#CFC6AC\" opacity=\".6\"/><path d=\"M106 136C110 152 112 168 112 182L122 182C122 166 120 150 118 134Z\" fill=\"#D9AE90\"/><path d=\"M82 134C80 150 80 166 82 182L93 182C94 166 96 150 97 136Z\" fill=\"#F0CDB0\"/><ellipse cx=\"87\" cy=\"184\" rx=\"10\" ry=\"4.5\" fill=\"#5E7E4A\"/><ellipse cx=\"118\" cy=\"184\" rx=\"9\" ry=\"4.5\" fill=\"#4E6A3C\"/><path d=\"M122 94C132 88 140 78 143 66C145 61 138 59 136 63C132 74 126 81 117 88Z\" fill=\"#E3B23C\"/><circle cx=\"141\" cy=\"60\" r=\"6\" fill=\"#D9AE90\"/><path d=\"M74 122C74 134 78 143 96 143L100 137L104 143C122 143 126 134 126 122Z\" fill=\"#2F3E55\"/><path d=\"M76 92C70 102 70 118 74 128C86 132 114 132 126 128C130 118 130 102 124 92C116 86 84 86 76 92Z\" fill=\"#E3B23C\"/><g fill=\"#2F3E55\"><path d=\"M72 104C90 107 110 107 128 104L128 109C110 112 90 112 72 109Z\"/><path d=\"M71 115C90 118 110 118 129 115L129 120C110 123 90 123 71 120Z\"/></g><path d=\"M73 125C90 128 110 128 127 125L126 128C114 132 86 132 74 128Z\" fill=\"#2F3E55\"/><path d=\"M80 94C70 102 64 114 63 125C63 130 71 131 72 126C74 116 80 106 87 100Z\" fill=\"#E3B23C\"/><circle cx=\"67\" cy=\"130\" r=\"6\" fill=\"#F0CDB0\"/><circle cx=\"73\" cy=\"69\" r=\"5\" fill=\"#F0CDB0\"/><circle cx=\"127\" cy=\"69\" r=\"5\" fill=\"#F0CDB0\"/><circle cx=\"100\" cy=\"65\" r=\"27\" fill=\"#F0CDB0\"/><path d=\"M118 52C129 66 123 87 104 91C116 83 121 69 118 52Z\" fill=\"#4A3020\" opacity=\".2\"/><ellipse cx=\"90\" cy=\"54\" rx=\"8\" ry=\"5\" fill=\"#FFF8E8\" opacity=\".3\"/><path d=\"M73 63C72 43 86 36 100 36C114 36 128 43 127 63C122 53 112 47 100 47C88 47 78 53 73 63Z\" fill=\"#C46A3A\"/><ellipse cx=\"66\" cy=\"62\" rx=\"9\" ry=\"13\" fill=\"#C46A3A\"/><ellipse cx=\"134\" cy=\"62\" rx=\"9\" ry=\"13\" fill=\"#C46A3A\"/><g fill=\"#D9776A\" opacity=\".45\"><ellipse cx=\"86\" cy=\"76\" rx=\"5\" ry=\"3\"/><ellipse cx=\"114\" cy=\"76\" rx=\"5\" ry=\"3\"/></g></g><g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M74 70C76 86 88 92 100 92C114 92 125 84 127 68\"/><path d=\"M76 92C70 102 70 118 74 128M124 92C130 102 130 118 126 128\"/><path d=\"M82 134C80 150 80 166 82 182M97 136C96 150 94 166 93 182M106 136C110 152 112 168 112 182M118 134C120 150 122 166 122 182\"/><path d=\"M91 97C82 110 72 124 67 134\"/><path d=\"M100 137L100 128M86 112L90 118M114 112L110 118\"/><path d=\"M122 94C132 88 140 78 143 66\"/><path d=\"M99 71C101 73 101 75 99 76\"/></g><g class=\"detail\"><circle cx=\"90\" cy=\"68\" r=\"7.5\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"1.8\"/><circle cx=\"110\" cy=\"68\" r=\"7.5\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"1.8\"/><path d=\"M97.5 68L102.5 68\" stroke=\"#B2443A\" stroke-width=\"1.6\"/><g fill=\"#C46A3A\" opacity=\".55\"><circle cx=\"84\" cy=\"78\" r=\".9\"/><circle cx=\"88\" cy=\"80\" r=\".9\"/><circle cx=\"112\" cy=\"80\" r=\".9\"/><circle cx=\"116\" cy=\"78\" r=\".9\"/></g><ellipse cx=\"90\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"91\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><ellipse cx=\"110\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"111\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><path d=\"M92 80C96 86 104 86 108 80Z\" fill=\"#7A3B2E\"/><rect x=\"98\" y=\"80\" width=\"3\" height=\"2.5\" fill=\"#FBF7EE\"/><path d=\"M85 61L94 60M106 60L115 61\" stroke=\"#2A1E15\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></g>"
+  },
+  "companions": [
+    {
+      "id": "companion1",
+      "name": "Pebble",
+      "gender": "male",
+      "preset": "penguin",
+      "look": "a little penguin chick with a slate back and white tummy, an orange beak and feet, a red knitted scarf (#B2443A); about as tall as Nell's waist; waddles, slides on his tummy, gets the hiccups when nervous"
+    }
+  ],
+  "cast": [
+    {
+      "id": "ember",
+      "name": "Ember",
+      "gender": "female",
+      "preset": null,
+      "look": "a young dragon about six times Nell's height, long and curling; warm orange-red scales (#C9573A) with a pale gold belly (#E8C766); small bat-like wings with peach webbing; two short curly horns; a long tail with a heart-shaped tip; big sad green eyes (#7F905E) with long lashes; little puffs of smoke from her nose; shy, sings when happy"
+    },
+    {
+      "id": "octavia",
+      "name": "Octavia",
+      "gender": "female",
+      "preset": null,
+      "look": "an old octopus librarian about three times Nell's height; soft lilac skin (#A58BB5) with pale spots; EIGHT curling arms, often each holding a different book; half-moon spectacles on a chain; a tiny purple cardigan over her head; wise, fussy, whispers 'shhh'"
+    },
+    {
+      "id": "crabs",
+      "name": "the Pinch Twins",
+      "preset": null,
+      "look": "two small red crabs (#C4553A) side by side, each about as big as Pebble, always together; one has a blue sailor hat (#6F8FAF), one a yellow sou'wester (#E3B23C); big stalk eyes, big claws they click when excited; cheeky, always racing"
+    },
+    {
+      "id": "queen",
+      "name": "the Cloud Queen",
+      "gender": "female",
+      "preset": null,
+      "look": "a tall, elegant queen about twice Nell's height, made of soft white cloud; a long flowing gown of mist (#F4F6F8, pale blue shadows #C9D6E0); pale blue skin (#DCE6EE); a crown of tiny raindrops; long silver hair floating as if underwater; calm, grand, a little forgetful"
+    },
+    {
+      "id": "dad",
+      "name": "Dad",
+      "gender": "male",
+      "preset": null,
+      "look": "Nell's dad, the lighthouse keeper, about twice Nell's height; pale freckled skin (#F0CDB0); a bushy ginger beard (#C46A3A); a thick cream fisherman's jumper (#F3E6D0); navy trousers and big black boots; a navy cap; big, warm, laughs a lot"
+    }
+  ],
+  "places": [
+    {
+      "id": "lighthouse",
+      "light": "day",
+      "about": "A green headland on a breezy morning: a tall red-and-white striped lighthouse on the left, a little white keeper's cottage beside it, a path of stepping stones down to the sea on the right, gulls and puffy clouds."
+    },
+    {
+      "id": "beach",
+      "light": "golden",
+      "about": "A small sandy cove below the cliffs: smooth golden sand across the front with rock pools and shells, a little red rowing boat pulled up on the right, gentle waves, tall cliffs on the left."
+    },
+    {
+      "id": "underwater",
+      "light": "day",
+      "about": "A sunken library under the sea in green-gold light: tall coral bookshelves full of shell-books on both sides, seaweed swaying, bubbles rising, a sandy floor with a big round reading rock in the middle, shafts of sunlight from above."
+    },
+    {
+      "id": "cloud-palace",
+      "light": "day",
+      "about": "A palace made of clouds high in the sky: fluffy white cloud towers and arches, a cloud floor across the front, a rainbow bridge on the right, pale pink-and-blue sky."
+    },
+    {
+      "id": "dragon-mountain",
+      "light": "dusk",
+      "about": "A smoky dragon mountain at sunset: dark rocky slopes with glowing orange cracks, a big round cave ledge across the front, a smoking peak at the back, an orange-and-violet sky."
+    },
+    {
+      "id": "cottage-kitchen",
+      "light": "golden",
+      "about": "Inside the lighthouse keeper's cottage in warm lamplight: a round porthole window showing the sea, a stove with a kettle on the left, a wooden table with mismatched chairs in the middle, ropes and lanterns hanging, a rag rug."
+    },
+    {
+      "id": "nell-bedroom",
+      "light": "night",
+      "about": "Nell's little round bedroom at the top of the lighthouse at night: curved white walls, a round window on the right with the lighthouse beam sweeping the dark sea and stars, a small bed with a blue quilt in the middle, a bookshelf on the left."
+    }
+  ],
+  "segments": [
+    {
+      "pages": [
+        {
+          "text": "Every night, the whole kingdom heard a sad, sad sound from the mountain. \"That's a dragon crying,\" said Nell, pressing her nose to the window. \"Somebody should help her.\"",
+          "picture": "Mid shot inside the cottage kitchen in the evening. Nell kneels on a chair at the porthole window on the right, both hands and her nose pressed against the glass, looking out at the far smoking mountain. Pebble stands on the table beside her on tiptoe, one flipper on her shoulder. Dad sits at the table on the left with a mug of cocoa, one hand stroking his beard, looking at Nell with a worried smile.",
+          "characters": [
+            "hero",
+            "companion1",
+            "dad"
+          ],
+          "place": "cottage-kitchen",
+          "camera": "mid",
+          "action": {
+            "word": "crying",
+            "target": "hero",
+            "sound": "drip",
+            "motion": "nod"
+          },
+          "aside": null
+        },
+        {
+          "text": "In the morning, Nell packed her pockets: a torch, a jam sandwich, and a bag of fish for Pebble. \"Be back for tea!\" she called. Dad waved from the lighthouse door.",
+          "picture": "Wide shot of the green headland on a breezy morning. Nell strides down the stepping-stone path on the right, one hand stuffing a jam sandwich into her raincoat pocket, the other swinging. Pebble waddles behind her, flippers out. Dad stands in the lighthouse doorway on the left, one big arm waving high, the other on his hip, laughing.",
+          "characters": [
+            "hero",
+            "companion1",
+            "dad"
+          ],
+          "place": "lighthouse",
+          "camera": "wide",
+          "action": {
+            "word": "waved",
+            "target": "dad",
+            "sound": "whoosh",
+            "motion": "hop"
+          },
+          "aside": null
+        },
+        {
+          "text": "Down at the cove, two crabs came racing sideways across the sand. \"The dragon lost her music box!\" clicked one. \"It sank in the sea!\" clicked the other.",
+          "picture": "Mid shot on the sandy cove. The Pinch Twins race sideways across the sand in the middle, claws up and clicking, stalk eyes wide. Nell crouches down on the left with her hands on her knees, listening carefully. Pebble stands behind Nell with his flippers over his beak, hiccuping. The red rowing boat on the right.",
+          "characters": [
+            "hero",
+            "companion1",
+            "crabs"
+          ],
+          "place": "beach",
+          "camera": "mid",
+          "action": {
+            "word": "clicked",
+            "target": "crabs",
+            "sound": "squeak",
+            "motion": "wiggle"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "Nell rowed the little red boat out over the deep water, with Pebble at the front and the crabs as lookouts. \"Down there!\" pointed Pebble.",
+          "picture": "Wide shot over the turquoise sea. Nell sits in the middle of the little red rowing boat pulling the oars, leaning back, cheeks puffed. Pebble stands at the front of the boat on the right pointing down into the water with one flipper. The two crabs sit on the back of the boat, one waving a claw. A glow of coral far below the waves.",
+          "characters": [
+            "hero",
+            "companion1",
+            "crabs"
+          ],
+          "place": "beach",
+          "camera": "wide",
+          "action": {
+            "word": "rowed",
+            "target": "hero",
+            "sound": "splash",
+            "motion": "float"
+          },
+          "aside": null
+        },
+        {
+          "text": "Splosh! Pebble dived in, and Nell followed in a bubble she blew from her bubble wand. Down, down they sank, into a library under the sea.",
+          "picture": "Wide shot of the sunken library. Nell floats down from the top inside a big clear bubble, sitting cross-legged, hands pressed to the bubble wall, glasses wide with wonder. Pebble swims beside her on the right, flippers back, streaming bubbles. Tall coral bookshelves on both sides, seaweed swaying, shafts of light.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "underwater",
+          "camera": "wide",
+          "action": {
+            "word": "dived",
+            "target": "companion1",
+            "sound": "splash",
+            "motion": "tumble"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"Shhh!\" An old octopus peered over her spectacles, a book in every arm. \"A music box? Hmm. Page three hundred... no... page four hundred and six!\"",
+          "picture": "Mid shot in the sunken library. Octavia the octopus sits on the big round reading rock in the middle, her eight arms each holding a different open book, one arm raised with a finger to her lips, spectacles slipping. Nell kneels on the sand on the left inside her bubble, hands clasped, hopeful. Pebble floats above Nell, waving a flipper.",
+          "characters": [
+            "hero",
+            "companion1",
+            "octavia"
+          ],
+          "place": "underwater",
+          "camera": "mid",
+          "action": {
+            "word": "shhh",
+            "target": "octavia",
+            "sound": "rustle",
+            "motion": "wiggle"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"The sea gave it to the clouds,\" read Octavia. \"The Cloud Queen keeps everything shiny.\" She blew a giant bubble, and up, up, UP it carried Nell and Pebble into the sky.",
+          "picture": "Wide shot rising from the sea into the sky. A giant bubble floats up out of the waves in the middle, Nell and Pebble inside it, Nell waving down with one hand, the other on the bubble wall, Pebble hugging her leg. Far below at the bottom, Octavia's arms wave goodbye from the water. Clouds above.",
+          "characters": [
+            "hero",
+            "companion1",
+            "octavia"
+          ],
+          "place": "cloud-palace",
+          "camera": "wide",
+          "action": {
+            "word": "carried",
+            "target": "hero",
+            "sound": "pop",
+            "motion": "float"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "The Cloud Queen sat on a throne of fluff, surrounded by shiny things: spoons, buttons, a bicycle bell - and a small silver music box.",
+          "picture": "Wide shot of the cloud palace. The Cloud Queen sits on a tall fluffy cloud throne on the right, her misty gown pooling around her, holding a small round silver music box in her lap with both hands. Piles of shiny spoons, buttons and a bicycle bell glitter around the throne. Nell and Pebble stand on the cloud floor on the left, Nell pointing at the music box, Pebble holding his scarf.",
+          "characters": [
+            "hero",
+            "companion1",
+            "queen"
+          ],
+          "place": "cloud-palace",
+          "camera": "wide",
+          "action": {
+            "word": "shiny",
+            "target": "queen",
+            "sound": "twinkle",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"It's not mine, you know,\" said the Queen dreamily. \"But it plays such a lovely tune.\" She turned the handle, and a tiny, sad little song came out.",
+          "picture": "Mid shot in the cloud palace. The Cloud Queen bends down on the left, holding the music box out towards Nell in one hand and turning its little handle with the other, eyes half-closed. Nell stands on the right with her hands cupped behind her ears, listening hard. Pebble sits on the cloud floor beside Nell, swaying. Musical notes float up.",
+          "characters": [
+            "hero",
+            "companion1",
+            "queen"
+          ],
+          "place": "cloud-palace",
+          "camera": "mid",
+          "action": {
+            "word": "song",
+            "target": "queen",
+            "sound": "twinkle",
+            "motion": "spin"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"That's the dragon's song,\" said Nell gently. \"She can't sing without it.\" The Queen thought for a long, misty moment. Then she held out the box. \"Then it must go home.\"",
+          "picture": "Close-up in the cloud palace. The Cloud Queen's kind misty face on the left, smiling softly, as her long cloud hand places the silver music box into Nell's two small outstretched hands on the right. Nell looks up at her, glasses shining, smiling. Raindrop crown sparkling.",
+          "characters": [
+            "hero",
+            "queen"
+          ],
+          "place": "cloud-palace",
+          "camera": "close",
+          "action": {
+            "word": "home",
+            "target": "hero",
+            "sound": "twinkle",
+            "motion": "nod"
+          },
+          "aside": null
+        },
+        {
+          "text": "The Queen whistled up a rain cloud. Nell and Pebble climbed aboard, and away it sailed to the dragon's mountain, raining a little on the way.",
+          "picture": "Wide shot across the sky towards the smoky mountain. Nell sits cross-legged on a fat grey rain cloud in the middle, clutching the music box on her lap, her hair blowing. Pebble lies on his tummy beside her, flippers spread, peering over the edge. Gentle rain falls beneath the cloud. The Cloud Queen waves from her palace on the left, the smoking mountain on the right.",
+          "characters": [
+            "hero",
+            "companion1",
+            "queen"
+          ],
+          "place": "cloud-palace",
+          "camera": "wide",
+          "action": {
+            "word": "sailed",
+            "target": "hero",
+            "sound": "drip",
+            "motion": "float"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "On the smoky mountain sat Ember the dragon, curled up small, with great big tears sizzling on the hot rocks. Hiss. Hiss.",
+          "picture": "Wide shot of the dragon mountain at sunset. Ember the huge orange dragon lies curled up on the cave ledge on the right, her head resting sadly on her front feet, big tears rolling down and sizzling into steam on the rocks, her tail wrapped round her. Nell and Pebble step off the rain cloud on the left, small, Nell holding the music box behind her back.",
+          "characters": [
+            "hero",
+            "companion1",
+            "ember"
+          ],
+          "place": "dragon-mountain",
+          "camera": "wide",
+          "action": {
+            "word": "sizzling",
+            "target": "ember",
+            "sound": "drip",
+            "motion": "wiggle"
+          },
+          "aside": null
+        },
+        {
+          "text": "Pebble hiccuped. Ember lifted her enormous head. \"Who's there?\" she sniffed, and a puff of smoke went POOF. Nell stepped forward. \"I think this is yours.\"",
+          "picture": "Mid shot on the cave ledge. Ember lifts her big head on the right, looming down, green eyes wide, a puff of smoke bursting from her nose. Nell stands in front on the left holding the silver music box up towards her with both hands, standing very straight, brave. Pebble hides behind Nell's wellies, peeking out, mid-hiccup.",
+          "characters": [
+            "hero",
+            "companion1",
+            "ember"
+          ],
+          "place": "dragon-mountain",
+          "camera": "mid",
+          "action": {
+            "word": "poof",
+            "target": "ember",
+            "sound": "pop",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "Nell turned the little handle. The tune played. And Ember began to sing - a big, warm, rumbling song that made the whole mountain glow.",
+          "picture": "Wide shot of the dragon mountain glowing gold. Ember sits up tall in the middle with her head thrown back, wings spread wide, singing, golden musical notes and sparks swirling up into the sunset. Nell stands on the left holding up the open music box in one hand, the other hand on her heart. Pebble dances on one foot beside her, flippers up.",
+          "characters": [
+            "hero",
+            "companion1",
+            "ember"
+          ],
+          "place": "dragon-mountain",
+          "camera": "wide",
+          "action": {
+            "word": "sing",
+            "target": "ember",
+            "sound": "twinkle",
+            "motion": "spin"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"Thank you,\" whispered Ember, and she curled her long warm tail round Nell and Pebble in the biggest dragon hug there ever was.",
+          "picture": "Mid shot on the glowing ledge. Ember lies with her long curling tail wrapped round Nell and Pebble in a hug, her big head bent down and her cheek resting gently against Nell, eyes closed, smiling. Nell has both arms round Ember's nose, cheek pressed against it, eyes closed. Pebble is squished happily against the dragon's side, flippers wide.",
+          "characters": [
+            "hero",
+            "companion1",
+            "ember"
+          ],
+          "place": "dragon-mountain",
+          "camera": "mid",
+          "action": {
+            "word": "hug",
+            "target": "ember",
+            "sound": "giggle",
+            "motion": "nod"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "Ember flew them home on her back, singing all the way. Dad came running out of the lighthouse. \"Just in time for tea!\" laughed Nell.",
+          "picture": "Wide shot of the headland at dusk. Ember lands gently on the grass on the right, wings still spread, Nell and Pebble sitting on her back between her wings, Nell waving with one arm, Pebble holding on to Nell. Dad runs out of the lighthouse door on the left, both arms out wide, mouth open in amazement. The lighthouse beam just switching on.",
+          "characters": [
+            "hero",
+            "companion1",
+            "ember",
+            "dad"
+          ],
+          "place": "lighthouse",
+          "camera": "wide",
+          "action": {
+            "word": "flew",
+            "target": "ember",
+            "sound": "whoosh",
+            "motion": "float"
+          },
+          "aside": null
+        },
+        {
+          "text": "Everyone came to tea: the crabs, Octavia in a bucket, even the Cloud Queen. Ember warmed the teapot with one tiny puff, and Dad cut the biggest cake in the kingdom.",
+          "picture": "Wide shot of a tea party on the headland lawn in the evening. A long table with a white cloth and a huge cake in the middle. Nell and Pebble sit side by side on chairs at the front of the table, Nell holding up her cup. Dad stands at the table cutting the cake with a big knife. The two crabs sit on the table edge. Octavia waves three arms from a big tin bucket on the left. The Cloud Queen sits floating on the right. Ember's big head rests on the grass behind the table, puffing a little smoke at the teapot.",
+          "characters": [
+            "hero",
+            "companion1",
+            "dad",
+            "crabs",
+            "octavia",
+            "queen",
+            "ember"
+          ],
+          "place": "lighthouse",
+          "camera": "wide",
+          "action": {
+            "word": "tea",
+            "target": "ember",
+            "sound": "pop",
+            "motion": "wiggle"
+          },
+          "aside": null
+        },
+        {
+          "text": "That night, as the lighthouse beam swept the sea, Nell heard a song from the mountain - a happy one this time. She smiled, hugged Pebble, and fell fast asleep.",
+          "picture": "Mid shot in Nell's round bedroom at the top of the lighthouse at night. Nell is tucked up in her small bed under the blue quilt in the middle, eyes closed, smiling, hugging Pebble, who is snuggled in beside her under the quilt with his scarf on. The round window on the right shows the lighthouse beam sweeping the dark sea and a tiny glowing mountain far away with golden notes floating above it.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "nell-bedroom",
+          "camera": "mid",
+          "action": {
+            "word": "asleep",
+            "target": "hero",
+            "sound": "snore",
+            "motion": "float"
+          },
+          "aside": null
+        }
+      ]
+    }
+  ]
+}

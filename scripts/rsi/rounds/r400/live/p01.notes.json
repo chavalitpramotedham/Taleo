@@ -1,0 +1,61 @@
+{
+ "portraits": "Dad painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "window": 1,
+   "chair": 1,
+   "hold:cup": 1,
+   "table": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "dad",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: dad resized from 0.85 to 1.13, true to the others",
+   "layout: drawn back to front: window, companion1, dad, hero",
+   "layout: dad sat behind the table",
+   "no piece called \"steam\": left out"
+  ],
+  "composed": {
+   "wrote": "<who c=\"dad\"/>\n<stamp k=\"table\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<fig c=\"dad\" v=\"front\" x=\"105\" y=\"232\" s=\"0.85\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"chin,hold\" legs=\"sit\" mood=\"worried\" look=\"right\" hold=\"cup\"/>\n<stamp k=\"chair\" x=\"300\" y=\"246\" s=\"1.2\" near=\"1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"300\" y=\"226\" s=\"0.8\" lean=\"4\" tilt=\"-8\" arms=\"reach,reach\" legs=\"crouch\" mood=\"sad\" look=\"right\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"225\" y=\"162\" s=\"0.42\" flip=\"0\" lean=\"6\" tilt=\"6\" arms=\"reach,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\"/>\n<stamp k=\"window\" x=\"345\" y=\"170\" s=\"0.9\"/>\n<stamp k=\"steam\" x=\"105\" y=\"150\" s=\"0.5\"/>",
+   "laid": "<who c=\"dad\"/>\n\n<stamp k=\"window\" x=\"345\" y=\"170\" s=\"0.9\"/>\n<stamp k=\"chair\" x=\"300\" y=\"246\" s=\"1.2\" near=\"1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"225\" y=\"162\" s=\"0.42\" flip=\"0\" lean=\"6\" tilt=\"6\" arms=\"reach,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"dad\" v=\"front\" x=\"105\" y=\"232\" s=\"1.13\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"chin,hold\" legs=\"sit\" mood=\"worried\" look=\"right\" hold=\"cup\" laid=\"1\"/><stamp k=\"table\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"300\" y=\"226\" s=\"0.8\" lean=\"4\" tilt=\"-8\" arms=\"reach,reach\" legs=\"crouch\" mood=\"sad\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"steam\" x=\"105\" y=\"150\" s=\"0.5\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "dad"
+  ],
+  "full": [],
+  "readyMs": 12
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1784,
+   "firstStrokeMs": 1784,
+   "out": 356,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

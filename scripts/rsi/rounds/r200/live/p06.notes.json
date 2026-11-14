@@ -1,0 +1,66 @@
+{
+ "portraits": "Captain Tusk painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "cloud": 2,
+   "bird": 1,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "hold:cup": 1,
+   "motion": 1,
+   "sparkles": 1,
+   "hold:lantern": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "tusk",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: tusk resized from 0.93 to 1.16, true to the others",
+   "layout: companion1 resized from 0.72 to 1.09, true to the others",
+   "layout: drawn back to front: something drawn, tusk, companion1, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"tusk\"/>\n<g class=\"paint\"><ellipse cx=\"262\" cy=\"226\" rx=\"22\" ry=\"5\" fill=\"#8fa0c8\" opacity=\"0.5\"/><ellipse cx=\"238\" cy=\"244\" rx=\"30\" ry=\"7\" fill=\"#2f3f78\"/></g>\n<g class=\"ink\"><ellipse cx=\"238\" cy=\"244\" rx=\"30\" ry=\"7\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"285\" y=\"238\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-5\" arms=\"reach,reach\" legs=\"sit\" mood=\"cross\" look=\"left\" hold=\"cup\"/></g>\n<g class=\"paint\"><rect x=\"252\" y=\"170\" width=\"3\" height=\"68\" fill=\"#7a5a3a\"/><rect x=\"236\" y=\"196\" width=\"14\" height=\"12\" fill=\"#c9ccd4\"/></g>\n<g class=\"ink\"><path d=\"M253 172 L222 150 L214 200\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"1.5\"/><rect x=\"236\" y=\"196\" width=\"14\" height=\"12\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>\n<stamp k=\"motion\" x=\"232\" y=\"180\" s=\"0.5\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"85\" y=\"250\" s=\"0.69\" flip=\"0\" lean=\"3\" tilt=\"0\" arms=\"reach,down\" legs=\"stand\" mood=\"shy\" look=\"right\" hold=\"lantern\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"165\" y=\"252\" s=\"0.72\" flip=\"1\" lean=\"0\" tilt=\"6\" arms=\"reach,down\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"paint\"><rect x=\"143\" y=\"150\" width=\"14\" height=\"30\" rx=\"3\" fill=\"#B2443A\"/><rect x=\"143\" y=\"146\" width=\"14\" height=\"6\" fill=\"#d9d9d9\"/></g>\n<g class=\"ink\"><rect x=\"143\" y=\"150\" width=\"14\" height=\"30\" rx=\"3\" fill=\"none\" stroke=\"#3b2a2a\" stroke-width=\"2\"/></g>\n<stamp k=\"sparkles\" x=\"105\" y=\"165\" s=\"0.7\"/>\n<g class=\"ink\"><path d=\"M60 252 l8 -2 M120 255 l8 -2 M195 256 l8 -2 M300 252 l8 -2\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>",
+   "laid": "<who c=\"tusk\"/>\n<g class=\"paint\"><ellipse cx=\"262\" cy=\"226\" rx=\"22\" ry=\"5\" fill=\"#8fa0c8\" opacity=\"0.5\"/><ellipse cx=\"238\" cy=\"244\" rx=\"30\" ry=\"7\" fill=\"#2f3f78\"/></g>\n<g class=\"ink\"><ellipse cx=\"238\" cy=\"244\" rx=\"30\" ry=\"7\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"285\" y=\"238\" s=\"1.16\" flip=\"1\" lean=\"0\" tilt=\"-5\" arms=\"reach,reach\" legs=\"sit\" mood=\"cross\" look=\"left\" hold=\"cup\" laid=\"1\"/></g>\n<g class=\"paint\"><rect x=\"252\" y=\"170\" width=\"3\" height=\"68\" fill=\"#7a5a3a\"/><rect x=\"236\" y=\"196\" width=\"14\" height=\"12\" fill=\"#c9ccd4\"/></g>\n<g class=\"ink\"><path d=\"M253 172 L222 150 L214 200\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"1.5\"/><rect x=\"236\" y=\"196\" width=\"14\" height=\"12\" fill=\"none\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>\n<stamp k=\"motion\" x=\"232\" y=\"180\" s=\"0.5\"/>\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"front\" x=\"174\" y=\"251\" s=\"1.09\" flip=\"1\" lean=\"0\" tilt=\"6\" arms=\"reach,down\" legs=\"stand\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<g class=\"paint\"><rect x=\"143\" y=\"150\" width=\"14\" height=\"30\" rx=\"3\" fill=\"#B2443A\"/><rect x=\"143\" y=\"146\" width=\"14\" height=\"6\" fill=\"#d9d9d9\"/></g>\n<g class=\"ink\"><rect x=\"143\" y=\"150\" width=\"14\" height=\"30\" rx=\"3\" fill=\"none\" stroke=\"#3b2a2a\" stroke-width=\"2\"/></g>\n<stamp k=\"sparkles\" x=\"105\" y=\"165\" s=\"0.7\"/>\n<who c=\"companion1\"/>\n<fig c=\"hero\" v=\"front\" x=\"76\" y=\"251\" s=\"0.69\" flip=\"0\" lean=\"3\" tilt=\"0\" arms=\"reach,down\" legs=\"stand\" mood=\"shy\" look=\"right\" hold=\"lantern\" laid=\"1\"/>\n<g class=\"ink\"><path d=\"M60 252 l8 -2 M120 255 l8 -2 M195 256 l8 -2 M300 252 l8 -2\" stroke=\"#3b3a5a\" stroke-width=\"2\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "tusk"
+  ],
+  "full": [],
+  "readyMs": 9
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1552,
+   "firstStrokeMs": 1552,
+   "out": 866,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

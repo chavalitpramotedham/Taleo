@@ -370,3 +370,41 @@ The bench, its two books and every round's paintings and notes are in
 `scripts/rsi/`.
 
 New code: 4-S99Q.
+
+**Lesson 18 - natural limbs, and a test set (14 Nov, painter RSI part 2).**
+
+Tested on three dev books (the Odyssey, Kai's snowy quest, Bao's giant
+kitchen) and checked once at the end on a held-out book (Nell and the
+dragon). Code changes were tried on free replays of each page's saved
+composer tags; model calls only for new books and one fresh dev round.
+
+- **Real knees.** A leg that bends - sitting, crouching, a jump's tucked
+  legs, a kick - is a thigh and a shin with a round knee, not one bowed
+  tube. A sitter's hips come down onto its seat (its hips always SIT_FEET
+  above its feet, so the layout seats everyone by one measure: chair,
+  boat, bed); from the front its knees face us.
+- **Legs under round bodies.** An elephant, an owl, a penguin or a bun had
+  its body to the ground and looked seated on every page: the body is
+  lifted until MIN_LEG of leg shows.
+- **Two arms, two jobs.** A one-handed gesture leaves the other hand
+  resting; resting arms rest a little differently; both up becomes one up
+  and one waving. Hugs, carrying and clapping keep both hands. The
+  composer is asked for this too, and to sit anyone on a seat.
+- **Giants by contrast.** When the frame can't hold a giant at its stated
+  size, everyone else is drawn smaller (down to about half). Caution:
+  with several big characters on one page the hero gets too small.
+- **Groups whole.** A group (three mice) can't be posed from one skeleton:
+  its portrait shows them all and it is placed whole from that, and its
+  sheet tells the composer to place it with one tag, never to draw it.
+- **Riders.** "On her shoulder", "on Brom's shoulders", "on top of the
+  cat's head", "on her back": the rider is seated there, after its
+  carrier.
+- **From the words too.** In bed ("tucked the blanket round Ody") and hugs
+  ("threw her arms around his neck") are read from the page's text when
+  the brief doesn't say them; in bed means no legs under the quilt.
+- **Never blank.** Pictures over 80k characters were blanked by the
+  sanitiser (a seven-character page): the limit is 200k. Bare tags in the
+  composer's notes ("<fig> and <stamp> tags only") are ignored, and when
+  it corrects itself ("Final output:") only the corrected copy is kept.
+
+New code: 4-VT2Q (way 4, style s20).

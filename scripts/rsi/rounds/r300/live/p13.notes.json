@@ -1,0 +1,68 @@
+{
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "shelf": 1,
+   "hold:cup": 2,
+   "stump": 1,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hero",
+   "companion1",
+   "tilly"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: tilly resized from 0.90 to 1.21, true to the others",
+   "layout: companion1 resized from 0.85 to 1.09, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero set on its seat",
+   "layout: drawn back to front: shelf, hero, companion1, tilly",
+   "layout: tilly marked as the tap target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"shelf\" x=\"330\" y=\"60\" s=\"1\"/>\n<fig c=\"tilly\" v=\"front\" x=\"300\" y=\"246\" s=\"0.9\" flip=\"1\" lean=\"-12\" tilt=\"8\" arms=\"hold,hold\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"stump\" x=\"130\" y=\"246\" s=\"2.6\" near=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"105\" y=\"226\" s=\"0.7\" tilt=\"6\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<fig c=\"companion1\" v=\"front\" x=\"165\" y=\"226\" s=\"0.85\" arms=\"hold,down\" legs=\"sit\" mood=\"calm\" look=\"right\" hold=\"cup\"/>\n<stamp k=\"sparkles\" x=\"215\" y=\"140\" s=\"0.6\"/>",
+   "laid": "<stamp k=\"shelf\" x=\"330\" y=\"60\" s=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"86\" y=\"201\" s=\"0.7\" tilt=\"6\" arms=\"hold,down\" legs=\"sit\" mood=\"happy\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"stump\" x=\"130\" y=\"246\" s=\"2.6\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"184\" y=\"226\" s=\"1.09\" arms=\"hold,down\" legs=\"sit\" mood=\"calm\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"215\" y=\"140\" s=\"0.6\"/>\n<g class=\"target\"><fig c=\"tilly\" v=\"front\" x=\"300\" y=\"246\" s=\"1.21\" flip=\"1\" lean=\"-12\" tilt=\"8\" arms=\"hold,hold\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "tilly"
+  ],
+  "full": [],
+  "readyMs": 10927
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1162,
+   "firstStrokeMs": 1162,
+   "out": 281,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

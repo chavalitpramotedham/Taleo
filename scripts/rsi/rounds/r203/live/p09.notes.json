@@ -1,0 +1,61 @@
+{
+ "portraits": "Brom painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "sparkles": 2,
+   "hold:lantern": 1,
+   "lantern": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "brom",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second brom left out",
+   "layout: brom resized from 0.61 to 1.18, true to the others",
+   "layout: companion1 resized from 0.50 to 0.68, true to the others",
+   "layout: companion1 made smaller (0.68 to 0.40) beside the giant",
+   "layout: hero made smaller (0.50 to 0.29) beside the giant",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: brom turned to face the others",
+   "layout: brom marked as the tap target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"brom\" v=\"three\" x=\"250\" y=\"240\" s=\"0.61\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"chin,chin\" legs=\"crouch\" mood=\"shy\" look=\"left\"/>\n<stamp k=\"sparkles\" x=\"215\" y=\"150\" s=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"125\" y=\"244\" s=\"0.5\" lean=\"-4\" tilt=\"8\" arms=\"cover,down\" legs=\"stand\" mood=\"scared\" look=\"right\"/>\n<fig c=\"hero\" v=\"front\" x=\"150\" y=\"248\" s=\"0.5\" lean=\"4\" tilt=\"4\" arms=\"up,hip\" legs=\"stand\" mood=\"surprised\" look=\"right\" hold=\"lantern\"/>\n<stamp k=\"lantern\" x=\"170\" y=\"106\" s=\"1.3\"/>\n<stamp k=\"sparkles\" x=\"172\" y=\"104\" s=\"0.8\"/>\n\nI can't wrap brom in the target group within these tags as written, so here is the corrected version:\n\n<g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"250\" y=\"240\" s=\"0.61\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"chin,chin\" legs=\"crouch\" mood=\"shy\" look=\"left\"/></g>",
+   "laid": "<g class=\"target\"><fig c=\"brom\" v=\"three\" x=\"250\" y=\"244\" s=\"1.18\" flip=\"1\" lean=\"0\" tilt=\"6\" arms=\"chin,chin\" legs=\"crouch\" mood=\"shy\" look=\"left\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"215\" y=\"150\" s=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"119\" y=\"244\" s=\"0.40\" lean=\"-4\" tilt=\"8\" arms=\"cover,down\" legs=\"stand\" mood=\"scared\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"front\" x=\"156\" y=\"244\" s=\"0.29\" lean=\"4\" tilt=\"4\" arms=\"up,hip\" legs=\"stand\" mood=\"surprised\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"lantern\" x=\"170\" y=\"106\" s=\"1.3\"/>\n<stamp k=\"sparkles\" x=\"172\" y=\"104\" s=\"0.8\"/>\n\nI can't wrap brom in the target group within these tags as written, so here is the corrected version:\n\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "brom"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

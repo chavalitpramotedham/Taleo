@@ -1,0 +1,54 @@
+{
+ "portraits": "Duchess painted from their portrait in this book",
+ "reuse": {
+  "stamps": 1,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "zzz": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "duchess",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: duchess resized from 1.10 to 1.21, true to the others",
+   "layout: companion1 resized from 0.50 to 0.68, true to the others",
+   "layout: drawn back to front: something drawn, duchess, companion1, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"duchess\" v=\"front\" x=\"285\" y=\"246\" s=\"1.1\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n<g class=\"paint\"><path d=\"M200 246 Q205 215 250 212 L350 212 Q392 215 396 246 Z\" fill=\"#C9955A\"/></g>\n<g class=\"ink\"><path d=\"M200 246 Q205 215 250 212 L350 212 Q392 215 396 246\" fill=\"none\" stroke=\"#7A5530\" stroke-width=\"2\"/><path d=\"M215 232 L385 232\" stroke=\"#7A5530\" stroke-width=\"1.5\"/></g>\n<stamp k=\"zzz\" x=\"215\" y=\"105\" s=\"1.2\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"244\" s=\"0.5\" lean=\"6\" tilt=\"0\" arms=\"chin,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"160\" y=\"250\" s=\"0.42\" lean=\"6\" tilt=\"6\" arms=\"chin,reach\" legs=\"tiptoe\" mood=\"excited\" look=\"right\"/></g>\n<g class=\"ink\"><path d=\"M60 250 l6 -6 M70 252 l6 -5 M230 252 l6 -5\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/></g>",
+   "laid": "<g class=\"paint\"><path d=\"M200 246 Q205 215 250 212 L350 212 Q392 215 396 246 Z\" fill=\"#C9955A\"/></g>\n<g class=\"ink\"><path d=\"M200 246 Q205 215 250 212 L350 212 Q392 215 396 246\" fill=\"none\" stroke=\"#7A5530\" stroke-width=\"2\"/><path d=\"M215 232 L385 232\" stroke=\"#7A5530\" stroke-width=\"1.5\"/></g>\n\n<fig c=\"duchess\" v=\"front\" x=\"285\" y=\"246\" s=\"1.21\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\" laid=\"1\"/><stamp k=\"zzz\" x=\"215\" y=\"105\" s=\"1.2\"/>\n<fig c=\"companion1\" v=\"front\" x=\"102\" y=\"247\" s=\"0.68\" lean=\"6\" tilt=\"0\" arms=\"chin,down\" legs=\"tiptoe\" mood=\"worried\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"163\" y=\"247\" s=\"0.42\" lean=\"6\" tilt=\"6\" arms=\"chin,reach\" legs=\"tiptoe\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<g class=\"ink\"><path d=\"M60 250 l6 -6 M70 252 l6 -5 M230 252 l6 -5\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "duchess"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

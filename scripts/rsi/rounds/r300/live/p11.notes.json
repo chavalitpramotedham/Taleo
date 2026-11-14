@@ -1,0 +1,72 @@
+{
+ "portraits": "Sir Ribbit, the Crumb Mice painted from their portrait in this book",
+ "reuse": {
+  "stamps": 7,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "pond": 1,
+   "stone": 1,
+   "sparkles": 1,
+   "hearts": 1,
+   "tuft": 2
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "mice",
+   "frog",
+   "companion1",
+   "hero"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: mice resized from 0.66 to 1.18, true to the others",
+   "layout: frog resized from 0.86 to 1.22, true to the others",
+   "layout: hero resized from 0.50 to 0.60, true to the others",
+   "layout: companion1 resized from 0.75 to 1.01, true to the others",
+   "layout: frog and hero overlapped: eased apart",
+   "layout: frog and hero brought together for the hug",
+   "layout: drawn back to front: frog, mice, companion1, hero",
+   "layout: mice drawn behind frog, the main action's target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"pond\" x=\"200\" y=\"250\" s=\"2.2\" near=\"1\"/>\n<stamp k=\"stone\" x=\"62\" y=\"248\" s=\"3\" near=\"1\"/>\n<fig c=\"mice\" v=\"three\" x=\"82\" y=\"240\" s=\"0.66\" flip=\"0\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"right\"/>\n<g class=\"target\"><fig c=\"frog\" v=\"front\" x=\"195\" y=\"248\" s=\"0.86\" lean=\"0\" tilt=\"0\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"down\"/></g>\n<fig c=\"hero\" v=\"front\" x=\"195\" y=\"250\" s=\"0.5\" lean=\"0\" tilt=\"-6\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"up\"/>\n<fig c=\"companion1\" v=\"front\" x=\"322\" y=\"248\" s=\"0.75\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"ahead\"/>\n<g class=\"paint\"><ellipse cx=\"322\" cy=\"104\" rx=\"9\" ry=\"22\" fill=\"#E8C766\"/><ellipse cx=\"322\" cy=\"86\" rx=\"14\" ry=\"10\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><path d=\"M322 126 L322 150\" stroke=\"#8a6a2a\" stroke-width=\"3\" fill=\"none\"/></g>\n<stamp k=\"sparkles\" x=\"322\" y=\"90\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"195\" y=\"80\" s=\"0.9\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"252\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"270\" y=\"254\" s=\"1.2\"/>",
+   "laid": "<stamp k=\"pond\" x=\"200\" y=\"250\" s=\"2.2\" near=\"1\"/>\n<stamp k=\"stone\" x=\"62\" y=\"248\" s=\"3\" near=\"1\"/>\n<fig c=\"mice\" v=\"three\" x=\"80\" y=\"246\" s=\"1.18\" flip=\"0\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"right\" laid=\"1\"/><g class=\"target\"><fig c=\"frog\" v=\"three\" x=\"192\" y=\"248\" s=\"1.22\" lean=\"0\" tilt=\"0\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"down\" flip=\"0\" laid=\"1\"/></g>\n\n<fig c=\"companion1\" v=\"front\" x=\"334\" y=\"246\" s=\"1.01\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"ahead\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"322\" cy=\"104\" rx=\"9\" ry=\"22\" fill=\"#E8C766\"/><ellipse cx=\"322\" cy=\"86\" rx=\"14\" ry=\"10\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><path d=\"M322 126 L322 150\" stroke=\"#8a6a2a\" stroke-width=\"3\" fill=\"none\"/></g>\n<stamp k=\"sparkles\" x=\"322\" y=\"90\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"195\" y=\"80\" s=\"0.9\"/>\n<stamp k=\"tuft\" x=\"140\" y=\"252\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"270\" y=\"254\" s=\"1.2\"/>\n<fig c=\"hero\" v=\"three\" x=\"236\" y=\"246\" s=\"0.60\" lean=\"0\" tilt=\"-6\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"up\" flip=\"1\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "frog",
+   "mice"
+  ],
+  "full": [],
+  "readyMs": 18
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1900,
+   "firstStrokeMs": 1900,
+   "out": 578,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

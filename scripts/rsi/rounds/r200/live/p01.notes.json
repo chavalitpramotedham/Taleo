@@ -1,0 +1,62 @@
+{
+ "portraits": "Grandpa Tove painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "birch": 1,
+   "lantern": 1,
+   "ticks": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "grandpa",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: unknown tags left out: door, table",
+   "layout: companion1 resized from 0.69 to 1.09, true to the others",
+   "layout: grandpa resized from 0.80 to 1.09, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: spaced once more, finally",
+   "piece \"bench\" read as \"birch\""
+  ],
+  "composed": {
+   "wrote": "<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"228\" s=\"0.69\" flip=\"0\" lean=\"0\" tilt=\"8\" arms=\"hold,hold\" legs=\"stand\" mood=\"determined\" look=\"right\"/>\n<door x=\"70\" y=\"232\" s=\"1\" near=\"1\"/>\n<table x=\"285\" y=\"246\" s=\"1.1\" near=\"1\"/>\n<stamp k=\"bench\" x=\"285\" y=\"246\" s=\"1\" near=\"1\"/>\n<fig c=\"grandpa\" v=\"three\" x=\"290\" y=\"232\" s=\"0.8\" flip=\"1\" lean=\"0\" tilt=\"-5\" arms=\"reach,hip\" legs=\"sit\" mood=\"worried\" look=\"left\"/>\n<g class=\"target\"><stamp k=\"lantern\" x=\"258\" y=\"165\" s=\"1.3\"/></g>\n<fig c=\"hero\" v=\"front\" x=\"170\" y=\"248\" s=\"0.81\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"up,up\" legs=\"stand\" mood=\"determined\" look=\"up\"/>\n<stamp k=\"ticks\" x=\"258\" y=\"160\" s=\"0.9\"/>",
+   "laid": "<fig c=\"companion1\" v=\"front\" x=\"84\" y=\"228\" s=\"1.09\" flip=\"0\" lean=\"0\" tilt=\"8\" arms=\"hold,hold\" legs=\"stand\" mood=\"determined\" look=\"right\" laid=\"1\"/>\n\n\n<stamp k=\"bench\" x=\"285\" y=\"246\" s=\"1\" near=\"1\"/>\n<fig c=\"grandpa\" v=\"three\" x=\"293\" y=\"232\" s=\"1.09\" flip=\"1\" lean=\"0\" tilt=\"-5\" arms=\"reach,hip\" legs=\"sit\" mood=\"worried\" look=\"left\" laid=\"1\"/>\n<g class=\"target\"><stamp k=\"lantern\" x=\"258\" y=\"165\" s=\"1.3\"/></g>\n<fig c=\"hero\" v=\"front\" x=\"188\" y=\"248\" s=\"0.81\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"up,up\" legs=\"stand\" mood=\"determined\" look=\"up\" laid=\"1\"/>\n<stamp k=\"ticks\" x=\"258\" y=\"160\" s=\"0.9\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "grandpa"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1721,
+   "firstStrokeMs": 1721,
+   "out": 348,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

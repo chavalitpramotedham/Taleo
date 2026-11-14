@@ -1,0 +1,52 @@
+{
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "motion": 1,
+   "dust": 1,
+   "sparkles": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.60 to 0.70, true to the others",
+   "layout: drawn back to front: companion1, hero, something drawn",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<g class=\"paint\"><path d=\"M120 92 L300 236 L316 226 L136 82 Z\" fill=\"#C9944F\"/><ellipse cx=\"128\" cy=\"87\" rx=\"16\" ry=\"9\" fill=\"#D9A862\" transform=\"rotate(38 128 87)\"/></g>\n<g class=\"ink\"><path d=\"M120 92 L300 236 M136 82 L316 226\" stroke=\"#6B4A2A\" stroke-width=\"2\" fill=\"none\"/></g>\n<stamp k=\"motion\" x=\"130\" y=\"95\" s=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"190\" y=\"150\" s=\"0.6\" lean=\"-30\" tilt=\"0\" arms=\"hold,hold\" legs=\"sit\" mood=\"scared\" look=\"down\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"250\" y=\"196\" s=\"0.5\" lean=\"-30\" tilt=\"-6\" arms=\"up,up\" legs=\"kick\" mood=\"laugh\" look=\"ahead\"/></g>\n<stamp k=\"dust\" x=\"305\" y=\"238\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"270\" y=\"120\" s=\"0.8\"/>",
+   "laid": "<fig c=\"companion1\" v=\"front\" x=\"187\" y=\"150\" s=\"0.70\" lean=\"-30\" tilt=\"0\" arms=\"hold,hold\" legs=\"sit\" mood=\"scared\" look=\"down\" flip=\"0\" laid=\"1\"/><stamp k=\"motion\" x=\"130\" y=\"95\" s=\"1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"253\" y=\"196\" s=\"0.5\" lean=\"-30\" tilt=\"-6\" arms=\"up,up\" legs=\"kick\" mood=\"laugh\" look=\"ahead\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"dust\" x=\"305\" y=\"238\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"270\" y=\"120\" s=\"0.8\"/>\n<g class=\"paint\"><path d=\"M120 92 L300 236 L316 226 L136 82 Z\" fill=\"#C9944F\"/><ellipse cx=\"128\" cy=\"87\" rx=\"16\" ry=\"9\" fill=\"#D9A862\" transform=\"rotate(38 128 87)\"/></g>\n<g class=\"ink\"><path d=\"M120 92 L300 236 M136 82 L316 226\" stroke=\"#6B4A2A\" stroke-width=\"2\" fill=\"none\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

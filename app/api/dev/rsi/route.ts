@@ -3,7 +3,7 @@
 //                                    story flow does (parts, newcomers, backdrops)
 //   POST {round, pages:[N,...]}   -> paints those pages exactly as a reader's page is
 //                                    painted (the live version), saved to the round
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { paintPage, prepareBackdrop, readyNewcomer, reuseOf } from "@/server/claude";
 import { prepareParts } from "@/server/paint/parts-maker";
@@ -41,7 +41,7 @@ const QUICK_PAGES = 2;
 export async function POST(req: Request) {
   const no = devOnly();
   if (no) return no;
-  const body = (await req.json()) as { prepare?: boolean; round?: number; pages?: number[]; effort?: "low" | "medium" | "high" };
+  const body = (await req.json()) as { prepare?: boolean; round?: number; pages?: number[]; effort?: "low" | "medium" | "high"; replay?: number };
   if (readLedger().spentUsd >= BUDGET_USD) return Response.json({ error: `Budget of $${BUDGET_USD} reached` }, { status: 402 });
 
   if (body.prepare) {
@@ -67,6 +67,13 @@ export async function POST(req: Request) {
         // (a candidate: the live settings with the composer's effort changed)
         if (body.effort) r.reuse = { ...LIVE.settings, painter: { ...LIVE.settings.painter!, effort: body.effort } };
         const notes: Record<string, unknown> = {};
+        // (replay: the composer's tags from an earlier round, no new call)
+        if (body.replay !== undefined) {
+          const was = JSON.parse(readFileSync(pageFile(body.replay, "live", n).replace(/\.svg$/, ".notes.json"), "utf8")) as { reuse?: { composed?: { wrote?: string } } };
+          const tags = was.reuse?.composed?.wrote;
+          if (!tags) throw new Error(`No composer tags saved for page ${n} of round ${body.replay}`);
+          ((globalThis as { __rsiReplay?: Map<string, string> }).__rsiReplay ??= new Map()).set(r.page.text, tags);
+        }
         let svg = "";
         try {
           for await (const s of paintPage(r, undefined, notes)) svg += s;
@@ -76,8 +83,32 @@ export async function POST(req: Request) {
         } catch (err) {
           results[n] = { ok: false, usd: at.usd, error: err instanceof Error ? err.message : String(err) };
         }
+        (globalThis as { __rsiReplay?: Map<string, string> }).__rsiReplay?.delete(r.page.text);
       });
     }),
   );
   return Response.json({ results, ledger: readLedger().spentUsd });
+}
+
+/** GET ?round=N&name=X -> that book's newcomer portrait (development only). */
+export async function GET(req: Request) {
+  const no = devOnly();
+  if (no) return no;
+  const u = new URL(req.url);
+  const story = benchStory(Number(u.searchParams.get("round") ?? 0));
+  const all = [story.hero, ...story.companions, ...story.cast];
+  if (u.searchParams.get("anchors")) {
+    const { partsFor } = await import("@/server/paint/parts-maker");
+    const out: Record<string, unknown> = {};
+    for (const c of all) {
+      const p = await partsFor(c).catch(() => null);
+      out[c.name] = p ? Object.fromEntries(Object.entries(p.views).map(([v, w]) => [v, w ? { hip: [w.anchors.hipL, w.anchors.hipR], sh: [w.anchors.shoulderL, w.anchors.shoulderR] } : null])) : null;
+    }
+    return Response.json(out);
+  }
+  const c = story.cast.find((x) => x.name === u.searchParams.get("name"));
+  if (!c) return new Response("no such character", { status: 404 });
+  const { newcomerPortrait } = await import("@/server/paint/newcomers");
+  const svg = await newcomerPortrait(c, story.world);
+  return new Response(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="400">${svg ?? ""}</svg>`, { headers: { "content-type": "image/svg+xml" } });
 }

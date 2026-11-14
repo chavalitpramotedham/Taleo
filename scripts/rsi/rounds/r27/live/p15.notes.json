@@ -1,0 +1,61 @@
+{
+ "portraits": "Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "boat": 1,
+   "sparkles": 1,
+   "dust": 1,
+   "motion": 1,
+   "cloud": 1,
+   "bird": 3,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "hero",
+   "argos"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hero hugging, as the brief says",
+   "layout: argos hugging, as the brief says",
+   "layout: hero and argos brought together for the hug",
+   "layout: drawn back to front: companion1, hero, something drawn, something drawn, argos"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"95\" y=\"246\" s=\"0.9\"/>\n<stamp k=\"hull\" x=\"95\" y=\"246\" s=\"0.9\"/>\n<g class=\"paint\"><path d=\"M40 244 L360 244 L360 256 L40 256 Z\" fill=\"#C8A57A\"/><path d=\"M40 244 L360 244 L360 248 L40 248 Z\" fill=\"#B5653E\"/></g>\n<g class=\"ink\"><path d=\"M80 250 L340 250 M120 244 L120 256 M200 244 L200 256 M280 244 L280 256 M340 244 L340 256\" stroke=\"#8C6A48\" stroke-width=\"1\" fill=\"none\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"130\" s=\"0.45\" flip=\"0\" lean=\"-8\" tilt=\"8\" arms=\"wave,down\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"paint\"><path d=\"M122 105 L145 108 L145 111 L122 109 Z\" fill=\"#F3E6D0\"/></g>\n<who c=\"argos\"/>\n<fig c=\"argos\" v=\"three\" x=\"305\" y=\"248\" s=\"0.8\" flip=\"1\" lean=\"12\" tilt=\"-8\" arms=\"reach,down\" legs=\"run\" mood=\"excited\" look=\"left\"/>\n<stamp k=\"motion\" x=\"345\" y=\"200\" s=\"0.8\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"248\" rx=\"30\" ry=\"5\" fill=\"#6F8FAF\" opacity=\"0.3\"/></g>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"200\" y=\"226\" s=\"0.82\" lean=\"10\" tilt=\"-6\" arms=\"up,wave\" legs=\"jump\" mood=\"laugh\" look=\"right\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"100\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"170\" y=\"246\" s=\"0.7\"/>\n<g class=\"ink\"><path d=\"M60 252 L66 244 M70 253 L74 246 M330 254 L336 246 M345 252 L350 245\" stroke=\"#8C6A48\" stroke-width=\"1.5\" fill=\"none\"/></g>",
+   "laid": "\n\n<stamp k=\"boat\" x=\"95\" y=\"246\" s=\"0.9\" near=\"1\"/><fig c=\"companion1\" v=\"front\" x=\"105\" y=\"130\" s=\"0.45\" flip=\"0\" lean=\"-8\" tilt=\"8\" arms=\"wave,down\" legs=\"stand\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M122 105 L145 108 L145 111 L122 109 Z\" fill=\"#F3E6D0\"/></g><who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"233\" y=\"226\" s=\"0.82\" lean=\"10\" tilt=\"-6\" arms=\"hug,hug\" legs=\"jump\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"200\" y=\"100\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"170\" y=\"246\" s=\"0.7\"/>\n<who c=\"argos\"/>\n<g class=\"ink\"><path d=\"M60 252 L66 244 M70 253 L74 246 M330 254 L336 246 M345 252 L350 245\" stroke=\"#8C6A48\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M40 244 L360 244 L360 256 L40 256 Z\" fill=\"#C8A57A\"/><path d=\"M40 244 L360 244 L360 248 L40 248 Z\" fill=\"#B5653E\"/></g>\n<g class=\"ink\"><path d=\"M80 250 L340 250 M120 244 L120 256 M200 244 L200 256 M280 244 L280 256 M340 244 L340 256\" stroke=\"#8C6A48\" stroke-width=\"1\" fill=\"none\"/></g>\n\n<fig c=\"argos\" v=\"three\" x=\"272\" y=\"248\" s=\"0.8\" flip=\"1\" lean=\"12\" tilt=\"-8\" arms=\"hug,hug\" legs=\"run\" mood=\"excited\" look=\"left\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"345\" y=\"200\" s=\"0.8\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"248\" rx=\"30\" ry=\"5\" fill=\"#6F8FAF\" opacity=\"0.3\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 15
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.04, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

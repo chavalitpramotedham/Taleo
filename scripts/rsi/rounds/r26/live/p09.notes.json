@@ -1,0 +1,61 @@
+{
+ "portraits": "the Sea-Larks painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "boulder": 3,
+   "boat": 1,
+   "hull": 1,
+   "notes": 1,
+   "motion": 1,
+   "cloud": 2,
+   "bird": 1
+  },
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1",
+   "larks"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.55 to 0.49, true to the others",
+   "layout: drawn back to front: boulder, boulder, something drawn, boulder, hero, companion1",
+   "layout: hero, companion1 put in the boat",
+   "larks overlapped another character: eased to x 252",
+   "\"larks\" wasn't placed: placed in code"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"1.5\"/>\n<stamp k=\"boulder\" x=\"262\" y=\"226\" s=\"1.3\"/>\n<stamp k=\"boulder\" x=\"312\" y=\"238\" s=\"1.3\"/>\n<stamp k=\"boulder\" x=\"362\" y=\"226\" s=\"1.3\"/>\n<who c=\"larks\"/>\n<g class=\"paint\">\n<ellipse cx=\"262\" cy=\"206\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"312\" cy=\"218\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"362\" cy=\"206\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"264\" cy=\"190\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(-20 264 190)\"/>\n<path d=\"M252 186 Q250 172 262 170 Q268 184 266 198 Q254 196 252 186Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"258\" cy=\"170\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M247 166 Q258 154 270 164 Q266 156 258 154 Q250 158 247 166Z\" fill=\"#D3A24F\"/>\n<circle cx=\"256\" cy=\"153\" r=\"4\" fill=\"#D3A24F\"/>\n<path d=\"M268 170 L277 173 L268 176Z\" fill=\"#C46A3A\"/>\n<path d=\"M256 205 L252 214 M264 205 L268 213\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M270 182 Q280 178 278 168 L272 172Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"312\" cy=\"202\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(15 312 202)\"/>\n<path d=\"M300 198 Q298 184 310 182 Q316 196 314 210 Q302 208 300 198Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"312\" cy=\"182\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M301 178 Q312 166 324 176 Q320 168 312 166 Q304 170 301 178Z\" fill=\"#D9776A\"/>\n<circle cx=\"312\" cy=\"165\" r=\"4\" fill=\"#D9776A\"/>\n<path d=\"M322 182 L331 185 L322 188Z\" fill=\"#C46A3A\"/>\n<path d=\"M306 217 L302 226 M316 217 L320 226\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M322 194 Q332 190 330 180 L324 184Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"362\" cy=\"190\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(-15 362 190)\"/>\n<path d=\"M350 186 Q348 172 360 170 Q366 184 364 198 Q352 196 350 186Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"358\" cy=\"170\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M347 166 Q358 154 370 164 Q366 156 358 154 Q350 158 347 166Z\" fill=\"#94A270\"/>\n<circle cx=\"358\" cy=\"153\" r=\"4\" fill=\"#94A270\"/>\n<path d=\"M368 170 L377 173 L368 176Z\" fill=\"#C46A3A\"/>\n<path d=\"M356 205 L352 214 M364 205 L368 213\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M370 182 Q380 178 378 168 L372 172Z\" fill=\"#6F8FAF\"/>\n<path d=\"M280 214 l8 -6 l4 8 l-8 4z\" fill=\"#D3A24F\"/>\n<path d=\"M334 226 l8 -4 l3 8 l-8 3z\" fill=\"#D3A24F\"/>\n</g>\n<g class=\"ink\" fill=\"none\" stroke=\"#6b5232\" stroke-width=\"1.2\" stroke-linecap=\"round\">\n<ellipse cx=\"264\" cy=\"190\" rx=\"14\" ry=\"17\" transform=\"rotate(-20 264 190)\"/>\n<ellipse cx=\"312\" cy=\"202\" rx=\"14\" ry=\"17\" transform=\"rotate(15 312 202)\"/>\n<ellipse cx=\"362\" cy=\"190\" rx=\"14\" ry=\"17\" transform=\"rotate(-15 362 190)\"/>\n<path d=\"M252 166 q3 -3 6 0 M262 167 q3 -3 6 0 M306 180 q3 -3 6 0 M316 181 q3 -3 6 0 M352 167 q3 -3 6 0 M362 167 q3 -3 6 0\"/>\n<path d=\"M246 150 l-4 -4 M276 152 l5 -4 M300 160 l-4 -5 M330 162 l5 -4 M344 150 l-4 -4 M376 152 l5 -4\"/>\n</g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"110\" y=\"228\" s=\"0.85\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"up\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"195\" y=\"236\" s=\"0.55\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"surprised\" look=\"ahead\"/></g>\n<g class=\"paint\"><circle cx=\"228\" cy=\"140\" r=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\"/><circle cx=\"240\" cy=\"140\" r=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\"/></g>\n<g class=\"ink\" stroke=\"#4F3A2A\" fill=\"none\" stroke-width=\"1.3\" stroke-linecap=\"round\"><path d=\"M234 140 h0 M208 130 l-6 -8 M214 124 l-2 -9 M222 124 l2 -9\"/></g>\n<stamp k=\"notes\" x=\"85\" y=\"95\" s=\"1\"/>\n<stamp k=\"motion\" x=\"62\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"hull\" x=\"130\" y=\"246\" s=\"1.5\"/>",
+   "laid": "\n<stamp k=\"boulder\" x=\"262\" y=\"226\" s=\"1.3\"/>\n<stamp k=\"boulder\" x=\"362\" y=\"226\" s=\"1.3\"/>\n<g class=\"paint\">\n<ellipse cx=\"262\" cy=\"206\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"312\" cy=\"218\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"362\" cy=\"206\" rx=\"20\" ry=\"3\" fill=\"#8a7a62\" opacity=\"0.3\"/>\n<ellipse cx=\"264\" cy=\"190\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(-20 264 190)\"/>\n<path d=\"M252 186 Q250 172 262 170 Q268 184 266 198 Q254 196 252 186Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"258\" cy=\"170\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M247 166 Q258 154 270 164 Q266 156 258 154 Q250 158 247 166Z\" fill=\"#D3A24F\"/>\n<circle cx=\"256\" cy=\"153\" r=\"4\" fill=\"#D3A24F\"/>\n<path d=\"M268 170 L277 173 L268 176Z\" fill=\"#C46A3A\"/>\n<path d=\"M256 205 L252 214 M264 205 L268 213\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M270 182 Q280 178 278 168 L272 172Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"312\" cy=\"202\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(15 312 202)\"/>\n<path d=\"M300 198 Q298 184 310 182 Q316 196 314 210 Q302 208 300 198Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"312\" cy=\"182\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M301 178 Q312 166 324 176 Q320 168 312 166 Q304 170 301 178Z\" fill=\"#D9776A\"/>\n<circle cx=\"312\" cy=\"165\" r=\"4\" fill=\"#D9776A\"/>\n<path d=\"M322 182 L331 185 L322 188Z\" fill=\"#C46A3A\"/>\n<path d=\"M306 217 L302 226 M316 217 L320 226\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M322 194 Q332 190 330 180 L324 184Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"362\" cy=\"190\" rx=\"14\" ry=\"17\" fill=\"#F3E6D0\" transform=\"rotate(-15 362 190)\"/>\n<path d=\"M350 186 Q348 172 360 170 Q366 184 364 198 Q352 196 350 186Z\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"358\" cy=\"170\" rx=\"12\" ry=\"11\" fill=\"#F3E6D0\"/>\n<path d=\"M347 166 Q358 154 370 164 Q366 156 358 154 Q350 158 347 166Z\" fill=\"#94A270\"/>\n<circle cx=\"358\" cy=\"153\" r=\"4\" fill=\"#94A270\"/>\n<path d=\"M368 170 L377 173 L368 176Z\" fill=\"#C46A3A\"/>\n<path d=\"M356 205 L352 214 M364 205 L368 213\" stroke=\"#C46A3A\" stroke-width=\"2.5\" fill=\"none\"/>\n<path d=\"M370 182 Q380 178 378 168 L372 172Z\" fill=\"#6F8FAF\"/>\n<path d=\"M280 214 l8 -6 l4 8 l-8 4z\" fill=\"#D3A24F\"/>\n<path d=\"M334 226 l8 -4 l3 8 l-8 3z\" fill=\"#D3A24F\"/>\n</g>\n<g class=\"ink\" fill=\"none\" stroke=\"#6b5232\" stroke-width=\"1.2\" stroke-linecap=\"round\">\n<ellipse cx=\"264\" cy=\"190\" rx=\"14\" ry=\"17\" transform=\"rotate(-20 264 190)\"/>\n<ellipse cx=\"312\" cy=\"202\" rx=\"14\" ry=\"17\" transform=\"rotate(15 312 202)\"/>\n<ellipse cx=\"362\" cy=\"190\" rx=\"14\" ry=\"17\" transform=\"rotate(-15 362 190)\"/>\n<path d=\"M252 166 q3 -3 6 0 M262 167 q3 -3 6 0 M306 180 q3 -3 6 0 M316 181 q3 -3 6 0 M352 167 q3 -3 6 0 M362 167 q3 -3 6 0\"/>\n<path d=\"M246 150 l-4 -4 M276 152 l5 -4 M300 160 l-4 -5 M330 162 l5 -4 M344 150 l-4 -4 M376 152 l5 -4\"/>\n</g>\n\n<who c=\"larks\"/>\n<stamp k=\"boulder\" x=\"312\" y=\"238\" s=\"1.3\"/><who c=\"hero\"/>\n<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"110\" y=\"243\" s=\"0.85\" lean=\"-4\" tilt=\"-8\" arms=\"up,up\" legs=\"stand\" mood=\"laugh\" look=\"up\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"195\" y=\"243\" s=\"0.49\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"surprised\" look=\"ahead\" flip=\"0\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<g class=\"paint\"><circle cx=\"228\" cy=\"140\" r=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\"/><circle cx=\"240\" cy=\"140\" r=\"6\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.3\"/></g>\n<g class=\"ink\" stroke=\"#4F3A2A\" fill=\"none\" stroke-width=\"1.3\" stroke-linecap=\"round\"><path d=\"M234 140 h0 M208 130 l-6 -8 M214 124 l-2 -9 M222 124 l2 -9\"/></g>\n<stamp k=\"notes\" x=\"85\" y=\"95\" s=\"1\"/>\n<stamp k=\"motion\" x=\"62\" y=\"170\" s=\"0.8\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "larks"
+  ],
+  "full": [],
+  "readyMs": 16
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

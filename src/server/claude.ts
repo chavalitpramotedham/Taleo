@@ -20,7 +20,7 @@ import type {
 } from "@/lib/types";
 import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { layoutComposed, type LayoutOptions } from "./paint/layout";
-import { keepNewcomer, newcomerPortrait, sawNewcomerAgain } from "./paint/newcomers";
+import { groupOf, keepNewcomer, layersOf, newcomerPortrait, sawNewcomerAgain } from "./paint/newcomers";
 import { expandStream, newStats, sizeLine, type ExpandStats, sizingFor, type Box, type ExpandContext } from "./paint/expand";
 import { hashOf, STAMPS } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/art/palette";
@@ -763,18 +763,81 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
 /** Who is in bed, from the picture brief ("Ody lies tucked into a wooden
  *  bed"): the character named in that sentence first (lesson 17). */
 function inBedOf(req: IllustrateRequest): string | null {
-  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(tucked (?:in|into|up)|in bed|into bed|lies in|lying in|under the (?:quilt|covers|blanket))\b/i.test(t));
+  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(tucked\b|in bed|into bed|in (?:her|his|their|the|a|its) (?:\w+ )?bed|lies in|lying in|under the (?:quilt|covers|blanket)|(?:blanket|quilt) (?:round|around|over))\b/i.test(t));
   if (!sentence) return null;
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const named = on.map((c) => [c.id, sentence.toLowerCase().indexOf(c.name.toLowerCase().replace(/^the\s+/, ""))] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
   return named[0]?.[0] ?? null;
 }
 
+/** Who rides on whom, from the picture brief: "Hoot sits on her shoulder",
+ *  "Kai sits on Brom's right shoulder", "Bao sits on top of the cat's
+ *  fluffy head", "Nell and Pebble sitting on her back" - each rider, its
+ *  carrier and where (part 2: Hoot floated beside Ody instead). A pronoun
+ *  is whoever was named last before it who isn't riding. */
+function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head" | "back"][] {
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const short = (c: CharacterDef) => c.name.toLowerCase().replace(/^the\s+/, "");
+  const out: [string, string, "shoulder" | "head" | "back"][] = [];
+  let before = "";
+  for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
+    for (const m of t.matchAll(/\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head)\b/gi)) {
+      const lower = t.toLowerCase();
+      const at = m.index!;
+      const riders = on.filter((c) => {
+        const i = lower.lastIndexOf(short(c), at);
+        return i >= 0 && i < at;
+      });
+      // (the riders named in this clause: the nearest before the verb, and
+      // any joined to it by "and")
+      const clause = lower.slice(0, at).split(/[,;]| with /).pop() ?? "";
+      const named = riders.filter((c) => clause.includes(short(c)));
+      const who = named.length ? named : riders.slice(-1);
+      let carrier: CharacterDef | undefined;
+      if (m[2]) {
+        const w = m[2].toLowerCase();
+        carrier = on.find((c) => short(c) === w || c.name.toLowerCase() === w || c.id === w) ?? on.find((c) => new RegExp(`\\b${w}\\b`, "i").test(c.look ?? ""));
+      } else {
+        const text = (before + " " + t.slice(0, at)).toLowerCase();
+        carrier = on
+          .filter((c) => !who.includes(c))
+          .map((c) => [c, text.lastIndexOf(short(c))] as const)
+          .filter(([, i]) => i >= 0)
+          .sort((a, b) => b[1] - a[1])[0]?.[0];
+      }
+      if (!carrier) continue;
+      const where = (m[4].toLowerCase().startsWith("shoulder") ? "shoulder" : m[4].toLowerCase()) as "shoulder" | "head" | "back";
+      for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, where]);
+    }
+    before += " " + t;
+  }
+  return out;
+}
+
 /** Who hugs whom, from the picture brief: the two characters named in the
  *  sentence that says "hug" (lesson 17). */
 function huggersOf(req: IllustrateRequest): [string, string] | null {
-  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(hug|hugs|hugging|embrac\w*|cuddl\w*|arms (?:around|round))\b/i.test(t));
-  if (!sentence) return null;
+  const HUG = /\b(hug|hugs|hugging|hugged|embrac\w*|cuddl\w*|arms (?:around|round))\b/i;
+  const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => HUG.test(t));
+  if (!sentence) {
+    // (the words say it when the brief doesn't - "Ody threw her arms
+    // around his shaggy neck" - and the picture should too: the one named
+    // and whoever "his" or "her" is, the last other one named before it)
+    const said = req.page.text.split(/(?<=[.;!?"])\s+/);
+    const i = said.findIndex((t) => HUG.test(t) && !/\b(no|not|never|didn't|without)\b/i.test(t));
+    if (i < 0) return null;
+    const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+    const short = (c: CharacterDef) => c.name.toLowerCase().replace(/^the\s+/, "");
+    const t = said[i].toLowerCase();
+    const inIt = on.filter((c) => t.includes(short(c))).sort((a, b) => t.indexOf(short(a)) - t.indexOf(short(b)));
+    if (inIt.length >= 2) return [inIt[0].id, inIt[1].id];
+    if (inIt.length === 1 && /\b(his|her|him|its)\b/.test(t)) {
+      const earlier = said.slice(0, i).join(" ").toLowerCase();
+      const other = on.filter((c) => c !== inIt[0]).map((c) => [c, earlier.lastIndexOf(short(c))] as const).filter(([, j]) => j >= 0).sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (other) return [inIt[0].id, other.id];
+    }
+    return null;
+  }
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const at = (c: CharacterDef) => {
     const m = sentence.toLowerCase().indexOf(c.name.toLowerCase().replace(/^the\s+/, ""));
@@ -901,10 +964,14 @@ function statedShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<Characte
     if (Number.isFinite(n) && n > 0) return n * of(times[2]);
   }
   const part = look.match(/\bas tall as\s+([A-Z][\w-]*)'s\s+(knee|knees|waist|hip|hips|shoulder|shoulders|chin)\b/i);
-  if (part) return ({ knee: 0.3, knees: 0.3, waist: 0.5, hip: 0.5, hips: 0.5, shoulder: 0.8, shoulders: 0.8, chin: 0.85 } as Record<string, number>)[part[2].toLowerCase()] * of(part[1]);
+  // (a group - "three snow hares, each about as tall as Kai's knee" - is
+  // each one's height: its portrait shows them all, each at full height, so
+  // no bigger - part 2; a single figure standing for a group, as before, is
+  // drawn bigger to take the room of all of them)
+  if (part) return ({ knee: 0.3, knees: 0.3, waist: 0.5, hip: 0.5, hips: 0.5, shoulder: 0.8, shoulders: 0.8, chin: 0.85 } as Record<string, number>)[part[2].toLowerCase()] * of(part[1]) * (/\beach\s+(?:about\s+)?as\b/i.test(look) && !groupOf(c) ? 1.8 : 1);
   const as = look.match(/\b(?:about\s+)?as (?:tall|big|large) as\s+([A-Z][\w-]*)\b/i);
   // (a group's size is each one's, and its one tag draws them all: bigger)
-  if (as && named(as[1])) return of(as[1]) * (/\bwhen sitting\b/i.test(look) ? 0.9 : 1) * (/\beach\s+(?:about\s+)?as\b/i.test(look) ? 1.8 : 1);
+  if (as && named(as[1])) return of(as[1]) * (/\bwhen sitting\b/i.test(look) ? 0.9 : 1) * (/\beach\s+(?:about\s+)?as\b/i.test(look) && !groupOf(c) ? 1.8 : 1);
   return null;
 }
 const withSize = (c: CharacterDef, sheet: string, cast: CharacterDef[] = []) => {
@@ -995,7 +1062,9 @@ async function paintBackdropSvg(place: { id: string; about?: string }, light: Li
 export async function readyNewcomer(c: CharacterDef, world: string): Promise<void> {
   if (characterArt(c) || !world || !c.name) return;
   if (await newcomerPortrait(c, world)) return;
-  const req = { world, cast: [c], page: { text: "", picture: `${c.name} standing, relaxed and smiling, as in a model sheet.`, characters: [c.id] } } as unknown as IllustrateRequest;
+  const many = groupOf(c);
+  const picture = many ? `All ${many} of ${c.name} together, side by side in a little row, each one whole and clearly separate, relaxed and smiling, as in a model sheet. Paint every one of them.` : `${c.name} standing, relaxed and smiling, as in a model sheet.`;
+  const req = { world, cast: [c], page: { text: "", picture, characters: [c.id] } } as unknown as IllustrateRequest;
   const sp = await paintNewcomer(c, req, undefined, {});
   if (sp) await keepNewcomer(c, sp, world);
 }
@@ -1040,6 +1109,16 @@ async function* everyone(brush: Brush, signal: AbortSignal | undefined, log: Rec
     const out = strip(s);
     if (out) yield out;
   }
+}
+
+/** Development bench only: a composer's earlier tags for this page, fed
+ *  back instead of a new call, so a change to the layout or the poses can
+ *  be compared on the very same composition, at no cost (see
+ *  app/api/dev/rsi). */
+function replayOf(req: IllustrateRequest): AsyncIterable<string> | null {
+  if (process.env.NODE_ENV !== "development") return null;
+  const tags = (globalThis as { __rsiReplay?: Map<string, string> }).__rsiReplay?.get(req.page.text);
+  return tags ? (async function* () { yield tags; })() : null;
 }
 
 /** A composer's tags, whole, through the layout pass (see layoutComposed);
@@ -1197,8 +1276,20 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // a newcomer, or a character whose parts aren't ready - is painted for
   // the page the same way, from its portrait when it has one: the
   // composer still places everyone)
-  const placeable = (c: CharacterDef) => partsOf.has(c.id) || (Boolean(reuse.sprites) && spritesOf.has(c.id));
   const posing = Boolean(reuse.poses) && req.cast.length > 0;
+  // A group - three mice, always together - can't be posed from one set of
+  // parts (one mouse came to every page): it's placed whole, as its
+  // portrait shows them all, at no cost (part 2).
+  if (posing)
+    for (const c of req.cast) {
+      if (!groupOf(c)) continue;
+      const svg = characterArt(c) ?? (book ? await newcomerPortrait(c, book, req.benchVariant).catch(() => null) : null);
+      const whole = svg ? layersOf(svg) : null;
+      if (!whole) continue;
+      partsOf.delete(c.id);
+      spritesOf.set(c.id, { stand: whole });
+    }
+  const placeable = (c: CharacterDef) => partsOf.has(c.id) || ((Boolean(reuse.sprites) || Boolean(groupOf(c))) && spritesOf.has(c.id));
   const spriting = posing && Boolean(reuse.sprites);
   const newcomers = posing ? req.cast.filter((c) => !placeable(c)) : [];
   if (reuse.sprites) notes.sprites = req.cast.every((c) => spritesOf.has(c.id)) ? "placed from pre-painted poses" : `poses not ready for ${req.cast.filter((c) => !spritesOf.has(c.id)).map((c) => c.name).join(", ")}: from parts, or painted for the page`;
@@ -1228,6 +1319,10 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // (with no poses yet but its parts: any pose word, made from its parts)
     if (spriting) return spriteSheet(c, spritesOf.has(c.id) ? Object.keys(spritesOf.get(c.id)!) : SPRITE_POSE_IDS);
     if (parts && posing) return composerSheet(c, Object.keys(parts.views));
+    // (a group placed whole from its portrait: one tag, like anyone else -
+    // told to draw it, the composer painted the Sea-Larks itself and the
+    // group was then placed as well: six birds - part 2)
+    if (posing && groupOf(c) && spritesOf.has(c.id)) return `${composerSheet(c, ["front"])} - a group: its ONE <fig> tag places all ${groupOf(c)} of them together, side by side (their arms and legs are as painted); never draw them yourself`;
     if (parts) return partsSheet(c, parts);
     const art = referenceArt(c);
     // (on a page where others are painted from parts: this one isn't - it
@@ -1349,7 +1444,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(replayOf(req) ?? brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), perched: perchedOf(req), groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),

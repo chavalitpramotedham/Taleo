@@ -1,0 +1,74 @@
+{
+ "portraits": "the Crumb Mice, Duchess painted from their portrait in this book",
+ "reuse": {
+  "stamps": 5,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "bunting": 1,
+   "window": 1,
+   "hold:cup": 1,
+   "notes": 1,
+   "splash": 1,
+   "sparkles": 1
+  },
+  "figs": 5,
+  "torsos": 5,
+  "heads": 5,
+  "figIds": [
+   "tilly",
+   "companion1",
+   "hero",
+   "mice",
+   "duchess"
+  ],
+  "posed": 5,
+  "fixes": [
+   "layout: duchess resized from 0.56 to 1.29, true to the others",
+   "layout: tilly resized from 0.50 to 1.18, true to the others",
+   "layout: mice resized from 0.40 to 0.76, true to the others",
+   "layout: companion1 resized from 0.50 to 0.63, true to the others",
+   "layout: tilly and hero overlapped: eased apart",
+   "layout: hero and mice overlapped: eased apart",
+   "layout: mice and companion1 overlapped: eased apart",
+   "layout: companion1 and duchess overlapped: eased apart",
+   "layout: drawn back to front: bunting, window, tilly, mice, duchess, companion1, hero",
+   "layout: companion1, hero drawn behind mice, the main action's target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bunting\" x=\"200\" y=\"95\" s=\"2\"/>\n<stamp k=\"window\" x=\"345\" y=\"170\" s=\"0.9\"/>\n<who c=\"duchess\"/>\n<fig c=\"duchess\" v=\"front\" x=\"330\" y=\"262\" s=\"0.56\" flip=\"1\" lean=\"0\" tilt=\"8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"left\"/>\n<who c=\"tilly\"/>\n<fig c=\"tilly\" v=\"front\" x=\"95\" y=\"240\" s=\"0.5\" lean=\"6\" tilt=\"-6\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"right\" hold=\"cup\"/>\n<g class=\"target\"><who c=\"mice\"/>\n<fig c=\"mice\" v=\"three\" x=\"205\" y=\"240\" s=\"0.4\" lean=\"0\" tilt=\"6\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"ahead\"/></g>\n<stamp k=\"notes\" x=\"205\" y=\"120\" s=\"1\"/>\n<stamp k=\"splash\" x=\"125\" y=\"228\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"255\" y=\"125\" s=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"250\" y=\"262\" s=\"0.5\" lean=\"0\" tilt=\"-6\" arms=\"clap,clap\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"150\" y=\"262\" s=\"0.5\" lean=\"0\" tilt=\"6\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"ahead\"/>",
+   "laid": "<stamp k=\"bunting\" x=\"200\" y=\"95\" s=\"2\"/>\n<stamp k=\"window\" x=\"345\" y=\"170\" s=\"0.9\"/>\n<who c=\"duchess\"/>\n<fig c=\"tilly\" v=\"front\" x=\"61\" y=\"240\" s=\"1.18\" lean=\"6\" tilt=\"-6\" arms=\"hold,reach\" legs=\"stand\" mood=\"happy\" look=\"right\" hold=\"cup\" flip=\"0\" laid=\"1\"/>\n<who c=\"tilly\"/>\n<fig c=\"companion1\" v=\"front\" x=\"268\" y=\"262\" s=\"0.63\" lean=\"0\" tilt=\"-6\" arms=\"clap,clap\" legs=\"sit\" mood=\"happy\" look=\"left\" flip=\"0\" laid=\"1\"/><fig c=\"hero\" v=\"front\" x=\"148\" y=\"262\" s=\"0.5\" lean=\"0\" tilt=\"6\" arms=\"clap,clap\" legs=\"sit\" mood=\"laugh\" look=\"ahead\" flip=\"0\" laid=\"1\"/><g class=\"target\"><who c=\"mice\"/>\n<fig c=\"mice\" v=\"three\" x=\"213\" y=\"240\" s=\"0.76\" lean=\"0\" tilt=\"6\" arms=\"up,wave\" legs=\"kick\" mood=\"laugh\" look=\"ahead\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"notes\" x=\"205\" y=\"120\" s=\"1\"/>\n<stamp k=\"splash\" x=\"125\" y=\"228\" s=\"0.5\"/>\n<stamp k=\"sparkles\" x=\"255\" y=\"125\" s=\"1\"/>\n<fig c=\"duchess\" v=\"front\" x=\"368\" y=\"262\" s=\"1.29\" flip=\"1\" lean=\"0\" tilt=\"8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"left\" laid=\"1\"/>\n<who c=\"companion1\"/>\n\n<who c=\"hero\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "mice",
+   "tilly",
+   "duchess"
+  ],
+  "full": [],
+  "readyMs": 10918
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1366,
+   "firstStrokeMs": 1366,
+   "out": 534,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

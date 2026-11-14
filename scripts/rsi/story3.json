@@ -1,0 +1,443 @@
+{
+  "title": "Kai and the Lantern of the North",
+  "age": "4-5",
+  "minutes": 8,
+  "theme": "adventure",
+  "keyword": "Lantern",
+  "moral": "Sharing your light, even a little of it, makes the long dark shorter for everyone.",
+  "length": "odyssey",
+  "world": "A snowy northern land in deep winter: pine forests heavy with snow, a frozen blue lake, red wooden cabins with yellow windows, pale pink-and-lilac winter light by day and indigo nights with green-and-violet northern lights. Recurring colours: Kai's mustard knitted hat with a big red bobble (#D3A24F, #B2443A), Ellie's long striped scarf (rose #D9776A and cream #F3E6D0), and the little brass lantern with its warm golden glow (#E8C766).",
+  "hero": {
+    "id": "hero",
+    "name": "Kai",
+    "gender": "male",
+    "preset": null,
+    "look": "a 6-year-old boy, small and round-cheeked, head about a third of his height; light olive skin (#E2B68E); straight black hair (#2A1E15) poking out in a fringe under a mustard knitted hat (#D3A24F) with a big red bobble (#B2443A); a puffy teal winter coat (#5F8F8A) with wooden toggle buttons; red mittens on a string (#B2443A); grey woolly trousers (#8E8A82); chunky brown snow boots (#7A5A40); small dark almond eyes, short brows, rosy cheeks, a gap-toothed smile; curious, a little scared of the dark, very brave when it counts",
+    "notes": "Carries Grandpa's little brass lantern everywhere.",
+    "svg": "<g class=\"wash\"><ellipse cx=\"100\" cy=\"104\" rx=\"78\" ry=\"74\" fill=\"#DCE3E1\" opacity=\".55\"/></g><g class=\"paint\"><ellipse cx=\"100\" cy=\"189\" rx=\"42\" ry=\"6\" fill=\"#CFC6AC\" opacity=\".6\"/><path d=\"M106 136C110 152 112 168 112 182L122 182C122 166 120 150 118 134Z\" fill=\"#7E7A72\"/><path d=\"M82 134C80 150 80 166 82 182L93 182C94 166 96 150 97 136Z\" fill=\"#8E8A82\"/><ellipse cx=\"87\" cy=\"184\" rx=\"10\" ry=\"4.5\" fill=\"#7A5A40\"/><ellipse cx=\"118\" cy=\"184\" rx=\"9\" ry=\"4.5\" fill=\"#7A5A40\"/><path d=\"M122 94C132 88 140 78 143 66C145 61 138 59 136 63C132 74 126 81 117 88Z\" fill=\"#5F8F8A\"/><circle cx=\"141\" cy=\"60\" r=\"6\" fill=\"#B8916E\"/><path d=\"M74 122C74 134 78 143 96 143L100 137L104 143C122 143 126 134 126 122Z\" fill=\"#8E8A82\"/><path d=\"M76 92C70 102 70 118 74 128C86 132 114 132 126 128C130 118 130 102 124 92C116 86 84 86 76 92Z\" fill=\"#5F8F8A\"/><g fill=\"#4E7A75\"><path d=\"M72 104C90 107 110 107 128 104L128 109C110 112 90 112 72 109Z\"/><path d=\"M71 115C90 118 110 118 129 115L129 120C110 123 90 123 71 120Z\"/></g><path d=\"M73 125C90 128 110 128 127 125L126 128C114 132 86 132 74 128Z\" fill=\"#4E7A75\"/><path d=\"M80 94C70 102 64 114 63 125C63 130 71 131 72 126C74 116 80 106 87 100Z\" fill=\"#5F8F8A\"/><circle cx=\"67\" cy=\"130\" r=\"6.5\" fill=\"#B2443A\"/><path d=\"M84 90C94 97 106 97 116 90L114 98C106 102 94 102 86 98Z\" fill=\"#D9776A\"/><circle cx=\"73\" cy=\"69\" r=\"5\" fill=\"#E2B68E\"/><circle cx=\"127\" cy=\"69\" r=\"5\" fill=\"#E2B68E\"/><circle cx=\"100\" cy=\"65\" r=\"27\" fill=\"#E2B68E\"/><path d=\"M118 52C129 66 123 87 104 91C116 83 121 69 118 52Z\" fill=\"#4A3020\" opacity=\".2\"/><ellipse cx=\"90\" cy=\"54\" rx=\"8\" ry=\"5\" fill=\"#FFF8E8\" opacity=\".3\"/><path d=\"M73 63C72 43 86 36 100 36C114 36 128 43 127 63C122 53 112 47 100 47C88 47 78 53 73 63Z\" fill=\"#2A1E15\"/><path d=\"M70 58C68 36 82 26 100 26C118 26 132 36 130 58Z\" fill=\"#D3A24F\"/><path d=\"M69 54C88 59 112 59 131 54L131 62C112 66 88 66 69 62Z\" fill=\"#B98A35\"/><circle cx=\"100\" cy=\"22\" r=\"10\" fill=\"#B2443A\"/><path d=\"M80 62L84 70L88 62L92 70L96 62Z\" fill=\"#2A1E15\"/><g fill=\"#D9776A\" opacity=\".45\"><ellipse cx=\"86\" cy=\"76\" rx=\"5\" ry=\"3\"/><ellipse cx=\"114\" cy=\"76\" rx=\"5\" ry=\"3\"/></g></g><g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M74 70C76 86 88 92 100 92C114 92 125 84 127 68\"/><path d=\"M76 92C70 102 70 118 74 128M124 92C130 102 130 118 126 128\"/><path d=\"M82 134C80 150 80 166 82 182M97 136C96 150 94 166 93 182M106 136C110 152 112 168 112 182M118 134C120 150 122 166 122 182\"/><path d=\"M91 97C82 110 72 124 67 134\"/><path d=\"M100 137L100 128M86 112L90 118M114 112L110 118\"/><path d=\"M122 94C132 88 140 78 143 66\"/><path d=\"M99 71C101 73 101 75 99 76\"/></g><g class=\"detail\"><ellipse cx=\"90\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"91\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><ellipse cx=\"110\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"111\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><path d=\"M92 80C96 86 104 86 108 80Z\" fill=\"#7A3B2E\"/><rect x=\"98\" y=\"80\" width=\"3\" height=\"2.5\" fill=\"#FBF7EE\"/><path d=\"M85 61L94 60M106 60L115 61\" stroke=\"#2A1E15\" stroke-width=\"1.4\" stroke-linecap=\"round\"/></g>"
+  },
+  "companions": [
+    {
+      "id": "companion1",
+      "name": "Ellie",
+      "gender": "female",
+      "preset": "elephant",
+      "look": "a baby elephant with soft blue-grey skin, big floppy ears with pink insides, a short curly trunk and a long rose-and-cream striped knitted scarf (#D9776A, #F3E6D0); about one and a half times Kai's height; gentle, giggly, always cold",
+      "notes": "Uses her trunk like a third hand."
+    }
+  ],
+  "cast": [
+    {
+      "id": "grandpa",
+      "name": "Grandpa Tove",
+      "gender": "male",
+      "preset": null,
+      "look": "Kai's grandpa, tall and thin with a slight stoop, about one and a half times Kai's height; light olive skin (#D9A982); a bushy white beard and eyebrows (#F4EFE4); a long dark-red wool coat (#8E3B32) and a black fur hat; round spectacles; walks with a knobbly wooden stick; kind, slow, full of stories"
+    },
+    {
+      "id": "brom",
+      "name": "Brom",
+      "gender": "male",
+      "preset": null,
+      "look": "a gentle snow troll about four times Kai's height, big and lumpy like a snowdrift; shaggy white-blue fur (#E6ECEE, shadows #B7C6CC); a huge round mossy-green nose (#7F905E); tiny kind dark eyes under frosty brows; enormous flat feet; a patched brown satchel (#8E6A4C); slow, shy, hums when nervous"
+    },
+    {
+      "id": "hares",
+      "name": "the Snow Hares",
+      "preset": null,
+      "look": "three small snow-white hares, each about as tall as Kai's knee, always together and always in a line; long black-tipped ears, pink noses, bright black eyes; each wears a tiny knitted mitten as a hat - red (#B2443A), blue (#6F8FAF) and mustard (#D3A24F); bouncy, chattery, they finish each other's sentences"
+    },
+    {
+      "id": "tusk",
+      "name": "Captain Tusk",
+      "gender": "male",
+      "preset": null,
+      "look": "a big old walrus about twice Kai's height, round and heavy; wrinkly brown-pink skin (#B88B72); two long ivory tusks (#F3E6D0); a bristly grey moustache; a little navy captain's cap with a gold badge (#2F3E55, #D3A24F); flippers instead of hands; gruff voice, soft heart, loves tea"
+    }
+  ],
+  "places": [
+    {
+      "id": "village",
+      "light": "golden",
+      "about": "A little snowy village at dawn: red wooden cabins with snowy roofs and glowing yellow windows on the left, a tall pine tree on the right, a snowy lane across the front with sledge tracks, pink-and-lilac sky."
+    },
+    {
+      "id": "forest",
+      "light": "day",
+      "about": "A deep pine forest in heavy snow: tall dark-green pines with snow on every branch, soft drifts across the front, a narrow path winding into the trees in the middle, a pale winter sky."
+    },
+    {
+      "id": "lake",
+      "light": "day",
+      "about": "A wide frozen lake: smooth pale-blue ice across the front with a long crack, snowy hills and pines all round the far shore, a little wooden fishing hut on the right."
+    },
+    {
+      "id": "ice-cave",
+      "light": "night",
+      "about": "Inside a big blue ice cave: glittering icicles hanging from the roof, smooth blue ice walls, a soft snowy floor, a round opening at the back showing night sky."
+    },
+    {
+      "id": "mountain",
+      "light": "dusk",
+      "about": "The snowy top of a mountain at dusk: a wide flat snowy ledge across the front, a stone cairn with an old empty iron lantern hook on the right, a sea of clouds and far peaks below, violet sky."
+    },
+    {
+      "id": "aurora-sky",
+      "light": "night",
+      "about": "Night sky high above the snowy land: green-and-violet northern lights rippling across a deep indigo sky full of stars, far below tiny pines and a frozen lake."
+    },
+    {
+      "id": "cabin-kitchen",
+      "light": "golden",
+      "about": "Inside Grandpa's snug log-cabin kitchen in warm lamplight: an iron stove with a kettle on the left, a frosty window with checked curtains at the back, a long wooden table with benches in the middle, a braided rug on the plank floor."
+    },
+    {
+      "id": "kai-bedroom",
+      "light": "night",
+      "about": "Kai's small attic bedroom at night: a slanted wooden ceiling, a round window showing the northern lights on the left, a little wooden bed with a red patchwork quilt in the middle, a bedside stool on the right."
+    }
+  ],
+  "segments": [
+    {
+      "pages": [
+        {
+          "text": "The longest night of winter was coming, and Grandpa's lantern was flickering out. \"Only the Lantern of the North can light it again,\" said Grandpa. Kai pulled on his bobble hat. \"Then I'll fetch it!\"",
+          "picture": "Mid shot in the warm cabin kitchen. Grandpa Tove sits on the bench at the long table on the right, holding up the little brass lantern with its tiny weak flame in one hand, his other hand resting on his stick. Kai stands on the left pulling his mustard bobble hat down over his ears with both hands, chin up, determined. Ellie peeks round the door behind Kai, wrapping her striped scarf twice round her neck with her trunk.",
+          "characters": [
+            "hero",
+            "companion1",
+            "grandpa"
+          ],
+          "place": "cabin-kitchen",
+          "camera": "mid",
+          "action": {
+            "word": "lantern",
+            "target": "lantern",
+            "sound": "twinkle",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "Kai and Ellie set off across the village on the old red sledge. Ellie pushed, Kai steered, and the bobble on his hat went boing, boing, boing.",
+          "picture": "Wide shot of the snowy village at dawn. Kai sits at the front of a little red wooden sledge in the middle of the snowy lane, both hands on the steering rope, knees bent, grinning, the lantern hanging from the front of the sledge. Ellie runs behind, pushing the sledge with her forehead and front feet, ears flapping, scarf streaming. Red cabins with glowing windows on the left, a tall pine on the right.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "village",
+          "camera": "wide",
+          "action": {
+            "word": "sledge",
+            "target": "hero",
+            "sound": "boing",
+            "motion": "hop"
+          },
+          "aside": null
+        },
+        {
+          "text": "Into the deep forest they went. It was very quiet. \"I'm not scared,\" whispered Kai. \"Me neither,\" whispered Ellie, holding his hand very tightly with her trunk.",
+          "picture": "Mid shot on the narrow path in the snowy pine forest. Kai walks on the left holding the lantern up high in one hand, peering ahead, a little nervous. Ellie walks close beside him on the right, her trunk curled round Kai's other hand, ears pressed back, eyes wide. Tall snowy pines all round, a soft glow from the lantern on the snow.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "forest",
+          "camera": "mid",
+          "action": {
+            "word": "whispered",
+            "target": "companion1",
+            "sound": "rustle",
+            "motion": "wiggle"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "Boing! Boing! Boing! Three snow hares bounced out of a drift. \"Lost?\" said one. \"Looking?\" said two. \"For the Lantern of the North?\" said three.",
+          "picture": "Mid shot in the snowy forest. The three snow hares in their mitten hats spring out of a snowdrift on the right in a bouncing line, ears up, one mid-air. Kai on the left jumps back in surprise, one arm up, one holding the lantern. Ellie behind him lifts one front foot and covers her eyes with her trunk, peeking.",
+          "characters": [
+            "hero",
+            "companion1",
+            "hares"
+          ],
+          "place": "forest",
+          "camera": "mid",
+          "action": {
+            "word": "bounced",
+            "target": "hares",
+            "sound": "boing",
+            "motion": "hop"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"Follow us!\" The hares hopped away between the pines, and Kai and Ellie hurried after them, puffing little clouds of breath.",
+          "picture": "Wide shot of the snowy forest path. The three snow hares hop away in a line up the path on the right, looking back over their shoulders. Kai runs after them in the middle, arms swinging, breath puffing. Ellie trots behind him on the left, scarf flying, trunk up. Snow falling softly, pines on both sides.",
+          "characters": [
+            "hero",
+            "companion1",
+            "hares"
+          ],
+          "place": "forest",
+          "camera": "wide",
+          "action": {
+            "word": "hurried",
+            "target": "hero",
+            "sound": "whoosh",
+            "motion": "leap"
+          },
+          "aside": null
+        },
+        {
+          "text": "At the frozen lake sat a big old walrus by a fishing hole. \"Nobody crosses my lake,\" grumbled Captain Tusk, \"without sharing a cup of tea.\"",
+          "picture": "Mid shot on the frozen lake. Captain Tusk sits on the ice on the right beside a round fishing hole, a fishing rod in one flipper and a steaming tin mug in the other, looking stern under his captain's cap. Kai stands on the left holding out the lantern politely, Ellie beside him holding a little red thermos up with her trunk. The fishing hut behind.",
+          "characters": [
+            "hero",
+            "companion1",
+            "tusk"
+          ],
+          "place": "lake",
+          "camera": "mid",
+          "action": {
+            "word": "tea",
+            "target": "tusk",
+            "sound": "pop",
+            "motion": "nod"
+          },
+          "aside": null
+        },
+        {
+          "text": "So they sat on the ice and shared Ellie's cocoa. Captain Tusk's moustache twitched. \"Best cocoa I ever had,\" he said, and he pulled them across the lake on his great sledge.",
+          "picture": "Wide shot of the frozen lake. Captain Tusk pulls a big wooden sledge across the ice by a rope over his shoulder, leaning forward, smiling under his moustache. Kai and Ellie sit side by side on the sledge, Kai with his legs stretched out in front waving one hand, Ellie holding the lantern up high with her trunk. The three hares sit in a row at the back of the sledge. A long crack in the ice, pines on the far shore.",
+          "characters": [
+            "hero",
+            "companion1",
+            "tusk",
+            "hares"
+          ],
+          "place": "lake",
+          "camera": "wide",
+          "action": {
+            "word": "pulled",
+            "target": "tusk",
+            "sound": "whoosh",
+            "motion": "float"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "CRACK! The ice split, and down the snowy bank tumbled Kai and Ellie, roly-poly, into a big blue ice cave. Thump.",
+          "picture": "Mid shot inside the blue ice cave. Kai lands sitting in a soft pile of snow in the middle, legs out in front, hat askew, still holding the lantern up safely in one hand, laughing. Ellie lands upside-down on her back beside him on the right, legs in the air, scarf tangled round her ears, giggling. Snow puffs up around them, icicles glittering above.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "ice-cave",
+          "camera": "mid",
+          "action": {
+            "word": "tumbled",
+            "target": "companion1",
+            "sound": "thud",
+            "motion": "tumble"
+          },
+          "aside": null
+        },
+        {
+          "text": "Something enormous moved in the dark. Two tiny eyes blinked above a great green nose. \"Hmm-hmm,\" hummed the snow troll nervously. \"Please don't be scared of me.\"",
+          "picture": "Wide shot of the ice cave. Brom the huge snow troll crouches at the back of the cave, so big his head nearly touches the icicles, both big hands clasped shyly under his chin, tiny eyes blinking, green nose glowing in the lantern light. Kai stands small in front on the left, holding the lantern up towards him with one arm stretched high, the other hand on his hat. Ellie hides behind Kai, peeking out from behind his back.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom"
+          ],
+          "place": "ice-cave",
+          "camera": "wide",
+          "action": {
+            "word": "hummed",
+            "target": "brom",
+            "sound": "squeak",
+            "motion": "wiggle"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"I'm Brom. I've been down here so long, I forgot what warm feels like,\" said the troll. Kai held up the little lantern. Its tiny flame lit Brom's face, and Brom smiled for the first time in a hundred years.",
+          "picture": "Close-up in the ice cave. Brom's big shaggy face fills the right side, his tiny eyes shining, a slow wide smile spreading under his green nose. Kai stands on the left holding the lantern up close to Brom's face with both hands, smiling up at him. The warm golden glow on Brom's white fur.",
+          "characters": [
+            "hero",
+            "brom"
+          ],
+          "place": "ice-cave",
+          "camera": "close",
+          "action": {
+            "word": "smiled",
+            "target": "brom",
+            "sound": "twinkle",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "\"The Lantern of the North is at the top of my mountain,\" said Brom. \"Climb on!\" Up the icy slope he climbed, with Kai and Ellie riding on his shoulders.",
+          "picture": "Wide shot of the snowy forest slope at the cave mouth. Brom strides up the steep slope on the right, leaning forward, one huge hand gripping a rock. Kai sits on Brom's right shoulder holding on to his fur with one hand and pointing up the mountain with the other. Ellie sits on his left shoulder hugging the side of his head with her trunk, eyes squeezed shut. Snowy pines below.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom"
+          ],
+          "place": "forest",
+          "camera": "wide",
+          "action": {
+            "word": "climbed",
+            "target": "brom",
+            "sound": "thud",
+            "motion": "leap"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "At the very top stood an old stone cairn with an empty hook. \"The Lantern of the North was here,\" sighed Brom. \"But the wind took it, long ago.\"",
+          "picture": "Mid shot on the snowy mountain top at dusk. Brom stands on the right with his great shoulders drooping, one hand pointing sadly at the empty iron hook on the stone cairn. Kai stands on the left with his hands on his hips, looking at the hook. Ellie sits in the snow behind Kai, her trunk drooping. A sea of violet clouds below.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom"
+          ],
+          "place": "mountain",
+          "camera": "mid",
+          "action": {
+            "word": "empty",
+            "target": "brom",
+            "sound": "whoosh",
+            "motion": "nod"
+          },
+          "aside": null
+        },
+        {
+          "text": "Kai looked at his own little lantern, still glowing, just. Then he had an idea. He hung Grandpa's lantern on the hook and blew on it gently. Phoo.",
+          "picture": "Close-up of the stone cairn. Kai stands on tiptoe on the left, reaching up with one arm to hang the little brass lantern on the iron hook, cheeks puffed out as he blows gently on the tiny flame, his other hand steadying himself on the cold stones. Ellie's trunk curls in from the right, steadying the lantern too.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "mountain",
+          "camera": "close",
+          "action": {
+            "word": "blew",
+            "target": "lantern",
+            "sound": "whoosh",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "The flame grew. And grew. Then WHOOSH! Ribbons of green and violet light leapt up out of the lantern and danced across the whole sky.",
+          "picture": "Wide shot of the night sky above the mountain. Green-and-violet northern lights ribbon up from the glowing lantern on the cairn and ripple across the whole indigo sky. Kai, Ellie and Brom stand in a row on the snowy ledge at the bottom, small against the sky: Kai with both arms flung up, Ellie trumpeting with her trunk raised, Brom with his mouth wide open in wonder.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom"
+          ],
+          "place": "aurora-sky",
+          "camera": "wide",
+          "action": {
+            "word": "danced",
+            "target": "lantern",
+            "sound": "twinkle",
+            "motion": "spin"
+          },
+          "aside": null
+        },
+        {
+          "text": "The snow hares bounced in circles. Brom laughed a big rumbly laugh and danced a slow troll dance, and Ellie and Kai held hands and spun round and round.",
+          "picture": "Mid shot on the snowy mountain top under the northern lights. In the middle, Kai and Ellie hold hands and trunk and spin round in a circle, Kai's feet off the ground, both laughing. On the right Brom dances on one big foot, arms out wide, head thrown back. The three snow hares bounce in a ring on the left, one mid-air. Green and violet light on the snow.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom",
+            "hares"
+          ],
+          "place": "mountain",
+          "camera": "mid",
+          "action": {
+            "word": "spun",
+            "target": "hero",
+            "sound": "giggle",
+            "motion": "spin"
+          },
+          "aside": null
+        }
+      ]
+    },
+    {
+      "pages": [
+        {
+          "text": "Brom carried them home through the glowing night. Grandpa was waiting at the door, and the lantern in his window was shining brighter than ever.",
+          "picture": "Wide shot of the snowy village at night under the northern lights. Brom walks down the lane on the right, carrying Kai and Ellie in his big cupped hands in front of his chest. Grandpa Tove stands in the open doorway of his red cabin on the left, one arm raised high in welcome, the other on his stick, his window glowing golden.",
+          "characters": [
+            "hero",
+            "companion1",
+            "brom",
+            "grandpa"
+          ],
+          "place": "village",
+          "camera": "wide",
+          "action": {
+            "word": "shining",
+            "target": "grandpa",
+            "sound": "twinkle",
+            "motion": "grow"
+          },
+          "aside": null
+        },
+        {
+          "text": "Kai ran to Grandpa and hugged him tight. Ellie hugged them both with her trunk. \"Supper for four,\" laughed Grandpa. \"Better make that soup for a troll!\"",
+          "picture": "Mid shot in the warm cabin kitchen. Kai and Grandpa hug in the middle, Grandpa bending down with his arms round Kai, Kai's arms round Grandpa's neck. Ellie stands on the right with her trunk wrapped round both of them, eyes closed, smiling. Through the frosty window at the back, Brom's big eye peeks in happily. A pot of soup steams on the stove.",
+          "characters": [
+            "hero",
+            "companion1",
+            "grandpa"
+          ],
+          "place": "cabin-kitchen",
+          "camera": "mid",
+          "action": {
+            "word": "hugged",
+            "target": "grandpa",
+            "sound": "giggle",
+            "motion": "nod"
+          },
+          "aside": null
+        },
+        {
+          "text": "That night, Kai fell asleep with Ellie curled up at the foot of his bed and the northern lights dancing in his window. The longest night didn't feel long at all.",
+          "picture": "Mid shot in Kai's attic bedroom at night. Kai is tucked up in the little wooden bed under the red patchwork quilt in the middle, eyes closed, one arm out over the quilt, smiling in his sleep. Ellie is curled up asleep on the rug at the foot of the bed, trunk curled round her scarf. The little brass lantern glows on the bedside stool on the right, and green-and-violet northern lights ripple in the round window on the left.",
+          "characters": [
+            "hero",
+            "companion1"
+          ],
+          "place": "kai-bedroom",
+          "camera": "mid",
+          "action": {
+            "word": "asleep",
+            "target": "hero",
+            "sound": "snore",
+            "motion": "float"
+          },
+          "aside": null
+        }
+      ]
+    }
+  ]
+}

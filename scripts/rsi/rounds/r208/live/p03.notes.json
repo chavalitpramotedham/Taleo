@@ -1,0 +1,59 @@
+{
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "lantern": 1,
+   "hold:lantern": 1,
+   "sparkles": 1,
+   "tuft": 2,
+   "stone": 1,
+   "cloud": 2,
+   "bird": 2,
+   "scatter:snow": 1,
+   "scatter:grass": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: companion1, hero",
+   "layout: hero drawn behind companion1, the main action's target",
+   "layout: spaced once more, finally",
+   "layout: the lantern put behind hero, off their face"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"245\" s=\"0.8\" lean=\"3\" tilt=\"-6\" arms=\"wave,reach\" legs=\"walk\" mood=\"worried\" look=\"right\" hold=\"lantern\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"262\" y=\"248\" s=\"1.2\" flip=\"1\" lean=\"0\" tilt=\"5\" arms=\"reach,down\" legs=\"walk\" mood=\"scared\" look=\"left\"/></g>\n<stamp k=\"lantern\" x=\"195\" y=\"105\" s=\"1.2\"/>\n<stamp k=\"sparkles\" x=\"195\" y=\"105\" s=\"0.9\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"320\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"stone\" x=\"110\" y=\"252\" s=\"1\"/>",
+   "laid": "<who c=\"hero\"/>\n<stamp k=\"lantern\" x=\"195\" y=\"105\" s=\"1.2\"/><fig c=\"hero\" v=\"three\" x=\"161\" y=\"247\" s=\"0.8\" lean=\"3\" tilt=\"-6\" arms=\"wave,reach\" legs=\"walk\" mood=\"worried\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/><g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"271\" y=\"247\" s=\"1.2\" flip=\"1\" lean=\"0\" tilt=\"5\" arms=\"reach,down\" legs=\"walk\" mood=\"scared\" look=\"left\" laid=\"1\"/></g>\n\n<stamp k=\"sparkles\" x=\"195\" y=\"105\" s=\"0.9\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1.2\"/>\n<stamp k=\"tuft\" x=\"320\" y=\"250\" s=\"1.2\"/>\n<stamp k=\"stone\" x=\"110\" y=\"252\" s=\"1\"/>\n<who c=\"companion1\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

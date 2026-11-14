@@ -1,0 +1,105 @@
+{
+  "title": "Bao's Great Kitchen Quest",
+  "age": "4-5",
+  "minutes": 8,
+  "theme": "friendship",
+  "keyword": "Quest",
+  "moral": "Even the smallest friends can do the biggest things together.",
+  "length": "odyssey",
+  "world": "A big old farmhouse kitchen seen from very, very small: everything is giant - spoons like bridges, teacups like ponds, a table like a mountain plateau. Warm honey wood, blue-and-white plates, copper pans, sunny yellow walls, a garden with a lily pond outside. Recurring colours: Bao's little red bow (#B2443A), Bolt's tin-blue body (#7C95A8) with a brass key (#D3A24F), and the golden birthday spoon (#E8C766).",
+  "hero": {
+    "id": "hero",
+    "name": "Bao",
+    "gender": "female",
+    "preset": "dumpling",
+    "look": "a soft white steamed bun (#F4EEE2) with a pleated top, a little red bow on top (#B2443A), thin pen-line arms and legs with tiny dark boots, round dark eyes, rosy cheeks, a small happy mouth; about as tall as a teacup; brave, bouncy, a little bossy",
+    "notes": "The smallest bun in the steamer basket."
+  },
+  "companions": [
+    {
+      "id": "companion1",
+      "name": "Bolt",
+      "gender": "male",
+      "preset": "robot",
+      "look": "an old-fashioned tin wind-up toy robot painted tin-blue (#7C95A8) with rivets, a square head with round lamp eyes, a little antenna with a red ball, a brass wind-up key in his back (#D3A24F); thin pen-line arms and legs; about one and a half times Bao's height; careful, clanky, worries about rust",
+      "notes": "Slows down when his key runs out."
+    }
+  ],
+  "cast": [
+    {
+      "id": "duchess",
+      "name": "Duchess",
+      "gender": "female",
+      "preset": null,
+      "look": "an enormous fluffy grey Persian cat, about ten times Bao's height, round as a cushion; long silver-grey fur (#A9A39A, pale #D8D4CC); a squashed pink nose; huge round amber eyes (#D3A24F); a pink velvet collar with a silver bell; lazy, sleepy, secretly kind"
+    },
+    {
+      "id": "mice",
+      "name": "the Crumb Mice",
+      "preset": null,
+      "look": "three tiny brown field mice, each about as tall as Bao, always together; soft brown fur (#A98463), cream tummies, big round pink ears, long pink tails; each wears a little apron - red check, blue check and yellow check (#B2443A, #6F8FAF, #D3A24F); quick, giggly, love crumbs"
+    },
+    {
+      "id": "tilly",
+      "name": "Tilly",
+      "gender": "female",
+      "preset": "teapot",
+      "look": "a round white china teapot (#F2EEE4) with blue flower painting, a curly spout and a little lid like a hat; thin pen-line arms and legs; about three times Bao's height; motherly, always offering tea"
+    },
+    {
+      "id": "frog",
+      "name": "Sir Ribbit",
+      "gender": "male",
+      "preset": null,
+      "look": "a fat green pond frog about four times Bao's height (#7F905E, belly #DCD9B4) with a little gold paper crown (#D3A24F) and a lily-flower cape; big golden eyes, a wide smile; pompous but generous"
+    }
+  ],
+  "places": [
+    { "id": "counter", "light": "golden", "about": "The kitchen counter seen from tiny height: a giant bamboo steamer basket on the left, a huge blue-and-white plate and a towering copper kettle at the back, a sunny window with geraniums, honey-wood worktop across the front." },
+    { "id": "shelf", "light": "day", "about": "A high pantry shelf: giant jam jars, a tin of tea and a sack of flour standing like buildings, a long wooden shelf edge across the front with a drop below, sunbeams through dust." },
+    { "id": "floor", "light": "day", "about": "The kitchen floor seen from tiny height: huge red-and-white tiles stretching away, giant table legs on the left like tree trunks, a cat basket with a cushion on the right, a mouse hole in the skirting board at the back." },
+    { "id": "pond", "light": "golden", "about": "The garden lily pond in golden afternoon light: big round lily pads and pink water lilies across the water, tall reeds on the left, a stone frog fountain at the back, the farmhouse far behind." },
+    { "id": "table", "light": "golden", "about": "The big kitchen table laid for a birthday tea, seen from tiny height: a giant iced cake with candles in the middle, teacups, a sugar bowl and a milk jug like buildings, a check tablecloth across the front, bunting above." },
+    { "id": "steamer", "light": "night", "about": "Inside the cosy bamboo steamer basket at night: a woven bamboo wall curving all round, a soft folded napkin bed in the middle, a thimble lamp glowing, moonlight through the gaps." }
+  ],
+  "segments": [
+    {
+      "pages": [
+        { "text": "It was Grandma's birthday, and the golden birthday spoon was missing! \"No spoon, no cake,\" sighed the kitchen. Bao hopped out of the steamer. \"I'll find it!\"", "picture": "Mid shot on the sunny kitchen counter. Bao jumps out of the big bamboo steamer basket on the left, one arm raised high, one fist on her side, determined. Bolt stands on the right, his hands on his square head in worry, antenna wobbling. A giant blue-and-white plate behind them with an empty spoon-shaped gap.", "characters": ["hero", "companion1"], "place": "counter", "camera": "mid", "action": { "word": "spoon", "target": "hero", "sound": "boing", "motion": "hop" }, "aside": null },
+        { "text": "\"Wind me up, then,\" said Bolt bravely. Bao turned his brass key, click-click-click, and off they marched across the counter.", "picture": "Mid shot on the kitchen counter. Bao stands behind Bolt on the left, both hands turning the big brass key in his back, leaning in. Bolt marches forward on the right, one arm swinging forward and one back, knees high, lamp eyes bright. A giant copper kettle at the back.", "characters": ["hero", "companion1"], "place": "counter", "camera": "mid", "action": { "word": "click", "target": "companion1", "sound": "squeak", "motion": "wiggle" }, "aside": null },
+        { "text": "At the edge of the counter, they looked down. The floor was SO far away. \"Spoon bridge!\" said Bao, and they slid all the way down a wooden spoon. Wheee!", "picture": "Wide shot from the counter edge to the floor. A long wooden spoon leans from the counter down to the tiled floor like a slide. Bao whizzes down the spoon first, arms up, legs out in front, laughing. Bolt follows behind, sitting stiffly, both arms clutching the spoon's sides, eyes shut. The giant table legs and tiled floor below.", "characters": ["hero", "companion1"], "place": "floor", "camera": "wide", "action": { "word": "slid", "target": "hero", "sound": "whoosh", "motion": "float" }, "aside": null }
+      ]
+    },
+    {
+      "pages": [
+        { "text": "On the kitchen floor lay a sleeping mountain of fur. \"Duchess,\" whispered Bolt. \"Shh!\" They tiptoed past her enormous nose.", "picture": "Wide shot on the kitchen floor. Duchess the huge grey Persian cat sleeps curled in her basket on the right, filling half the picture, her big nose and whiskers near the middle. Bao and Bolt tiptoe past in the front, tiny, Bao with a finger to her lips and the other arm out for balance, Bolt on tiptoe holding his antenna still with one hand.", "characters": ["hero", "companion1", "duchess"], "place": "floor", "camera": "wide", "action": { "word": "tiptoed", "target": "hero", "sound": "snore", "motion": "wiggle" }, "aside": null },
+        { "text": "Then Bolt's key went squeak. One huge amber eye opened. \"Well, well,\" purred Duchess. \"Breakfast?\" \"No! We're friends!\" squeaked Bao.", "picture": "Mid shot on the kitchen floor. Duchess's huge face fills the right of the picture, one big amber eye open and peering down, a slow sly smile. Bao stands in front of Bolt on the left with both arms spread wide to protect him, chin up. Bolt cowers behind her, hands over his lamp eyes.", "characters": ["hero", "companion1", "duchess"], "place": "floor", "camera": "mid", "action": { "word": "opened", "target": "duchess", "sound": "pop", "motion": "grow" }, "aside": null },
+        { "text": "Duchess yawned an enormous yawn. \"Friends don't get eaten. Hop on, little bun. I saw a mouse run off with something shiny.\"", "picture": "Wide shot on the kitchen floor. Duchess walks slowly towards the mouse hole at the back, tail up. Bao sits on top of the cat's fluffy head between her ears, holding on to her fur with one hand and pointing forward with the other. Bolt sits behind Bao on the cat's back, legs dangling either side, holding on with both hands.", "characters": ["hero", "companion1", "duchess"], "place": "floor", "camera": "wide", "action": { "word": "hop", "target": "duchess", "sound": "giggle", "motion": "nod" }, "aside": null },
+        { "text": "Out of the mouse hole tumbled three little mice in aprons. \"We only borrowed it!\" said the first. \"To catch the moon!\" said the second. \"From the pond,\" said the third.", "picture": "Mid shot at the mouse hole in the skirting board. The three Crumb Mice in their checked aprons stand in a row in front of the hole, one twisting her apron, one pointing out at the garden, one shrugging with both palms up. Bao kneels in front of them on the left, one hand on her knee, listening kindly. Bolt stands behind her, scratching his head. Duchess's big paw rests on the floor at the right edge.", "characters": ["hero", "companion1", "mice"], "place": "floor", "camera": "mid", "action": { "word": "borrowed", "target": "mice", "sound": "squeak", "motion": "hop" }, "aside": null }
+      ]
+    },
+    {
+      "pages": [
+        { "text": "Out at the lily pond, the golden spoon lay on the biggest lily pad, right beside a very large frog in a crown.", "picture": "Wide shot of the golden lily pond. On the biggest lily pad in the middle sits Sir Ribbit the fat frog in his paper crown, one webbed hand resting proudly on the golden spoon beside him. Bao, Bolt and the three mice stand together on the stone edge in front on the left, Bao pointing at the spoon, a mouse waving. Reeds on the left, the stone fountain behind.", "characters": ["hero", "companion1", "mice", "frog"], "place": "pond", "camera": "wide", "action": { "word": "spoon", "target": "frog", "sound": "splash", "motion": "float" }, "aside": null },
+        { "text": "\"This is my new royal oar,\" croaked Sir Ribbit. \"You may have it... if you can hop to me.\" Bao looked at the lily pads. Hop. Hop. Hop!", "picture": "Mid shot over the lily pond. Bao leaps from one lily pad to the next in the middle, legs stretched in a big jump, one arm forward and one back. Bolt wobbles on the pad behind her, arms windmilling. Sir Ribbit watches from his big pad on the right with arms folded, impressed. Ripples and pink water lilies.", "characters": ["hero", "companion1", "frog"], "place": "pond", "camera": "mid", "action": { "word": "hop", "target": "hero", "sound": "boing", "motion": "leap" }, "aside": null },
+        { "text": "But Bolt's key ran down - clunk - and he froze, tipping, right over the water! Bao grabbed his hand just in time.", "picture": "Close-up on the lily pads. Bolt tips backwards off the edge of a lily pad on the right, frozen stiff, one arm reaching out. Bao, lying flat on her tummy on the next pad on the left, grabs his hand with both of hers, legs kicking, face scrunched with effort. Water splashes below.", "characters": ["hero", "companion1"], "place": "pond", "camera": "close", "action": { "word": "grabbed", "target": "hero", "sound": "splash", "motion": "tumble" }, "aside": null },
+        { "text": "Sir Ribbit wiped a tear from his golden eye. \"Such a true friend! Take the spoon - and come back to swim any time.\" He gave Bao a big, damp hug.", "picture": "Mid shot on the big lily pad. Sir Ribbit hugs Bao in the middle, his big green arms round her, both eyes closed and smiling. Bolt, wound up again, stands on the right holding the golden spoon up with both hands, grinning. The three mice cheer on the stone edge at the left, arms up. Pink water lilies around.", "characters": ["hero", "companion1", "frog", "mice"], "place": "pond", "camera": "mid", "action": { "word": "hug", "target": "frog", "sound": "giggle", "motion": "nod" }, "aside": null }
+      ]
+    },
+    {
+      "pages": [
+        { "text": "Back in the kitchen, the high shelf held the candles. \"Up we go!\" Bao climbed the jam jars like stairs, and Bolt passed up the spoon.", "picture": "Mid shot of the high pantry shelf. Bao climbs up a stack of giant jam jars on the left, one hand gripping a lid above, one foot reaching up for the next jar. Bolt stands on the shelf below on the right, reaching up high with the golden spoon in both hands to pass it to her. Sunbeams, a giant flour sack behind.", "characters": ["hero", "companion1"], "place": "shelf", "camera": "mid", "action": { "word": "climbed", "target": "hero", "sound": "rustle", "motion": "hop" }, "aside": null },
+        { "text": "Tilly the teapot was waiting at the top. \"Dears, you look exhausted. Sit down and have a little tea.\" So they did, on a matchbox, with their feet dangling over the edge.", "picture": "Mid shot on the high pantry shelf. Bao and Bolt sit side by side on a matchbox at the edge of the shelf on the left, their legs dangling over the front edge, each holding a tiny thimble cup. Tilly the teapot stands on the right, leaning forward and pouring tea from her curly spout into Bao's thimble, one hand on her lid. Steam curls up.", "characters": ["hero", "companion1", "tilly"], "place": "shelf", "camera": "mid", "action": { "word": "tea", "target": "tilly", "sound": "drip", "motion": "nod" }, "aside": null },
+        { "text": "Down from the shelf came Bao, Bolt, the spoon and the candles, riding in Duchess's fluffy tail like a lift. Down, down, all the way to the birthday table.", "picture": "Wide shot of the kitchen from the shelf to the table. Duchess sits upright on the floor on the right, her long fluffy tail curled up high like a lift. Bao and Bolt ride down in the curl of the tail, Bao waving with one hand and holding the candles with the other, Bolt hugging the golden spoon. The birthday table waits on the left.", "characters": ["hero", "companion1", "duchess"], "place": "floor", "camera": "wide", "action": { "word": "riding", "target": "duchess", "sound": "whoosh", "motion": "float" }, "aside": null },
+        { "text": "Bao put the golden spoon beside the cake just as the kitchen door opened. \"Happy birthday, Grandma!\" whispered everyone, hiding behind the teacups.", "picture": "Mid shot on the birthday table. Bao in the middle lays the golden spoon beside the giant iced cake, bending down with both hands. Bolt, the three mice and Tilly hide behind a row of teacups and the milk jug at the back, peeking out, one mouse with a paw over her mouth to stop a giggle. Bunting above.", "characters": ["hero", "companion1", "mice", "tilly"], "place": "table", "camera": "mid", "action": { "word": "birthday", "target": "hero", "sound": "twinkle", "motion": "grow" }, "aside": null }
+      ]
+    },
+    {
+      "pages": [
+        { "text": "When Grandma had gone to bed, the kitchen had a party of its own. Tilly poured, the mice danced, and Duchess purred so loudly the teacups rattled.", "picture": "Wide shot on the birthday table at night with candles lit. The three mice dance in a ring in the middle, holding hands. Tilly pours tea on the left. Bao and Bolt sit on the edge of a saucer at the front, side by side, legs crossed, clapping. Duchess's big sleepy face rests on the table edge at the right, purring, eyes half-closed. Sir Ribbit waves from the window.", "characters": ["hero", "companion1", "mice", "tilly", "duchess"], "place": "table", "camera": "wide", "action": { "word": "danced", "target": "mice", "sound": "giggle", "motion": "spin" }, "aside": null },
+        { "text": "Bao gave Bolt a big squishy hug. \"Best quest ever,\" she said. \"Best friend ever,\" said Bolt, very slowly, because his key was nearly run down.", "picture": "Close-up on the table. Bao and Bolt hug in the middle, Bao's thin arms round Bolt's square tin body, her cheek squished against him, eyes closed and smiling. Bolt's arms are round her too, his lamp eyes dim and sleepy, his antenna drooping. Candle glow.", "characters": ["hero", "companion1"], "place": "table", "camera": "close", "action": { "word": "hug", "target": "companion1", "sound": "twinkle", "motion": "nod" }, "aside": null },
+        { "text": "Back in the cosy steamer basket, Bao snuggled down in her napkin bed, and Bolt sat beside her, wound down and fast asleep. Goodnight, little bun.", "picture": "Mid shot inside the bamboo steamer basket at night. Bao lies tucked up in a soft folded-napkin bed in the middle, eyes closed, smiling, her red bow on the pillow. Bolt sits on the floor beside the bed on the right, legs out in front, head nodding forward, lamp eyes off, asleep. A thimble lamp glows, moonlight comes through the bamboo gaps.", "characters": ["hero", "companion1"], "place": "steamer", "camera": "mid", "action": { "word": "snuggled", "target": "hero", "sound": "snore", "motion": "float" }, "aside": null }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "motion": 1,
+   "ticks": 1,
+   "dust": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: the composer's corrected copy kept, its first draft left out",
+   "layout: companion1 resized from 0.95 to 1.19, true to the others",
+   "layout: drawn back to front: something drawn, hero, companion1"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"hero\" v=\"front\" x=\"150\" y=\"245\" s=\"0.8\" lean=\"8\" tilt=\"-5\" arms=\"up,hip\" legs=\"jump\" mood=\"determined\" look=\"right\"/>\n\nWait, the output needs to be tags only; here is the final version, with the plate and steamer drawn before the characters.\n\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"150\" rx=\"70\" ry=\"52\" fill=\"#F4F1EA\"/><ellipse cx=\"200\" cy=\"150\" rx=\"56\" ry=\"40\" fill=\"#DCE6F0\"/><path d=\"M200 120 Q186 130 190 150 Q192 166 200 178 Q208 166 210 150 Q214 130 200 120 Z\" fill=\"#F4F1EA\"/></g><g class=\"ink\"><ellipse cx=\"200\" cy=\"150\" rx=\"70\" ry=\"52\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"2\"/><ellipse cx=\"200\" cy=\"150\" rx=\"56\" ry=\"40\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"1\"/><path d=\"M200 120 Q186 130 190 150 Q192 166 200 178 Q208 166 210 150 Q214 130 200 120 Z\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><path d=\"M92 238 L96 196 L184 196 L188 238 Z\" fill=\"#D9B070\"/><ellipse cx=\"140\" cy=\"196\" rx=\"46\" ry=\"8\" fill=\"#B88C4A\"/></g><g class=\"ink\"><path d=\"M92 238 L96 196 L184 196 L188 238 Z\" fill=\"none\" stroke=\"#6B4A22\" stroke-width=\"2\"/><path d=\"M110 198 L108 238 M140 200 L140 238 M170 198 L172 238 M94 216 L186 216\" stroke=\"#6B4A22\" stroke-width=\"1.2\"/></g>\n<who c=\"companion1\"/><fig c=\"companion1\" v=\"front\" x=\"285\" y=\"246\" s=\"0.95\" tilt=\"8\" arms=\"cover,cover\" legs=\"stand\" mood=\"worried\" look=\"left\"/>\n<who c=\"hero\"/><g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"150\" y=\"228\" s=\"0.8\" lean=\"8\" tilt=\"-5\" arms=\"up,hip\" legs=\"jump\" mood=\"determined\" look=\"right\"/></g>\n<stamp k=\"motion\" x=\"118\" y=\"190\" s=\"0.7\"/>\n<stamp k=\"ticks\" x=\"285\" y=\"95\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"150\" y=\"244\" s=\"0.6\"/>",
+   "laid": "<g class=\"paint\"><ellipse cx=\"200\" cy=\"150\" rx=\"70\" ry=\"52\" fill=\"#F4F1EA\"/><ellipse cx=\"200\" cy=\"150\" rx=\"56\" ry=\"40\" fill=\"#DCE6F0\"/><path d=\"M200 120 Q186 130 190 150 Q192 166 200 178 Q208 166 210 150 Q214 130 200 120 Z\" fill=\"#F4F1EA\"/></g><g class=\"ink\"><ellipse cx=\"200\" cy=\"150\" rx=\"70\" ry=\"52\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"2\"/><ellipse cx=\"200\" cy=\"150\" rx=\"56\" ry=\"40\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"1\"/><path d=\"M200 120 Q186 130 190 150 Q192 166 200 178 Q208 166 210 150 Q214 130 200 120 Z\" fill=\"none\" stroke=\"#3E5C84\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><path d=\"M92 238 L96 196 L184 196 L188 238 Z\" fill=\"#D9B070\"/><ellipse cx=\"140\" cy=\"196\" rx=\"46\" ry=\"8\" fill=\"#B88C4A\"/></g><g class=\"ink\"><path d=\"M92 238 L96 196 L184 196 L188 238 Z\" fill=\"none\" stroke=\"#6B4A22\" stroke-width=\"2\"/><path d=\"M110 198 L108 238 M140 200 L140 238 M170 198 L172 238 M94 216 L186 216\" stroke=\"#6B4A22\" stroke-width=\"1.2\"/></g>\n<who c=\"companion1\"/><g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"150\" y=\"228\" s=\"0.8\" lean=\"8\" tilt=\"-5\" arms=\"up,hip\" legs=\"jump\" mood=\"determined\" look=\"right\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"motion\" x=\"118\" y=\"190\" s=\"0.7\"/>\n<stamp k=\"ticks\" x=\"285\" y=\"95\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"150\" y=\"244\" s=\"0.6\"/>\n<who c=\"hero\"/><fig c=\"companion1\" v=\"front\" x=\"285\" y=\"246\" s=\"1.19\" tilt=\"8\" arms=\"cover,cover\" legs=\"stand\" mood=\"worried\" look=\"left\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

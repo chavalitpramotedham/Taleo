@@ -1,0 +1,69 @@
+{
+ "portraits": "Captain Tusk, the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "motion": 1,
+   "stone": 1,
+   "lantern": 1,
+   "hold:lantern": 1,
+   "sparkles": 1,
+   "dust": 1,
+   "cloud": 1,
+   "bird": 3,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hares",
+   "tusk"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: tusk resized from 0.56 to 0.84, true to the others",
+   "layout: hares resized from 0.30 to 0.17, true to the others",
+   "layout: companion1 resized from 0.50 to 0.63, true to the others",
+   "layout: hero turned towards the main action",
+   "layout: drawn back to front: companion1, hero, hares, something drawn, something drawn, tusk",
+   "layout: spaced once more, finally",
+   "layout: the lantern put behind companion1, off their face"
+  ],
+  "composed": {
+   "wrote": "<who c=\"tusk\"/>\n<who c=\"hero\"/>\n<who c=\"companion1\"/>\n<who c=\"hares\"/>\n\nMain action: Tusk pulls the sledge to the right-to-left? He leans forward, facing the way he goes. I put him at the left, facing left, with the sledge behind him on the right.\n\n<stamp k=\"motion\" x=\"330\" y=\"228\" s=\"0.8\"/>\n<stamp k=\"stone\" x=\"70\" y=\"255\" s=\"1\"/>\n<g class=\"paint\"><path d=\"M130 232 L150 220 L150 222 L132 236 Z\" fill=\"#8a5a3a\"/></g>\n<g class=\"ink\"><path d=\"M120 228 Q135 226 150 222\" stroke=\"#6b4a32\" stroke-width=\"2\" fill=\"none\"/></g>\n<g class=\"paint\"><rect x=\"170\" y=\"206\" width=\"150\" height=\"16\" rx=\"5\" fill=\"#a8703f\"/><path d=\"M160 232 Q158 238 175 238 L310 238\" stroke=\"#6b4527\" stroke-width=\"3\" fill=\"none\"/><path d=\"M165 224 Q160 220 170 214\" stroke=\"#6b4527\" stroke-width=\"3\" fill=\"none\"/></g>\n<g class=\"ink\"><path d=\"M170 222 L320 222\" stroke=\"#6b4527\" stroke-width=\"2\"/></g>\n\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"110\" y=\"244\" s=\"0.56\" flip=\"1\" lean=\"15\" tilt=\"0\" arms=\"reach,reach\" legs=\"walk\" mood=\"happy\" look=\"left\"/></g>\n\n<fig c=\"hares\" v=\"three\" x=\"300\" y=\"210\" s=\"0.3\" flip=\"1\" lean=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<fig c=\"hero\" v=\"three\" x=\"210\" y=\"212\" s=\"0.42\" lean=\"0\" tilt=\"-5\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<fig c=\"companion1\" v=\"front\" x=\"255\" y=\"212\" s=\"0.5\" lean=\"0\" tilt=\"5\" arms=\"up,down\" legs=\"sit\" mood=\"excited\" hold=\"lantern\"/>\n<stamp k=\"lantern\" x=\"262\" y=\"125\" s=\"0.9\"/>\n<stamp k=\"sparkles\" x=\"262\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"330\" y=\"240\" s=\"0.6\"/>\n\n<g class=\"ink\"><path d=\"M165 240 Q240 246 330 241\" stroke=\"#6a7a9a\" stroke-width=\"1.5\" fill=\"none\" opacity=\"0.5\"/></g>",
+   "laid": "<who c=\"tusk\"/>\n<who c=\"hero\"/>\n<who c=\"companion1\"/>\n<who c=\"hares\"/>\n\nMain action: Tusk pulls the sledge to the right-to-left? He leans forward, facing the way he goes. I put him at the left, facing left, with the sledge behind him on the right.\n\n<stamp k=\"motion\" x=\"330\" y=\"228\" s=\"0.8\"/>\n<stamp k=\"stone\" x=\"70\" y=\"255\" s=\"1\"/>\n<stamp k=\"lantern\" x=\"262\" y=\"125\" s=\"0.9\"/><fig c=\"companion1\" v=\"front\" x=\"261\" y=\"212\" s=\"0.63\" lean=\"0\" tilt=\"5\" arms=\"up,down\" legs=\"sit\" mood=\"excited\" hold=\"lantern\" flip=\"0\" laid=\"1\"/>\n\n<stamp k=\"sparkles\" x=\"262\" y=\"120\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"330\" y=\"240\" s=\"0.6\"/><fig c=\"hero\" v=\"three\" x=\"204\" y=\"212\" s=\"0.42\" lean=\"0\" tilt=\"-5\" arms=\"wave,down\" legs=\"sit\" mood=\"laugh\" look=\"left\" flip=\"1\" laid=\"1\"/>\n\n<fig c=\"hares\" v=\"three\" x=\"300\" y=\"210\" s=\"0.17\" flip=\"1\" lean=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M130 232 L150 220 L150 222 L132 236 Z\" fill=\"#8a5a3a\"/></g>\n<g class=\"ink\"><path d=\"M120 228 Q135 226 150 222\" stroke=\"#6b4a32\" stroke-width=\"2\" fill=\"none\"/></g>\n<g class=\"paint\"><rect x=\"170\" y=\"206\" width=\"150\" height=\"16\" rx=\"5\" fill=\"#a8703f\"/><path d=\"M160 232 Q158 238 175 238 L310 238\" stroke=\"#6b4527\" stroke-width=\"3\" fill=\"none\"/><path d=\"M165 224 Q160 220 170 214\" stroke=\"#6b4527\" stroke-width=\"3\" fill=\"none\"/></g>\n<g class=\"ink\"><path d=\"M170 222 L320 222\" stroke=\"#6b4527\" stroke-width=\"2\"/></g>\n\n\n<g class=\"ink\"><path d=\"M165 240 Q240 246 330 241\" stroke=\"#6a7a9a\" stroke-width=\"1.5\" fill=\"none\" opacity=\"0.5\"/></g>\n\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"110\" y=\"244\" s=\"0.84\" flip=\"1\" lean=\"15\" tilt=\"0\" arms=\"reach,reach\" legs=\"walk\" mood=\"happy\" look=\"left\" laid=\"1\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "tusk",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

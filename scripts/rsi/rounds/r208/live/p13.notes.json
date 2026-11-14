@@ -1,0 +1,56 @@
+{
+ "reuse": {
+  "stamps": 8,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "stone": 1,
+   "lantern": 1,
+   "sparkles": 1,
+   "motion": 1,
+   "cloud": 1,
+   "bird": 3,
+   "scatter:snow": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 1.30 to 1.49, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"262\" y=\"300\" s=\"1.3\" flip=\"1\" lean=\"-4\" tilt=\"-6\" arms=\"reach,down\" legs=\"stand\" mood=\"calm\" look=\"left\"/>\n<who c=\"hero\"/>\n<stamp k=\"stone\" x=\"190\" y=\"300\" s=\"1.4\" near=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"170\" y=\"300\" s=\"1.2\" lean=\"6\" tilt=\"-8\" arms=\"up,reach\" legs=\"tiptoe\" mood=\"determined\" look=\"up\"/>\n<g class=\"paint\"><rect x=\"205\" y=\"92\" width=\"26\" height=\"14\" rx=\"3\" fill=\"#8A8F96\"/><rect x=\"209\" y=\"96\" width=\"18\" height=\"7\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><path d=\"M205 92 L231 92 M213 92 Q218 84 223 92\"/></g>\n<g class=\"target\"><stamp k=\"lantern\" x=\"218\" y=\"108\" s=\"1.4\"/></g>\n<stamp k=\"sparkles\" x=\"218\" y=\"100\" s=\"0.8\"/>\n<stamp k=\"motion\" x=\"200\" y=\"120\" s=\"0.6\"/>",
+   "laid": "<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"290\" y=\"300\" s=\"1.49\" flip=\"1\" lean=\"-4\" tilt=\"-6\" arms=\"reach,down\" legs=\"stand\" mood=\"calm\" look=\"left\" laid=\"1\"/>\n<who c=\"hero\"/>\n<stamp k=\"stone\" x=\"190\" y=\"300\" s=\"1.4\" near=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"142\" y=\"300\" s=\"1.2\" lean=\"6\" tilt=\"-8\" arms=\"up,reach\" legs=\"tiptoe\" mood=\"determined\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><rect x=\"205\" y=\"92\" width=\"26\" height=\"14\" rx=\"3\" fill=\"#8A8F96\"/><rect x=\"209\" y=\"96\" width=\"18\" height=\"7\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><path d=\"M205 92 L231 92 M213 92 Q218 84 223 92\"/></g>\n<g class=\"target\"><stamp k=\"lantern\" x=\"218\" y=\"108\" s=\"1.4\"/></g>\n<stamp k=\"sparkles\" x=\"218\" y=\"100\" s=\"0.8\"/>\n<stamp k=\"motion\" x=\"200\" y=\"120\" s=\"0.6\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

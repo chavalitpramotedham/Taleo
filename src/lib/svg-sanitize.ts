@@ -30,7 +30,9 @@ const SAFE_VALUE =/^[#a-zA-Z0-9\s.,\-+()%]*$/;
 const cleaned = new Map<string, string>();
 const CLEANED_MAX = 96;
 
-export function sanitizeSvg(input: string | null | undefined, maxLength = 80000): string {
+// (200k: a crowded page - seven characters at a tea party - came to 81k
+// and was blanked whole at the old 80k)
+export function sanitizeSvg(input: string | null | undefined, maxLength = 200_000): string {
   if (!input) return "";
   const key = `${maxLength}:${input}`;
   const hit = cleaned.get(key);
@@ -116,7 +118,7 @@ function sanitizeSvgUncached(input: string, maxLength: number): string {
 
 /** Sanitised markup with the watercolour layer filters stripped, for renderers
  *  (e.g. the OG image generator) that have no matching <defs> to resolve them. */
-export function sanitizeSvgFlat(input: string | null | undefined, maxLength = 80000): string {
+export function sanitizeSvgFlat(input: string | null | undefined, maxLength = 200_000): string {
   return sanitizeSvg(input, maxLength).replace(/ filter="url\(#tl-[a-z]+\)"/g, "");
 }
 

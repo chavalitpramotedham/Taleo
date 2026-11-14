@@ -216,60 +216,141 @@ export function arm(view: PartView, build: Build, side: "near" | "far", pose: Ar
   return { paint: l.paint + handPaint + extraPaint, ink: l.ink + handInk, detail: "", hand };
 }
 
+/** How far a seated figure's hips come down from standing (canvas units):
+ *  about half its leg, so it sits on its seat with its feet on the floor
+ *  rather than standing on the seat with stubs dangling (part 2). The
+ *  layout puts a sitter's feet this far below its seat's top less the
+ *  thigh, see SIT_FEET. */
+// (always so its hips land SIT_FEET above its feet: the layout seats
+// everyone - on a chair, in a boat, in bed - by that one measure; long
+// legs fold up more, knees high, as a child's do on a low seat)
+const sitDrop = (view: PartView) => Math.max(0, Math.round(190 - (view.anchors.hipL[1] + view.anchors.hipR[1]) / 2 - SIT_FEET));
+const legLength = (view: PartView) => Math.max(MIN_LEG, 190 - (view.anchors.hipL[1] + view.anchors.hipR[1]) / 2);
+/** The least leg a figure shows. A round body that reaches the ground - a
+ *  baby elephant, an owl, a penguin, a steamed bun - had its legs hidden
+ *  under it and only flat feet showing, so it looked seated on every page
+ *  (part 2): its body is lifted until this much leg shows. */
+const MIN_LEG = 24;
+const legRoom = (view: PartView) => Math.max(0, MIN_LEG - (190 - (view.anchors.hipL[1] + view.anchors.hipR[1]) / 2));
+/** Where a sitter's feet are below the top of what it sits on, in canvas
+ *  units at scale 1 (most figures: hips at ~165, a leg of ~25, so hips come
+ *  down 11 and the shins hang ~14 below the seat). */
+export const SIT_FEET = 14;
+
 /** How a pose carries the whole figure, in its own coordinates: lifted off
- *  the ground (a jump), a little lower (a crouch), leaning into a run. */
-export function bodyOf(pose: LegPose): { lift: number; lean: number } {
-  if (pose === "jump") return { lift: 22, lean: 0 };
-  if (pose === "crouch") return { lift: -10, lean: 4 };
-  if (pose === "run") return { lift: 4, lean: 9 };
-  if (pose === "walk") return { lift: 1, lean: 3 };
-  if (pose === "tiptoe") return { lift: 1, lean: -2 };
-  return { lift: 0, lean: 0 };
+ *  the ground (a jump), lower (a crouch, or sitting down on a seat),
+ *  leaning into a run. */
+export function bodyOf(pose: LegPose, view?: PartView, three = true): { lift: number; lean: number } {
+  const room = view ? legRoom(view) : 0;
+  if (pose === "jump") return { lift: 22 + room, lean: 0 };
+  if (pose === "crouch") return { lift: room - (view ? Math.round(legLength(view) * 0.3) : 10), lean: 4 };
+  if (pose === "sit") return { lift: view ? -sitDrop(view) : -11, lean: 0 };
+  if (pose === "run") return { lift: 4 + room, lean: 9 };
+  if (pose === "walk") return { lift: 1 + room, lean: 3 };
+  if (pose === "tiptoe") return { lift: 1 + room, lean: -2 };
+  return { lift: room, lean: 0 };
 }
 
-/** Both legs, for a pose: thigh and shin tapering to the ankle, the knee
- *  bent the way the pose needs, and a foot turned with the step (heel up
- *  behind a stride, toes down in a jump or on tiptoe). The figure is lifted
- *  as a whole for a jump (see bodyOf), so the legs hang below it there. */
+/** Both legs, for a pose: thigh and shin tapering to the ankle and a foot
+ *  turned with the step (heel up behind a stride, toes down in a jump or
+ *  on tiptoe). A leg that really bends - sitting, crouching, the tucked
+ *  legs of a jump, a kick - is drawn in two pieces with a round knee
+ *  between, not as one bowed tube (part 2: seated figures had rubber
+ *  stubs). The figure is moved as a whole by bodyOf (lifted for a jump,
+ *  lowered to sit or crouch), so the feet here are placed to land on the
+ *  ground after that move. */
 export function legs(view: PartView, build: Build, pose: LegPose, three: boolean): { far: Piece; near: Piece } {
   const a = view.anchors;
   const hipW = Math.max(18, Math.abs(a.hipR[0] - a.hipL[0]));
   const lw = build.thin ? 4 : Math.max(10, hipW * 0.6) * (build.leg ?? 1);
   const hipY = (a.hipL[1] + a.hipR[1]) / 2;
-  const LL = Math.max(18, 190 - hipY);
+  const LL = legLength(view);
   // (thin legs end in small dark boots)
   const fw = build.thin ? 6.5 : lw * 0.9 * (build.foot_ ?? 1);
   const fwd = three ? 1 : 0;
-  const ground = 189;
+  // (the ground in the figure's own coordinates, after bodyOf moves it)
+  // (the figure is moved by translate(0, -lift): a foot at 189 + lift here
+  // lands on the ground at 189)
+  const ground = 189 + bodyOf(pose, view, three).lift;
   // each foot: [dx from its hip, y, the foot's tilt in degrees (toes down +), knee bend]
   type Foot = [number, number, number, number];
-  const feet: Record<LegPose, [Foot, Foot]> = {
-    stand: [[three ? 3 : -4, ground, 0, 0.04], [three ? 5 : 4, ground, 0, 0.04]],
-    walk: [[fwd * 17 - (three ? 0 : 5), ground, -8, 0.1], [-fwd * 13 + (three ? 0 : 6), ground - 5, 24, 0.2]],
-    run: [[fwd * 28 + (three ? 0 : -9), ground - 8, -14, 0.24], [-fwd * 26 + (three ? 0 : 10), ground - 20, 40, 0.42]],
-    jump: [[fwd * 8 - 3, hipY + LL * 0.82, 38, 0.3], [fwd * 2 + 4, hipY + LL * 0.76, 34, 0.36]],
-    sit: [[fwd * 30 + (three ? 0 : -13), hipY + LL * 0.72, -10, 0.12], [fwd * 25 + (three ? 0 : 13), hipY + LL * 0.68, -12, 0.12]],
-    kick: [[fwd * 30 + (three ? 0 : -18), hipY + 2, -28, 0.08], [three ? -2 : 4, ground, 0, 0.06]],
-    tiptoe: [[three ? 4 : -4, ground - 3, 42, 0.02], [three ? 7 : 4, ground - 4, 42, 0.02]],
-    crouch: [[fwd * 14 + (three ? 0 : -10), ground, 0, 0.5], [fwd * 6 + (three ? 0 : 10), ground, 0, 0.5]],
+  // (the feet's ground with the body lifted to show its legs: see MIN_LEG)
+  const G = 189 + legRoom(view);
+  const feet: Partial<Record<LegPose, [Foot, Foot]>> = {
+    stand: [[three ? 3 : -4, G, 0, 0.04], [three ? 5 : 4, G, 0, 0.04]],
+    walk: [[fwd * 17 - (three ? 0 : 5), G, -8, 0.1], [-fwd * 13 + (three ? 0 : 6), G - 5, 24, 0.2]],
+    run: [[fwd * 28 + (three ? 0 : -9), G - 8, -14, 0.24], [-fwd * 26 + (three ? 0 : 10), G - 20, 40, 0.42]],
+    tiptoe: [[three ? 4 : -4, G - 3, 42, 0.02], [three ? 7 : 4, G - 4, 42, 0.02]],
   };
-  const one = (hip: Pt, [dx, y, tilt, kb]: Foot, colour: string): Piece => {
-    const ankle: Pt = [hip[0] + dx, y - lw * 0.3];
-    // (knees bend forward on a three-quarter figure, outward from the front)
-    const l = build.thin ? thinLimb(hip, ankle, three ? [1, 0.15] : [hip[0] < 100 ? -1 : 1, 0.1], LL * kb, THIN_INK) : limb(hip, ankle, three ? [1, 0.15] : [hip[0] < 100 ? -1 : 1, 0.1], LL * kb, lw, lw * 0.74, colour);
+  // the bent legs: [knee dx, knee dy below the hip, ankle dx from the hip, ankle y, foot tilt]
+  type Bent = [number, number, number, number, number];
+  const side = (hip: Pt) => (hip[0] < 100 ? -1 : 1);
+  const bent = (hip: Pt, near: boolean): Bent | null => {
+    const o = side(hip);
+    if (pose === "sit")
+      // three-quarter: the thigh along the seat, the shin down to the
+      // floor; from the front: the thighs come towards us (short), knees
+      // a little apart, shins straight down, feet turned out
+      return three
+        ? [LL * (near ? 0.62 : 0.5), -LL * 0.04, LL * (near ? 0.72 : 0.6), ground, -6]
+        : [o * hipW * 0.22, Math.max(2, (ground - hip[1]) * 0.35), o * 1, ground, 0];
+    if (pose === "crouch")
+      return three ? [LL * (near ? 0.55 : 0.45), LL * 0.2, LL * (near ? 0.12 : 0.02), ground, 0] : [o * 9, LL * 0.32, o * 5, ground, 0];
+    if (pose === "jump")
+      // (knees up and the feet tucked back under, toes pointed)
+      return three ? [LL * (near ? 0.42 : 0.3), LL * 0.38, -LL * (near ? 0.12 : 0.2), hipY + LL * 0.72, 40] : [o * 7, LL * 0.42, o * 3, hipY + LL * 0.8, 30];
+    if (pose === "kick")
+      // (the near leg kicks out, the far one stands)
+      return near ? (three ? [LL * 0.5, LL * 0.3, LL * 1.05, hipY + LL * 0.35, -28] : [o * 12, LL * 0.35, o * 26, hipY + LL * 0.45, -20]) : null;
+    return null;
+  };
+  const footPiece = (ankle: Pt, tilt: number): { paint: string; ink: string } => {
     const fx = ankle[0] + (fwd ? fw * 0.35 : 0);
     const rot = `rotate(${f(three ? tilt : tilt * 0.3)} ${f(ankle[0])} ${f(ankle[1])})`;
     return {
       paint:
-        l.paint +
         `<ellipse cx="${f(fx)}" cy="${f(ankle[1] + (build.thin ? 2 : lw * 0.22))}" rx="${f(fw)}" ry="${f(build.thin ? 3.6 : lw * 0.4)}" transform="${rot}" fill="${build.thin ? THIN_INK : build.foot}"/>` +
         (build.footPad ? `<ellipse cx="${f(fx + (fwd ? fw * 0.25 : 0))}" cy="${f(ankle[1] + lw * 0.26)}" rx="${f(fw * 0.45)}" ry="${f(lw * 0.2)}" transform="${rot}" fill="${build.footPad}"/>` : ""),
-      ink: l.ink + `<path d="M${f(fx - fw)} ${f(ankle[1] + lw * 0.3)}C${f(fx - fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] + lw * 0.3)}" transform="${rot}" stroke-width="0.9"/>`,
-      detail: "",
+      ink: `<path d="M${f(fx - fw)} ${f(ankle[1] + lw * 0.3)}C${f(fx - fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] - lw * 0.2)} ${f(fx + fw)} ${f(ankle[1] + lw * 0.3)}" transform="${rot}" stroke-width="0.9"/>`,
     };
   };
-  const [n, fa] = feet[pose];
-  return { near: one(a.hipL, n, build.limb), far: one(a.hipR, fa, three ? build.limbFar : build.limb) };
+  const one = (hip: Pt, near: boolean, colour: string): Piece => {
+    const b = bent(hip, near);
+    if (b) {
+      const [kdx, kdy, adx, ay, tilt] = b;
+      const knee: Pt = [hip[0] + kdx, hip[1] + kdy];
+      const ankle: Pt = [hip[0] + adx, ay - lw * 0.3];
+      // (each piece bows a touch away from the bend, as flesh does)
+      const out: Pt = three ? [0.2, -1] : [side(hip), 0];
+      const thigh = build.thin ? thinLimb(hip, knee, out, 1, THIN_INK) : limb(hip, knee, out, 1, lw, lw * 0.86, colour);
+      const shin = build.thin ? thinLimb(knee, ankle, three ? [1, 0] : out, 1, THIN_INK) : limb(knee, ankle, three ? [1, 0] : out, 1, lw * 0.86, lw * 0.74, colour);
+      // (a round knee joins them, with a little pen on its outer curve)
+      const kr = build.thin ? 1.6 : lw * 0.45;
+      // (from the front, a seated knee faces us: a round cap catching the light)
+      const cap = !three && pose === "sit" && !build.thin;
+      const kneePaint = `<circle cx="${f(knee[0])}" cy="${f(knee[1])}" r="${f(cap ? kr * 1.2 : kr)}" fill="${build.thin ? THIN_INK : colour}"/>` + (cap ? `<ellipse cx="${f(knee[0] - kr * 0.25)}" cy="${f(knee[1] - kr * 0.3)}" rx="${f(kr * 0.55)}" ry="${f(kr * 0.4)}" fill="#FFF8E8" opacity="0.22"/>` : "");
+      const kneeInk = build.thin ? "" : `<path d="M${f(knee[0] - kr * 0.7)} ${f(knee[1] - kr * 0.75)}A${f(kr)} ${f(kr)} 0 0 1 ${f(knee[0] + kr)} ${f(knee[1] + kr * 0.1)}" stroke-width="0.9"/>`;
+      const ft = footPiece(ankle, tilt);
+      // (thigh first, then the shin over it, the knee over both)
+      return { paint: thigh.paint + shin.paint + kneePaint + ft.paint, ink: thigh.ink + shin.ink + kneeInk + ft.ink, detail: "" };
+    }
+    const [dx, y, tilt, kb] = feet[pose]![near ? 0 : 1];
+    const ankle: Pt = [hip[0] + dx, y - lw * 0.3];
+    // (knees bend forward on a three-quarter figure, outward from the front)
+    const l = build.thin ? thinLimb(hip, ankle, three ? [1, 0.15] : [side(hip), 0.1], LL * kb, THIN_INK) : limb(hip, ankle, three ? [1, 0.15] : [side(hip), 0.1], LL * kb, lw, lw * 0.74, colour);
+    const ft = footPiece(ankle, tilt);
+    return { paint: l.paint + ft.paint, ink: l.ink + ft.ink, detail: "" };
+  };
+  // (kick: the far leg stands)
+  const near = one(a.hipL, true, build.limb);
+  const far = pose === "kick" ? standing(a.hipR) : one(a.hipR, false, three ? build.limbFar : build.limb);
+  function standing(hip: Pt): Piece {
+    const ankle: Pt = [hip[0] + (three ? -2 : 4), G - lw * 0.3];
+    const l = build.thin ? thinLimb(hip, ankle, [1, 0], LL * 0.06, THIN_INK) : limb(hip, ankle, three ? [1, 0.15] : [side(hip), 0.1], LL * 0.06, lw, lw * 0.74, three ? build.limbFar : build.limb);
+    const ft = footPiece(ankle, 0);
+    return { paint: l.paint + ft.paint, ink: l.ink + ft.ink, detail: "" };
+  }
+  return { near, far };
 }
 
 /** A face, for a mood, on the head's eye and mouth points. */

@@ -1,0 +1,60 @@
+{
+ "portraits": "the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 3,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "dust": 3,
+   "motion": 2,
+   "hold:lantern": 1,
+   "scatter:snow": 2,
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hares"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.60 to 0.68, true to the others",
+   "hares overlapped another character: eased to x 230",
+   "\"hares\" wasn't placed: placed in code"
+  ],
+  "composed": {
+   "wrote": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"300\" cy=\"196\" rx=\"60\" ry=\"4\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"274\" cy=\"214\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"282\" cy=\"197\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"276\" cy=\"184\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"285\" cy=\"184\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M272 190 Q282 181 291 190 L290 193 Q282 188 273 193Z\" fill=\"#B2443A\"/><ellipse cx=\"288\" cy=\"199\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/><ellipse cx=\"316\" cy=\"206\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"324\" cy=\"189\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"318\" cy=\"176\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"327\" cy=\"176\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M314 182 Q324 173 333 182 L332 185 Q324 180 315 185Z\" fill=\"#6F8FAF\"/><ellipse cx=\"330\" cy=\"191\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/><ellipse cx=\"358\" cy=\"198\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"366\" cy=\"181\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"360\" cy=\"168\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"369\" cy=\"168\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M356 174 Q366 165 375 174 L374 177 Q366 172 357 177Z\" fill=\"#D3A24F\"/><ellipse cx=\"372\" cy=\"183\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\" stroke-linecap=\"round\"><circle cx=\"282\" cy=\"197\" r=\"8\"/><circle cx=\"324\" cy=\"189\" r=\"8\"/><circle cx=\"366\" cy=\"181\" r=\"8\"/><path d=\"M274 202 Q268 214 274 224 M316 194 Q310 206 316 216 M358 186 Q352 198 358 208\"/></g>\n<g class=\"detail\"><circle cx=\"285\" cy=\"196\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"327\" cy=\"188\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"369\" cy=\"180\" r=\"1.4\" fill=\"#2A2426\"/></g>\n<g class=\"paint\"><ellipse cx=\"270\" cy=\"226\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/><ellipse cx=\"312\" cy=\"218\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/><ellipse cx=\"354\" cy=\"210\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/></g>\n<stamp k=\"dust\" x=\"255\" y=\"226\" s=\"0.5\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"244\" s=\"0.6\" flip=\"0\" lean=\"10\" tilt=\"-5\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"motion\" x=\"62\" y=\"200\" s=\"0.7\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"195\" y=\"246\" s=\"0.55\" lean=\"14\" tilt=\"0\" arms=\"down,hold\" legs=\"run\" mood=\"excited\" look=\"right\" hold=\"lantern\"/></g>\n<stamp k=\"motion\" x=\"150\" y=\"205\" s=\"0.6\"/>\n<stamp k=\"dust\" x=\"226\" y=\"205\" s=\"0.4\"/>\n<stamp k=\"dust\" x=\"236\" y=\"198\" s=\"0.3\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>",
+   "laid": "<who c=\"hares\"/>\n<g class=\"paint\"><ellipse cx=\"300\" cy=\"196\" rx=\"60\" ry=\"4\" fill=\"#9FA8C4\" opacity=\"0.35\"/><ellipse cx=\"274\" cy=\"214\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"282\" cy=\"197\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"276\" cy=\"184\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"285\" cy=\"184\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M272 190 Q282 181 291 190 L290 193 Q282 188 273 193Z\" fill=\"#B2443A\"/><ellipse cx=\"288\" cy=\"199\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/><ellipse cx=\"316\" cy=\"206\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"324\" cy=\"189\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"318\" cy=\"176\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"327\" cy=\"176\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M314 182 Q324 173 333 182 L332 185 Q324 180 315 185Z\" fill=\"#6F8FAF\"/><ellipse cx=\"330\" cy=\"191\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/><ellipse cx=\"358\" cy=\"198\" rx=\"10\" ry=\"13\" fill=\"#F6F4F8\"/><circle cx=\"366\" cy=\"181\" r=\"8\" fill=\"#F6F4F8\"/><ellipse cx=\"360\" cy=\"168\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><ellipse cx=\"369\" cy=\"168\" rx=\"3\" ry=\"9\" fill=\"#F6F4F8\"/><path d=\"M356 174 Q366 165 375 174 L374 177 Q366 172 357 177Z\" fill=\"#D3A24F\"/><ellipse cx=\"372\" cy=\"183\" rx=\"2\" ry=\"1.5\" fill=\"#F2A6A6\"/></g>\n<g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1\" stroke-linecap=\"round\"><circle cx=\"282\" cy=\"197\" r=\"8\"/><circle cx=\"324\" cy=\"189\" r=\"8\"/><circle cx=\"366\" cy=\"181\" r=\"8\"/><path d=\"M274 202 Q268 214 274 224 M316 194 Q310 206 316 216 M358 186 Q352 198 358 208\"/></g>\n<g class=\"detail\"><circle cx=\"285\" cy=\"196\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"327\" cy=\"188\" r=\"1.4\" fill=\"#2A2426\"/><circle cx=\"369\" cy=\"180\" r=\"1.4\" fill=\"#2A2426\"/></g>\n<g class=\"paint\"><ellipse cx=\"270\" cy=\"226\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/><ellipse cx=\"312\" cy=\"218\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/><ellipse cx=\"354\" cy=\"210\" rx=\"6\" ry=\"3\" fill=\"#F6F4F8\"/></g>\n<stamp k=\"dust\" x=\"255\" y=\"226\" s=\"0.5\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"105\" y=\"245\" s=\"0.68\" flip=\"0\" lean=\"10\" tilt=\"-5\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"62\" y=\"200\" s=\"0.7\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"195\" y=\"245\" s=\"0.55\" lean=\"14\" tilt=\"0\" arms=\"down,hold\" legs=\"run\" mood=\"excited\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"motion\" x=\"150\" y=\"205\" s=\"0.6\"/>\n<stamp k=\"dust\" x=\"226\" y=\"205\" s=\"0.4\"/>\n<stamp k=\"dust\" x=\"236\" y=\"198\" s=\"0.3\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

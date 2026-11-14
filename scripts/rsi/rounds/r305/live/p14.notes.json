@@ -1,0 +1,65 @@
+{
+ "portraits": "Duchess painted from their portrait in this book",
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "hold:wand": 1,
+   "motion": 1,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "hero",
+   "duchess"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hero hugging, as the brief says",
+   "layout: duchess resized from 0.61 to 1.22, true to the others",
+   "layout: companion1 resized from 0.42 to 0.60, true to the others",
+   "layout: hero resized from 0.34 to 0.40, true to the others",
+   "layout: companion1 made smaller (0.60 to 0.27) beside the giant",
+   "layout: hero made smaller (0.40 to 0.24) beside the giant",
+   "layout: companion1 and hero brought together for the hug",
+   "layout: drawn back to front: companion1, hero, something drawn, duchess, something drawn",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"duchess\"/>\n<g class=\"target\"><fig c=\"duchess\" v=\"front\" x=\"300\" y=\"248\" s=\"0.61\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" look=\"left\"/></g>\n<g class=\"paint\"><path d=\"M345 200 Q385 190 375 140 Q368 105 335 100 Q318 100 322 118 Q345 118 350 140 Q352 170 335 185 Z\" fill=\"#A9A39A\"/><path d=\"M335 100 Q322 102 324 116 Q340 112 346 122 Q352 108 335 100 Z\" fill=\"#D8D4CC\"/></g>\n<g class=\"ink\"><path d=\"M345 200 Q385 190 375 140 Q368 105 335 100 Q318 100 322 118\" fill=\"none\" stroke=\"#6E6860\" stroke-width=\"2\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"335\" y=\"132\" s=\"0.42\" flip=\"1\" lean=\"-4\" tilt=\"0\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"left\" hold=\"wand\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"358\" y=\"132\" s=\"0.34\" flip=\"1\" lean=\"4\" tilt=\"-6\" arms=\"wave,hold\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<g class=\"paint\"><rect x=\"336\" y=\"104\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><rect x=\"345\" y=\"102\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><rect x=\"354\" y=\"104\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><path d=\"M338 104 Q339 99 340 104 Z M347 102 Q348 97 349 102 Z M356 104 Q357 99 358 104 Z\" fill=\"#E8C766\"/></g>\n<g class=\"paint\"><ellipse cx=\"318\" cy=\"112\" rx=\"5\" ry=\"22\" fill=\"#E8C766\" transform=\"rotate(25 318 112)\"/><circle cx=\"326\" cy=\"92\" r=\"8\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><path d=\"M310 150 Q300 160 296 175\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/><path d=\"M285 170 Q275 190 270 205\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/><path d=\"M300 130 Q290 140 284 152\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/></g>\n<stamp k=\"motion\" x=\"262\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"372\" y=\"95\" s=\"0.8\"/>\n<g class=\"ink\"><path d=\"M60 246 L66 238 M70 246 L74 240 M200 247 L205 240 M215 247 L218 242\" stroke=\"#5a6b3a\" stroke-width=\"2\"/></g>",
+   "laid": "<who c=\"duchess\"/>\n<fig c=\"companion1\" v=\"three\" x=\"349\" y=\"132\" s=\"0.27\" flip=\"0\" lean=\"-4\" tilt=\"0\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"left\" hold=\"wand\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"hero\" v=\"three\" x=\"361\" y=\"136\" s=\"0.24\" flip=\"1\" lean=\"4\" tilt=\"-6\" arms=\"hug,hug\" legs=\"sit\" mood=\"laugh\" look=\"left\" laid=\"1\"/>\n<g class=\"paint\"><rect x=\"336\" y=\"104\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><rect x=\"345\" y=\"102\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><rect x=\"354\" y=\"104\" width=\"5\" height=\"22\" fill=\"#F4EEE2\"/><path d=\"M338 104 Q339 99 340 104 Z M347 102 Q348 97 349 102 Z M356 104 Q357 99 358 104 Z\" fill=\"#E8C766\"/></g>\n<g class=\"paint\"><ellipse cx=\"318\" cy=\"112\" rx=\"5\" ry=\"22\" fill=\"#E8C766\" transform=\"rotate(25 318 112)\"/><circle cx=\"326\" cy=\"92\" r=\"8\" fill=\"#E8C766\"/></g>\n<who c=\"hero\"/>\n<g class=\"ink\"><path d=\"M60 246 L66 238 M70 246 L74 240 M200 247 L205 240 M215 247 L218 242\" stroke=\"#5a6b3a\" stroke-width=\"2\"/></g>\n<g class=\"target\"><fig c=\"duchess\" v=\"front\" x=\"282\" y=\"248\" s=\"1.22\" flip=\"1\" lean=\"0\" tilt=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"calm\" look=\"left\" laid=\"1\"/></g>\n<g class=\"paint\"><path d=\"M345 200 Q385 190 375 140 Q368 105 335 100 Q318 100 322 118 Q345 118 350 140 Q352 170 335 185 Z\" fill=\"#A9A39A\"/><path d=\"M335 100 Q322 102 324 116 Q340 112 346 122 Q352 108 335 100 Z\" fill=\"#D8D4CC\"/></g>\n<g class=\"ink\"><path d=\"M345 200 Q385 190 375 140 Q368 105 335 100 Q318 100 322 118\" fill=\"none\" stroke=\"#6E6860\" stroke-width=\"2\"/></g><stamp k=\"motion\" x=\"262\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"372\" y=\"95\" s=\"0.8\"/>\n<g class=\"ink\"><path d=\"M310 150 Q300 160 296 175\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/><path d=\"M285 170 Q275 190 270 205\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/><path d=\"M300 130 Q290 140 284 152\" fill=\"none\" stroke=\"#8a7a50\" stroke-width=\"2\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "duchess"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1440,
+   "firstStrokeMs": 1440,
+   "out": 1002,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -24",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

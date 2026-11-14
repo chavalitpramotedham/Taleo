@@ -1,0 +1,69 @@
+{
+ "portraits": "Captain Tusk painted from their portrait in this book",
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cottage": 1,
+   "hill": 1,
+   "puddle": 1,
+   "hold:cup": 1,
+   "motion": 1,
+   "sparkles": 1,
+   "hold:lantern": 1,
+   "cloud": 2,
+   "bird": 1,
+   "scatter:snow": 1,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "tusk",
+   "companion1",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second tusk left out",
+   "layout: tusk resized from 0.93 to 1.21, true to the others",
+   "layout: companion1 resized from 0.80 to 1.09, true to the others",
+   "layout: hero made smaller (0.81 to 0.60) beside the giant",
+   "layout: companion1 made smaller (1.09 to 0.81) beside the giant",
+   "layout: drawn back to front: cottage, puddle, tusk, companion1, hero",
+   "layout: tusk marked as the tap target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"tusk\" v=\"three\" x=\"285\" y=\"246\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-4\" arms=\"hold,hold\" legs=\"sit\" mood=\"cross\" look=\"left\" hold=\"cup\"/>\n\nWait, I must output only tags. Final:\n\n<stamp k=\"hill\" x=\"200\" y=\"160\" s=\"1\" near=\"1\"/>\n<stamp k=\"cottage\" x=\"90\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"puddle\" x=\"235\" y=\"246\" s=\"0.9\"/>\n<who c=\"tusk\"/>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"290\" y=\"246\" s=\"0.93\" flip=\"1\" lean=\"0\" tilt=\"-4\" arms=\"hold,reach\" legs=\"sit\" mood=\"cross\" look=\"left\" hold=\"cup\"/></g>\n<stamp k=\"motion\" x=\"315\" y=\"150\" s=\"0.4\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"95\" y=\"248\" s=\"0.81\" lean=\"4\" tilt=\"4\" arms=\"reach,down\" legs=\"stand\" mood=\"shy\" look=\"right\" hold=\"lantern\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"165\" y=\"250\" s=\"0.8\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"stand\" mood=\"worried\" look=\"right\"/>\n<stamp k=\"sparkles\" x=\"125\" y=\"170\" s=\"0.6\"/>",
+   "laid": "<stamp k=\"cottage\" x=\"90\" y=\"170\" s=\"0.8\"/>\n\nWait, I must output only tags. Final:\n\n<stamp k=\"hill\" x=\"200\" y=\"160\" s=\"1\" near=\"1\"/>\n<stamp k=\"puddle\" x=\"235\" y=\"246\" s=\"0.9\"/>\n<g class=\"target\"><fig c=\"tusk\" v=\"three\" x=\"285\" y=\"246\" s=\"1.21\" flip=\"1\" lean=\"0\" tilt=\"-4\" arms=\"hold,hold\" legs=\"sit\" mood=\"cross\" look=\"left\" hold=\"cup\" laid=\"1\"/></g>\n<who c=\"tusk\"/>\n\n<stamp k=\"motion\" x=\"315\" y=\"150\" s=\"0.4\"/>\n<who c=\"hero\"/>\n<fig c=\"companion1\" v=\"front\" x=\"169\" y=\"249\" s=\"0.81\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"stand\" mood=\"worried\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"125\" y=\"170\" s=\"0.6\"/>\n<who c=\"companion1\"/>\n<fig c=\"hero\" v=\"front\" x=\"91\" y=\"249\" s=\"0.60\" lean=\"4\" tilt=\"4\" arms=\"reach,down\" legs=\"stand\" mood=\"shy\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "tusk"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.04, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,53 @@
+{
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "sparkles": 1,
+   "hearts": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 1.25 to 1.45, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero and companion1 brought together for the hug",
+   "layout: drawn back to front: companion1, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"hero\" v=\"front\" x=\"170\" y=\"290\" s=\"1.2\" lean=\"6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"238\" y=\"292\" s=\"1.25\" lean=\"-6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"sleepy\" look=\"left\"/></g>\n<stamp k=\"sparkles\" x=\"205\" y=\"95\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"205\" y=\"70\" s=\"1\"/>",
+   "laid": "<g class=\"target\"><fig c=\"companion1\" v=\"three\" x=\"237\" y=\"294\" s=\"1.45\" lean=\"-6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"sleepy\" look=\"left\" flip=\"1\" laid=\"1\"/></g>\n<stamp k=\"sparkles\" x=\"205\" y=\"95\" s=\"1\"/>\n<stamp k=\"hearts\" x=\"205\" y=\"70\" s=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"171\" y=\"294\" s=\"1.2\" lean=\"6\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

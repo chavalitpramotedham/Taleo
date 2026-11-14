@@ -110,7 +110,9 @@ export function sizingFor(camera: string | null | undefined, picture: string, ch
   const cam = camera ?? (/close[- ]?up|close shot/i.test(picture) ? "close" : /wide shot|far away|in the distance|tiny in|small in the/i.test(picture) ? "wide" : "mid");
   // (a crowd stands a little smaller, so everyone fits)
   const crowd = characters >= 4 ? 0.85 : characters === 3 ? 0.92 : 1;
-  if (cam === "close") return { s: SIZES.close * crowd, lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
+  // (a close-up of two or more: each a good deal smaller than a close-up of
+  // one, or they crowd the frame and hide each other - part 2)
+  if (cam === "close") return { s: SIZES.close * (characters >= 3 ? 0.72 : characters === 2 ? 0.8 : 1), lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
   if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
   return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 238, yHi: 270 };
 }
@@ -122,7 +124,9 @@ const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share =
     // (laid out already: its place and size stand, a giant's face kept in)
     const ry = Math.min(330, Math.max(40, y));
     const rfit = share > 1 ? Math.max(0.3, (ry - 18) / 170) : Infinity;
-    return { sc: Math.min(rfit, z.s * share * z.hi, Math.max(Math.min(rfit, z.s * share) * z.lo, sc)), y: ry };
+    // (the layout's sizes stand down to 40% of the usual: beside a giant
+    // everyone else is made smaller on purpose - part 2)
+    return { sc: Math.min(rfit, z.s * share * z.hi, Math.max(Math.min(rfit, z.s * share) * 0.4, sc)), y: ry };
   }
   // (share: the character's size against a grown one - a squirrel 0.67 -
   // so its band is its own; small: a newcomer may be far smaller than the
@@ -331,6 +335,9 @@ const DRAWN_VIEW: PartView = {
   anchors: { neck: [100, 100], shoulderL: [85, 110], shoulderR: [115, 110], hipL: [90, 160], hipR: [110, 160], eyeL: [92, 70], eyeR: [108, 70], mouth: [100, 85] },
 } as PartView;
 
+/** Gestures made with one hand (see posedFigure). */
+const ONE_HANDED = new Set<ArmPose>(["wave", "point", "chin", "cover"]);
+
 /** A whole figure from a pose: far limbs, legs, body, near arm, what it
  *  holds, head and face - in the three layers, placed. */
 function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view: PartView }, parts: CharacterParts, a: Record<string, string>, three: boolean, ctx: ExpandContext, stats: ExpandStats): string {
@@ -353,9 +360,21 @@ function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view
   // (relaxed arms swing with a stride: the near arm back as the near foot
   // goes forward, the far arm forward)
   const striding = legPose === "walk" || legPose === "run" ? 1 : 0;
-  const near = arm(view, roles, "near", armPose(nearPose, "down"), three, -striding);
-  const far = arm(view, roles, "far", armPose(farPose ?? nearPose, "down"), three, striding);
-  const lg = legs(view, roles, legPose, three);
+  // (two arms doing the same thing look stiff - part 2: a one-handed
+  // gesture written for both, or for one, leaves the other hand resting; a
+  // standing pair of hands at the sides rests a little differently each;
+  // both up becomes one up and one waving. What takes both hands - a hug,
+  // carrying, clapping, a shrug, holding one thing - stays as written.)
+  let np = armPose(nearPose, "down");
+  let fp = armPose(farPose ?? (ONE_HANDED.has(np) ? "down" : nearPose), "down");
+  if (np === fp && ONE_HANDED.has(np)) fp = "down";
+  if (np === "up" && fp === "up") fp = "wave";
+  const resting = np === "down" && fp === "down" && !striding;
+  const near = arm(view, roles, "near", np, three, resting ? -0.25 : -striding);
+  const far = arm(view, roles, "far", fp, three, resting ? 0.45 : striding);
+  // (in bed: under the quilt, no legs to show - drawn, they hung below it)
+  const inBed = a.bed === "1";
+  const lg = inBed ? { near: { paint: "", ink: "", detail: "" }, far: { paint: "", ink: "", detail: "" } } : legs(view, roles, legPose, three);
   // (the picture's left or right: on a mirrored figure, the other way in
   // its own coordinates)
   const gazeAsked = pick(LOOKS, a.look, "ahead");
@@ -364,7 +383,7 @@ function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view
   // (a jump lifts the whole figure off the ground, a run leans it forward:
   // about its feet, in its own coordinates, so a flipped figure leans its
   // own way)
-  const body = bodyOf(legPose);
+  const body = bodyOf(legPose, view, three);
   // what it holds, at the near hand (or both hands, when they hold it together)
   const asked = (a.hold ?? "").toLowerCase();
   const holdKey = !asked || PROPS[asked] ? asked : (nearestKey(asked, PROPS) ?? "");

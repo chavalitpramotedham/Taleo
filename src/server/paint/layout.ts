@@ -1,5 +1,6 @@
 import { STAMPS } from "@/lib/art/stamps";
 import { EFFECTS, PROPS } from "@/lib/art/stamps-more";
+import { SIT_FEET } from "@/lib/art/poses";
 
 /**
  * The layout pass for a composed page (ways 4 and 5): the composer's tags
@@ -24,6 +25,10 @@ export interface LayoutOptions {
   targetId?: string | null;
   /** the usual size of a grown character on this page (sizingFor().s) */
   usualS?: number;
+  /** characters that are groups (three mice in one tag): wide, not giants */
+  groups?: string[];
+  /** who rides on whom, and where: [rider, carrier, shoulder|head|back] */
+  perched?: [string, string, "shoulder" | "head" | "back"][];
   /** each character's size against a grown one (1; a squirrel 0.67; a
    *  ladybird 0.1): sizes on the page are kept to usualS times this */
   sizeOf?: Record<string, number>;
@@ -456,8 +461,10 @@ function tuckedIn(markup: string, notes: string[]): string {
     if (Math.abs((Number(attr(fig, "x")) || 200) - bx) > 60 * bs) continue;
     // (the quilt's top is about 40*bs above the bed's feet; a sitting
     // character's chest about 0.4 of its sitting height above its seat)
-    const y = Math.round(by - 40 * bs + 0.4 * 170 * s * 0.8);
-    out = out.replace(fig, setAttr(fig, "y", String(y)));
+    // (seated, its hips SIT_FEET above its feet - see poses - so its
+    // shoulders meet the quilt's top and its head is on the pillow)
+    const y = Math.round(by - 40 * bs + 44 * s);
+    out = out.replace(fig, setAttr(setAttr(fig, "y", String(y)), "bed", "1"));
     notes.push(`${attr(fig, "c") ?? "someone"} tucked into the bed`);
   }
   return out;
@@ -679,14 +686,15 @@ function inTheBoat(markup: string, notes: string[]): string {
   }
   const half = 62 * bs;
   const boat = `<stamp k="boat" x="${bx}" y="${by}" s="${bs}" near="1"/>`;
-  const aboard = (y: number) => y > by - 20 * bs && y <= by + 2;
+  // (a seated rider's feet are set higher, inside the hull: see below)
+  const aboard = (y: number) => y > by - 20 * bs - 40 && y <= by + 2;
   if (!riders.length) return out.slice(0, spans[0]?.from ?? out.length) + boat + out.slice(spans[0]?.from ?? out.length);
   // (feet just inside the gunwale, inside its length)
   for (const r of [...riders].reverse()) {
     const sit = /\bsit\b/i.test(`${attr(r.tag, "legs") ?? ""} ${attr(r.tag, "pose") ?? ""}`);
     const x = Math.max(bx - half + 14, Math.min(bx + half - 14, Number(attr(r.tag, "x"))));
     // (feet below the gunwale: the hull hides the legs, so they're IN it)
-    const tag = setAttr(setAttr(setAttr(r.tag, "y", String(Math.round(by - (sit ? 8 : 2) * bs))), "x", String(Math.round(x))), "ride", "1");
+    const tag = setAttr(setAttr(setAttr(r.tag, "y", String(Math.round(by - (sit ? 8 * bs + 26 * (Number(attr(r.tag, "s")) || 0.6) : 2 * bs)))), "x", String(Math.round(x))), "ride", "1");
     const text = out.slice(r.from, r.to).replace(r.tag, tag);
     // (last first, so the earlier spans stay where they were)
     out = out.slice(0, r.from) + text + out.slice(r.to);
@@ -710,6 +718,7 @@ function inTheBoat(markup: string, notes: string[]): string {
     return list;
   };
   const rs = fresh();
+  if (!rs.length) return out.slice(0, spans[0]?.from ?? out.length) + boat + out.slice(spans[0]?.from ?? out.length);
   const first = rs[0];
   const last = rs[rs.length - 1];
   const hull = `<stamp k="hull" x="${bx}" y="${by}" s="${bs}" near="1"/>`;
@@ -724,6 +733,22 @@ function inTheBoat(markup: string, notes: string[]): string {
 const ALLOWED = /^(stamp|scatter|fig|sprite|npc|who|g|path|ellipse|circle|rect|polygon|polyline|line)$/i;
 function onlyKnownTags(markup: string, notes: string[]): string {
   const dropped = new Set<string>();
+  // (a composer that corrects itself - "Wait, the tap target must be
+  // wrapped. Final output:" - writes everything twice: the corrected copy,
+  // after its last such word, is the one meant; the first kept each
+  // character's uncorrected tag - part 2)
+  const redo = [...markup.matchAll(/\b(?:final (?:output|answer|version|tags)|corrected (?:output|version|tags)|here(?: is|'s) the (?:final|corrected)[^<:]*)\s*:?/gi)].pop();
+  if (redo && /<\s*(?:fig|stamp|sprite)\b/i.test(markup.slice(redo.index! + redo[0].length))) {
+    markup = markup.slice(redo.index! + redo[0].length);
+    notes.push("the composer's corrected copy kept, its first draft left out");
+  }
+  // (a tag with nothing in it is the composer's prose talking about tags -
+  // "<fig> and <stamp> tags only" - not a tag: read as one, a bare <fig>
+  // opened a figure that swallowed the rest of the page, which came out
+  // empty - part 2)
+  let bare = 0;
+  markup = markup.replace(/<\s*(?:fig|stamp|sprite|who|scatter)\s*\/?\s*>/gi, () => (bare++, ""));
+  if (bare) notes.push(`${bare} empty tag${bare > 1 ? "s" : ""} in the composer's notes left out`);
   const out = markup.replace(/<\/?\s*([a-zA-Z][\w-]*)\b[^>]*>/g, (t, name: string) => {
     if (ALLOWED.test(name)) return t;
     dropped.add(name);
@@ -737,6 +762,52 @@ function onlyKnownTags(markup: string, notes: string[]): string {
   const clear = out.replace(/<(?:stamp|scatter)\b[^>]*\bk\s*=\s*"(moon|sun|cloud|hill|stars|rainbow)"[^>]*\/>/gi, (t) => (/\bnear\s*=\s*"(?:1|true)"/i.test(t) ? t : (sky++, "")));
   if (sky) notes.push(`${sky} sky piece${sky > 1 ? "s" : ""} left to the backdrop`);
   return clear;
+}
+
+/** On someone's shoulder, head or back (part 2): the rider sits there -
+ *  its seat on the carrier's shoulder line, the top of its head or its
+ *  back - drawn just after the carrier so it's in front, and no bigger
+ *  than about half of it. Two riders on one carrier take a side each. */
+function perched(markup: string, opts: LayoutOptions, notes: string[]): string {
+  let out = markup;
+  const sides = new Map<string, number>();
+  for (const [rid, cid, where] of opts.perched ?? []) {
+    const find = (id: string) => [...out.matchAll(CHAR_TAG)].find((m) => (attr(m[0], "c") ?? attr(m[0], "id")) === id && m[0].trim().endsWith("/>"));
+    const c = find(cid);
+    CHAR_TAG.lastIndex = 0;
+    const r = find(rid);
+    CHAR_TAG.lastIndex = 0;
+    if (!c || !r) continue;
+    const cx = Number(attr(c[0], "x")) || 200;
+    const cy = Number(attr(c[0], "y")) || 246;
+    const cs = Number(attr(c[0], "s")) || opts.usualS || 0.6;
+    const dir = /^(1|true)$/i.test(attr(c[0], "flip") ?? "") ? -1 : 1;
+    const n = sides.get(cid) ?? 0;
+    sides.set(cid, n + 1);
+    const side = n % 2 === 0 ? 1 : -1;
+    const rs = Math.min(Number(attr(r[0], "s")) || cs * 0.5, cs * 0.55);
+    const H = 170 * cs;
+    // (where its seat goes on the carrier, then its feet below that seat)
+    const seatY = where === "head" ? cy - 0.93 * H : where === "back" ? cy - 0.5 * H : cy - 0.58 * H;
+    const seatX = where === "head" ? cx : where === "back" ? cx - dir * 0.14 * 110 * cs + side * 8 * cs : cx + side * 0.24 * 110 * cs;
+    let tag = r[0];
+    tag = setAttr(tag, "x", String(Math.round(seatX)));
+    tag = setAttr(tag, "y", String(Math.round(seatY + SIT_FEET * rs)));
+    tag = setAttr(tag, "s", rs.toFixed(2));
+    tag = setAttr(setAttr(tag, "legs", "sit"), "ride", "1");
+    // (out of its own place, in just after the carrier)
+    let rest = out.slice(0, r.index) + out.slice(r.index! + r[0].length);
+    const c2 = [...rest.matchAll(CHAR_TAG)].find((m) => (attr(m[0], "c") ?? attr(m[0], "id")) === cid && m[0].trim().endsWith("/>"));
+    CHAR_TAG.lastIndex = 0;
+    if (!c2) continue;
+    let end = c2.index! + c2[0].length;
+    const after = /^\s*<\/g>/.exec(rest.slice(end));
+    if (after && /<g\s+class="target"\s*>\s*$/.test(rest.slice(0, c2.index!))) end += after[0].length;
+    rest = rest.slice(0, end) + tag + rest.slice(end);
+    out = rest;
+    notes.push(`${rid} sat on ${cid}'s ${where}, as the brief says`);
+  }
+  return out;
 }
 
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
@@ -755,7 +826,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       const by = bed ? Number(attr(bed[0], "y")) || 250 : 252;
       const bs = bed ? Number(attr(bed[0], "s")) || 1.2 : 1.4;
       let out = bed ? markup.replace(/<stamp\b[^>]*\bk\s*=\s*"bed"[^>]*\/>/gi, "") : markup;
-      const fig = setAttr(setAttr(setAttr(who[0], "legs", "sit"), "x", String(Math.round(bx + 10 * bs))), "mood", attr(who[0], "mood") ?? "sleepy");
+      const fig = setAttr(setAttr(setAttr(setAttr(who[0], "legs", "sit"), "x", String(Math.round(bx + 10 * bs))), "mood", attr(who[0], "mood") ?? "sleepy"), "bed", "1");
       out = out.replace(who[0], `${fig}<stamp k="bed" x="${bx}" y="${by}" s="${bs}" near="1"/>`);
       notes.push(`${opts.inBed} in bed, as the brief says`);
       markup = out;
@@ -808,15 +879,38 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     for (const p of placed) {
       const share = opts.sizeOf?.[p.id] ?? 1;
       // (a big one - a giant - as big as the picture allows, face in it)
+      const giant = share > 1 && !opts.groups?.includes(p.id);
       const cap = share > 1 ? fitS(p.y) : Infinity;
       const want = Math.min(cap, opts.usualS * share);
-      const kept = share > 1 ? Math.min(cap, Math.max(want * 0.9, p.s)) : Math.min(want * 1.2, Math.max(want * 0.8, p.s));
+      const kept = giant ? Math.min(cap, Math.max(want * 0.9, p.s)) : Math.min(want * 1.2, Math.max(want * 0.8, p.s));
       if (Math.abs(kept - p.s) > 0.01) {
         notes.push(`${p.id} resized from ${p.s.toFixed(2)} to ${kept.toFixed(2)}, true to the others`);
         p.s = kept;
         p.tag = setAttr(p.tag, "s", kept.toFixed(2));
       }
     }
+  // 0b. A giant the frame can't hold at its stated size (ten times the
+  // hero's height) shows its size by everyone else being smaller instead:
+  // they shrink to keep the ratio, to no less than about half their usual
+  // size (part 2: a cat "ten times Bao's height" came out twice her size,
+  // a dragon six times Nell's twice hers). Not in a close-up, which is
+  // about a face.
+  if (opts.usualS && opts.usualS < 1.2 && placed.length > 1) {
+    let k = 1;
+    for (const p of placed) {
+      const share = opts.sizeOf?.[p.id] ?? 1;
+      if (share > 1.5 && !opts.groups?.includes(p.id)) k = Math.min(k, p.s / (opts.usualS * share));
+    }
+    k = Math.max(0.45, k);
+    if (k < 0.92)
+      for (const p of placed) {
+        if ((opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id)) continue;
+        const s2 = Math.max(0.24, Math.round(p.s * k * 100) / 100);
+        notes.push(`${p.id} made smaller (${p.s.toFixed(2)} to ${s2.toFixed(2)}) beside the giant`);
+        p.s = s2;
+        p.tag = setAttr(p.tag, "s", s2.toFixed(2));
+      }
+  }
   // (one character alone still gets its seat, its target and its size)
 
   // 1. Ease apart anyone overlapping more than a touch, left to right,
@@ -906,7 +1000,8 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     const p = placed.find((q) => q.tag === m[1]);
     if (!seat || !p || !/\bsit\b/i.test(`${attr(p.tag, "pose") ?? ""} ${attr(p.tag, "legs") ?? ""}`)) continue;
     if (p.x < seat.x0 - 10 || p.x > seat.x1 + 10) continue;
-    const top = Math.round(seat.y0 + (seat.y1 - seat.y0) * 0.22);
+    // (its hips on the seat's top, its feet hanging below: see SIT_FEET)
+    const top = Math.round(seat.y0 + (seat.y1 - seat.y0) * 0.22 + SIT_FEET * p.s);
     if (Math.abs(top - p.y) > 3) {
       p.y = top;
       p.tag = setAttr(p.tag, "y", String(top));
@@ -998,5 +1093,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   out = atTheTable(out, notes);
   out = finalSpacing(out, opts, notes);
   out = propsSeen(out, notes);
+  out = perched(out, opts, notes);
   return { markup: out, notes };
 }

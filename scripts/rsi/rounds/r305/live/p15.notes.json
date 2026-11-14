@@ -1,0 +1,68 @@
+{
+ "portraits": "the Crumb Mice painted from their portrait in this book",
+ "reuse": {
+  "stamps": 5,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "bunting": 1,
+   "cup": 3,
+   "hold:wand": 1,
+   "sparkles": 1
+  },
+  "figs": 4,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "tilly",
+   "companion1",
+   "mice",
+   "hero"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: tilly resized from 0.64 to 0.99, true to the others",
+   "layout: companion1 resized from 0.60 to 1.01, true to the others",
+   "layout: mice resized from 0.50 to 0.60, true to the others",
+   "layout: companion1 made smaller (1.01 to 0.45) beside the giant",
+   "layout: mice made smaller (0.60 to 0.27) beside the giant",
+   "layout: hero made smaller (0.75 to 0.34) beside the giant",
+   "layout: drawn back to front: bunting, something drawn, tilly, companion1, mice, something drawn, something drawn, hero",
+   "layout: spaced once more, finally",
+   "no parts for \"mice\": placed from its poses"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"bunting\" x=\"200\" y=\"88\" s=\"2\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"228\" rx=\"120\" ry=\"12\" fill=\"#e9d9b8\"/><path d=\"M110 216 Q200 204 290 216 L290 232 L110 232 Z\" fill=\"#f4e4c1\"/></g>\n<g class=\"ink\"><path d=\"M110 216 Q200 204 290 216\"/></g>\n<fig c=\"tilly\" v=\"front\" x=\"85\" y=\"205\" s=\"0.64\" tilt=\"8\" arms=\"down,cover\" legs=\"stand\" mood=\"shy\" look=\"right\"/>\n<fig c=\"companion1\" v=\"front\" x=\"165\" y=\"208\" s=\"0.6\" tilt=\"-8\" arms=\"cover,down\" legs=\"stand\" mood=\"excited\" look=\"right\"/>\n<fig c=\"mice\" v=\"front\" x=\"262\" y=\"208\" s=\"0.5\" tilt=\"8\" arms=\"cover,down\" legs=\"stand\" mood=\"laugh\" look=\"left\"/>\n<stamp k=\"cup\" x=\"125\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<stamp k=\"cup\" x=\"215\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<stamp k=\"cup\" x=\"305\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<g class=\"paint\"><path d=\"M338 160 L338 208 Q338 216 350 216 L368 216 Q380 216 380 208 L380 160 Q359 150 338 160 Z\" fill=\"#f7f3ea\"/></g>\n<g class=\"ink\"><path d=\"M338 160 L338 208 Q338 216 350 216 L368 216 Q380 216 380 208 L380 160\"/><path d=\"M338 160 Q359 150 380 160\"/></g>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"205\" y=\"262\" s=\"0.75\" lean=\"14\" tilt=\"-8\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"down\" hold=\"wand\"/></g>\n<g class=\"paint\"><rect x=\"130\" y=\"222\" width=\"70\" height=\"30\" rx=\"5\" fill=\"#fbf1dc\"/><path d=\"M130 228 Q145 240 160 228 Q175 242 190 228 L200 228 L200 222 L130 222 Z\" fill=\"#f2b8c0\"/><rect x=\"159\" y=\"206\" width=\"4\" height=\"16\" fill=\"#d9b86a\"/><ellipse cx=\"161\" cy=\"203\" rx=\"3\" ry=\"5\" fill=\"#ffd25a\"/></g>\n<g class=\"ink\"><rect x=\"130\" y=\"222\" width=\"70\" height=\"30\" rx=\"5\"/><path d=\"M130 228 Q145 240 160 228 Q175 242 190 228\"/></g>\n<g class=\"paint\"><ellipse cx=\"236\" cy=\"246\" rx=\"20\" ry=\"5\" fill=\"#E8C766\"/><ellipse cx=\"260\" cy=\"246\" rx=\"12\" ry=\"6\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><ellipse cx=\"236\" cy=\"246\" rx=\"20\" ry=\"5\"/><ellipse cx=\"260\" cy=\"246\" rx=\"12\" ry=\"6\"/></g>\n<stamp k=\"sparkles\" x=\"245\" y=\"236\" s=\"1\"/>",
+   "laid": "<stamp k=\"bunting\" x=\"200\" y=\"88\" s=\"2\"/>\n<g class=\"paint\"><path d=\"M338 160 L338 208 Q338 216 350 216 L368 216 Q380 216 380 208 L380 160 Q359 150 338 160 Z\" fill=\"#f7f3ea\"/></g>\n<g class=\"ink\"><path d=\"M338 160 L338 208 Q338 216 350 216 L368 216 Q380 216 380 208 L380 160\"/><path d=\"M338 160 Q359 150 380 160\"/></g>\n<fig c=\"tilly\" v=\"front\" x=\"85\" y=\"207\" s=\"0.99\" tilt=\"8\" arms=\"down,cover\" legs=\"stand\" mood=\"shy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"163\" y=\"207\" s=\"0.45\" tilt=\"-8\" arms=\"cover,down\" legs=\"stand\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<fig c=\"mice\" v=\"front\" x=\"262\" y=\"207\" s=\"0.27\" tilt=\"8\" arms=\"cover,down\" legs=\"stand\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"cup\" x=\"125\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<stamp k=\"cup\" x=\"215\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<stamp k=\"cup\" x=\"305\" y=\"205\" s=\"1.6\" near=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"228\" rx=\"120\" ry=\"12\" fill=\"#e9d9b8\"/><path d=\"M110 216 Q200 204 290 216 L290 232 L110 232 Z\" fill=\"#f4e4c1\"/></g>\n<g class=\"ink\"><path d=\"M110 216 Q200 204 290 216\"/></g>\n<g class=\"paint\"><rect x=\"130\" y=\"222\" width=\"70\" height=\"30\" rx=\"5\" fill=\"#fbf1dc\"/><path d=\"M130 228 Q145 240 160 228 Q175 242 190 228 L200 228 L200 222 L130 222 Z\" fill=\"#f2b8c0\"/><rect x=\"159\" y=\"206\" width=\"4\" height=\"16\" fill=\"#d9b86a\"/><ellipse cx=\"161\" cy=\"203\" rx=\"3\" ry=\"5\" fill=\"#ffd25a\"/></g>\n<g class=\"ink\"><rect x=\"130\" y=\"222\" width=\"70\" height=\"30\" rx=\"5\"/><path d=\"M130 228 Q145 240 160 228 Q175 242 190 228\"/></g>\n<g class=\"paint\"><ellipse cx=\"236\" cy=\"246\" rx=\"20\" ry=\"5\" fill=\"#E8C766\"/><ellipse cx=\"260\" cy=\"246\" rx=\"12\" ry=\"6\" fill=\"#E8C766\"/></g>\n<g class=\"ink\"><ellipse cx=\"236\" cy=\"246\" rx=\"20\" ry=\"5\"/><ellipse cx=\"260\" cy=\"246\" rx=\"12\" ry=\"6\"/></g>\n\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"207\" y=\"262\" s=\"0.34\" lean=\"14\" tilt=\"-8\" arms=\"reach,reach\" legs=\"stand\" mood=\"happy\" look=\"down\" hold=\"wand\" flip=\"0\" laid=\"1\"/></g><stamp k=\"sparkles\" x=\"245\" y=\"236\" s=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "mice",
+   "tilly"
+  ],
+  "full": [],
+  "readyMs": 1
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1386,
+   "firstStrokeMs": 1386,
+   "out": 1064,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

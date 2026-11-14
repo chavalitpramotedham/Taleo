@@ -32,7 +32,18 @@ export const NEWCOMER_POSES: SpritePose[] = ["stand", "walk", "wave", "point", "
 /** Where a newcomer's portrait is kept: by book, name and description (on
  *  the bench, each variant keeps its own, so none paints for another). */
 const portraitKey = (c: Pick<CharacterDef, "name" | "look">, book: string, benchVariant?: string) =>
-  `nc:v1:${hashOf(`${book}|${c.name.trim().toLowerCase()}|${c.look.trim()}`)}${benchVariant ? `:bench:${benchVariant}` : ""}`;
+  `nc:v1:${hashOf(`${book}|${c.name.trim().toLowerCase()}|${c.look.trim()}`)}${groupOf(c) ? ":all" : ""}${benchVariant ? `:bench:${benchVariant}` : ""}`;
+
+/** How many there are, for a character that is a group - "three small
+ *  round singing seabirds ... always together" - or 0. Its portrait shows
+ *  all of them, side by side (part 2: the Crumb Mice were painted as one
+ *  mouse, so one mouse came to every page). */
+export function groupOf(c: Pick<CharacterDef, "name" | "look">): number {
+  const look = (c.look ?? "").toLowerCase();
+  const n = /^\s*(?:a\s+(?:pair|trio)\s+of\s+)?(two|three|four|five|2|3|4|5)\b/.exec(look) ?? /\b(two|three|four|five)\s+(?:small|tiny|little|round|young|baby|\w+)?\s*[a-z-]+s\b[^.]*\b(?:always together|side by side|in a (?:row|line))/.exec(look);
+  if (!n) return 0;
+  return ({ two: 2, three: 3, four: 4, five: 5 } as Record<string, number>)[n[1]] ?? Number(n[1]);
+}
 
 /** A pose's layers as a 200x200 portrait painting. */
 export const portraitOf = (sp: Sprite) =>
@@ -82,3 +93,25 @@ async function timesSeen(key: string): Promise<number> {
   ]).catch(() => [1]);
   return Number(n) || 1;
 }
+
+/** A portrait's three layers back apart (see portraitOf): the inside of
+ *  its paint, ink and detail groups, so a group of characters can be
+ *  placed whole, as painted (see paintPage). Null if it isn't in layers. */
+export function layersOf(svg: string): Sprite | null {
+  const inner = (cls: string): string => {
+    const open = new RegExp(`<g\\b[^>]*\\bclass\\s*=\\s*"${cls}"[^>]*>`, "i").exec(svg);
+    if (!open) return "";
+    let depth = 1;
+    const re = /<\/?g\b[^>]*>/gi;
+    re.lastIndex = open.index + open[0].length;
+    for (let m = re.exec(svg); m; m = re.exec(svg)) {
+      if (m[0].startsWith("</")) depth--;
+      else if (!m[0].endsWith("/>")) depth++;
+      if (depth === 0) return svg.slice(open.index + open[0].length, m.index);
+    }
+    return "";
+  };
+  const paint = inner("paint");
+  return paint ? { paint, ink: inner("ink"), detail: inner("detail") } : null;
+}
+

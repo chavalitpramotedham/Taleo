@@ -1,0 +1,63 @@
+{
+ "portraits": "the Snow Hares painted from their portrait in this book",
+ "reuse": {
+  "stamps": 11,
+  "scatter": 3,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "motion": 4,
+   "hold:lantern": 1,
+   "dust": 1,
+   "scatter:snow": 2,
+   "leaf": 1,
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1
+  },
+  "figs": 3,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero",
+   "hares"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second hero, companion1, hares left out",
+   "layout: hares resized from 0.45 to 0.18, true to the others",
+   "layout: companion1 resized from 0.55 to 0.68, true to the others",
+   "layout: drawn back to front: companion1, hero, hares",
+   "no parts for \"hares\": placed from its poses"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"hares\" v=\"front\" x=\"300\" y=\"236\" s=\"0.45\" flip=\"1\" legs=\"jump\" mood=\"happy\" look=\"left\"/>\n<fig c=\"companion1\" v=\"front\" x=\"110\" y=\"248\" s=\"0.55\" lean=\"12\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"motion\" x=\"62\" y=\"195\" s=\"0.8\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"205\" y=\"244\" s=\"0.5\" lean=\"14\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\" hold=\"lantern\"/></g>\n<stamp k=\"motion\" x=\"160\" y=\"190\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"150\" y=\"130\" s=\"0.4\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>\n<stamp k=\"leaf\" x=\"0\" y=\"0\" s=\"0\"/>\n\nWait — I should output only valid tags. Corrected final:\n\n<fig c=\"hares\" v=\"front\" x=\"300\" y=\"236\" s=\"0.45\" flip=\"1\" legs=\"jump\" mood=\"happy\" look=\"left\"/>\n<fig c=\"companion1\" v=\"front\" x=\"110\" y=\"248\" s=\"0.55\" lean=\"12\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\"/>\n<stamp k=\"motion\" x=\"62\" y=\"195\" s=\"0.8\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"205\" y=\"244\" s=\"0.5\" lean=\"14\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\" hold=\"lantern\"/></g>\n<stamp k=\"motion\" x=\"160\" y=\"190\" s=\"0.8\"/>",
+   "laid": "<fig c=\"companion1\" v=\"front\" x=\"110\" y=\"243\" s=\"0.68\" lean=\"12\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"motion\" x=\"62\" y=\"195\" s=\"0.8\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"205\" y=\"243\" s=\"0.5\" lean=\"14\" arms=\"down,down\" legs=\"run\" mood=\"excited\" look=\"right\" hold=\"lantern\" flip=\"0\" laid=\"1\"/></g>\n<stamp k=\"motion\" x=\"160\" y=\"190\" s=\"0.8\"/>\n<stamp k=\"dust\" x=\"150\" y=\"130\" s=\"0.4\"/>\n<scatter k=\"snow\" x=\"50\" y=\"75\" w=\"300\" h=\"170\"/>\n<stamp k=\"leaf\" x=\"0\" y=\"0\" s=\"0\"/>\n<fig c=\"hares\" v=\"front\" x=\"300\" y=\"243\" s=\"0.18\" flip=\"1\" legs=\"jump\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n\nWait — I should output only valid tags. Corrected final:\n\n\n\n<stamp k=\"motion\" x=\"62\" y=\"195\" s=\"0.8\"/>\n\n<stamp k=\"motion\" x=\"160\" y=\"190\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "hares"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

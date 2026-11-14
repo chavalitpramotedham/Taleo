@@ -1,0 +1,59 @@
+{
+ "reuse": {
+  "stamps": 5,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "rug": 1,
+   "lamp": 1,
+   "zzz": 1,
+   "sparkles": 1,
+   "bed": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: 1 sky piece left to the backdrop",
+   "layout: drawn once each: a second hero left out",
+   "layout: hero in bed, as the brief says",
+   "layout: hero tucked into the bed",
+   "layout: companion1 resized from 1.00 to 1.19, true to the others",
+   "layout: drawn back to front: rug, companion1, hero",
+   "layout: hero marked as the tap target",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"hero\" v=\"front\" x=\"190\" y=\"232\" s=\"0.8\" flip=\"0\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n\nWait, the output must be tags only; here is the final answer.\n\n<stamp k=\"rug\" x=\"200\" y=\"244\" s=\"1.6\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"185\" y=\"228\" s=\"0.8\" lean=\"0\" tilt=\"8\" arms=\"hold,hold\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/></g>\n<stamp k=\"bed\" x=\"185\" y=\"248\" s=\"1.5\" near=\"1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"285\" y=\"246\" s=\"1.0\" lean=\"6\" tilt=\"18\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\"/>\n<g class=\"paint\"><path d=\"M130 205 Q124 180 140 176 L150 176 Q154 190 150 206 Z\" fill=\"#F4EEE2\"/><circle cx=\"141\" cy=\"184\" r=\"4\" fill=\"#B2443A\"/></g>\n<stamp k=\"lamp\" x=\"105\" y=\"244\" s=\"0.6\"/>\n<stamp k=\"zzz\" x=\"270\" y=\"105\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"150\" s=\"0.8\"/>\n<stamp k=\"moon\" x=\"320\" y=\"70\" s=\"0.8\"/>",
+   "laid": "<stamp k=\"rug\" x=\"200\" y=\"244\" s=\"1.6\"/>\n\nWait, the output must be tags only; here is the final answer.\n\n<fig c=\"companion1\" v=\"front\" x=\"297\" y=\"246\" s=\"1.19\" lean=\"6\" tilt=\"18\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<g class=\"paint\"><path d=\"M130 205 Q124 180 140 176 L150 176 Q154 190 150 206 Z\" fill=\"#F4EEE2\"/><circle cx=\"141\" cy=\"184\" r=\"4\" fill=\"#B2443A\"/></g>\n<stamp k=\"lamp\" x=\"105\" y=\"244\" s=\"0.6\"/>\n<stamp k=\"zzz\" x=\"270\" y=\"105\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"150\" s=\"0.8\"/>\n\n\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"188\" y=\"232\" s=\"0.8\" flip=\"0\" lean=\"0\" tilt=\"-8\" arms=\"down,down\" legs=\"sit\" mood=\"sleepy\" look=\"down\" bed=\"1\" laid=\"1\"/></g><stamp k=\"bed\" x=\"185\" y=\"248\" s=\"1.5\" near=\"1\"/>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1.04, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,70 @@
+{
+ "portraits": "Ember, Dad painted from their portrait in this book",
+ "reuse": {
+  "stamps": 10,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "motion": 1,
+   "sparkles": 1,
+   "dust": 1,
+   "tuft": 3,
+   "lamppost": 1,
+   "cloud": 1,
+   "bird": 2,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "ember",
+   "companion1",
+   "hero",
+   "dad"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: dad resized from 0.47 to 0.84, true to the others",
+   "layout: ember resized from 0.56 to 1.21, true to the others",
+   "layout: companion1 resized from 0.30 to 0.28, true to the others",
+   "layout: hero resized from 0.34 to 0.37, true to the others",
+   "layout: companion1 made smaller (0.28 to 0.24) beside the giant",
+   "layout: hero made smaller (0.37 to 0.24) beside the giant",
+   "layout: drawn back to front: companion1, hero, lamppost, ember, dad",
+   "layout: spaced once more, finally",
+   "layout: hero sat on ember's back, as the brief says",
+   "layout: companion1 sat on ember's back, as the brief says"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"lamppost\" x=\"60\" y=\"236\" s=\"0.6\"/>\n<fig c=\"dad\" v=\"front\" x=\"95\" y=\"244\" s=\"0.47\" lean=\"10\" tilt=\"0\" arms=\"up,up\" legs=\"run\" mood=\"surprised\" look=\"right\"/>\n<g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"280\" y=\"246\" s=\"0.56\" flip=\"1\" lean=\"-6\" tilt=\"0\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\"/></g>\n<fig c=\"companion1\" v=\"three\" x=\"300\" y=\"150\" s=\"0.3\" flip=\"1\" arms=\"hug,hug\" legs=\"sit\" mood=\"excited\" look=\"left\"/>\n<fig c=\"hero\" v=\"front\" x=\"270\" y=\"150\" s=\"0.34\" arms=\"wave,hold\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<stamp k=\"motion\" x=\"340\" y=\"130\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"100\" s=\"0.7\"/>\n<stamp k=\"dust\" x=\"330\" y=\"244\" s=\"0.7\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"235\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"350\" y=\"250\" s=\"1\"/>",
+   "laid": "\n\n<stamp k=\"motion\" x=\"340\" y=\"130\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"100\" s=\"0.7\"/>\n<stamp k=\"dust\" x=\"330\" y=\"244\" s=\"0.7\"/>\n<stamp k=\"tuft\" x=\"130\" y=\"248\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"235\" y=\"250\" s=\"1\"/>\n<stamp k=\"tuft\" x=\"350\" y=\"250\" s=\"1\"/>\n<stamp k=\"lamppost\" x=\"60\" y=\"236\" s=\"0.6\"/>\n<g class=\"target\"><fig c=\"ember\" v=\"three\" x=\"287\" y=\"245\" s=\"1.21\" flip=\"1\" lean=\"-6\" tilt=\"0\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/></g><fig c=\"companion1\" v=\"three\" x=\"296\" y=\"146\" s=\"0.24\" flip=\"1\" arms=\"hug,hug\" legs=\"sit\" mood=\"excited\" look=\"left\" laid=\"1\" ride=\"1\"/><fig c=\"hero\" v=\"front\" x=\"315\" y=\"146\" s=\"0.24\" arms=\"wave,hold\" legs=\"sit\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\" ride=\"1\"/>\n<fig c=\"dad\" v=\"front\" x=\"95\" y=\"245\" s=\"0.84\" lean=\"10\" tilt=\"0\" arms=\"up,up\" legs=\"run\" mood=\"surprised\" look=\"right\" flip=\"0\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "ember",
+   "dad"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

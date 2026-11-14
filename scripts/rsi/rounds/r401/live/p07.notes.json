@@ -1,0 +1,67 @@
+{
+ "portraits": "Octavia painted from their portrait in this book",
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "motion": 1,
+   "sparkles": 2,
+   "splash": 2,
+   "cloud": 1,
+   "bird": 2,
+   "scatter:grass": 1,
+   "scatter:flowers": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "octavia",
+   "hero",
+   "companion1"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: 2 sky pieces left to the backdrop",
+   "layout: hero hugging, as the brief says",
+   "layout: octavia resized from 0.61 to 1.29, true to the others",
+   "layout: companion1 resized from 0.40 to 0.30, true to the others",
+   "layout: companion1 made smaller (0.30 to 0.26) beside the giant",
+   "layout: hero made smaller (0.50 to 0.43) beside the giant",
+   "layout: companion1 and hero brought together for the hug",
+   "layout: drawn back to front: something drawn, hero, companion1, octavia",
+   "layout: octavia drawn behind hero, the main action's target",
+   "layout: spaced once more, finally",
+   "layout: octavia moved out of the hug"
+  ],
+  "composed": {
+   "wrote": "<who c=\"octavia\"/>\n<fig c=\"octavia\" v=\"front\" x=\"200\" y=\"262\" s=\"0.61\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"up\"/>\n<stamp k=\"splash\" x=\"150\" y=\"258\" s=\"0.8\"/>\n<stamp k=\"splash\" x=\"255\" y=\"258\" s=\"0.8\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"150\" rx=\"62\" ry=\"70\" fill=\"#BFE6F0\" fill-opacity=\"0.35\"/></g>\n<g class=\"ink\"><ellipse cx=\"200\" cy=\"150\" rx=\"62\" ry=\"70\" fill=\"none\" stroke=\"#6FA8BE\" stroke-width=\"2\"/><path d=\"M160 112 Q166 98 182 92\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"3\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"190\" y=\"205\" s=\"0.4\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"up\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"front\" x=\"212\" y=\"208\" s=\"0.5\" arms=\"wave,reach\" legs=\"stand\" mood=\"excited\" look=\"down\" tilt=\"-8\"/></g>\n<stamp k=\"motion\" x=\"200\" y=\"238\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"140\" y=\"110\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"265\" y=\"100\" s=\"0.7\"/>\n<stamp k=\"cloud\" x=\"95\" y=\"70\" s=\"0.8\"/>\n<stamp k=\"cloud\" x=\"310\" y=\"80\" s=\"0.9\"/>",
+   "laid": "<who c=\"octavia\"/>\n<g class=\"paint\"><ellipse cx=\"200\" cy=\"150\" rx=\"62\" ry=\"70\" fill=\"#BFE6F0\" fill-opacity=\"0.35\"/></g>\n<g class=\"ink\"><ellipse cx=\"200\" cy=\"150\" rx=\"62\" ry=\"70\" fill=\"none\" stroke=\"#6FA8BE\" stroke-width=\"2\"/><path d=\"M160 112 Q166 98 182 92\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"3\"/></g>\n\n<fig c=\"octavia\" v=\"front\" x=\"122\" y=\"262\" s=\"1.29\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"up\" flip=\"0\" laid=\"1\"/><g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"210\" y=\"210\" s=\"0.43\" arms=\"hug,hug\" legs=\"stand\" mood=\"excited\" look=\"down\" tilt=\"-8\" flip=\"1\" laid=\"1\"/></g>\n<stamp k=\"motion\" x=\"200\" y=\"238\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"140\" y=\"110\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"265\" y=\"100\" s=\"0.7\"/><who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"three\" x=\"193\" y=\"210\" s=\"0.26\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"up\" flip=\"0\" laid=\"1\"/>\n<who c=\"hero\"/>\n\n<stamp k=\"splash\" x=\"150\" y=\"258\" s=\"0.8\"/>\n<stamp k=\"splash\" x=\"255\" y=\"258\" s=\"0.8\"/>\n\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "octavia"
+  ],
+  "full": [],
+  "readyMs": 6
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  }
+ },
+ "frame": "zoom 1, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
