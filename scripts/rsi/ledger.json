@@ -1,5 +1,5 @@
 {
- "spentUsd": 11.699391,
+ "spentUsd": 12.64273,
  "calls": [
   {
    "at": "2026-11-13T22:40:38.963Z",
@@ -3936,6 +3936,294 @@
    "label": "composer",
    "model": "claude-sonnet-5-5",
    "usd": 0.011684
+  },
+  {
+   "at": "2026-11-14T07:12:34.262Z",
+   "round": 29,
+   "page": 1,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.027105
+  },
+  {
+   "at": "2026-11-14T07:12:37.199Z",
+   "round": 29,
+   "page": 1,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.036177
+  },
+  {
+   "at": "2026-11-14T07:12:47.161Z",
+   "round": 29,
+   "page": 2,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.016682
+  },
+  {
+   "at": "2026-11-14T07:12:47.577Z",
+   "round": 29,
+   "page": 11,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.017324
+  },
+  {
+   "at": "2026-11-14T07:12:47.596Z",
+   "round": 29,
+   "page": 18,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.016852
+  },
+  {
+   "at": "2026-11-14T07:12:48.009Z",
+   "round": 29,
+   "page": 10,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.035424
+  },
+  {
+   "at": "2026-11-14T07:12:48.154Z",
+   "round": 29,
+   "page": 14,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.034396
+  },
+  {
+   "at": "2026-11-14T07:12:48.913Z",
+   "round": 29,
+   "page": 16,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.020098
+  },
+  {
+   "at": "2026-11-14T07:12:49.112Z",
+   "round": 29,
+   "page": 18,
+   "label": "newcomer painter (Argos)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.015663
+  },
+  {
+   "at": "2026-11-14T07:12:49.396Z",
+   "round": 29,
+   "page": 10,
+   "label": "newcomer painter (the Sea-Larks)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024856
+  },
+  {
+   "at": "2026-11-14T07:12:51.143Z",
+   "round": 29,
+   "page": 7,
+   "label": "newcomer painter (Polly)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.021839
+  },
+  {
+   "at": "2026-11-14T07:12:51.500Z",
+   "round": 29,
+   "page": 3,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.021274
+  },
+  {
+   "at": "2026-11-14T07:12:51.969Z",
+   "round": 29,
+   "page": 9,
+   "label": "newcomer painter (the Sea-Larks)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024979
+  },
+  {
+   "at": "2026-11-14T07:12:51.980Z",
+   "round": 29,
+   "page": 15,
+   "label": "newcomer painter (Argos)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.021205
+  },
+  {
+   "at": "2026-11-14T07:12:52.157Z",
+   "round": 29,
+   "page": 1,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.025782
+  },
+  {
+   "at": "2026-11-14T07:12:52.427Z",
+   "round": 29,
+   "page": 4,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.026058
+  },
+  {
+   "at": "2026-11-14T07:12:52.482Z",
+   "round": 29,
+   "page": 16,
+   "label": "newcomer painter (Gran)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.023257
+  },
+  {
+   "at": "2026-11-14T07:12:52.517Z",
+   "round": 29,
+   "page": 16,
+   "label": "newcomer painter (Argos)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.019903
+  },
+  {
+   "at": "2026-11-14T07:12:52.709Z",
+   "round": 29,
+   "page": 15,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.02811
+  },
+  {
+   "at": "2026-11-14T07:12:52.737Z",
+   "round": 29,
+   "page": 8,
+   "label": "newcomer painter (the Sea-Larks)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.028077
+  },
+  {
+   "at": "2026-11-14T07:12:53.215Z",
+   "round": 29,
+   "page": 5,
+   "label": "newcomer painter (Polly)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.023069
+  },
+  {
+   "at": "2026-11-14T07:12:53.612Z",
+   "round": 29,
+   "page": 17,
+   "label": "newcomer painter (Gran)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024705
+  },
+  {
+   "at": "2026-11-14T07:12:53.943Z",
+   "round": 29,
+   "page": 17,
+   "label": "newcomer painter (Argos)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024301
+  },
+  {
+   "at": "2026-11-14T07:12:54.731Z",
+   "round": 29,
+   "page": 12,
+   "label": "newcomer painter (Sissy)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.031633
+  },
+  {
+   "at": "2026-11-14T07:12:55.466Z",
+   "round": 29,
+   "page": 18,
+   "label": "newcomer painter (Gran)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.028247
+  },
+  {
+   "at": "2026-11-14T07:12:55.508Z",
+   "round": 29,
+   "page": 13,
+   "label": "newcomer painter (Sissy)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.029607
+  },
+  {
+   "at": "2026-11-14T07:12:55.616Z",
+   "round": 29,
+   "page": 6,
+   "label": "newcomer painter (Polly)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.026359
+  },
+  {
+   "at": "2026-11-14T07:12:56.037Z",
+   "round": 29,
+   "page": 14,
+   "label": "newcomer painter (Sissy)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.039136
+  },
+  {
+   "at": "2026-11-14T07:12:56.407Z",
+   "round": 29,
+   "page": 5,
+   "label": "backdrop painter",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.033628
+  },
+  {
+   "at": "2026-11-14T07:12:56.893Z",
+   "round": 29,
+   "page": 2,
+   "label": "newcomer painter (Mr Puff)",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.026541
+  },
+  {
+   "at": "2026-11-14T07:12:59.981Z",
+   "round": 29,
+   "page": 18,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.022766
+  },
+  {
+   "at": "2026-11-14T07:13:01.181Z",
+   "round": 29,
+   "page": 10,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.02787
+  },
+  {
+   "at": "2026-11-14T07:13:01.769Z",
+   "round": 29,
+   "page": 7,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024708
+  },
+  {
+   "at": "2026-11-14T07:13:05.614Z",
+   "round": 29,
+   "page": 16,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.03025
+  },
+  {
+   "at": "2026-11-14T07:13:07.409Z",
+   "round": 29,
+   "page": 2,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.02505
+  },
+  {
+   "at": "2026-11-14T07:13:11.447Z",
+   "round": 29,
+   "page": 12,
+   "label": "parts maker",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.040408
   }
  ]
 }
