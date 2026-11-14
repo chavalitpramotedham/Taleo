@@ -182,8 +182,10 @@ export function canBake(): boolean {
   try {
     asked = localStorage.getItem("taleo.bake");
   } catch {}
-  const apple = typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
-  support = works && (asked === "1" || (asked !== "0" && apple));
+  // (off for everyone for now: on an iPhone, at full sharpness, pictures
+  // never appeared - not yet tried in Safari itself. "taleo.bake" = "1"
+  // turns it on to try.)
+  support = works && asked === "1";
   return support;
 }
 
