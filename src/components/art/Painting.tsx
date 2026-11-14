@@ -109,7 +109,8 @@ export const Painting = memo(function Painting({
       // (a growing painting: drawn again at most every second or so, and
       // less often if drawing it takes long)
       if (liveTimer.current !== null) return;
-      const wait = Math.max(0, lastLive.current + Math.max(900, liveCost.current * 2) - performance.now());
+      // (drawing never takes more than a quarter of the time)
+      const wait = Math.max(0, lastLive.current + Math.max(1200, liveCost.current * 3) - performance.now());
       liveTimer.current = window.setTimeout(() => {
         const now = latest.current;
         const t0 = performance.now();
@@ -132,9 +133,17 @@ export const Painting = memo(function Painting({
       }, wait);
       return;
     }
-    void bakePainting(clean, { width, night, split, soon: true }).then((b) => ready(b).then(() => show(b, Boolean(shownRef.current))));
+    // (already showing a drawing - day/night just switched - the new one
+    // waits for the switch to finish: the two differ only in the paper
+    // under the figures, and the switch itself stays smooth)
+    const again = Boolean(shownRef.current);
+    const t = window.setTimeout(
+      () => void bakePainting(clean, { width, night, split, soon: !again }).then((b) => ready(b).then(() => show(b, again))),
+      again ? 1400 : 0,
+    );
     return () => {
       off = true;
+      window.clearTimeout(t);
     };
     // (`shown` is read, not followed: a new drawing replaces it)
     // eslint-disable-next-line react-hooks/exhaustive-deps
