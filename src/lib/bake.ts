@@ -34,7 +34,11 @@ const SVG_NS = "http://www.w3.org/2000/svg";
  *  drawn once. */
 export function bakeWidth(cssWidth: number): number {
   const dpr = typeof window === "undefined" ? 1 : window.devicePixelRatio || 1;
-  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : 2.25);
+  // (a computer's big picture, seen from further off, at 1.5: drawn at
+  // 2.25 it was three times a phone's pixels, and reading it back held
+  // the page for most of a second)
+  const desk = typeof window !== "undefined" && !window.matchMedia?.("(pointer: coarse)").matches;
+  const density = Math.min(Math.max(dpr, 1), isLowPower() ? 1.75 : desk ? 1.5 : 2.25);
   const px = Math.max(240, Math.min(2200, (cssWidth || W0) * density));
   return Math.round(px / 40) * 40;
 }
