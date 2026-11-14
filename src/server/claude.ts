@@ -185,7 +185,7 @@ function buildSegmentRequest(req: StoryRequest) {
   const moral = isStart ? "" : req.story.moral?.trim();
   if (moral) parts.push(`THE STORY'S HEART (the lesson this book builds to and lands at the end): ${moral}`);
   const plan = isStart ? "" : (req.story as { plan?: string }).plan?.trim();
-  if (plan) parts.push(`YOUR PLAN FOR THIS BOOK (written with segment 1, private): ${plan}\nKeep to its want, problem and ending: the child's choices decide the route there, and you follow them faithfully - never what the story is about. Every page still follows from the one before.`);
+  if (plan) parts.push(`YOUR PLAN FOR THIS BOOK (written with segment 1, private): ${plan}\nKeep to its want, problem and ending: the child's choices decide the route there, and you follow them faithfully - a typed idea can change the route a great deal and bring new friends - never what the story is about. Every page still follows from the one before.`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(
     `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
@@ -233,7 +233,7 @@ function buildSegmentRequest(req: StoryRequest) {
     const last = segments[segments.length - 1]?.chosen;
     if (last?.custom) {
       parts.push(
-        `The child typed their own idea: "${last.text}". Decide if it fits the story world. If yes, run with it joyfully - as a way to tackle the story's one problem, not a new adventure. If not, use "aside" on the first page to respond playfully, then carry on with the most sensible next step for the story - don't force the idea in. The aside is read out on its own, just before that page: the page's text then simply carries on the story - it must not repeat, quote or answer the idea again.`,
+        `The child typed their own idea: "${last.text}". This is their favourite moment: if it's safe and kind (or can be made so), make it really happen on the first page - the character really appears, the twist really happens - with a clear way in, gently (no one hurt; your own version, with a name of your own, of anything from a book, film or game - never its name), and let it help with the story's one problem so the plot stays clear. Add anyone new it brings to newCharacters. Only if it's unsafe, unkind or inappropriate, use "aside" for a warm, playful no that offers something in the same spirit, and make that happen. The aside is read out on its own, just before that page: the page's text then carries on the story - it must not repeat, quote or answer the idea in words.`,
       );
     }
     parts.push(
