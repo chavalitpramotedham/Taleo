@@ -364,6 +364,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               title: cur.title || data.title || `${cur.hero.name}'s Story`,
               world: cur.world || data.world || "",
               moral: cur.moral || data.moral,
+              plan: cur.plan || data.plan,
               keyword: cur.keyword || data.keyword,
               cast: [...baseCast, ...data.newCharacters],
               // (the places this part first named, added to the story's)
@@ -1474,6 +1475,7 @@ function storyRequestBody(s: Story) {
             theme: s.theme,
             world: s.world,
             moral: s.moral,
+            plan: s.plan,
             title: s.title,
             hero: s.hero,
             companions: s.companions,

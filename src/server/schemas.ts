@@ -9,7 +9,7 @@ export const PageSchema = z.object({
   aside: z
     .string()
     .nullable()
-    .describe("Optional narrator aside, used to playfully respond to the reader's own idea. Null otherwise."),
+    .describe("Optional narrator aside, used to playfully respond to the reader's own idea when it can't happen as typed. It is shown and read out on its own, BEFORE this page's text - so the text must not repeat, quote or answer the idea again: it goes straight on with the story. Null otherwise."),
   picture: z
     .string()
     .describe(
@@ -56,6 +56,11 @@ export const SegmentSchema = z.object({
     .string()
     .describe(
       "First segment only (empty afterwards): the story's heart - the one warm lesson this whole book builds to and lands at the end, as a short sentence a small child understands, e.g. 'Sharing makes the fun bigger' or 'It's brave to ask for help'",
+    ),
+  plan: z
+    .string()
+    .describe(
+      "First segment only (empty afterwards), written BEFORE the pages: your private plot plan for the whole book in 3-5 plain sentences - who wants what and why; the ONE problem in their way; how each segment moves it on (what is tried, what happens because of it); and exactly how it ends happily and lands the heart. The child's choices may change the route; this keeps the destination. Never shown to the reader.",
     ),
   keyword: z
     .string()

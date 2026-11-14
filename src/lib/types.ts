@@ -111,6 +111,10 @@ export interface Story {
   /** The story's heart: the one lesson the book builds to and lands at the
    *  end (chosen when the story starts, then kept for every later part). */
   moral?: string;
+  /** The storyteller's own plot plan for the whole book, written with the
+   *  first part and handed back with every later one, so the story keeps
+   *  to one clear line whatever is chosen. Never shown. */
+  plan?: string;
   /** One word for what the story is about ("Family", "Adventure"), shown as
    *  a pill on its card. Chosen by the writer; older stories derive it. */
   keyword?: string;
@@ -195,7 +199,7 @@ export interface StartRequest {
 export interface ContinueRequest {
   kind: "continue";
   storyId?: string;
-  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral" | "places">;
+  story: Pick<Story, "age" | "minutes" | "theme" | "world" | "hero" | "companions" | "cast" | "segments" | "title" | "moral" | "plan" | "places">;
 }
 
 export type StoryRequest = StartRequest | ContinueRequest;
@@ -221,6 +225,7 @@ export interface SegmentResponse {
   title?: string;
   world?: string;
   moral?: string;
+  plan?: string;
   keyword?: string;
   newCharacters: CharacterDef[];
   segment: Segment;

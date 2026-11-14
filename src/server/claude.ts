@@ -135,6 +135,8 @@ async function ask<T extends z.ZodType>(
       throw err;
     });
   usage.whole(response);
+  // (for the storytelling bench: what each call used - see scripts/story-bench)
+  (globalThis as { __taleoUsage?: (u: unknown, model: string) => void }).__taleoUsage?.(response.usage, STORY_MODEL);
   if (response.stop_reason === "refusal") throw new StoryRefusal("The storyteller couldn't write that one.");
   if (response.stop_reason === "max_tokens" || !response.parsed_output) {
     throw new Error("The story came out jumbled. Please try again.");
@@ -182,6 +184,8 @@ function buildSegmentRequest(req: StoryRequest) {
   parts.push(`THEME: ${theme}`);
   const moral = isStart ? "" : req.story.moral?.trim();
   if (moral) parts.push(`THE STORY'S HEART (the lesson this book builds to and lands at the end): ${moral}`);
+  const plan = isStart ? "" : (req.story as { plan?: string }).plan?.trim();
+  if (plan) parts.push(`YOUR PLAN FOR THIS BOOK (written with segment 1, private): ${plan}\nKeep to it: the child's choices change HOW the characters get there, never what the story is about. Every page still follows from the one before.`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(
     `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
@@ -213,7 +217,7 @@ function buildSegmentRequest(req: StoryRequest) {
   if (isStart) {
     const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
     parts.push(
-      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end. Then give the story a short, charming title and the book's art direction ("world"), introduce ${names} together in a lively opening that hooks the child on the very first page (start in the middle of something happening, not with a description), make clear what they want today, plant one small detail you will pay off at the end, set up the situation that will test the heart of the story, and end on an exciting moment with a choice for the child.`,
+      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end - and write your "plan" for the whole book. Then give the story a short, charming title and the book's art direction ("world"), and introduce ${names} together in a lively opening that starts with something happening. Within the first two pages make the ONE want plain to a small child: what the characters want to do or get (or, only if the theme calls for one, what has gone wrong), and why it matters to them - shown, not just said (we SEE the music box stop, then we hear that its key is lost). If something gets lost, show how and where it goes (the wind lifts the hat over the hedge), so where it's found later makes sense. Plant one small detail you will pay off at the end, and end on an exciting moment with a choice for the child that follows from the problem.`,
     );
   } else {
     const story = segments
@@ -229,13 +233,13 @@ function buildSegmentRequest(req: StoryRequest) {
     const last = segments[segments.length - 1]?.chosen;
     if (last?.custom) {
       parts.push(
-        `The child typed their own idea: "${last.text}". Decide if it fits the story world. If yes, run with it joyfully. If not, use "aside" on the first page to respond playfully and steer back to a positive, relevant plot.`,
+        `The child typed their own idea: "${last.text}". Decide if it fits the story world. If yes, run with it joyfully - as a way to tackle the story's one problem, not a new adventure. If not, use "aside" on the first page to respond playfully and steer back to a positive, relevant plot. The aside is read out on its own, just before that page: the page's text then simply carries on the story - it must not repeat, quote or answer the idea again.`,
       );
     }
     parts.push(
       isLast
-        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, bring the problem to its biggest (still gentle) moment, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words. Pay off something planted earlier (a detail, the refrain, the running joke - one last time, with a twist). End on a calm, cosy last page that echoes the opening and feels like a goodnight. Set choice to null and ending to true. Leave title, world, moral and keyword empty.`
-        : `Write segment ${index} of ${totalSegments}: show the result of the choice on the first page so the child sees their decision mattered, then raise things a notch - a fun new twist, a try that doesn't quite work or a funny complication - that keeps the child hooked and moves the characters one step closer to discovering the story's heart, and end with a new choice for the child (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world, moral and keyword empty.`,
+        ? `Write segment ${index} of ${totalSegments}, the FINAL segment: show what happens because of the choice, bring the problem to its biggest (still gentle) moment, then LAND THE STORY'S HEART: let the characters live the lesson in a clear moment the child can see (the kind act, the brave try, the honest word), show the happy outcome it brings, and let a character put the lesson into their own simple, warm words. Pay off something planted earlier (a detail, the refrain, the running joke - one last time, with a twist). Close every thread the child will remember: the problem solved in a way they can see (how the lost thing is found, how the stuck friend gets free), every friend who was in trouble safe, every promise of help kept. End on a calm, cosy last page that echoes the opening and feels like a goodnight. Set choice to null and ending to true. Leave title, world, moral, plan and keyword empty.`
+        : `Write segment ${index} of ${totalSegments}: show the result of the choice on the first page so the child sees their decision mattered, then take the next step along your plan. Any complication must grow out of what is already in the story (the mud that was by the pond, the friend who was too small) - never something new from nowhere - and keep everyone the child has met where the story last left them. End with a new choice that follows from where the characters now are (at least one option should let them choose the kind, brave or wise path). Set ending to false. Leave title, world, moral, plan and keyword empty.`,
     );
   }
   parts.push(
@@ -244,7 +248,7 @@ function buildSegmentRequest(req: StoryRequest) {
 
   return {
     user: parts.join("\n\n"),
-    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], optionCount: age.optionCount, knownPlaces: known.map((p) => p.id) },
+    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], existing: [...heroes, ...cast].map((c) => ({ id: c.id, name: c.name })), optionCount: age.optionCount, knownPlaces: known.map((p) => p.id) },
   };
 }
 
@@ -366,7 +370,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
           const world = w ? (JSON.parse(`"${w[1]}"`) as string).trim() : "";
           const newCharacters = chars0.items.map((c) => NewCharacterSchema.parse(JSON.parse(c)));
           const places = places0.items.map((p) => PlaceSchema.parse(JSON.parse(p)));
-          const early = normalizeSegment({ title: "", world: "", moral: "", keyword: "", newCharacters, places, pages: [], choice: null, ending: false }, { ...norm, isLast: false });
+          const early = normalizeSegment({ title: "", world: "", moral: "", plan: "", keyword: "", newCharacters, places, pages: [], choice: null, ending: false }, { ...norm, isLast: false });
           yield { type: "setting", newCharacters: early.newCharacters, places: early.places ?? [], world };
         } catch {}
       }
@@ -390,7 +394,7 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
       const pages = pagesSoFar.items.map((p) => PageSchema.parse(JSON.parse(p)));
       const places = placesSoFar?.closed ? placesSoFar.items.map((p) => PlaceSchema.parse(JSON.parse(p))) : [];
       const partial = normalizeSegment(
-        { title: "", world: "", moral: "", keyword: "", newCharacters, places, pages, choice: null, ending: false },
+        { title: "", world: "", moral: "", plan: "", keyword: "", newCharacters, places, pages, choice: null, ending: false },
         { ...norm, isLast: false },
       );
       sent = pages.length;
@@ -414,11 +418,19 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   yield { type: "done", response: normalizeSegment(out, norm) };
 }
 
-function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; optionCount: number; knownPlaces?: string[] }): SegmentResponse {
+function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; existing?: { id: string; name: string }[]; optionCount: number; knownPlaces?: string[] }): SegmentResponse {
   const taken = new Set(opts.existingIds);
   const idMap: Record<string, string> = {};
   const newCharacters: CharacterDef[] = [];
+  const named = new Map((opts.existing ?? []).map((c) => [c.name.trim().toLowerCase(), c.id]));
   for (const c of out.newCharacters.slice(0, 4)) {
+    // (someone already in the story, written out again as if new - Pebble,
+    // the hero's own penguin: the one we have is kept, never a double)
+    const same = named.get(c.name.trim().toLowerCase());
+    if (same) {
+      idMap[c.id] = same;
+      continue;
+    }
     let id = (c.id || c.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "friend";
     while (taken.has(id)) id += "2";
     taken.add(id);
@@ -463,6 +475,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     title: out.title?.trim() || undefined,
     world: out.world?.trim() || undefined,
     moral: out.moral?.trim().slice(0, 200) || undefined,
+    plan: (out as { plan?: string }).plan?.trim().slice(0, 1500) || undefined,
     // (one of the library's categories, or none - the story's theme then
     // decides: see lib/keywords)
     keyword: categoryOf(out.keyword?.trim().split(/\s+/)[0]?.replace(/[^\p{L}-]/gu, "")),
