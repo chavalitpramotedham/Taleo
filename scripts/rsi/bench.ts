@@ -22,7 +22,7 @@ interface BenchStory {
  *  troll), 300s Bao (tiny food and toy heroes in a giant kitchen), 400s the
  *  held-out test book (Nell and the dragon), painted only at the start and
  *  the end. */
-const BOOKS: [number, string][] = [[400, "story5.json"], [300, "story4.json"], [200, "story3.json"], [100, "story2.json"], [0, "story.json"]];
+const BOOKS: [number, string][] = [[900, "story6.json"], [400, "story5.json"], [300, "story4.json"], [200, "story3.json"], [100, "story2.json"], [0, "story.json"]];
 export const benchStory = (round = 0): BenchStory => JSON.parse(readFileSync(join(BENCH_DIR, BOOKS.find(([from]) => round >= from)![1]), "utf8"));
 
 /** Every page of the story, in order (page numbers start at 1). */

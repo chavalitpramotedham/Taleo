@@ -791,8 +791,33 @@ function inBedOf(req: IllustrateRequest): string | null {
   const sentence = req.page.picture.split(/(?<=[.;!?])\s+/).find((t) => /\b(tucked\b|in bed|into bed|in (?:her|his|their|the|a|its) (?:\w+ )?bed|lies in|lying in|under the (?:quilt|covers|blanket)|(?:blanket|quilt) (?:round|around|over))\b/i.test(t));
   if (!sentence) return null;
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
-  const named = on.map((c) => [c.id, sentence.toLowerCase().indexOf(c.name.toLowerCase().replace(/^the\s+/, ""))] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
+  const named = on.map((c) => [c.id, firstNamed(sentence.toLowerCase(), c)] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
   return named[0]?.[0] ?? null;
+}
+
+/** Where a character is named in a (lowercase) text: by its whole name,
+ *  or else by a distinctive word of it - "Colin" when the family typed the
+ *  hero as "Bby Colin" and the storyteller wrote "Baby Colin" (part 3: the
+ *  hero went unfound, so riding on Pebble's back never happened). */
+const NAME_FILLER = new Set(["the", "baby", "little", "mrs", "mr", "miss", "sir", "lady", "old", "big", "tiny", "young", "grandma", "grandpa", "granny", "auntie", "uncle", "captain", "queen", "king"]);
+function nameKeys(c: { name: string }): string[] {
+  const full = c.name.toLowerCase().replace(/^the\s+/, "").trim();
+  const words = full.split(/[^a-z0-9'-]+/).filter((w) => w.length >= 3 && !NAME_FILLER.has(w));
+  return [full, ...words.filter((w) => w !== full)];
+}
+function firstNamed(text: string, c: { name: string }): number {
+  for (const k of nameKeys(c)) {
+    const m = new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).exec(text);
+    if (m) return m.index;
+  }
+  return -1;
+}
+function lastNamed(text: string, c: { name: string }, before = text.length): number {
+  for (const k of nameKeys(c)) {
+    const i = text.lastIndexOf(k, before);
+    if (i >= 0) return i;
+  }
+  return -1;
 }
 
 /** Who rides on whom, from the picture brief: "Hoot sits on her shoulder",
@@ -806,32 +831,35 @@ function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head"
   const out: [string, string, "shoulder" | "head" | "back"][] = [];
   let before = "";
   for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
-    for (const m of t.matchAll(/\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head)\b/gi)) {
+    for (const m of t.matchAll(/\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head|tummy|belly)\b/gi)) {
       const lower = t.toLowerCase();
       const at = m.index!;
       const riders = on.filter((c) => {
-        const i = lower.lastIndexOf(short(c), at);
+        const i = lastNamed(lower, c, at);
         return i >= 0 && i < at;
       });
       // (the riders named in this clause: the nearest before the verb, and
       // any joined to it by "and")
       const clause = lower.slice(0, at).split(/[,;]| with /).pop() ?? "";
-      const named = riders.filter((c) => clause.includes(short(c)));
+      const named = riders.filter((c) => firstNamed(clause, c) >= 0);
       const who = named.length ? named : riders.slice(-1);
       let carrier: CharacterDef | undefined;
       if (m[2]) {
         const w = m[2].toLowerCase();
-        carrier = on.find((c) => short(c) === w || c.name.toLowerCase() === w || c.id === w) ?? on.find((c) => new RegExp(`\\b${w}\\b`, "i").test(c.look ?? ""));
+        carrier = on.find((c) => short(c) === w || c.name.toLowerCase() === w || c.id === w || nameKeys(c).includes(w)) ?? on.find((c) => new RegExp(`\\b${w}\\b`, "i").test(c.look ?? ""));
       } else {
         const text = (before + " " + t.slice(0, at)).toLowerCase();
         carrier = on
           .filter((c) => !who.includes(c))
-          .map((c) => [c, text.lastIndexOf(short(c))] as const)
+          .map((c) => [c, lastNamed(text, c)] as const)
           .filter(([, i]) => i >= 0)
           .sort((a, b) => b[1] - a[1])[0]?.[0];
       }
       if (!carrier) continue;
-      const where = (m[4].toLowerCase().startsWith("shoulder") ? "shoulder" : m[4].toLowerCase()) as "shoulder" | "head" | "back";
+      // (on a tummy or belly - a penguin sliding on his front, a baby
+      // giggling on top - is riding on its back as drawn)
+      const w4 = m[4].toLowerCase();
+      const where = (w4.startsWith("shoulder") ? "shoulder" : w4 === "tummy" || w4 === "belly" ? "back" : w4) as "shoulder" | "head" | "back";
       for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, where]);
     }
     before += " " + t;
@@ -852,20 +880,19 @@ function huggersOf(req: IllustrateRequest): [string, string] | null {
     const i = said.findIndex((t) => HUG.test(t) && !/\b(no|not|never|didn't|without)\b/i.test(t));
     if (i < 0) return null;
     const on = req.cast.filter((c) => req.page.characters.includes(c.id));
-    const short = (c: CharacterDef) => c.name.toLowerCase().replace(/^the\s+/, "");
     const t = said[i].toLowerCase();
-    const inIt = on.filter((c) => t.includes(short(c))).sort((a, b) => t.indexOf(short(a)) - t.indexOf(short(b)));
+    const inIt = on.filter((c) => firstNamed(t, c) >= 0).sort((a, b) => firstNamed(t, a) - firstNamed(t, b));
     if (inIt.length >= 2) return [inIt[0].id, inIt[1].id];
     if (inIt.length === 1 && /\b(his|her|him|its)\b/.test(t)) {
       const earlier = said.slice(0, i).join(" ").toLowerCase();
-      const other = on.filter((c) => c !== inIt[0]).map((c) => [c, earlier.lastIndexOf(short(c))] as const).filter(([, j]) => j >= 0).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const other = on.filter((c) => c !== inIt[0]).map((c) => [c, lastNamed(earlier, c)] as const).filter(([, j]) => j >= 0).sort((a, b) => b[1] - a[1])[0]?.[0];
       if (other) return [inIt[0].id, other.id];
     }
     return null;
   }
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const at = (c: CharacterDef) => {
-    const m = sentence.toLowerCase().indexOf(c.name.toLowerCase().replace(/^the\s+/, ""));
+    const m = firstNamed(sentence.toLowerCase(), c);
     return m < 0 && /\b(she|he|they)\b/i.test(sentence) && c.id === "hero" ? 999 : m;
   };
   const named = on.map((c) => [c.id, at(c)] as const).filter(([, i]) => i >= 0).sort((a, b) => a[1] - b[1]);
@@ -1469,7 +1496,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(replayOf(req) ?? brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), perched: perchedOf(req), groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(replayOf(req) ?? brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), perched: perchedOf(req), said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "), groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),

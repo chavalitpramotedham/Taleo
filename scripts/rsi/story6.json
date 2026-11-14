@@ -1,0 +1,365 @@
+{
+ "title": "Baby Colin's Snowy Sleepover",
+ "world": "A gentle, storybook Mount Everest in early spring: soft white snowfields, pale blue sky, prayer-flag bunting fluttering in the breeze, and a little orange tent. Signature colours: snow white, sky blue #A9C6DE, tent orange #D9783F and flag reds, yellows and greens.",
+ "age": "3-4",
+ "minutes": 5,
+ "hero": {
+  "id": "hero",
+  "name": "Bby Colin",
+  "look": "Rolo is a cheeky, chubby 6-month-old human baby boy shown in a front-facing seated reference pose. He sits upright on soft grass with his legs out in front, soles turned to the viewer.\n\nPROPORTIONS: His head is a big circle (radius about 40) that overlaps the top of a soft pear-shaped body. The head is roughly half his seated height. He has a round tummy and short, chubby, dimpled limbs. His hands are rounded mittens with a thumb bump.\n\nSKIN: Light #F2D6C2 wash, with a #D9A882 glaze on the lower",
+  "preset": null,
+  "svg": "<g filter=\"url(#tl-wash)\"><path d=\"M30 100 C26 55 62 26 104 27 C148 28 176 60 172 102 C169 142 140 170 100 170 C58 171 33 143 30 100 Z\" fill=\"#DCE6D2\" opacity=\"0.55\"/><ellipse cx=\"100\" cy=\"182\" rx=\"86\" ry=\"13\" fill=\"#C9CCA4\" opacity=\"0.5\"/></g><g filter=\"url(#tl-paint)\"><ellipse cx=\"100\" cy=\"186\" rx=\"66\" ry=\"7\" fill=\"#CFC6AC\" opacity=\"0.6\"/><circle cx=\"60\" cy=\"72\" r=\"8\" fill=\"#F2D6C2\"/><circle cx=\"140\" cy=\"72\" r=\"8\" fill=\"#F2D6C2\"/><ellipse cx=\"61\" cy=\"73\" rx=\"4\" ry=\"5\" fill=\"#D9A882\" opacity=\"0.5\"/><ellipse cx=\"139\" cy=\"73\" rx=\"4\" ry=\"5\" fill=\"#D9A882\" opacity=\"0.5\"/><path d=\"M72 150 C60 156 50 166 52 176 C54 182 66 182 74 178 C84 172 92 166 92 158 Z\" fill=\"#E8C766\"/><path d=\"M128 150 C140 156 150 166 148 176 C146 182 134 182 126 178 C116 172 108 166 108 158 Z\" fill=\"#E8C766\"/><path d=\"M60 172 C64 178 70 178 76 176 C84 170 90 165 92 158 L86 160 C82 168 72 174 60 172 Z\" fill=\"#D3A24F\" opacity=\"0.5\"/><path d=\"M148 170 C146 180 136 181 128 178 C118 172 110 166 108 158 L116 160 C122 168 136 174 148 170 Z\" fill=\"#D3A24F\" opacity=\"0.5\"/><path d=\"M100 98 C78 98 62 114 60 136 C58 158 74 174 100 174 C126 174 142 158 140 136 C138 114 122 98 100 98 Z\" fill=\"#E8C766\"/><path d=\"M132 118 C140 132 140 152 130 164 C120 172 106 174 96 173 C114 168 128 156 132 118 Z\" fill=\"#D3A24F\" opacity=\"0.6\"/><ellipse cx=\"80\" cy=\"124\" rx=\"10\" ry=\"14\" fill=\"#FFF8E8\" opacity=\"0.3\"/><ellipse cx=\"82\" cy=\"150\" rx=\"9\" ry=\"8\" fill=\"#F3E6D0\" opacity=\"0.8\"/><ellipse cx=\"72\" cy=\"116\" rx=\"7\" ry=\"4\" fill=\"#4A3020\" opacity=\"0.2\"/><path d=\"M80 106 C90 113 110 113 120 106 C116 101 84 101 80 106 Z\" fill=\"#F3E6D0\"/><ellipse cx=\"100\" cy=\"110\" rx=\"18\" ry=\"4\" fill=\"#4A3020\" opacity=\"0.2\"/><path d=\"M46 186 L46 172 C40 170 40 160 48 158 C52 152 64 152 68 158 C76 160 76 170 70 172 L70 186 Z\" fill=\"#C8A57A\"/><path d=\"M154 186 L154 172 C160 170 160 160 152 158 C148 152 136 152 132 158 C124 160 124 170 130 172 L130 186 Z\" fill=\"#C8A57A\"/><path d=\"M49 183 L49 171 C44 169 44 162 50 161 C54 156 62 156 66 161 C72 162 72 169 67 171 L67 183 Z\" fill=\"#F3E6D0\"/><path d=\"M151 183 L151 171 C156 169 156 162 150 161 C146 156 138 156 134 161 C128 162 128 169 133 171 L133 183 Z\" fill=\"#F3E6D0\"/><path d=\"M70 172 L70 186 L66 186 L67 171 C72 169 72 162 66 161 C70 160 74 166 70 172 Z\" fill=\"#A98463\" opacity=\"0.5\"/><path d=\"M154 172 L154 186 L151 186 L151 171 C156 169 156 162 150 161 C156 160 160 168 154 172 Z\" fill=\"#A98463\" opacity=\"0.5\"/><path d=\"M76 114 C68 106 56 104 48 98 C42 93 42 86 47 84 C52 82 56 88 60 92 C66 98 74 100 82 104 Z\" fill=\"#E8C766\"/><path d=\"M80 106 C72 104 62 100 56 94 C60 100 68 106 76 112 Z\" fill=\"#D3A24F\" opacity=\"0.5\"/><circle cx=\"46\" cy=\"80\" r=\"8\" fill=\"#F2D6C2\"/><ellipse cx=\"54\" cy=\"78\" rx=\"3.5\" ry=\"4\" fill=\"#F2D6C2\"/><circle cx=\"100\" cy=\"68\" r=\"40\" fill=\"#F2D6C2\"/><path d=\"M128 46 C142 64 140 92 122 104 C110 110 96 110 86 106 C112 106 134 86 128 46 Z\" fill=\"#D9A882\" opacity=\"0.45\"/><ellipse cx=\"84\" cy=\"48\" rx=\"12\" ry=\"8\" fill=\"#FFF8E8\" opacity=\"0.35\"/><path d=\"M92 32 C92 24 100 19 107 23 C102 24 100 28 103 32 Z\" fill=\"#C8A57A\"/><ellipse cx=\"76\" cy=\"87\" rx=\"9\" ry=\"6\" fill=\"#E39A8E\" opacity=\"0.5\"/><ellipse cx=\"124\" cy=\"87\" rx=\"9\" ry=\"6\" fill=\"#E39A8E\" opacity=\"0.5\"/><ellipse cx=\"100\" cy=\"82\" rx=\"3.5\" ry=\"2.4\" fill=\"#D9A882\"/><path d=\"M86 88 C90 102 110 102 114 88 C106 92 94 92 86 88 Z\" fill=\"#4A2A20\"/><ellipse cx=\"100\" cy=\"96\" rx=\"6\" ry=\"2.6\" fill=\"#D98A80\"/><ellipse cx=\"100\" cy=\"144\" rx=\"7\" ry=\"6\" fill=\"#6F8FAF\"/><path d=\"M132 162 C142 168 150 162 146 154 C152 160 150 172 136 168 Z\" fill=\"#8FA7B5\"/><ellipse cx=\"118\" cy=\"150\" rx=\"17\" ry=\"19\" fill=\"#8FA7B5\"/><path d=\"M130 140 C136 150 134 162 124 168 C118 170 112 170 108 168 C120 166 130 156 130 140 Z\" fill=\"#6F8FAF\" opacity=\"0.5\"/><ellipse cx=\"116\" cy=\"154\" rx=\"10\" ry=\"12\" fill=\"#AFC1C4\"/><polygon points=\"110,112 113,105 116,112\" fill=\"#6F8FAF\"/><polygon points=\"117,113 121,107 122,115\" fill=\"#6F8FAF\"/><circle cx=\"114\" cy=\"124\" r=\"13\" fill=\"#8FA7B5\"/><path d=\"M122 114 C128 120 128 132 120 136 C116 137 112 137 108 136 C118 133 124 126 122 114 Z\" fill=\"#6F8FAF\" opacity=\"0.45\"/><ellipse cx=\"108\" cy=\"118\" rx=\"4\" ry=\"3\" fill=\"#FFF8E8\" opacity=\"0.3\"/><ellipse cx=\"114\" cy=\"129\" rx=\"6\" ry=\"4\" fill=\"#AFC1C4\"/><ellipse cx=\"106\" cy=\"128\" rx=\"2.5\" ry=\"1.6\" fill=\"#E39A8E\" opacity=\"0.5\"/><ellipse cx=\"122\" cy=\"128\" rx=\"2.5\" ry=\"1.6\" fill=\"#E39A8E\" opacity=\"0.5\"/><path d=\"M126 108 C140 110 148 124 144 136 C141 144 134 150 128 152 L124 144 C130 140 134 134 134 128 C134 120 130 116 124 116 Z\" fill=\"#E8C766\"/><path d=\"M144 124 C147 134 142 144 132 150 L130 146 C138 140 142 132 144 124 Z\" fill=\"#D3A24F\" opacity=\"0.55\"/><circle cx=\"126\" cy=\"150\" r=\"7\" fill=\"#F2D6C2\"/><ellipse cx=\"121\" cy=\"146\" rx=\"3\" ry=\"3.5\" fill=\"#F2D6C2\"/><path d=\"M128 154 C132 152 133 148 132 145 C134 150 132 156 126 157 Z\" fill=\"#D9A882\" opacity=\"0.5\"/></g><g filter=\"url(#tl-ink)\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"100\" cy=\"68\" r=\"40\" stroke-dasharray=\"70 6 50 5 90 4\"/><path d=\"M54 66 C52 72 54 78 60 80 M146 66 C148 72 146 78 140 80\"/><path d=\"M92 32 C92 24 100 19 107 23 M97 26 C99 22 104 22 104 26\"/><path d=\"M100 98 C78 98 62 114 60 136 C58 158 74 174 100 174 C126 174 142 158 140 136\" stroke-dasharray=\"60 5 80 6\"/><path d=\"M80 106 C90 113 110 113 120 106\"/><path d=\"M72 150 C60 156 50 166 52 172 M74 178 C84 172 92 166 92 158\"/><path d=\"M128 150 C140 156 150 166 148 172 M126 178 C116 172 108 166 108 158\"/><path d=\"M46 186 L46 172 C40 170 40 160 48 158 C52 152 64 152 68 158 C76 160 76 170 70 172 L70 186\"/><path d=\"M154 186 L154 172 C160 170 160 160 152 158 C148 152 136 152 132 158 C124 160 124 170 130 172 L130 186\"/><path d=\"M49 182 L49 171 C44 169 44 162 50 161 C54 156 62 156 66 161 C72 162 72 169 67 171\" stroke-width=\"0.7\" stroke-dasharray=\"3 2\"/><path d=\"M151 182 L151 171 C156 169 156 162 150 161 C146 156 138 156 134 161 C128 162 128 169 133 171\" stroke-width=\"0.7\" stroke-dasharray=\"3 2\"/><path d=\"M76 114 C68 106 56 104 48 98 C44 94 43 90 44 88 M56 88 C60 92 66 98 82 104\"/><path d=\"M44 89 C48 91 54 90 56 87\"/><path d=\"M38 80 C38 74 44 71 50 73 C54 74 58 76 57 80 C56 86 50 89 45 88\"/><path d=\"M51 79 L53 81\"/><path d=\"M126 108 C140 110 148 124 144 136 C141 144 136 148 132 150\"/><path d=\"M120 146 C121 141 126 140 130 143 C134 147 132 156 126 157 C122 157 119 154 119 150\"/><path d=\"M123 152 L126 152 M123 155 L126 154\"/><circle cx=\"114\" cy=\"124\" r=\"13\" stroke-dasharray=\"40 4 30 5\"/><path d=\"M110 112 L113 105 L116 112 M117 113 L121 107 L122 115\"/><path d=\"M101 150 C103 136 112 131 118 131 C128 131 135 140 135 150 C135 162 126 169 118 169 C110 169 102 163 101 155\"/><path d=\"M132 162 C142 168 150 162 146 154 C152 160 150 172 136 168\"/><path d=\"M94 140 C94 146 98 150 104 149\"/><path d=\"M108 146 C110 156 114 162 120 165\"/><path d=\"M111 131 Q114 133 117 131\"/><path d=\"M81 66 Q86 63 91 65 M109 64 Q114 60 119 64\"/><path d=\"M86 88 C90 102 110 102 114 88 C106 92 94 92 86 88\"/><path d=\"M83 86 Q85 89 84 91 M117 86 Q115 89 116 91\"/><path d=\"M98 84 Q100 85 102 84\"/><path d=\"M84 128 Q90 132 88 138 M118 165 Q112 169 106 168 M68 160 Q72 164 70 168 M132 160 Q128 164 130 168\"/><path d=\"M112 112 l4 4 M116 111 l4 4 M120 110 l4 3\"/><path d=\"M135 150 l4 5 M133 155 l4 5 M130 160 l3 4\"/><path d=\"M64 112 l3 4 M68 112 l3 4 M72 113 l2 3\"/><path d=\"M138 160 l3 3 M141 158 l3 3\" stroke-width=\"0.8\"/><path d=\"M22 187 L26 177 M28 187 L28 174 M32 187 L36 178 M164 187 L168 176 M170 187 L170 174 M174 187 L178 178 M84 188 L86 181 M90 188 L89 180 M110 188 L112 181\" stroke=\"#5E6B40\" stroke-width=\"1\"/><path d=\"M18 188 L20 181 M180 188 L182 181 M40 189 L42 183\" stroke=\"#94A270\" stroke-width=\"1\"/></g><g><ellipse cx=\"87\" cy=\"75\" rx=\"4.5\" ry=\"5.5\" fill=\"#2A1E15\"/><ellipse cx=\"115\" cy=\"75\" rx=\"4.5\" ry=\"5.5\" fill=\"#2A1E15\"/><circle cx=\"88.5\" cy=\"73\" r=\"1.6\" fill=\"#FFFFFF\"/><circle cx=\"116.5\" cy=\"73\" r=\"1.6\" fill=\"#FFFFFF\"/><circle cx=\"110\" cy=\"122\" r=\"1.8\" fill=\"#2A1E15\"/><circle cx=\"118\" cy=\"122\" r=\"1.8\" fill=\"#2A1E15\"/><circle cx=\"110.6\" cy=\"121.4\" r=\"0.6\" fill=\"#FFFFFF\"/><circle cx=\"118.6\" cy=\"121.4\" r=\"0.6\" fill=\"#FFFFFF\"/><circle cx=\"112\" cy=\"128\" r=\"0.7\" fill=\"#4F3A2A\"/><circle cx=\"116\" cy=\"128\" r=\"0.7\" fill=\"#4F3A2A\"/><circle cx=\"100\" cy=\"120\" r=\"1.6\" fill=\"#F3E6D0\"/><circle cx=\"100\" cy=\"128\" r=\"1.6\" fill=\"#F3E6D0\"/><circle cx=\"100\" cy=\"136\" r=\"1.6\" fill=\"#F3E6D0\"/><circle cx=\"55\" cy=\"166\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"61\" cy=\"172\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"58\" cy=\"178\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"145\" cy=\"166\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"139\" cy=\"172\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"142\" cy=\"178\" r=\"0.9\" fill=\"#C8A57A\"/><circle cx=\"73\" cy=\"84\" r=\"1.2\" fill=\"#FFF8E8\" opacity=\"0.7\"/><circle cx=\"121\" cy=\"84\" r=\"1.2\" fill=\"#FFF8E8\" opacity=\"0.7\"/></g>",
+  "relationships": "Daddy and Mama’s firstborn son",
+  "gender": null
+ },
+ "companions": [
+  {
+   "id": "companion1",
+   "name": "Pebble",
+   "look": "a little penguin with a slate back and flippers (#4E5B66), a creamy white front (#F2EFE6), an orange beak and feet (#D99447); waddles and slides on its tummy",
+   "preset": "penguin",
+   "svg": null
+  },
+  {
+   "id": "companion2",
+   "name": "Puff",
+   "look": "a small soft cloud (#EEF0EE, blue-grey underside #C7D0D4) with rosy cheeks and a tiny face that can float and sprinkle little showers; dreamy and kind",
+   "preset": "cloud",
+   "svg": null
+  }
+ ],
+ "cast": [
+  {
+   "id": "yak",
+   "name": "Mrs Muffle",
+   "look": "A shaggy mountain yak, round and woolly, about four times as tall as Baby Colin; long brown coat #6B4A35 with a cream-grey fringe #CFC4B2; curved pale horns, a knitted red bobble hat #B5402F perched between them, a little bell on a ribbon round her neck; gentle brown eyes, sleepy, polite expression; speaks slowly in a deep, booming voice.",
+   "preset": null,
+   "svg": null
+  },
+  {
+   "id": "pikas",
+   "name": "The Pika Triplets",
+   "look": "Three tiny round mountain pikas, each about as tall as Baby Colin's hand; soft sandy-grey fur #A89A86 with a cream tummy #E8DFCC; big round pink-lined ears #D9A3A0, no visible tail, little black whiskers; bright black bead eyes, hopeful and shy; the smallest wears a tiny green knitted scarf #6F8F5A. They squeak in high, polite little voices.",
+   "preset": null,
+   "svg": null
+  }
+ ],
+ "places": [
+  {
+   "id": "tent-inside",
+   "about": "Inside a little orange tent: a blue sleeping bag on the left, a glowing brass lantern in the middle, a tin mug and pillow on the right, and the round tent flap door on the right side.",
+   "light": "golden",
+   "sig": "cRTCibDgUA8K_AhKZULGkl"
+  },
+  {
+   "id": "snowy-camp",
+   "about": "A snowy mountain ledge with the little orange tent in the middle, prayer-flag bunting strung from the tent to a rock on the left, and tall white peaks behind under a pale evening sky.",
+   "light": "dusk",
+   "sig": "VG5zl1aCYCbYD_jZk3-j0V"
+  },
+  {
+   "id": "snow-ledge-dusk",
+   "about": "A snowy mountain ledge with prayer-flag bunting strung on poles on the left, the little orange tent on the right, and soft white peaks rising behind.",
+   "light": "dusk",
+   "sig": "8euDC81DvuuD5jsYMQ-Qtb"
+  },
+  {
+   "id": "snow-den-night",
+   "about": "A cosy dome-shaped snow den on the snowy ledge, its round doorway in the middle, prayer-flag bunting on the left, the little orange tent beside it on the right, starry white peaks behind.",
+   "light": "night",
+   "sig": "7_z8krCdxjyb1a_FsISg77"
+  },
+  {
+   "id": "starry-snowfield",
+   "about": "A wide snowy ledge on the gentle mountain at night, with the round snow den on the left, the little orange tent on the right, and prayer-flag bunting strung across the starry sky behind.",
+   "light": "night",
+   "sig": "pjoPUpz2WoX7zTCk8JwnqU"
+  }
+ ],
+ "segments": [
+  {
+   "pages": [
+    {
+     "text": "Whoosh! Down the snowy hill slid Pebble the penguin, with Baby Colin giggling on his tummy. Puff the cloud floated behind them. \"Faster!\" squeaked Pebble. Baby Colin waved his red mitten. \"Ba!\" Today they were camping on the tallest mountain of all!",
+     "picture": "Wide shot of a snowy mountain ledge in bright day: orange tent on the left, colourful prayer flags behind, a tall snowy peak on the right. Pebble the penguin slides belly-first down the slope towards us, flippers stretched out, beak wide in delight; Baby Colin, wearing one red knitted mitten, sits on Pebble's back laughing, arms up. Puff the little cloud floats just behind them with puffed rosy cheeks.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2"
+     ],
+     "action": {
+      "word": "slid",
+      "target": "companion1",
+      "sound": "whoosh",
+      "motion": "zoom"
+     },
+     "aside": null,
+     "place": "snowy-camp",
+     "camera": "wide"
+    },
+    {
+     "text": "They wriggled inside their little orange tent. It was snug for three. Puff sprinkled a tiny shower into the tin mug. \"Hot cocoa water!\" he sighed dreamily. Baby Colin tucked his red mitten under the pillow. Then... something scratched the door.",
+     "picture": "Mid shot inside the cosy orange tent in golden light: fluffy blue sleeping bag on the left, lantern and tin mug in the middle, tent flap on the right. Baby Colin sits in the sleeping bag tucking one red mitten under a pillow; Pebble the penguin snuggles beside him; Puff the cloud hovers over the tin mug, raining a tiny shower into it. All three turn wide-eyed toward the tent flap, which bulges as if scratched from outside.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2"
+     ],
+     "action": {
+      "word": "sprinkled",
+      "target": "companion2",
+      "sound": "drip",
+      "motion": "float"
+     },
+     "aside": null,
+     "place": "tent-inside",
+     "camera": "mid"
+    },
+    {
+     "text": "In poked a great hairy nose. Then horns. Then a red bobble hat! \"Excuse me,\" boomed a shaggy yak. \"I'm Mrs Muffle. It's terribly chilly. May I squeeze in?\" Pebble gulped. The tent was already full!",
+     "picture": "Close-up inside the orange tent in golden light, tent flap on the right pushed open. Mrs Muffle the yak's huge woolly head pokes through, red bobble hat between her horns, bell on her neck, eyes hopeful. Baby Colin on the blue sleeping bag stares with round eyes and an open mouth; Pebble the penguin clutches his flippers to his cheeks; Puff the cloud hides behind the lantern, peeking out.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak"
+     ],
+     "action": {
+      "word": "squeeze",
+      "target": "yak",
+      "sound": "rustle",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "tent-inside",
+     "camera": "close"
+    }
+   ]
+  },
+  {
+   "pages": [
+    {
+     "text": "\"Mrs Muffle, have you any treats?\" asked Pebble hopefully. \"Oh, how kind of you to ask!\" boomed Mrs Muffle. Off she trotted through the snow, her bell going jingle-jangle, and back she came with a basket of warm honey buns.",
+     "picture": "Wide shot of the snowy mountain ledge at dusk: the little orange tent in the middle, prayer-flag bunting fluttering from tent to rock on the left, white peaks behind. Mrs Muffle the shaggy brown yak, red bobble hat between her horns, trots happily towards the tent, legs mid-stride, a wicker basket of golden honey buns hanging from her mouth, bell swinging. Baby Colin peeks out of the tent flap with a red mitten, mouth open in delight; Pebble the penguin beside him flaps his flippers; Puff the cloud floats above the tent smiling.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak"
+     ],
+     "action": {
+      "word": "trotted",
+      "target": "yak",
+      "sound": "ding",
+      "motion": "dash"
+     },
+     "aside": null,
+     "place": "snowy-camp",
+     "camera": "wide"
+    },
+    {
+     "text": "In she came, horns first. The little orange tent wobbled this way. It wobbled that way. Pebble was squashed against Puff. Baby Colin was squashed against the cocoa. \"Lovely and cosy!\" boomed Mrs Muffle, sitting right on the lantern. \"Oh dear.\"",
+     "picture": "Mid shot inside the little orange tent in golden lantern light: blue sleeping bag on the left, tin mug on the right. Mrs Muffle the huge woolly yak, red bobble hat and bell, wriggles in head first, her body pushing the orange walls outward so they bulge and lean. Pebble the penguin is squashed flat against Puff the cloud on the left, both with wide eyes; Baby Colin, red mitten on, leans against the tin mug, giggling. The brass lantern peeks out from under Mrs Muffle's bottom.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak"
+     ],
+     "action": {
+      "word": "wobbled",
+      "target": "tent",
+      "sound": "thud",
+      "motion": "shake"
+     },
+     "aside": null,
+     "place": "tent-inside",
+     "camera": "mid"
+    },
+    {
+     "text": "They shared the honey buns, one each. Baby Colin nibbled his bun all round the edges. \"Ba!\" he said, very sticky. Then Mrs Muffle's nose twitched. \"AH... AH... CHOO!\" Out of the back of the tent popped her great fluffy bottom!",
+     "picture": "Mid shot inside the little orange tent, golden lantern glow, blue sleeping bag on the left. Baby Colin sits in front holding a honey bun in both hands, nibbling the edge, crumbs and honey on his cheeks, red mitten on. Pebble the penguin and Puff the cloud each hold a bun, staring up in surprise as Mrs Muffle the yak, red bobble hat flying off her head, sneezes hugely; the back wall of the tent has burst open and her woolly brown bottom sticks out into the snow.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak"
+     ],
+     "action": {
+      "word": "nibbled",
+      "target": "hero",
+      "sound": "munch",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "tent-inside",
+     "camera": "mid"
+    },
+    {
+     "text": "Outside, in the snow, sat three tiny pikas with pink ears. They shivered and sniffed at the honey buns. \"We smelled supper,\" squeaked the smallest. \"Is there room for us?\" Pebble looked at the tent. Mrs Muffle's bottom filled half of it!",
+     "picture": "Wide shot of the snowy mountain ledge at dusk, prayer-flag bunting on the left, white peaks behind. The little orange tent sags in the middle with Mrs Muffle the yak's woolly brown bottom poking out the back. In the foreground, the three tiny Pika Triplets huddle in the snow, shivering, noses lifted, the smallest in a green scarf. Baby Colin, Pebble the penguin and Puff the cloud peek out of the front flap on the right, looking down at them with soft, worried faces.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "shivered",
+      "target": "pikas",
+      "sound": "squeak",
+      "motion": "shake"
+     },
+     "aside": null,
+     "place": "snowy-camp",
+     "camera": "wide"
+    }
+   ]
+  },
+  {
+   "pages": [
+    {
+     "text": "\"Let's build a bigger snow den!\" cried Pebble. Everybody helped. Pebble scooped snow with his flippers. Mrs Muffle patted it flat with her hooves. The pikas rolled tiny snowballs. Baby Colin bashed it with both mittens. \"Ba!\" Up, up went the walls!",
+     "picture": "Mid shot on the snowy mountain ledge at dusk, prayer-flag bunting on the left, little orange tent on the right, white peaks behind. Pebble the penguin in the middle scoops snow with both flippers, beak open in a cheer; Mrs Muffle the yak in her red bobble hat pats a curved snow wall with a hoof, smiling sleepily. Three tiny Pika Triplets roll snowballs in the foreground, the smallest in a green scarf, and Baby Colin sits in the snow bashing the wall with his red mittens, laughing.",
+     "characters": [
+      "hero",
+      "companion1",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "scooped",
+      "target": "companion1",
+      "sound": "whoosh",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "snow-ledge-dusk",
+     "camera": "mid"
+    },
+    {
+     "text": "Puff floated over the top. \"I can help too!\" he said dreamily, and he puffed out a flurry of snowflakes. Down they drifted, soft as feathers, and made a lovely round roof. \"A snow den!\" squeaked the pikas.",
+     "picture": "Wide shot of the snowy ledge at night, prayer-flag bunting on the left, little orange tent on the right, starry peaks behind. Puff the cloud floats above a round snow dome, cheeks rosy, eyes half closed, letting soft snowflakes drift down onto the roof. Below, Baby Colin, Pebble the penguin, Mrs Muffle the yak in her red bobble hat and the three tiny pikas gaze up, mouths open in wonder.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "drifted",
+      "target": "companion2",
+      "sound": "twinkle",
+      "motion": "float"
+     },
+     "aside": null,
+     "place": "snow-den-night",
+     "camera": "wide"
+    },
+    {
+     "text": "In went Pebble. In went Puff and Baby Colin. In tumbled the three pikas. Then Mrs Muffle poked her head in. And her shoulders. And then... she was stuck! \"Oh dear,\" she boomed. \"I appear to be wedged.\"",
+     "picture": "Mid shot of the round snow den at night, prayer-flag bunting on the left, orange tent on the right, starry peaks behind. Mrs Muffle the yak is jammed in the round doorway up to her shoulders, red bobble hat squashed sideways, eyes wide and polite. Her woolly brown bottom and back legs stick out in the snow. Pebble peeks out past her ear, flippers on his cheeks.",
+     "characters": [
+      "companion1",
+      "yak"
+     ],
+     "action": {
+      "word": "wedged",
+      "target": "yak",
+      "sound": "thud",
+      "motion": "shake"
+     },
+     "aside": null,
+     "place": "snow-den-night",
+     "camera": "mid"
+    },
+    {
+     "text": "Pebble pushed. The pikas pulled. Puff huffed. But Mrs Muffle would not budge! Her big brown eyes went sad. \"Perhaps I should go home,\" she sighed. Baby Colin held out his sticky mitten. \"Ba?\" What should they do?",
+     "picture": "Close-up at the round doorway of the snow den at night, bunting and stars behind. Mrs Muffle the yak's big gentle face fills the doorway, red bobble hat crooked, eyes sad and droopy. Baby Colin sits in front of her reaching out his red mitten to her nose, eyebrows worried; Pebble pushes at her side and the three pikas tug her fringe, the smallest in a green scarf. Puff the cloud hovers above, cheeks puffed.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "budge",
+      "target": "yak",
+      "sound": "squeak",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "snow-den-night",
+     "camera": "close"
+    }
+   ]
+  },
+  {
+   "pages": [
+    {
+     "text": "\"Then we'll ALL sleep outside!\" cried Pebble. Pop! Out wriggled Mrs Muffle. Everybody snuggled into her warm, woolly side, under the twinkling stars. \"Room for one more?\" squeaked a pika. \"Always,\" boomed Mrs Muffle. Then the wind began to whistle...",
+     "picture": "Mid shot on the snowy ledge at night: the round snow den on the left, the little orange tent on the right, prayer-flag bunting and stars behind. Mrs Muffle the shaggy yak lies in the snow in her red bobble hat, smiling sleepily, while Baby Colin (red mittens), Pebble the penguin and the three pikas (smallest in a green scarf) snuggle against her woolly side. Puff the cloud floats above. A wisp of wind tugs the bunting.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "snuggled",
+      "target": "yak",
+      "sound": "rustle",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "starry-snowfield",
+     "camera": "mid"
+    },
+    {
+     "text": "Brrr! The chilly wind tugged at the bunting. The smallest pika shivered in her green scarf. Baby Colin crawled to the tent and fetched his red mitten from under the pillow. He tucked it over her like a blanket. \"Ba!\" Now everyone was warm.",
+     "picture": "Close-up at the foot of Mrs Muffle's woolly side on the snowy ledge at night, orange tent glowing on the right, bunting fluttering behind. Baby Colin sits leaning forward, gently laying a red mitten over the tiny pika in the green scarf, smiling proudly. Pebble watches with flippers clasped, Puff hovers above beaming, the other two pikas peek out of the yak's fringe.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "tucked",
+      "target": "hero",
+      "sound": "twinkle",
+      "motion": "grow"
+     },
+     "aside": null,
+     "place": "starry-snowfield",
+     "camera": "close"
+    },
+    {
+     "text": "Puff spread himself out like a soft, fluffy quilt over them all. \"You see,\" yawned Pebble, \"there's always room for one more when we share.\" \"Ba,\" agreed Baby Colin. Then Mrs Muffle gave a great, gentle snore. Goodnight, mountain!",
+     "picture": "Wide shot of the snowy ledge under a sky full of stars, bunting stretched across, snow den on the left and orange tent on the right. Puff the cloud stretches wide like a quilt over the sleeping pile: Mrs Muffle in her red bobble hat, eyes closed and snoring, with Baby Colin, Pebble and the three pikas curled cosily against her, the smallest under a red mitten.",
+     "characters": [
+      "hero",
+      "companion1",
+      "companion2",
+      "yak",
+      "pikas"
+     ],
+     "action": {
+      "word": "spread",
+      "target": "companion2",
+      "sound": "snore",
+      "motion": "float"
+     },
+     "aside": null,
+     "place": "starry-snowfield",
+     "camera": "wide"
+    }
+   ]
+  }
+ ]
+}

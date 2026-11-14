@@ -242,14 +242,23 @@ export async function POST(req: Request) {
             // to the server - the reader's app gets it with the pages)
             if (event.type === "setting") {
               const world = event.world || storyWorld;
-              readyPlaces(event.places, world);
+              // (all but the first place named - usually where page 1 is
+              // set: that one page 1 paints itself, see below)
+              readyPlaces(event.places.slice(1), world);
               readyCharacters(event.newCharacters, world);
               continue;
             }
             send(event);
             if (event.type === "pages") {
               const world = event.world || storyWorld;
-              readyPlaces(event.places ?? [], world);
+              // The place of the part's first page is left to that page's
+              // own painting: painting it, the page shows it stroke by
+              // stroke from the first seconds. Readied here, the page had
+              // to wait for it unseen - in another server - and nothing
+              // showed until the whole picture was done (17s on a new
+              // story's first page).
+              const own = event.pages[0]?.place ?? null;
+              readyPlaces((event.places ?? []).filter((pl) => pl.id !== own), world);
               readyCharacters(event.newCharacters, world);
             }
             if (event.type === "done") {

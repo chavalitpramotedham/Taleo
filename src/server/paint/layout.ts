@@ -27,6 +27,8 @@ export interface LayoutOptions {
   usualS?: number;
   /** characters that are groups (three mice in one tag): wide, not giants */
   groups?: string[];
+  /** the page's words, picture brief and place, for what belongs there */
+  said?: string;
   /** who rides on whom, and where: [rider, carrier, shoulder|head|back] */
   perched?: [string, string, "shoulder" | "head" | "back"][];
   /** each character's size against a grown one (1; a squirrel 0.67; a
@@ -301,6 +303,11 @@ function byDepth(markup: string, notes: string[]): string {
           .sort((a, b) => b.y - a.y)[0];
         if (holder) depth = holder.y + 16;
       }
+      // (something drawn as big as a third of the picture or more - a snow
+      // den's doorway, a wall, a sky of snow - is the setting, not a thing
+      // in front: drawn behind everyone. In front, a pale one washed the
+      // whole page out - part 3)
+      if (ext && (Math.min(440, ext.x1) - Math.max(-40, ext.x0)) * (Math.min(330, ext.y1) - Math.max(-30, ext.y0)) > 40_000) depth = -999;
       if (ext) units.push({ from: i, to, unit: { text: "", y: depth, s: 0, id: "something drawn", thing: true, box: ext } });
       i = to;
     }
@@ -810,9 +817,50 @@ function perched(markup: string, opts: LayoutOptions, notes: string[]): string {
   return out;
 }
 
+/** Furniture and buildings come only when the page or its place speaks
+ *  of them (part 3: a bed out on a snowy mountain ledge, a cottage on
+ *  Everest, both added by the composer unasked). The rest of the library -
+ *  trees, stones, grass, sparkles - is ordinary scenery and stays. */
+const BELONGS: Record<string, RegExp> = {
+  bed: /\b(bed|beds|bedtime|cot|crib|bunk|quilt|duvet|pillow)\b/i,
+  table: /\b(table|desk|counter|picnic)\b/i,
+  chair: /\b(chair|stool|bench|seat|throne)\b/i,
+  armchair: /\b(armchair|chair|sofa|settee)\b/i,
+  cupboard: /\b(cupboard|dresser|wardrobe|cabinet|kitchen)\b/i,
+  bookshelf: /\b(book|books|bookshelf|shelf|shelves|library)\b/i,
+  shelf: /\b(shelf|shelves|dresser|pantry)\b/i,
+  fireplace: /\b(fire|fireplace|hearth|stove)\b/i,
+  toybox: /\b(toy|toys|toybox|nursery|playroom)\b/i,
+  door: /\b(door|doorway|front step|entrance)\b/i,
+  window: /\b(window|windows|porthole|windowsill)\b/i,
+  cottage: /\b(cottage|house|home|cabin|hut|village|farmhouse|town)\b/i,
+  lamppost: /\b(lamppost|street|lamp post|lamp-post|town|village)\b/i,
+  signpost: /\b(sign|signpost|crossroads|path)\b/i,
+  well: /\b(well)\b/i,
+  bridge: /\b(bridge)\b/i,
+  snowman: /\b(snowman|snowmen)\b/i,
+  gate: /\b(gate|garden|fence)\b/i,
+  clock: /\b(clock|time|o'clock|midnight)\b/i,
+};
+function onlyWhatBelongs(markup: string, opts: LayoutOptions, notes: string[]): string {
+  const said = opts.said ?? "";
+  if (!said) return markup;
+  const dropped: string[] = [];
+  const out = markup.replace(/<stamp\b[^>]*\/>/gi, (t) => {
+    const k = (attr(t, "k") ?? "").toLowerCase();
+    const re = BELONGS[k];
+    if (!re || re.test(said)) return t;
+    dropped.push(k);
+    return "";
+  });
+  if (dropped.length) notes.push(`not in this page or place, left out: ${[...new Set(dropped)].join(", ")}`);
+  return out;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
   markup = onlyKnownTags(markup, notes);
+  markup = onlyWhatBelongs(markup, opts, notes);
   markup = oncePerCharacter(markup, opts, notes);
   markup = furnitureToScale(markup, opts, notes);
   // (the brief puts them in bed: they sit up in it, the bed in front - so
@@ -901,7 +949,10 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       const share = opts.sizeOf?.[p.id] ?? 1;
       if (share > 1.5 && !opts.groups?.includes(p.id)) k = Math.min(k, p.s / (opts.usualS * share));
     }
-    k = Math.max(0.45, k);
+    // (not below about 60% - 70% in a wide shot, where everyone is small
+    // already: beside a yak four times his height a baby came out a speck
+    // on a wide page - part 3)
+    k = Math.max(opts.usualS < 0.7 ? 0.7 : 0.6, k);
     if (k < 0.92)
       for (const p of placed) {
         if ((opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id)) continue;
