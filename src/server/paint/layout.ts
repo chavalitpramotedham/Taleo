@@ -310,7 +310,8 @@ function byDepth(markup: string, notes: string[]): string {
         const b = t.unit.box!;
         // (standing inside a big thing at its depth: moved to its nearer
         // edge, overlapping it by a quarter of the character - touching)
-        if (b.x1 - b.x0 < 60 || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
+        // (flat things - a rug, a puddle - are stood on, not stood beside)
+        if (b.x1 - b.x0 < 60 || b.y1 - b.y0 < 30 || u.unit.y < b.y0 + (b.y1 - b.y0) * 0.5 || u.unit.y > b.y1 + 25) continue;
         if (x <= b.x0 - half * 0.5 || x >= b.x1 + half * 0.5) continue;
         const nx = x - b.x0 < b.x1 - x ? b.x0 - half * 0.5 : b.x1 + half * 0.5;
         text = text.replace(tag, setAttr(tag, "x", String(Math.round(Math.max(20 + half, Math.min(380 - half, nx))))));
@@ -482,7 +483,8 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
       const hugging = /\bhug\b/.test(`${attr(a.tag, "arms") ?? ""} ${attr(b.tag, "arms") ?? ""}`);
       const hero = (a.id === opts.heroId || b.id === opts.heroId) && !hugging;
       if (apartInDepth(a, b) && !hero) continue;
-      const allowed = hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
+      const bothHug = /\bhug\b/.test(attr(a.tag, "arms") ?? "") && /\bhug\b/.test(attr(b.tag, "arms") ?? "");
+      const allowed = bothHug ? 0.8 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
       const need = (widthAt(a.s) + widthAt(b.s)) / 2 - Math.min(widthAt(a.s), widthAt(b.s)) * allowed;
       if (b.x - a.x >= need) continue;
       const push = (need - (b.x - a.x)) / 2;
@@ -516,6 +518,8 @@ function inTheBoat(markup: string, notes: string[]): string {
   const by = Number(attr(boatTag[0], "y")) || 246;
   let bs = Number(attr(boatTag[0], "s")) || 1;
   let out = markup.replace(boatTag[0], "").replace(/<stamp\b[^>]*\bk\s*=\s*"hull"[^>]*\/>/gi, "");
+  // (one boat: another written at about the same spot is the same boat)
+  out = out.replace(/<stamp\b[^>]*\bk\s*=\s*"boat"[^>]*\/>/gi, (t) => (Math.abs((Number(attr(t, "x")) || 0) - bx) < 80 ? "" : t));
   // each character's span: its tag, with the target group round it if any
   type Span = { from: number; to: number; tag: string };
   const spans: Span[] = [];
@@ -583,8 +587,29 @@ function inTheBoat(markup: string, notes: string[]): string {
   return out;
 }
 
+/** Only the tags a composer may write (lesson 17): a stray "<boat>" opened
+ *  around a whole page made everything in it vanish. */
+const ALLOWED = /^(stamp|scatter|fig|sprite|npc|who|g|path|ellipse|circle|rect|polygon|polyline|line)$/i;
+function onlyKnownTags(markup: string, notes: string[]): string {
+  const dropped = new Set<string>();
+  const out = markup.replace(/<\/?\s*([a-zA-Z][\w-]*)\b[^>]*>/g, (t, name: string) => {
+    if (ALLOWED.test(name)) return t;
+    dropped.add(name);
+    return "";
+  });
+  if (dropped.size) notes.push(`unknown tags left out: ${[...dropped].join(", ")}`);
+  // (the sky is the backdrop's and the page layer's: a composer's own moon
+  // made two moons)
+  let sky = 0;
+  // (a cloud someone sits on - near="1" - is theirs, not the sky's)
+  const clear = out.replace(/<(?:stamp|scatter)\b[^>]*\bk\s*=\s*"(moon|sun|cloud|hill|stars|rainbow)"[^>]*\/>/gi, (t) => (/\bnear\s*=\s*"(?:1|true)"/i.test(t) ? t : (sky++, "")));
+  if (sky) notes.push(`${sky} sky piece${sky > 1 ? "s" : ""} left to the backdrop`);
+  return clear;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
+  markup = onlyKnownTags(markup, notes);
   markup = oncePerCharacter(markup, opts, notes);
   markup = furnitureToScale(markup, opts, notes);
   markup = tuckedIn(markup, notes);
@@ -683,12 +708,17 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   if (hugging.length >= 2) {
     const [a, b] = [...hugging].sort((p, q) => p.x - q.x);
     const mid = (a.x + b.x) / 2;
-    const half = (110 * Math.max(a.s, b.s) * 0.72) / 2;
+    // (close enough that their bodies overlap and their arms go round each
+    // other, turned to face: two front views side by side only stood near
+    // each other - lesson 17)
+    const half = (110 * Math.min(a.s, b.s) * 0.5) / 2;
+    for (const p of [a, b]) if (/^<\s*fig\b/i.test(p.tag)) p.tag = setAttr(p.tag, "v", "three");
     if (Math.abs(b.x - a.x) > half * 2 + 4) notes.push(`${a.id} and ${b.id} brought together for the hug`);
     a.x = mid - half;
     b.x = mid + half;
     a.flip = false;
     b.flip = true;
+    a.turns = b.turns = false;
   }
   const doer = opts.targetId ? placed.find((p) => p.id === opts.targetId) : null;
   if (doer && (doer.x < 90 || doer.x > 310)) {

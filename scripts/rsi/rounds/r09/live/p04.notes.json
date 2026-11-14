@@ -1,0 +1,63 @@
+{
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "sparkles": 1,
+   "tuft": 1,
+   "stone": 1,
+   "boat": 1,
+   "hull": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: companion1, something drawn, hero",
+   "layout: the boat made big enough for its riders (s 0.8 to 0.83)",
+   "layout: hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"0.8\"/>\n<g class=\"paint\"><path d=\"M92 196 Q104 214 116 200 Q124 212 134 202 L130 190 Z\" fill=\"#4F6B4A\"/></g>\n<g class=\"ink\"><path d=\"M96 198 Q108 208 114 198 M118 200 Q126 208 132 200\" stroke=\"#2F4A34\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"236\" rx=\"52\" ry=\"14\" fill=\"#9C8466\" opacity=\"0.8\"/><ellipse cx=\"215\" cy=\"236\" rx=\"46\" ry=\"10\" fill=\"#B59B78\"/><ellipse cx=\"256\" cy=\"231\" rx=\"7\" ry=\"5\" fill=\"#B59B78\"/><ellipse cx=\"268\" cy=\"233\" rx=\"6\" ry=\"4\" fill=\"#B59B78\"/><ellipse cx=\"277\" cy=\"236\" rx=\"5\" ry=\"4\" fill=\"#B59B78\"/><ellipse cx=\"248\" cy=\"226\" rx=\"6\" ry=\"4\" fill=\"#B59B78\"/></g>\n<g class=\"ink\"><path d=\"M165 236 Q170 247 215 247 Q260 245 262 238\" stroke=\"#6E5A40\" stroke-width=\"2\" fill=\"none\"/><path d=\"M175 233 Q215 226 250 234\" stroke=\"#7A6347\" stroke-width=\"1.5\" fill=\"none\"/></g>\n</g>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"175\" y=\"244\" s=\"0.55\" lean=\"18\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"down\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"190\" y=\"170\" s=\"0.3\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"scared\" look=\"down\"/>\n<stamp k=\"sparkles\" x=\"190\" y=\"108\" s=\"0.5\"/>\n<stamp k=\"tuft\" x=\"150\" y=\"248\" s=\"0.8\"/>\n<stamp k=\"stone\" x=\"300\" y=\"250\" s=\"0.8\"/>",
+   "laid": "\n<fig c=\"companion1\" v=\"front\" x=\"190\" y=\"170\" s=\"0.3\" tilt=\"8\" arms=\"down,down\" legs=\"stand\" mood=\"scared\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"sparkles\" x=\"190\" y=\"108\" s=\"0.5\"/>\n<stamp k=\"tuft\" x=\"150\" y=\"248\" s=\"0.8\"/>\n<stamp k=\"stone\" x=\"300\" y=\"250\" s=\"0.8\"/><who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M92 196 Q104 214 116 200 Q124 212 134 202 L130 190 Z\" fill=\"#4F6B4A\"/></g>\n<g class=\"ink\"><path d=\"M96 198 Q108 208 114 198 M118 200 Q126 208 132 200\" stroke=\"#2F4A34\" stroke-width=\"1.5\" fill=\"none\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"215\" cy=\"236\" rx=\"52\" ry=\"14\" fill=\"#9C8466\" opacity=\"0.8\"/><ellipse cx=\"215\" cy=\"236\" rx=\"46\" ry=\"10\" fill=\"#B59B78\"/><ellipse cx=\"256\" cy=\"231\" rx=\"7\" ry=\"5\" fill=\"#B59B78\"/><ellipse cx=\"268\" cy=\"233\" rx=\"6\" ry=\"4\" fill=\"#B59B78\"/><ellipse cx=\"277\" cy=\"236\" rx=\"5\" ry=\"4\" fill=\"#B59B78\"/><ellipse cx=\"248\" cy=\"226\" rx=\"6\" ry=\"4\" fill=\"#B59B78\"/></g>\n<g class=\"ink\"><path d=\"M165 236 Q170 247 215 247 Q260 245 262 238\" stroke=\"#6E5A40\" stroke-width=\"2\" fill=\"none\"/><path d=\"M175 233 Q215 226 250 234\" stroke=\"#7A6347\" stroke-width=\"1.5\" fill=\"none\"/></g>\n</g>\n\n<who c=\"companion1\"/>\n<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"0.83\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"167\" y=\"244\" s=\"0.55\" lean=\"18\" tilt=\"-8\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"down\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"130\" y=\"246\" s=\"0.83\" near=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1246,
+   "firstStrokeMs": 1246,
+   "out": 735,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,66 @@
+{
+ "portraits": "the Sea-Larks painted from their portrait in this book",
+ "reuse": {
+  "stamps": 12,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 2,
+   "bird": 1,
+   "boat": 2,
+   "notes": 2,
+   "motion": 2,
+   "sparkles": 2,
+   "hull": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hero",
+   "companion1",
+   "larks"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn once each: a second larks, hero, companion1 left out",
+   "layout: larks resized from 0.50 to 0.58, true to the others",
+   "layout: companion1 resized from 0.60 to 0.49, true to the others",
+   "layout: drawn back to front: hero, companion1, larks",
+   "layout: companion1 marked as the tap target",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<boat> <stamp k=\"boat\" x=\"130\" y=\"246\" s=\"1.5\"/>\n<fig c=\"larks\" v=\"three\" x=\"305\" y=\"236\" s=\"0.5\" flip=\"1\" arms=\"cover,cover\" legs=\"sit\" mood=\"laugh\" tilt=\"-12\" look=\"left\"/>\n<fig c=\"companion1\" v=\"front\" x=\"190\" y=\"196\" s=\"0.6\" lean=\"-8\" tilt=\"-10\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"ahead\"/>\n<fig c=\"hero\" v=\"three\" x=\"110\" y=\"190\" s=\"0.85\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"up\"/>\n<stamp k=\"hull\" x=\"130\" y=\"246\" s=\"1.5\"/>\n<stamp k=\"notes\" x=\"160\" y=\"85\" s=\"1.1\"/>\n<stamp k=\"motion\" x=\"205\" y=\"120\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"100\" s=\"0.8\"/>\n\nI need to correct this: the tags above are a rough draft with problems. Final answer follows.\n\n<stamp k=\"boat\" x=\"120\" y=\"246\" s=\"1.5\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"205\" y=\"205\" s=\"0.62\" lean=\"-8\" tilt=\"-10\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"ahead\"/></g>\n<fig c=\"hero\" v=\"three\" x=\"115\" y=\"200\" s=\"0.85\" lean=\"-4\" tilt=\"-8\" arms=\"wave,wave\" legs=\"stand\" mood=\"laugh\" look=\"up\"/>\n<stamp k=\"hull\" x=\"120\" y=\"246\" s=\"1.5\"/>\n<fig c=\"larks\" v=\"three\" x=\"310\" y=\"228\" s=\"0.55\" flip=\"1\" arms=\"cover,cover\" legs=\"sit\" mood=\"laugh\" tilt=\"-12\" look=\"left\"/>\n<stamp k=\"notes\" x=\"150\" y=\"80\" s=\"1.1\"/>\n<stamp k=\"motion\" x=\"235\" y=\"150\" s=\"0.6\"/>\n<stamp k=\"sparkles\" x=\"190\" y=\"140\" s=\"0.8\"/>",
+   "laid": "<boat> \n<stamp k=\"boat\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"110\" y=\"243\" s=\"0.85\" lean=\"-6\" tilt=\"-8\" arms=\"up,up\" legs=\"jump\" mood=\"laugh\" look=\"up\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n\n<stamp k=\"notes\" x=\"160\" y=\"85\" s=\"1.1\"/>\n<stamp k=\"motion\" x=\"205\" y=\"120\" s=\"0.7\"/>\n<stamp k=\"sparkles\" x=\"230\" y=\"100\" s=\"0.8\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"190\" y=\"243\" s=\"0.49\" lean=\"-8\" tilt=\"-10\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"ahead\" flip=\"0\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"130\" y=\"246\" s=\"1.5\" near=\"1\"/>\n<fig c=\"larks\" v=\"three\" x=\"305\" y=\"236\" s=\"0.58\" flip=\"1\" arms=\"cover,cover\" legs=\"sit\" mood=\"laugh\" tilt=\"-12\" look=\"left\" laid=\"1\"/>\n\nI need to correct this: the tags above are a rough draft with problems. Final answer follows.\n\n<stamp k=\"boat\" x=\"120\" y=\"246\" s=\"1.5\"/>\n\n\n\n\n<stamp k=\"notes\" x=\"150\" y=\"80\" s=\"1.1\"/>\n<stamp k=\"motion\" x=\"235\" y=\"150\" s=\"0.6\"/>\n<stamp k=\"sparkles\" x=\"190\" y=\"140\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "larks"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1487,
+   "firstStrokeMs": 1487,
+   "out": 712,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

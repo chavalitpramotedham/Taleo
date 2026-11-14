@@ -1,0 +1,67 @@
+{
+ "portraits": "Sissy painted from their portrait in this book",
+ "reuse": {
+  "stamps": 11,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "boulder": 1,
+   "splash": 1,
+   "boat": 1,
+   "hull": 1,
+   "motion": 1,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "sissy",
+   "hero",
+   "companion1"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.40 to 0.30, true to the others",
+   "layout: hero turned to face the others",
+   "layout: sissy set on its seat",
+   "layout: hero turned towards the main action",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"sissy\"/>\n<stamp k=\"boulder\" x=\"85\" y=\"240\" s=\"2.6\" near=\"1\"/>\n<fig c=\"sissy\" v=\"front\" x=\"85\" y=\"190\" s=\"0.6\" lean=\"6\" tilt=\"-8\" arms=\"point,point\" legs=\"sit\" mood=\"shy\" look=\"right\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<ellipse cx=\"300\" cy=\"222\" rx=\"62\" ry=\"22\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"300\" cy=\"222\" rx=\"46\" ry=\"16\" fill=\"#8FA7B5\"/>\n<ellipse cx=\"300\" cy=\"223\" rx=\"30\" ry=\"10\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"300\" cy=\"224\" rx=\"15\" ry=\"5\" fill=\"#2F4F63\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M242 218 Q270 200 320 203 Q352 208 354 222\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"3\"/>\n<path d=\"M258 230 Q300 245 345 228\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"3\"/>\n<path d=\"M270 220 Q295 208 322 214 Q332 222 318 228\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"2\"/>\n<path d=\"M288 222 Q300 217 310 222\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"2\"/>\n</g>\n</g>\n<stamp k=\"splash\" x=\"255\" y=\"226\" s=\"0.6\"/>\n<stamp k=\"boat\" x=\"205\" y=\"248\" s=\"0.9\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"225\" y=\"240\" s=\"0.5\" lean=\"-6\" arms=\"up,hold\" legs=\"stand\" mood=\"laugh\" look=\"right\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"170\" y=\"236\" s=\"0.4\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"left\"/>\n<stamp k=\"hull\" x=\"205\" y=\"248\" s=\"0.9\"/>\n<stamp k=\"motion\" x=\"150\" y=\"240\" s=\"0.6\"/>\n<stamp k=\"sparkles\" x=\"130\" y=\"130\" s=\"0.7\"/>",
+   "laid": "<who c=\"sissy\"/>\n<stamp k=\"boulder\" x=\"85\" y=\"240\" s=\"2.6\" near=\"1\"/>\n<fig c=\"sissy\" v=\"front\" x=\"85\" y=\"171\" s=\"0.6\" lean=\"6\" tilt=\"-8\" arms=\"point,point\" legs=\"sit\" mood=\"shy\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<ellipse cx=\"300\" cy=\"222\" rx=\"62\" ry=\"22\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"300\" cy=\"222\" rx=\"46\" ry=\"16\" fill=\"#8FA7B5\"/>\n<ellipse cx=\"300\" cy=\"223\" rx=\"30\" ry=\"10\" fill=\"#6F8FAF\"/>\n<ellipse cx=\"300\" cy=\"224\" rx=\"15\" ry=\"5\" fill=\"#2F4F63\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M242 218 Q270 200 320 203 Q352 208 354 222\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"3\"/>\n<path d=\"M258 230 Q300 245 345 228\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"3\"/>\n<path d=\"M270 220 Q295 208 322 214 Q332 222 318 228\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"2\"/>\n<path d=\"M288 222 Q300 217 310 222\" fill=\"none\" stroke=\"#F4F1E6\" stroke-width=\"2\"/>\n</g>\n</g>\n<stamp k=\"splash\" x=\"255\" y=\"226\" s=\"0.6\"/>\n\n<who c=\"hero\"/>\n<stamp k=\"boat\" x=\"205\" y=\"248\" s=\"0.9\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"225\" y=\"246\" s=\"0.5\" lean=\"-6\" arms=\"up,hold\" legs=\"stand\" mood=\"laugh\" look=\"right\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"170\" y=\"246\" s=\"0.30\" arms=\"down,down\" legs=\"stand\" mood=\"surprised\" look=\"left\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"205\" y=\"248\" s=\"0.9\" near=\"1\"/>\n\n<stamp k=\"motion\" x=\"150\" y=\"240\" s=\"0.6\"/>\n<stamp k=\"sparkles\" x=\"130\" y=\"130\" s=\"0.7\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "sissy"
+  ],
+  "full": [],
+  "readyMs": 5
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1494,
+   "firstStrokeMs": 1494,
+   "out": 773,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
