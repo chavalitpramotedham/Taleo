@@ -4,6 +4,28 @@ import type { Story } from "./types";
 import { castFor, pageKey } from "./story-utils";
 import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
 
+/** Once the page is in sight again (at once if it is), and the network
+ *  has had a moment to come back. */
+function whenVisible(): Promise<void> {
+  return new Promise((r) => {
+    const go = () => window.setTimeout(r, 400);
+    if (!document.hidden) return go();
+    const on = () => {
+      if (document.hidden) return;
+      document.removeEventListener("visibilitychange", on);
+      go();
+    };
+    document.addEventListener("visibilitychange", on);
+  });
+}
+
+/** A short key for a page's words: a painting job is for these words. */
+export function textKey(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = (h * 33) ^ text.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
 /** How many shapes a picture's markup holds so far. */
 const countShapes = (svg: string) => (svg.match(/<(path|rect|circle|ellipse|polygon|polyline|line)\b/g) || []).length;
 
@@ -48,6 +70,8 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
   // Leaving the story cancels paintings still in progress: their result
   // could no longer be saved, and cancelling stops the paid work at once.
   const retried = useRef(new Set<string>());
+  /** Paintings cut off by the page going away, and picked up again. */
+  const drops = useRef(new Map<string, number>());
   const life = useRef<AbortController | null>(null);
   /** When each unpainted page was first seen waiting, so the server's log
    *  can say how long a picture queued here before it was even asked for. */
@@ -81,6 +105,14 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         watchdog = setTimeout(() => attempt.abort(), STALL_MS);
       };
       const again = retried.current.has(key);
+      // (the page was out of sight - phone locked, another app - at some
+      // point while this painting came: a dropped connection then is no
+      // failure, the painting carries on at the server - see below)
+      let away = typeof document !== "undefined" && document.hidden;
+      const onVis = () => {
+        if (document.hidden) away = true;
+      };
+      document.addEventListener("visibilitychange", onVis);
       const prev = idx > 0 ? s.segments[seg].pages[idx - 1] : s.segments[seg - 1]?.pages.slice(-1)[0];
       let text = "";
       let last = 0;
@@ -115,6 +147,12 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             // (proof that this page is the storyteller's own writing)
             sig: page.sig,
             storyId: s.id,
+            // This painting as a job of its own at the server: if the
+            // connection drops (the phone locks, another app), it carries on
+            // there, and asking again with the same id picks it up -
+            // everything painted so far, then the rest - instead of
+            // painting (and paying for) it twice.
+            jobId: `${s.id}-${seg}-${idx}-${textKey(page.text)}${again ? "-r" : ""}`,
             // (where the page is set, and how close: for painting the place
             // once and reusing it, and sizing the characters - see
             // StoryPlace)
@@ -164,6 +202,17 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
         }));
       } catch {
         if (signal?.aborted) return; // left the story
+        // Cut off while the page was away (or it went away just now): not a
+        // failure. Once the page is back, the same painting is asked for
+        // again and picked up where it is - without using the second go.
+        const dropped = !refused && !text.includes("<!--taleo:error-->") && (away || document.hidden);
+        const n = drops.current.get(key) ?? 0;
+        if (dropped && n < 8) {
+          drops.current.set(key, n + 1);
+          await whenVisible();
+          if (signal?.aborted) return;
+          return;
+        }
         // A painting that slips (a dropped connection, a painter cut off
         // mid-stroke) gets one quiet second go after a breath, so the
         // reader rarely has to ask; after that it's "Paint this page again".
@@ -176,6 +225,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           setFailed((f) => ({ ...f, [key]: true }));
         }
       } finally {
+        document.removeEventListener("visibilitychange", onVis);
         clearTimeout(watchdog);
         signal?.removeEventListener("abort", leave);
         inflight.current.delete(key);

@@ -16,6 +16,7 @@ import type { ReuseSettings } from "@/lib/types";
 import { saveBenchResult } from "@/server/bench";
 import { BENCH_WAYS as CURRENT_WAYS, variantOf, type BenchSlot, SLOT_RE } from "@/lib/bench-ways";
 import { partsInFlight } from "@/server/paint/parts-maker";
+import { jobOf, resumeStreamJob, validStreamJobId } from "@/server/stream-jobs";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -26,8 +27,18 @@ export const maxDuration = 300;
  *   <!--taleo:done-->  or  <!--taleo:error-->
  */
 export async function POST(req: Request) {
-  const parsed = parseIllustrateRequest(await req.json().catch(() => null));
+  const raw = (await req.json().catch(() => null)) as { jobId?: unknown } | null;
+  const parsed = parseIllustrateRequest(raw);
   if (!parsed) return NextResponse.json({ error: "Nothing to paint." }, { status: 400 });
+  // A reader's page is painted as a job of its own (see server/stream-jobs):
+  // asked for again - back after the phone locked, the connection dropped -
+  // it's picked up where it is, not painted (and paid for) again.
+  const jobId = validStreamJobId(raw?.jobId) ? raw.jobId : null;
+  if (jobId) {
+    const me = (await auth())?.user?.id;
+    const again = me ? await resumeStreamJob("painting", me, jobId) : null;
+    if (again) return new Response(again, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no", "x-taleo-resumed": "1" } });
+  }
   // (for the activity log: which of the ways below let the page through)
   let allowedAs: string | null = null;
   // The admin's comparison bench (/admin/lab) paints the same page the
@@ -118,7 +129,10 @@ export async function POST(req: Request) {
   const benchRun = benched ? (req.headers.get("x-taleo-bench-run") ?? "") : "";
   const benchSaves = /^[\w-]{3,80}$/.test(benchRun) && SLOT_RE.test(lab ?? "");
   const stop = new AbortController();
-  if (!benchSaves) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
+  // (a reader's page with a job carries on whatever the page does - see
+  // above: its painting is wanted when they come back)
+  const carriesOn = benchSaves || Boolean(jobId);
+  if (!carriesOn) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   let firstSent = 0;
   let finished = 0;
   const began = Date.now();
@@ -130,7 +144,7 @@ export async function POST(req: Request) {
   let fellBack: string | undefined;
   const body = withMetricsUser(g.session.user.id, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
-      if (!benchSaves) stop.abort();
+      if (!carriesOn) stop.abort();
     },
     async start(controller) {
       const send = (s: string) => {
@@ -209,7 +223,8 @@ export async function POST(req: Request) {
     }),
   );
 
-  return new Response(body, {
+  const out = jobId && !benched ? jobOf("painting", g.session.user.id, jobId, body, (t) => t.includes("<!--taleo:error-->") || !t.includes("<!--taleo:done-->")) : body;
+  return new Response(out, {
     headers: {
       "content-type": "text/plain; charset=utf-8",
       "cache-control": "no-store",

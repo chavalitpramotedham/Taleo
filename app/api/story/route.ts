@@ -13,6 +13,7 @@ import type { CharacterDef, Page, StoryPlace } from "@/lib/types";
 import { count, withMetricsUser } from "@/server/metrics";
 import { beginGen, logDenied } from "@/server/genlog";
 import { BUSY_ELSEWHERE, busyElsewhere, claimStorySession, deviceOf } from "@/server/story-session";
+import { jobOf, resumeStreamJob, validStreamJobId } from "@/server/stream-jobs";
 
 export const runtime = "nodejs";
 // (5 minutes: a story's places and new characters are readied after its
@@ -77,6 +78,15 @@ export async function POST(req: Request) {
   const raw = (await req.json().catch(() => null)) as { ticket?: unknown } | null;
   const parsed = parseStoryRequest(raw);
   if (!parsed) return NextResponse.json({ error: "That story request looks incomplete." }, { status: 400 });
+  // A part being written is a job of its own (see server/stream-jobs):
+  // asked for again - back after the phone locked, the connection dropped -
+  // it's picked up where it is (nothing counted or paid twice).
+  const jobId = validStreamJobId((raw as { jobId?: unknown } | null)?.jobId) ? (raw as { jobId: string }).jobId : null;
+  if (jobId) {
+    const me = (await auth())?.user?.id;
+    const again = me ? await resumeStreamJob("story", me, jobId) : null;
+    if (again) return new Response(again, { headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no", "x-taleo-resumed": "1" } });
+  }
 
   // A story counts toward the plan at its first choice, not when it's
   // begun (see server/limits):
@@ -164,17 +174,18 @@ export async function POST(req: Request) {
   // page is ready (so the reader can start on page 1 while the rest is
   // still being written), then {type:"done"} with the finished segment, or
   // {type:"error"}.
-  // If the reader leaves (closes the tab, moves to another page), stop the
-  // model straight away: nobody will receive the rest, so finishing it
-  // would only spend tokens on a result that's thrown away.
+  // Asked for without a job, if the reader leaves (closes the tab, moves to
+  // another page) the model stops straight away: nobody would receive the
+  // rest. With one (the reader's app always sends one), it carries on.
   const stop = new AbortController();
   // (new characters readied for reuse while the pages are read: see below)
   const readying: Promise<unknown>[] = [];
-  req.signal.addEventListener("abort", () => stop.abort(), { once: true });
+  // (a part with a job carries on whatever the page does - see above)
+  if (!jobId) req.signal.addEventListener("abort", () => stop.abort(), { once: true });
   const encoder = new TextEncoder();
   const body = withMetricsUser(userId, () => gen.run(() => new ReadableStream<Uint8Array>({
     cancel() {
-      stop.abort();
+      if (!jobId) stop.abort();
     },
     async start(controller) {
       const made: { v: { summary: string; result: string; cases: string[] } | null; ticket?: string | null } = { v: null };
@@ -303,7 +314,8 @@ export async function POST(req: Request) {
   // (and any new characters being readied for reuse, finished after the
   // reader has their pages)
   after(() => gen.done.then(() => Promise.allSettled(readying)));
-  return new Response(body, {
+  const out = jobId ? jobOf("story", userId, jobId, body, (t) => t.includes('"type":"error"') || !t.includes('"type":"done"')) : body;
+  return new Response(out, {
     headers: { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
   });
 }

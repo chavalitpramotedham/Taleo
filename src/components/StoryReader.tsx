@@ -317,12 +317,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         pages.map((p, i) => ({ ...p, svg: prev?.pages[i]?.text === p.text ? (prev.pages[i].svg ?? null) : (p.svg ?? null) }));
       let shown = false;
       const signal = life.current?.signal;
+      // This part as a job of its own at the server (see server/stream-jobs):
+      // if the connection drops while it's written - the phone locks, the
+      // reader switches apps - it carries on there, and asking again picks
+      // it up where it is.
+      const jobId = `${s.id}-part${base}`;
+      let away = document.hidden;
+      const onVis = () => {
+        if (document.hidden) away = true;
+      };
+      document.addEventListener("visibilitychange", onVis);
+      for (let tries = 0; ; tries++) {
       try {
         const res = await fetch("/api/story", {
           signal,
           method: "POST",
           headers: { "content-type": "application/json", ...deviceHeader() },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...body, jobId }),
         });
         if (!res.ok || !res.body) {
           const data = (await res.json().catch(() => ({}))) as { error?: string; limited?: string; plan?: string };
@@ -339,7 +350,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         let buffer = "";
         let finished = false;
         const handle = (event: { type: string } & Record<string, unknown>) => {
-          if (event.type === "error") throw new Error((event.error as string) || "The story got stuck. Let's try again!");
+          if (event.type === "error") throw new StoryAnswer((event.error as string) || "The story got stuck. Let's try again!");
           if (event.type === "title") {
             const title = event.title as string;
             update?.((cur) => (cur.title ? cur : { ...cur, title }));
@@ -394,15 +405,27 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           if (done) break;
         }
         if (!finished) throw new Error("The story got stuck. Let's try again!");
+        break;
       } catch (e) {
+        if (signal?.aborted) break; // cancelled because the reader closed
+        // Cut off while the page was away (or it went away just now): the
+        // part carries on at the server - once the page is back, it's asked
+        // for again and picked up where it is.
+        if (!(e instanceof StoryAnswer) && (away || document.hidden) && tries < 8) {
+          await whenBack();
+          away = document.hidden;
+          if (signal?.aborted) break;
+          continue;
+        }
         // Never leave a half-written part behind: roll it back so "try
         // again" writes it afresh.
         if (shown) update?.((cur) => ({ ...cur, cast: baseCast, segments: cur.segments.slice(0, base) }));
-        if (signal?.aborted) return; // cancelled because the reader closed
         setError(e instanceof Error ? e.message : "Something went wrong.");
-      } finally {
-        if (!signal?.aborted) setBusy(false);
+        break;
       }
+      }
+      document.removeEventListener("visibilitychange", onVis);
+      if (!signal?.aborted) setBusy(false);
     },
     [update],
   );
@@ -1426,6 +1449,24 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 /** The page's tappable moment, in the form the painting needs. */
 /** What's under the brush on this page, from the picture so far: the
  *  page's own character or thing by name, and who else is on it. */
+/** What the storyteller itself said went wrong (not a dropped connection). */
+class StoryAnswer extends Error {}
+
+/** Once the page is in sight again (at once if it is), and the network
+ *  has had a moment to come back. */
+function whenBack(): Promise<void> {
+  return new Promise((r) => {
+    const go = () => window.setTimeout(r, 500);
+    if (!document.hidden) return go();
+    const on = () => {
+      if (document.hidden) return;
+      document.removeEventListener("visibilitychange", on);
+      go();
+    };
+    document.addEventListener("visibilitychange", on);
+  });
+}
+
 /** Says when a page's picture has been drawn: two frames after it is put
  *  on the page (the first frame draws it, unseen), so the page can fade in
  *  whole rather than its picture popping in after its words. */
