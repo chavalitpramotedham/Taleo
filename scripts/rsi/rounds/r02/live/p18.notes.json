@@ -1,0 +1,63 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "bed": 2,
+   "lamp": 1,
+   "table": 1,
+   "sparkles": 1,
+   "zzz": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "hero",
+   "argos",
+   "gran"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: argos resized from 0.80 to 0.92, true to the others",
+   "layout: gran resized from 1.30 to 1.41, true to the others",
+   "layout: argos and gran overlapped: eased apart",
+   "layout: drawn back to front: companion1, lamp, hero, argos, gran",
+   "hero overlapped another character: eased to x 133",
+   "argos overlapped another character: eased to x 277",
+   "gran overlapped another character: eased to x 241"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 9
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1626,
+   "firstStrokeMs": 1626,
+   "out": 446,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

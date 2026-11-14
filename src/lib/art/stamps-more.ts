@@ -172,9 +172,20 @@ function shell(r: R, p: Palette): Piece {
 function sandcastle(r: R, p: Palette): Piece {
   return P(`<path d="M-22 0V-18H-14V-24H-8V-18H8V-24H14V-18H22V0Z" fill="#E3CFA4"/><rect x="-6" y="-36" width="12" height="18" fill="#DCC394"/><path d="M0 -36v-12l8 4l-8 4" fill="${pick(r, [p.bloom1, p.fabric2])}"/>`, `<path d="M-22 0V-18H-14V-24H-8V-18H8V-24H14V-18H22V0M-6 -18V-36H6V-18M0 -48v12"/>`);
 }
-function boat(r: R, p: Palette): Piece {
-  const c = pick(r, [p.fabric1, p.fabric2, "#E9DFC6"]);
-  return P(`<path d="M-30 -10L30 -10L22 0L-22 0Z" fill="${c}"/><path d="M2 -12L2 -50L26 -14Z" fill="#F4EFE4"/>`, `<path d="M-30 -10L30 -10L22 0L-22 0ZM2 -10V-52"/>`);
+/** A boat big enough to ride in: the same boat on every page (no seed),
+ *  so a story's boat stays itself (lesson 17). Its 0,0 is the waterline,
+ *  its gunwale at y -20; riders stand in it with their feet at about
+ *  y - 6*s, and "hull" - its near side - goes over them. */
+const HULL = "M-62 -20L62 -20Q58 -2 42 2L-42 2Q-58 -2 -62 -20Z";
+function boat(_r: R, p: Palette): Piece {
+  return P(
+    `<ellipse cx="0" cy="3" rx="66" ry="5" fill="${p.water}" opacity="0.5"/><path d="M-60 -20Q0 -27 60 -20Q0 -15 -60 -20Z" fill="#8C6A48"/><rect x="3" y="-112" width="5" height="94" fill="#7A5A3C"/><path d="M11 -106L11 -26L58 -30Z" fill="#F1E6CC"/><rect x="26" y="-62" width="11" height="9" fill="#E3CFA4"/><path d="${HULL}" fill="#D6A866"/><path d="M-60 -14L60 -14L58 -9L-58 -9Z" fill="#B2443A"/>`,
+    `<path d="${HULL}M5 -112V-20M11 -106L58 -30H11"/>`,
+  );
+}
+/** A boat's near side, alone: written after the riders so they are in it. */
+function hull(_r: R, _p: Palette): Piece {
+  return P(`<path d="${HULL}" fill="#D6A866"/><path d="M-60 -14L60 -14L58 -9L-58 -9Z" fill="#B2443A"/>`, `<path d="${HULL}"/>`);
 }
 function snowman(r: R, p: Palette): Piece {
   return P(`${ground(20)}<circle cx="0" cy="-16" r="17" fill="${p.snow}"/><circle cx="0" cy="-42" r="12" fill="${p.snow}"/><path d="M-11 -50h22l-2 -12h-18Z" fill="${pick(r, [p.woodDark, "#3A3A3A"])}"/><path d="M0 -40l9 2l-9 2Z" fill="#D99447"/><path d="M-10 -32h20" stroke="${p.fabric1}" stroke-width="4"/>`, `<circle cx="0" cy="-16" r="17"/><circle cx="0" cy="-42" r="12"/>`, `<circle cx="-4" cy="-45" r="1.4" fill="#2A1E15"/><circle cx="4" cy="-45" r="1.4" fill="#2A1E15"/>`);
@@ -339,7 +350,8 @@ export const MORE_STAMPS: Record<string, StampKind> = {
   flowerpot: K("a pot of flowers", "26x40", "ground", false, flowerpot),
   shell: K("a sea shell", "14x12", "ground", false, shell),
   sandcastle: K("a sandcastle with a flag", "44x48", "ground", false, sandcastle),
-  boat: K("a little sailing boat", "60x52", "ground", true, boat),
+  boat: K("a wooden sailing boat big enough to ride in (at s 1 it holds two small characters; the same boat on every page)", "124x116", "ground", true, boat),
+  hull: K("a boat's near side alone - written AFTER the riders, same x, y and s as their boat, so they sit IN it", "124x24", "ground", true, hull),
   snowman: K("a snowman with a hat and scarf", "40x62", "ground", false, snowman),
   fireplace: K("a fireplace with a crackling fire (indoors)", "84x76", "ground", true, fireplace),
   armchair: K("a soft armchair (indoors)", "72x56", "ground", true, armchair),

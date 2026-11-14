@@ -1,0 +1,61 @@
+{
+ "portraits": "Sissy painted from their portrait in this book",
+ "reuse": {
+  "stamps": 9,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 0,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "boat": 1,
+   "hull": 1,
+   "sparkles": 1,
+   "splash": 2,
+   "motion": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hero",
+   "companion1",
+   "sissy"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: hero resized from 0.60 to 0.65, true to the others",
+   "layout: companion1 and hero overlapped: eased apart",
+   "layout: hero turned to face the others",
+   "layout: drawn back to front: hero, companion1, sissy",
+   "layout: hero, companion1 put in the boat"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "sissy"
+  ],
+  "full": [],
+  "readyMs": 9
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1589,
+   "firstStrokeMs": 1589,
+   "out": 394,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

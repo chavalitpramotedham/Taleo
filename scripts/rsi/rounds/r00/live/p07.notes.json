@@ -1,0 +1,71 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 6,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "scatter:stars": 1,
+   "scatter:grass": 1,
+   "sparkles": 2,
+   "splash": 4
+  },
+  "figs": 7,
+  "torsos": 7,
+  "heads": 7,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 7,
+  "fixes": [
+   "layout: companion1 resized from 0.30 to 0.40, true to the others",
+   "layout: companion1 resized from 0.30 to 0.40, true to the others",
+   "layout: polly and polly overlapped: eased apart",
+   "layout: polly and polly overlapped: eased apart",
+   "layout: polly and hero overlapped: eased apart",
+   "layout: hero and hero overlapped: eased apart",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: companion1 and companion1 overlapped: eased apart",
+   "layout: the group moved 29 so polly, the main action, is well in frame",
+   "layout: polly was inside something drawn: moved to its edge",
+   "layout: hero was inside something drawn: moved to its edge",
+   "layout: polly was inside something drawn: moved to its edge",
+   "layout: hero was inside something drawn: moved to its edge",
+   "layout: drawn back to front: companion1, companion1, something drawn, something drawn, something drawn, something drawn, polly, polly, polly, hero, hero, something drawn",
+   "polly overlapped another character: eased to x 140",
+   "polly overlapped another character: eased to x 190",
+   "hero overlapped another character: eased to x 261",
+   "hero overlapped another character: eased to x 327"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1303,
+   "firstStrokeMs": 1303,
+   "out": 1586,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

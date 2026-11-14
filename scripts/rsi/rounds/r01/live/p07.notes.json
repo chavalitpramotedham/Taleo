@@ -1,0 +1,57 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "scatter:stars": 1,
+   "splash": 1,
+   "sparkles": 1,
+   "boat": 1,
+   "hull": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.61 to 1.15, true to the others",
+   "layout: drawn back to front: companion1, something drawn, polly, hero, something drawn",
+   "layout: hero put in the boat"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 25
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1777,
+   "firstStrokeMs": 1777,
+   "out": 660,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

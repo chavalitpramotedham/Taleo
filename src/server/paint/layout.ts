@@ -30,6 +30,40 @@ export interface LayoutOptions {
   /** the page's tap target when it's a thing, not a character ("kite",
    *  "the pumpkin"): made sure of (lesson 16) */
   targetThing?: string | null;
+  /** the hero's id: never hidden behind anyone (lesson 17) */
+  heroId?: string | null;
+}
+
+/** The biggest a character standing with its feet at y can be and keep its
+ *  face in the picture (it stands about 170*s tall). */
+const fitS = (y: number) => Math.max(0.3, (y - 18) / 170);
+
+/** Each character once: the composer sometimes writes a character's tag
+ *  two or three times (a giant drawn three times over). A group (the
+ *  Sea-Larks) is one character too: its one tag draws all of them. */
+function oncePerCharacter(markup: string, opts: LayoutOptions, notes: string[]): string {
+  const seen = new Set<string>();
+
+  const drop: { at: number; len: number; id: string }[] = [];
+  for (const m of markup.matchAll(CHAR_TAG)) {
+    if (!m[0].trim().endsWith("/>")) continue;
+    const id = attr(m[0], "c") ?? attr(m[0], "id") ?? "";
+    if (!id) continue;
+    if (seen.has(id)) drop.push({ at: m.index!, len: m[0].length, id });
+    seen.add(id);
+  }
+  CHAR_TAG.lastIndex = 0;
+  let out = markup;
+  for (const d of drop.sort((a, b) => b.at - a.at)) {
+    // (and the target group it was wrapped in, if that's all it held)
+    const before = out.slice(0, d.at);
+    const after = out.slice(d.at + d.len);
+    const wrapped = /<g\s+class="target"\s*>\s*$/.exec(before);
+    if (wrapped && /^\s*<\/g>/.test(after)) out = before.slice(0, wrapped.index) + after.replace(/^\s*<\/g>/, "");
+    else out = before + after;
+  }
+  if (drop.length) notes.push(`drawn once each: a second ${[...new Set(drop.map((d) => d.id))].join(", ")} left out`);
+  return out;
 }
 
 /** Whether two characters stand at truly different depths: the further
@@ -189,7 +223,7 @@ function byDepth(markup: string, notes: string[]): string {
   const items = itemsOf(markup);
   const chars = items.filter((i) => i.kind === "char");
   if (!chars.length) return markup;
-  const near = (i: Item) => i.kind === "piece" && /\bnear\s*=\s*"(?:1|true)"/i.test(i.tag ?? "");
+  const near = (i: Item) => i.kind === "piece" && (/\bnear\s*=\s*"(?:1|true)"/i.test(i.tag ?? "") || RIDDEN.test(attr(i.tag ?? "", "k") ?? ""));
   // Which items make up each unit, as index ranges; the rest stay put.
   const units: { from: number; to: number; unit: Unit }[] = [];
   const taken = new Set<number>();
@@ -203,6 +237,16 @@ function byDepth(markup: string, notes: string[]): string {
     for (let j = ci + 1; j < items.length && j !== nextChar; j++) {
       const it = items[j];
       if (it.kind === "other" && !it.text.trim()) continue;
+      // (a small thing drawn just after it - the feather in its hand - goes
+      // with it, in front: lesson 17)
+      if (it.kind === "drawn") {
+        const e = extentOf(it.text);
+        if (e && Math.max(e.x1 - e.x0, e.y1 - e.y0) < 80) {
+          to = j;
+          continue;
+        }
+        break;
+      }
       if (it.kind !== "piece") break;
       const ext = pieceExtent(it.tag!);
       // (a near piece closer to the next character is that one's seat)
@@ -232,7 +276,19 @@ function byDepth(markup: string, notes: string[]): string {
       const text = items.slice(i, to + 1).map((x) => x.text).join("");
       const ext = extentOf(text);
       for (let j = i; j <= to; j++) taken.add(j);
-      if (ext) units.push({ from: i, to, unit: { text: "", y: ext.y1, s: 0, id: "something drawn", thing: true, box: ext } });
+      // (something small drawn over a character's body - held, worn, shown -
+      // is just in front of that character, wherever it was written)
+      let depth = ext?.y1 ?? 0;
+      if (ext && Math.max(ext.x1 - ext.x0, ext.y1 - ext.y0) < 80) {
+        const cx = (ext.x0 + ext.x1) / 2;
+        const cy = (ext.y0 + ext.y1) / 2;
+        const holder = chars
+          .map((c) => ({ x: Number(attr(c.tag!, "x")) || 200, y: Number(attr(c.tag!, "y")) || 246, s: Number(attr(c.tag!, "s")) || 0.6 }))
+          .filter((c) => Math.abs(cx - c.x) < 70 * c.s && cy < c.y && cy > c.y - 190 * c.s)
+          .sort((a, b) => b.y - a.y)[0];
+        if (holder) depth = holder.y + 16;
+      }
+      if (ext) units.push({ from: i, to, unit: { text: "", y: depth, s: 0, id: "something drawn", thing: true, box: ext } });
       i = to;
     }
   }
@@ -342,8 +398,90 @@ function writeSizes(markup: string, placed: { start: number; end: number; tag: s
   return out;
 }
 
+/** What characters ride in: never something they're moved out of. */
+const RIDDEN = /^(boat|hull)$/i;
+
+/** Riders in a boat (lesson 17): everyone standing on the boat - over its
+ *  deck, near its waterline - is put IN it: feet just inside the gunwale,
+ *  the boat drawn before them and its near side ("hull") after them, so
+ *  the hull hides their legs. A boat given riders but no hull gets one. */
+function inTheBoat(markup: string, notes: string[]): string {
+  const boatTag = /<stamp\b[^>]*\bk\s*=\s*"boat"[^>]*\/>/i.exec(markup);
+  if (!boatTag) return markup;
+  const bx = Number(attr(boatTag[0], "x")) || 200;
+  const by = Number(attr(boatTag[0], "y")) || 246;
+  let bs = Number(attr(boatTag[0], "s")) || 1;
+  let out = markup.replace(boatTag[0], "").replace(/<stamp\b[^>]*\bk\s*=\s*"hull"[^>]*\/>/gi, "");
+  // each character's span: its tag, with the target group round it if any
+  type Span = { from: number; to: number; tag: string };
+  const spans: Span[] = [];
+  for (const m of out.matchAll(CHAR_TAG)) {
+    if (!m[0].trim().endsWith("/>")) continue;
+    let from = m.index!;
+    let to = from + m[0].length;
+    const before = /<g\s+class="target"\s*>\s*$/.exec(out.slice(0, from));
+    const after = /^\s*<\/g>/.exec(out.slice(to));
+    if (before && after) (from = before.index), (to += after[0].length);
+    spans.push({ from, to, tag: m[0] });
+  }
+  CHAR_TAG.lastIndex = 0;
+  const near = (tag: string, h: number) => {
+    const x = Number(attr(tag, "x"));
+    const y = Number(attr(tag, "y"));
+    return Math.abs(x - bx) < h + 30 && y > by - 50 * bs && y < by + 40;
+  };
+  const riders = spans.filter((sp) => near(sp.tag, 62 * bs));
+  // (big enough for its riders: a close-up's child doesn't dwarf the boat)
+  const biggest = Math.max(0, ...riders.map((r) => Number(attr(r.tag, "s")) || 0.6));
+  if (riders.length && bs < biggest * 1.5) {
+    notes.push(`the boat made big enough for its riders (s ${bs} to ${(biggest * 1.5).toFixed(2)})`);
+    bs = Math.min(3, Math.round(biggest * 150) / 100);
+  }
+  const half = 62 * bs;
+  const boat = `<stamp k="boat" x="${bx}" y="${by}" s="${bs}" near="1"/>`;
+  const aboard = (y: number) => y > by - 20 * bs && y <= by + 2;
+  if (!riders.length) return out.slice(0, spans[0]?.from ?? out.length) + boat + out.slice(spans[0]?.from ?? out.length);
+  // (feet just inside the gunwale, inside its length)
+  for (const r of [...riders].reverse()) {
+    const sit = /\bsit\b/i.test(`${attr(r.tag, "legs") ?? ""} ${attr(r.tag, "pose") ?? ""}`);
+    const x = Math.max(bx - half + 14, Math.min(bx + half - 14, Number(attr(r.tag, "x"))));
+    // (feet below the gunwale: the hull hides the legs, so they're IN it)
+    const tag = setAttr(setAttr(setAttr(r.tag, "y", String(Math.round(by - (sit ? 8 : 2) * bs))), "x", String(Math.round(x))), "ride", "1");
+    const text = out.slice(r.from, r.to).replace(r.tag, tag);
+    // (last first, so the earlier spans stay where they were)
+    out = out.slice(0, r.from) + text + out.slice(r.to);
+  }
+  // (recomputed after the edits: the first and last rider's spans)
+  const fresh = (): Span[] => {
+    const list: Span[] = [];
+    for (const m of out.matchAll(CHAR_TAG)) {
+      if (!m[0].trim().endsWith("/>")) continue;
+      const x = Number(attr(m[0], "x"));
+      const y = Number(attr(m[0], "y"));
+      if (!(attr(m[0], "ride") === "1" && Math.abs(x - bx) < half && aboard(y))) continue;
+      let from = m.index!;
+      let to = from + m[0].length;
+      const before = /<g\s+class="target"\s*>\s*$/.exec(out.slice(0, from));
+      const after = /^\s*<\/g>/.exec(out.slice(to));
+      if (before && after) (from = before.index), (to += after[0].length);
+      list.push({ from, to, tag: m[0] });
+    }
+    CHAR_TAG.lastIndex = 0;
+    return list;
+  };
+  const rs = fresh();
+  const first = rs[0];
+  const last = rs[rs.length - 1];
+  const hull = `<stamp k="hull" x="${bx}" y="${by}" s="${bs}" near="1"/>`;
+  out = out.slice(0, last.to) + hull + out.slice(last.to);
+  out = out.slice(0, first.from) + boat + out.slice(first.from);
+  notes.push(`${rs.map((r) => attr(r.tag, "c") ?? attr(r.tag, "id")).join(", ")} put in the boat`);
+  return out;
+}
+
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
+  markup = oncePerCharacter(markup, opts, notes);
   const placed: Placed[] = [];
   for (const m of markup.matchAll(CHAR_TAG)) {
     const tag = m[0];
@@ -378,8 +516,11 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   // within that, so a nearer one can still be a little bigger.
   if (opts.usualS)
     for (const p of placed) {
-      const want = opts.usualS * (opts.sizeOf?.[p.id] ?? 1);
-      const kept = Math.min(want * 1.2, Math.max(want * 0.8, p.s));
+      const share = opts.sizeOf?.[p.id] ?? 1;
+      // (a big one - a giant - as big as the picture allows, face in it)
+      const cap = share > 1 ? fitS(p.y) : Infinity;
+      const want = Math.min(cap, opts.usualS * share);
+      const kept = share > 1 ? Math.min(cap, Math.max(want * 0.9, p.s)) : Math.min(want * 1.2, Math.max(want * 0.8, p.s));
       if (Math.abs(kept - p.s) > 0.01) {
         notes.push(`${p.id} resized from ${p.s.toFixed(2)} to ${kept.toFixed(2)}, true to the others`);
         p.s = kept;
@@ -547,5 +688,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       }
     }
   }
+  out = inTheBoat(out, notes);
   return { markup: out, notes };
 }

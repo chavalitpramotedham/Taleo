@@ -1,0 +1,54 @@
+{
+ "portraits": "the Sea-Larks painted from their portrait in this book",
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "bird": 3,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "sparkles": 2,
+   "ticks": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "larks",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: something drawn, larks, hero"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "larks"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1679,
+   "firstStrokeMs": 1679,
+   "out": 444,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

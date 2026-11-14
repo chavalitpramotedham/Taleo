@@ -22,7 +22,7 @@ import { PHOTO_PROBLEM } from "@/lib/character-photo";
 import { layoutComposed, type LayoutOptions } from "./paint/layout";
 import { keepNewcomer, newcomerPortrait, sawNewcomerAgain } from "./paint/newcomers";
 import { expandStream, newStats, sizeLine, type ExpandStats, sizingFor, type Box, type ExpandContext } from "./paint/expand";
-import { hashOf } from "@/lib/art/stamps";
+import { hashOf, STAMPS } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/art/palette";
 import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
@@ -760,6 +760,17 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
  *  so it is layered whenever those are (both hands the quick model, which
  *  paints without thinking first). A page with nobody and nothing on its
  *  stage is always one painter. */
+/** A target that's a thing with no standard piece: the composer must draw
+ *  it (the app can't add what isn't in the library - lesson 17). */
+function targetDrawn(req: IllustrateRequest): string {
+  const t = req.page.action?.target;
+  if (!t || req.cast.some((c) => c.id === t)) return "";
+  const norm = (k: string) => k.toLowerCase().replace(/^(the|a|an)\s+/, "").replace(/[\s_-]+/g, "");
+  const w = norm(t);
+  if (Object.keys(STAMPS).some((k) => norm(k) === w || norm(k) === w.replace(/s$/, ""))) return "";
+  return ` There is no standard piece for "${t}": DRAW IT YOURSELF inside the target group (5-12 shapes, its colours from the brief, big enough to tap - at least 30 across), exactly where the brief puts it. It MUST be in the picture.`;
+}
+
 export function paintsInLayers(req: IllustrateRequest): boolean {
   // (every page unless narrowed with "1" or switched off with "0")
   const mode = process.env.TALEO_LAYERED_PAINT || "all";
@@ -839,13 +850,43 @@ export function relativeSize(c: Pick<CharacterDef, "name" | "look">): string | n
   if (/\b(goose|duck|hen|chicken|puppy|tortoise|otter|badger|seal pup|lamb)\b/.test(t)) return "a little smaller than a grown character (about three quarters of the height)";
   return null;
 }
-/** A character's size against a grown one, as a number (see relativeSize). */
-function sizeShare(c: Pick<CharacterDef, "name" | "look">): number {
+/** A character's size against a grown one, as a number (see relativeSize).
+ *  A size the model sheet states outright wins ("about five times Ody's
+ *  height", "as tall as Ody's waist", "each about as big as Hoot"): a giant
+ *  drawn child-sized loses the whole story (lesson 17). */
+export function sizeShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<CharacterDef, "id" | "name" | "look">[] = [], depth = 0): number {
+  const stated = statedShare(c, cast, depth);
+  if (stated !== null) return stated;
   const r = relativeSize(c);
   return !r ? 1 : r.startsWith("TINY") ? 0.15 : r.startsWith("SMALL") ? 0.67 : 0.75;
 }
-const withSize = (c: CharacterDef, sheet: string) => {
+const NUMBER_WORDS: Record<string, number> = { half: 0.5, "one and a half": 1.5, twice: 2, two: 2, "two and a half": 2.5, three: 3, four: 4, five: 5, six: 6, ten: 10 };
+function statedShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<CharacterDef, "id" | "name" | "look">[], depth: number): number | null {
+  const look = c.look ?? "";
+  const named = (who: string) => cast.find((o) => o.name.toLowerCase() === who.toLowerCase() || o.id === who.toLowerCase());
+  // (against whom: the hero is the yardstick - 1 - and anyone else named is
+  // looked up, once)
+  const of = (who: string) => {
+    const o = named(who);
+    if (!o || o === c || o.id === "hero") return 1;
+    return depth > 0 ? 1 : sizeShare(o, cast, depth + 1);
+  };
+  const times = look.match(/\babout\s+(half|one and a half|twice|two and a half|two|three|four|five|six|ten|\d+(?:\.\d+)?)\s*(?:times\s+)?(?:as tall as\s+)?([A-Z][\w-]*)'s\s+height/i) ?? look.match(/\b(half|one and a half|twice|two and a half|two|three|four|five|six|ten|\d+(?:\.\d+)?)\s+times\s+([A-Z][\w-]*)'s\s+height/i);
+  if (times) {
+    const n = NUMBER_WORDS[times[1].toLowerCase()] ?? Number(times[1]);
+    if (Number.isFinite(n) && n > 0) return n * of(times[2]);
+  }
+  const part = look.match(/\bas tall as\s+([A-Z][\w-]*)'s\s+(knee|knees|waist|hip|hips|shoulder|shoulders|chin)\b/i);
+  if (part) return ({ knee: 0.3, knees: 0.3, waist: 0.5, hip: 0.5, hips: 0.5, shoulder: 0.8, shoulders: 0.8, chin: 0.85 } as Record<string, number>)[part[2].toLowerCase()] * of(part[1]);
+  const as = look.match(/\b(?:about\s+)?as (?:tall|big|large) as\s+([A-Z][\w-]*)\b/i);
+  // (a group's size is each one's, and its one tag draws them all: bigger)
+  if (as && named(as[1])) return of(as[1]) * (/\bwhen sitting\b/i.test(look) ? 0.9 : 1) * (/\beach\s+(?:about\s+)?as\b/i.test(look) ? 1.8 : 1);
+  return null;
+}
+const withSize = (c: CharacterDef, sheet: string, cast: CharacterDef[] = []) => {
   const r = relativeSize(c);
+  const share = statedShare(c, cast, 0);
+  if (share !== null && Math.abs(share - 1) > 0.2) return `${sheet}\nSIZE AGAINST THE HERO: ${share >= 1 ? `${share.toFixed(1)} times as tall - BIG on the page (the app keeps its size: draw it big, its face in the picture)` : `about ${Math.round(share * 100)}% of the hero's height`}.`;
   return r ? `${sheet}\nSIZE AGAINST THE OTHERS: ${r}.` : sheet;
 };
 
@@ -1154,7 +1195,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         return null;
       });
     }
-  const sheet = (c: CharacterDef) => withSize(c, sheetOf(c));
+  const sheet = (c: CharacterDef) => withSize(c, sheetOf(c), req.cast);
   const sheetOf = (c: CharacterDef) => {
     if (newcomers.includes(c)) return newcomerSheet(c);
     const parts = partsOf.get(c.id);
@@ -1189,7 +1230,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     previous,
     `THIS PAGE'S TEXT: ${req.page.text}`,
     `PAINT THIS MOMENT: ${req.page.picture}`,
-    target ? `${target} Wrap it in <g class="target">.` : "",
+    target ? `${target} Wrap it in <g class="target">.${targetDrawn(req)}` : "",
     layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
     partsOf.size && !posing ? PARTS_SECTION : "",
     // (the size every placed character is kept to - better aimed at than
@@ -1282,7 +1323,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),
@@ -1292,7 +1333,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
               // anyone the composer leaves out is placed in code)
               ids: Object.fromEntries(req.cast.flatMap((c) => [[c.id.toLowerCase(), c.id], [c.name.toLowerCase(), c.id]])),
               mustPlace: posing ? req.page.characters.filter((id) => partsOf.has(id) || spritesOf.has(id) || id in newcomerPaintings) : undefined,
-              sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c)])),
+              sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])),
               newcomers: newcomerPaintings,
             },
             stats,

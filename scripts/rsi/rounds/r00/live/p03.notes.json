@@ -1,0 +1,58 @@
+{
+ "reuse": {
+  "stamps": 8,
+  "scatter": 4,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 1,
+   "scatter:rain": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "boat": 1,
+   "motion": 2,
+   "splash": 2,
+   "leaf": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.50 to 0.70, true to the others",
+   "layout: companion1 was inside something drawn: moved to its edge",
+   "layout: drawn back to front: something drawn, companion1, hero"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 12
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1581,
+   "firstStrokeMs": 1581,
+   "out": 592,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

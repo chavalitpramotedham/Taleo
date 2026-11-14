@@ -114,14 +114,19 @@ export function sizingFor(camera: string | null | undefined, picture: string, ch
   if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
   return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 238, yHi: 270 };
 }
-const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share = 1) => {
+const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share = 1, ride = false) => {
   const z = ctx.sizing;
   if (!z) return { sc, y };
+  // (a rider stands where its boat is - up on a wave, say - not on the ground)
+  if (ride) return { sc: Math.min(z.s * share * z.hi, Math.max(z.s * share * z.lo, sc)), y };
   // (share: the character's size against a grown one - a squirrel 0.67 -
   // so its band is its own; small: a newcomer may be far smaller than the
   // grown characters, so only the upper bound holds)
-  const u = z.s * share;
-  return { sc: Math.min(u * z.hi, Math.max(small ? z.s * 0.1 : u * z.lo, sc)), y: Math.min(z.yHi, Math.max(z.yLo, y)) };
+  const fy = Math.min(z.yHi, Math.max(z.yLo, y));
+  // (a big one - a giant - only as big as keeps its face in the picture)
+  const fit = share > 1 ? Math.max(0.3, (fy - 18) / 170) : Infinity;
+  const u = Math.min(fit, z.s * share);
+  return { sc: Math.min(fit, u * z.hi, Math.max(small ? z.s * 0.1 : u * z.lo, sc)), y: fy };
 };
 
 export interface ExpandStats {
@@ -419,8 +424,13 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   // or poses. (Well apart in depth - one far behind, much smaller - they
   // may cross.)
   const placedAt: { x: number; y: number; s: number }[] = [];
-  const spaceOut = (id: string, x: number, y: number, sc: number): number => {
+  const spaceOut = (id: string, x: number, y: number, sc: number, ride = false): number => {
     const w = (k: number) => 110 * k;
+    // (riders share their boat: placed as laid out)
+    if (ride) {
+      placedAt.push({ x, y, s: sc });
+      return x;
+    }
     let nx = x;
     for (let pass = 0; pass < 3; pass++) {
       let moved = false;
@@ -435,7 +445,16 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       if (!moved) break;
     }
     // (kept in the picture)
-    nx = Math.max(20 + w(sc) / 2, Math.min(380 - w(sc) / 2, nx));
+    const lo = 20 + w(sc) / 2, hi = 380 - w(sc) / 2;
+    nx = Math.max(lo, Math.min(hi, nx));
+    // (kept in at an edge it would land on someone again - the hero once
+    // hidden behind the owl: the nearest free spot in the picture instead,
+    // else the one that overlaps least - lesson 17)
+    const clash = (cx: number) => placedAt.reduce((t, q) => (apartInDepth(q, { y, s: sc }) ? t : t + Math.max(0, (w(sc) + w(q.s)) / 2 - Math.min(w(sc), w(q.s)) * 0.25 - Math.abs(cx - q.x))), 0);
+    if (clash(nx) > 1) {
+      const spots = [x, lo, hi, ...placedAt.flatMap((q) => { const need = (w(sc) + w(q.s)) / 2 - Math.min(w(sc), w(q.s)) * 0.25; return [q.x - need, q.x + need]; })].filter((c) => c >= lo && c <= hi);
+      nx = spots.sort((a, b) => clash(a) - clash(b) || Math.abs(a - x) - Math.abs(b - x))[0] ?? nx;
+    }
     if (Math.abs(nx - x) > 1) fixed(stats, `${id} overlapped another character: eased to x ${Math.round(nx)}`);
     placedAt.push({ x: nx, y, s: sc });
     return nx;
@@ -460,10 +479,10 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     if (!sp) return "";
     const x = num(a, "x", null, -100, 500, stats);
     // (size and footing kept to this page's camera)
-    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small, ctx.sizeOf?.[id] ?? 1);
+    const { sc, y } = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), small, ctx.sizeOf?.[id] ?? 1, a.ride === "1");
     const flip = a.flip === "1" || a.flip === "true";
     const lean = num(a, "lean", 0, -30, 30);
-    const t = `translate(${f(spaceOut(id, x, y, sc))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    const t = `translate(${f(spaceOut(id, x, y, sc, a.ride === "1"))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
     stats.figs++;
     stats.posed++;
     if (!stats.figIds.includes(id)) stats.figIds.push(id);
@@ -475,7 +494,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const view = viewOf(parts, v);
     if (!view) return "";
     const x = num(a, "x", null, -100, 500, stats);
-    const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1);
+    const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1, a.ride === "1");
     const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
     const lean = num(a, "lean", 0, -45, 45);
     // (a sprite's pose word, turned into arms, legs and mood)
@@ -486,7 +505,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     stats.figs++;
     if (!stats.figIds.includes(id)) stats.figIds.push(id);
     const sc = fit.sc;
-    const t = `translate(${f(spaceOut(id, x, fit.y, sc))} ${f(fit.y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
+    const t = `translate(${f(spaceOut(id, x, fit.y, sc, a.ride === "1"))} ${f(fit.y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`;
     return posedFigure({ id, t, s: sc, tilt: num(a, "tilt", 0, -40, 40), view }, parts, b, view === parts.views.three, ctx, stats);
   };
   /** Any way of placing a character that it has: its poses, else its
@@ -586,7 +605,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
           }
           fixed(stats, `no parts for "${id}": its drawing inside the figure kept and placed`);
           const x = num(a, "x", null, -100, 500, stats);
-          const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), true, ctx.sizeOf?.[id] ?? 1);
+          const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), true, ctx.sizeOf?.[id] ?? 1, a.ride === "1");
           const flip = a.flip === "1" || a.flip === "true";
           fig = {
             id,
@@ -594,7 +613,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
             tilt: 0,
             view: DRAWN_VIEW,
             put: new Set(),
-            t: `translate(${f(spaceOut(id, x, fit.y, fit.sc))} ${f(fit.y)}) rotate(${f(num(a, "lean", 0, -45, 45))}) scale(${f(flip ? -fit.sc : fit.sc)} ${f(fit.sc)}) translate(-100 -190)`,
+            t: `translate(${f(spaceOut(id, x, fit.y, fit.sc, a.ride === "1"))} ${f(fit.y)}) rotate(${f(num(a, "lean", 0, -45, 45))}) scale(${f(flip ? -fit.sc : fit.sc)} ${f(fit.sc)}) translate(-100 -190)`,
           };
           stats.figs++;
           if (!stats.figIds.includes(id)) stats.figIds.push(id);
@@ -604,7 +623,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         // (size and footing kept to this page's camera - except sitting,
         // whose y is the seat's)
         const seated = (a.legs ?? "").toLowerCase() === "sit";
-        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1);
+        const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1, a.ride === "1");
         const sc = fit.sc;
         const y = seated ? num(a, "y", null, -100, 400, stats) : fit.y;
         // (a view drawn facing left is mirrored to face right first)
@@ -617,7 +636,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
           view,
           put: new Set(),
           // (feet at 100,190 on its own canvas: placed at x,y, leaned about the feet)
-          t: `translate(${f(spaceOut(id, x, y, sc))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
+          t: `translate(${f(spaceOut(id, x, y, sc, a.ride === "1"))} ${f(y)}) rotate(${f(lean)}) scale(${f(flip ? -sc : sc)} ${f(sc)}) translate(-100 -190)`,
         };
         stats.figs++;
         if (!stats.figIds.includes(id)) stats.figIds.push(id);

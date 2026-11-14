@@ -1,0 +1,61 @@
+{
+ "reuse": {
+  "stamps": 9,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "cloud": 1,
+   "bird": 2,
+   "butterfly": 1,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "shelf": 1,
+   "boat": 1,
+   "ticks": 1,
+   "tuft": 1,
+   "stone": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "companion1",
+   "hero"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: companion1 resized from 0.25 to 0.44, true to the others",
+   "layout: hero and companion1 overlapped: eased apart",
+   "layout: hero was inside something drawn: moved to its edge",
+   "layout: drawn back to front: companion1, something drawn, something drawn, something drawn, hero",
+   "piece \"sheep\" read as \"shelf\""
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 12
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1608,
+   "firstStrokeMs": 1608,
+   "out": 977,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

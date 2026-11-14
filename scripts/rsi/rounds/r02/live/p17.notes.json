@@ -1,0 +1,58 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "table": 1,
+   "notes": 1,
+   "sparkles": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "gran",
+   "hero",
+   "argos"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: gran resized from 0.80 to 1.01, true to the others",
+   "layout: companion1 was inside something drawn: moved to its edge",
+   "layout: drawn back to front: companion1, something drawn, gran, hero, argos",
+   "gran overlapped another character: eased to x 253"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 10
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1455,
+   "firstStrokeMs": 1455,
+   "out": 1000,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan -16",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

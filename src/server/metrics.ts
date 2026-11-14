@@ -139,6 +139,12 @@ interface SeenEvent {
   delta?: { type?: string; stop_reason?: string | null };
 }
 
+/** Told of every call's estimated cost as it finishes (the painter test
+ *  bench in development keeps to a budget with it). Kept on globalThis so
+ *  every copy of this module shares one set. */
+export type UsageListener = (call: { label: string; model: string; usdMicro: number }) => void;
+export const usageListeners: Set<UsageListener> = ((globalThis as { __taleoUsageListeners?: Set<UsageListener> }).__taleoUsageListeners ??= new Set());
+
 /** Tracks a streamed reply's token use as events arrive, so it's recorded
  *  even if the stream is stopped part-way (the reader left): what was
  *  generated up to then is still billed. It also times the request (taken
@@ -187,6 +193,7 @@ export function streamUsageTracker(feature: AiFeature, fallbackModel: string, ab
       if (done) return;
       done = true;
       if (u.input_tokens || u.output_tokens) recordAi(feature, model, u);
+      for (const listen of usageListeners) listen({ label: about.label ?? feature, model, usdMicro: estimateMicroUsd(model, u) });
       noteCall({
         label: about.label ?? feature,
         asked: fallbackModel,

@@ -1,0 +1,55 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "motion": 1,
+   "sparkles": 1,
+   "dust": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: companion1 resized from 0.55 to 0.65, true to the others",
+   "layout: polly was inside something drawn: moved to its edge",
+   "layout: drawn back to front: companion1, something drawn, something drawn, something drawn, polly, hero"
+  ]
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 8
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1226,
+   "firstStrokeMs": 1226,
+   "out": 1018,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

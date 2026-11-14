@@ -1,0 +1,536 @@
+{
+ "title": "Ody and the Long Way Home",
+ "age": "4-5",
+ "minutes": 8,
+ "theme": "adventure",
+ "keyword": "Adventure",
+ "moral": "Kindness to the people (and creatures) you meet along the way is what brings you safely home.",
+ "world": "A sunny Greek-style sea of small islands in early summer: white cottages with blue doors, silver-green olive trees, warm ochre cliffs and a turquoise-to-teal sea (#8FA7B5, #6F8FAF, #AFC1C4). Golden morning light at the start, then a grey-green storm, a starry blue night, a pink-gold sunset and lamplit home. Recurring colours: Ody's honey-wood boat Biscuit (#C8A57A) with a rust-red stripe (#B5653E) and one patched cream sail (#F3E6D0) with a blue star patch (#6F8FAF); Ody's red neckerchief (#B2443A).",
+ "hero": {
+  "id": "hero",
+  "name": "Ody",
+  "gender": "female",
+  "preset": null,
+  "look": "a 5-year-old girl, small and sturdy, head about a third of her height; deep-brown skin #A86F4C; black hair (#2A1E15) in two round puffs high on each side, a red ribbon (#B2443A) on the right puff; a cream sailor top (#F4EFE4) with three blue stripes (#6F8FAF); a red neckerchief (#B2443A) knotted at the throat; rust shorts (#B5653E); little brown sandals (#8E6A4C); a brass compass (#D3A24F) on a cord round her neck; round dark eyes wide apart, short brows, rosy cheeks, a big gap-toothed grin; brave, bossy, kind",
+  "notes": "Loves maps and knots. Talks to the sea like it is a friend.",
+  "relationships": "Gran's granddaughter. Hoot is her best friend.",
+  "svg": "<g class=\"wash\"><ellipse cx=\"100\" cy=\"104\" rx=\"78\" ry=\"74\" fill=\"#DCE3E1\" opacity=\".55\"/></g><g class=\"paint\"><ellipse cx=\"100\" cy=\"189\" rx=\"42\" ry=\"6\" fill=\"#CFC6AC\" opacity=\".6\"/><path d=\"M106 136C110 152 112 168 112 182L122 182C122 166 120 150 118 134Z\" fill=\"#8E5A3C\"/><path d=\"M82 134C80 150 80 166 82 182L93 182C94 166 96 150 97 136Z\" fill=\"#A86F4C\"/><ellipse cx=\"87\" cy=\"184\" rx=\"10\" ry=\"4.5\" fill=\"#8E6A4C\"/><ellipse cx=\"118\" cy=\"184\" rx=\"9\" ry=\"4.5\" fill=\"#7A5A40\"/><path d=\"M122 94C132 88 140 78 143 66C145 61 138 59 136 63C132 74 126 81 117 88Z\" fill=\"#E9DCC5\"/><circle cx=\"141\" cy=\"60\" r=\"6\" fill=\"#8E5A3C\"/><path d=\"M74 122C74 134 78 143 96 143L100 137L104 143C122 143 126 134 126 122Z\" fill=\"#B5653E\"/><path d=\"M76 92C70 102 70 118 74 128C86 132 114 132 126 128C130 118 130 102 124 92C116 86 84 86 76 92Z\" fill=\"#F4EFE4\"/><g fill=\"#6F8FAF\"><path d=\"M72 104C90 107 110 107 128 104L128 109C110 112 90 112 72 109Z\"/><path d=\"M71 115C90 118 110 118 129 115L129 120C110 123 90 123 71 120Z\"/></g><path d=\"M73 125C90 128 110 128 127 125L126 128C114 132 86 132 74 128Z\" fill=\"#6F8FAF\"/><path d=\"M80 94C70 102 64 114 63 125C63 130 71 131 72 126C74 116 80 106 87 100Z\" fill=\"#F4EFE4\"/><circle cx=\"67\" cy=\"130\" r=\"6\" fill=\"#A86F4C\"/><path d=\"M84 90C94 97 106 97 116 90L109 105L100 98L91 105Z\" fill=\"#B2443A\"/><circle cx=\"73\" cy=\"69\" r=\"5\" fill=\"#A86F4C\"/><circle cx=\"127\" cy=\"69\" r=\"5\" fill=\"#A86F4C\"/><circle cx=\"100\" cy=\"65\" r=\"27\" fill=\"#A86F4C\"/><path d=\"M118 52C129 66 123 87 104 91C116 83 121 69 118 52Z\" fill=\"#4A3020\" opacity=\".2\"/><ellipse cx=\"90\" cy=\"54\" rx=\"8\" ry=\"5\" fill=\"#FFF8E8\" opacity=\".3\"/><path d=\"M73 63C72 43 86 36 100 36C114 36 128 43 127 63C122 53 112 47 100 47C88 47 78 53 73 63Z\" fill=\"#2A1E15\"/><circle cx=\"75\" cy=\"39\" r=\"14\" fill=\"#2A1E15\"/><circle cx=\"125\" cy=\"39\" r=\"14\" fill=\"#2A1E15\"/><path d=\"M117 48L108 42L108 54ZM117 48L126 42L126 54Z\" fill=\"#B2443A\"/><g fill=\"#D9776A\" opacity=\".45\"><ellipse cx=\"86\" cy=\"76\" rx=\"5\" ry=\"3\"/><ellipse cx=\"114\" cy=\"76\" rx=\"5\" ry=\"3\"/></g><circle cx=\"67\" cy=\"141\" r=\"7\" fill=\"#D3A24F\"/><circle cx=\"67\" cy=\"141\" r=\"4.5\" fill=\"#F4EFE4\"/></g><g class=\"ink\" fill=\"none\" stroke=\"#4F3A2A\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M74 70C76 86 88 92 100 92C114 92 125 84 127 68\"/><path d=\"M76 92C70 102 70 118 74 128M124 92C130 102 130 118 126 128\"/><path d=\"M82 134C80 150 80 166 82 182M97 136C96 150 94 166 93 182M106 136C110 152 112 168 112 182M118 134C120 150 122 166 122 182\"/><path d=\"M91 97C82 110 72 124 67 134\"/><path d=\"M100 137L100 128M86 112L90 118M114 112L110 118\"/><path d=\"M66 30C70 26 78 26 82 30M118 30C122 26 130 26 134 30\"/><path d=\"M122 94C132 88 140 78 143 66\"/><path d=\"M99 71C101 73 101 75 99 76\"/></g><g class=\"detail\"><ellipse cx=\"90\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"91\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><ellipse cx=\"110\" cy=\"68\" rx=\"3\" ry=\"3.6\" fill=\"#2A1E15\"/><circle cx=\"111\" cy=\"66.8\" r=\"1\" fill=\"#fff\"/><path d=\"M92 80C96 86 104 86 108 80Z\" fill=\"#7A3B2E\"/><rect x=\"98\" y=\"80\" width=\"3\" height=\"2.5\" fill=\"#FBF7EE\"/><path d=\"M85 61L94 60M106 60L115 61\" stroke=\"#2A1E15\" stroke-width=\"1.4\" stroke-linecap=\"round\"/><path d=\"M67 137L68.5 141L67 145L65.5 141Z\" fill=\"#B2443A\"/></g>"
+ },
+ "companions": [
+  {
+   "id": "companion1",
+   "name": "Hoot",
+   "gender": "male",
+   "preset": "owl",
+   "look": "a small tawny owl (#A88560, darker wings #8C6A48) with a pale speckled breast (#E3D2B4), round pale face discs (#E8D9BC), big dark eyes behind small round wire spectacles, little ear tufts and a mustard beak and feet (#D3A24F); about as tall as Ody's waist; wise but forgetful, loves to lecture",
+   "notes": "Knows the name of every star but never remembers which way is left.",
+   "relationships": "Ody's best friend."
+  }
+ ],
+ "cast": [
+  {
+   "id": "puff",
+   "name": "Mr Puff",
+   "gender": "male",
+   "preset": null,
+   "look": "a round, jolly old wind-keeper about twice Ody's height, pear-shaped; a sky-blue robe (#8FA7B5) with a darker hem (#6F8FAF); a huge curly beard that puffs out like a white cloud (#F4EFE4, shadows #DCE3E1); a bald pink head (#E9C9A8) and round rosy cheeks; tiny round spectacles; bare pink toes; eyes crinkled and twinkly; cheerful and absent-minded"
+  },
+  {
+   "id": "polly",
+   "name": "Polly",
+   "gender": "female",
+   "preset": null,
+   "look": "a gentle one-eyed giant shepherd about five times Ody's height, soft and round; warm peach skin (#E9C9A8); ONE big round eye in the middle of her forehead (blue-grey iris #6F8FAF, dark pupil, long lashes), no other eyes; messy ginger hair (#C46A3A) in a bun with a white daisy; a sage-green woolly tunic (#94A270) and a patched brown apron (#A98463); big bare feet; shy, kind, easily tearful"
+  },
+  {
+   "id": "larks",
+   "name": "the Sea-Larks",
+   "preset": null,
+   "look": "three small round singing seabirds, each about as big as Hoot, always together; cream breasts (#F3E6D0), slate-blue wings and backs (#6F8FAF), coral beaks and feet (#C46A3A); each wears a tiny knitted bobble hat - mustard (#D3A24F), rose (#D9776A) and sage (#94A270) - and holds a tiny golden harp (#D3A24F); dreamy half-closed eyes when singing; vain and sweet"
+  },
+  {
+   "id": "sissy",
+   "name": "Sissy",
+   "gender": "female",
+   "preset": null,
+   "look": "a shy sea-serpent with ONE long coiled body and SIX long necks, each ending in a small round smiling head; sea-green skin (#7F905E) with paler round spots (#AAB585) and a cream belly (#DCD9B4); each head wears a knitted bobble hat in a different colour (red #B2443A, mustard #D3A24F, blue #6F8FAF, rose #D9776A, cream #F3E6D0, sage #94A270); her coils are as long as Ody's boat; big shy eyes, giggly"
+  },
+  {
+   "id": "argos",
+   "name": "Argos",
+   "gender": "male",
+   "preset": null,
+   "look": "an old shaggy sheepdog, as tall as Ody when sitting; a shaggy grey-white coat (#E9DCC5) with soft grey patches (#A9A39A) over one eye and on his back; floppy ears; a black nose; a fringe over his eyes; a faded blue collar (#6F8FAF); a long feathery tail; slow, loyal, wags his whole back end"
+  },
+  {
+   "id": "gran",
+   "name": "Gran",
+   "gender": "female",
+   "preset": null,
+   "look": "Ody's grandmother, small and round, about one and a half times Ody's height; deep-brown skin (#7A4E35); white curly hair in a bun (#F4EFE4) with a red knitting needle stuck through it (#B2443A); round gold-rimmed spectacles (#D3A24F); a long olive-green dress (#7F905E) and a cream shawl (#F3E6D0); warm, twinkly, patient"
+  }
+ ],
+ "segments": [
+  {
+   "pages": [
+    {
+     "text": "\"Home to Gran's for her birthday!\" cried Ody, and she hoisted Biscuit's patched sail. Hoot perched on the bow and straightened his spectacles. \"Ithaca is that way,\" he hooted, pointing his wing firmly at a seagull. \"Hoot, that's a bird,\" giggled Ody.",
+     "picture": "Wide shot, golden early morning in a little white harbour town: white cottages with blue doors and silver-green olive trees climb the ochre hill on the left; a stone jetty runs in from the right. In the middle of the turquoise water, Ody (on the left of the boat, standing) hauls up the patched cream sail of Biscuit, her small honey-wood boat with a rust-red stripe, both hands gripping the rope, leaning back, grinning, red neckerchief fluttering. Hoot perches on the bow on the right, one wing pointing very seriously up at a white seagull in the sky, spectacles slipping, beak open mid-lecture. Ody glances at him, laughing. Gulls, fishing nets drying on the jetty, little ripples.",
+     "characters": [
+      "hero",
+      "companion1"
+     ],
+     "action": {
+      "word": "hoisted",
+      "target": "hero",
+      "sound": "whoosh",
+      "motion": "grow"
+     },
+     "aside": null,
+     "place": "harbour",
+     "camera": "wide"
+    },
+    {
+     "text": "Out at sea, round Mr Puff floated by on a cloud. \"A present for the voyage!\" he chuckled, and gave them a bulging sack. \"Never untie it!\" But Hoot was terribly curious. He plucked at the red string... just a teeny bit.",
+     "picture": "Mid shot at sea in bright late-morning light, blue sky with puffy clouds. On the left, Mr Puff - a round jolly old wind-keeper in a sky-blue robe with a huge cloud-like white beard and tiny spectacles - sits on a small white cloud just above the waves, waving goodbye with one hand, eyes twinkling. In the middle, Biscuit the honey-wood boat with its patched cream sail; Ody stands in it waving back at Mr Puff. On the right of the boat, Hoot clutches a bulging brown leather sack tied with red string, one wingtip tugging the string, eyes wide and guilty, beak pressed shut. A little puff of wind is already escaping from the sack.",
+     "characters": [
+      "hero",
+      "companion1",
+      "puff"
+     ],
+     "action": {
+      "word": "plucked",
+      "target": "companion1",
+      "sound": "pop",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "open-sea",
+     "camera": "mid"
+    },
+    {
+     "text": "WHOOOOSH! Out burst every wind in the world! The sky turned grey, the waves grew enormous, and Biscuit was tossed up, up, UP! \"Hold on, Hoot!\" shouted Ody, gripping the tiller with both hands.",
+     "picture": "Dramatic low-angle mid shot in a grey-green storm: huge curling teal waves with white foam, dark grey clouds, slanting rain and swirling wind lines bursting out of the open brown sack, which tumbles through the air on the right. In the centre, Biscuit the honey-wood boat is tilted steeply on top of a giant wave, the patched cream sail billowing. Ody kneels in the stern on the left, both hands gripping the tiller, leaning hard into the wind, eyebrows pressed down in determination, mouth open shouting, red neckerchief and hair puffs streaming sideways. Hoot clings to the top of the mast with both feet and wings, feathers blown backwards, spectacles crooked, beak wide open in alarm.",
+     "characters": [
+      "hero",
+      "companion1"
+     ],
+     "action": {
+      "word": "tossed",
+      "target": "hero",
+      "sound": "splash",
+      "motion": "tumble"
+     },
+     "aside": null,
+     "place": "storm-sea",
+     "camera": "mid"
+    }
+   ],
+   "choice": {
+    "prompt": "Where should Biscuit land?",
+    "options": [
+     {
+      "label": "The rocky island"
+     },
+     {
+      "label": "Back out to sea"
+     },
+     {
+      "label": "Follow the seagulls"
+     }
+    ]
+   },
+   "chosen": "The rocky island"
+  },
+  {
+   "pages": [
+    {
+     "text": "At last the storm blew itself out, and Biscuit bumped onto a rocky island. In the sand was a footprint - an ENORMOUS one, as big as their boat! It led straight towards a dark cave. Hoot gulped. \"Shall we peek inside... or follow the sheep?\"",
+     "picture": "Wide shot on a quiet rocky island beach in soft grey-gold after-storm light, clouds breaking. Biscuit the honey-wood boat lies tilted on the sand at the left, sail drooping, seaweed draped over the bow. In the centre foreground, a gigantic bare footprint in the wet sand, as long as the boat. Ody stands at the heel of the footprint, bent forward with hands on knees, peering at it with round amazed eyes and an 'o' mouth. Hoot sits on her shoulder, feathers still ruffled, gulping. On the right, ochre cliffs with a big dark cave mouth; a few fluffy cream sheep wander up a path beside it.",
+     "characters": [
+      "hero",
+      "companion1"
+     ],
+     "action": {
+      "word": "footprint",
+      "target": "footprint",
+      "sound": "thud",
+      "motion": "grow"
+     },
+     "aside": null,
+     "place": "cyclops-beach",
+     "camera": "wide"
+    },
+    {
+     "text": "Inside the cave sat a giant with ONE big blue eye - and she was crying. \"Boo-hoo! My sheep are all tangled in my knitting,\" sniffed Polly. Huge tears plopped into a puddle. Ody tiptoed closer. \"Don't cry. We're good at knots!\"",
+     "picture": "Mid shot inside a big warm cave lit by a small fire at the back; rough ochre stone walls, wooden shelves of round cheeses. Polly the gentle one-eyed giant sits on the floor on the right, filling the right half of the picture: one big blue eye in the middle of her forehead full of tears, a big drop splashing into a puddle, mouth wobbly, ginger bun with a daisy, sage-green tunic, patched apron. A huge tangle of green knitting wool loops round her lap, with three fluffy cream sheep caught in it, legs poking out. Ody tiptoes towards her from the left, one arm reaching out kindly, the other hand on her compass; Hoot peeks out from behind Ody's legs.",
+     "characters": [
+      "hero",
+      "companion1",
+      "polly"
+     ],
+     "action": {
+      "word": "tiptoed",
+      "target": "hero",
+      "sound": "squeak",
+      "motion": "hop"
+     },
+     "aside": null,
+     "place": "polly-cave",
+     "camera": "mid"
+    },
+    {
+     "text": "Ody tugged one loop. Hoot pecked another. Over, under, round and THROUGH! The knitting sprang loose, and out tumbled the sheep - baa, baa, BAA! - rolling across the floor like woolly snowballs.",
+     "picture": "Lively mid shot in the same firelit cave with ochre walls and cheese shelves. In the centre, a big loop of green wool springs open; five fluffy cream sheep tumble and roll out across the floor in a happy heap, legs in the air. Ody stands on the left pulling the last loop with both hands, leaning back, grinning. Hoot flies just above, beak gripping a strand of wool, wings spread. Polly the one-eyed giant sits on the right, both huge hands clasped in delight, her one big blue eye now shining, a wide surprised smile, ginger bun with its daisy.",
+     "characters": [
+      "hero",
+      "companion1",
+      "polly"
+     ],
+     "action": {
+      "word": "tumbled",
+      "target": "sheep",
+      "sound": "boing",
+      "motion": "tumble"
+     },
+     "aside": null,
+     "place": "polly-cave",
+     "camera": "mid"
+    },
+    {
+     "text": "That night Polly lifted Biscuit back into the sea as gently as a teacup. \"Thank you, little friends,\" she whispered, and gave them a cheese as big as a cartwheel. Ody waved until Polly was just a speck beneath the stars.",
+     "picture": "Wide shot at night under a deep blue sky full of stars and a silver crescent moon. On the left, Polly the gigantic one-eyed shepherd stands knee-deep in the calm dark sea beside her cliff, gently lowering Biscuit the honey-wood boat onto the water with both enormous hands, smiling tenderly with her one big eye. In the boat, Ody waves up at her with both arms; Hoot sits on a giant round yellow cheese the size of a cartwheel that fills the back of the boat. Moonlight shimmers in ripples on the water; the cave glows with firelight on the cliff behind.",
+     "characters": [
+      "hero",
+      "companion1",
+      "polly"
+     ],
+     "action": {
+      "word": "whispered",
+      "target": "polly",
+      "sound": "twinkle",
+      "motion": "nod"
+     },
+     "aside": null,
+     "place": "night-sea",
+     "camera": "wide"
+    }
+   ],
+   "choice": {
+    "prompt": "Which way home?",
+    "options": [
+     {
+      "label": "Past the singing rocks"
+     },
+     {
+      "label": "The long way round"
+     },
+     {
+      "label": "Ask the moon"
+     }
+    ]
+   },
+   "chosen": "Past the singing rocks"
+  },
+  {
+   "pages": [
+    {
+     "text": "In the morning they heard singing. On three rocks sat the Sea-Larks, plinking golden harps. \"La-la-LAAA!\" Their song was so lovely that Hoot's eyelids drooped and Biscuit drifted towards the rocks. \"Wake up, Hoot!\" cried Ody. What should they do?",
+     "picture": "Mid shot in hazy pink-gold morning light over a calm turquoise sea. On the right, three dark rocks in a row, each with one Sea-Lark sitting on top: small round singing seabirds with cream breasts, slate-blue wings and coral beaks, wearing knitted bobble hats (mustard, rose, sage), each plucking a tiny golden harp with eyes dreamily closed and beaks open in song; little musical-swirl ink lines float from them. On the left, Biscuit the honey-wood boat drifts towards the rocks: Hoot slumps asleep against the mast with eyelids drooping and a dreamy smile; Ody stands beside him shaking his wing with one hand and pressing her other hand over one ear, eyebrows tilted with worry.",
+     "characters": [
+      "hero",
+      "companion1",
+      "larks"
+     ],
+     "action": {
+      "word": "drooped",
+      "target": "companion1",
+      "sound": "snore",
+      "motion": "nod"
+     },
+     "aside": null,
+     "place": "siren-rocks",
+     "camera": "mid"
+    },
+    {
+     "aside": null,
+     "place": "siren-rocks",
+     "camera": "mid",
+     "characters": [
+      "hero",
+      "companion1",
+      "larks"
+     ],
+     "text": "Ody stood up tall and sang the loudest, silliest sea shanty ever: \"Oooh, my GRAN has a GOAT in a BOAT!\" Hoot woke with a jolt. The Sea-Larks stopped mid-note... and then they giggled so hard their bobble hats wobbled.",
+     "picture": "Mid shot in pink-gold morning light by the three dark rocks on the right. Ody stands in Biscuit the honey-wood boat on the left, one foot up on the seat, both arms flung wide, mouth wide open singing, eyes squeezed shut with joy, red neckerchief flying. Hoot on the bow has jolted awake: feathers puffed out, both eyes wide, spectacles flying off his beak. On the rocks, the three Sea-Larks (mustard, rose and sage bobble hats) have dropped their tiny golden harps and are rolling about giggling, wings over their beaks, hats wobbling.",
+     "action": {
+      "word": "jolt",
+      "target": "companion1",
+      "sound": "boing",
+      "motion": "hop"
+     }
+    },
+    {
+     "aside": null,
+     "place": "siren-rocks",
+     "camera": "close",
+     "characters": [
+      "hero",
+      "larks"
+     ],
+     "text": "\"You sing like a seagull with hiccups!\" laughed the smallest Sea-Lark. \"We love it!\" She plucked a shimmering blue feather from her wing. \"This feather always points home. Take it, singing girl.\" Ody held it up to the light. It twitched... and pointed east!",
+     "picture": "Close-up in warm pink-gold light by the dark rocks: Ody's face and shoulders fill the left half, eyes huge with wonder and an open delighted smile, holding up a long shimmering blue feather (#6F8FAF) with both hands; the feather glows faintly and its tip points to the right. On the right, perched on the nearest rock at Ody's eye level, the smallest Sea-Lark in the rose bobble hat leans towards her, one wing held out where the feather came from, beaming.",
+     "action": {
+      "word": "shimmering",
+      "target": "feather",
+      "sound": "twinkle",
+      "motion": "grow"
+     }
+    },
+    {
+     "aside": null,
+     "place": "night-sea",
+     "camera": "mid",
+     "characters": [
+      "hero",
+      "companion1"
+     ],
+     "text": "That night Hoot stood on the cheese and pointed his wing at the sky. \"Home is past the Great Bear, then LEFT!\" But he pointed right. Ody giggled and held up the feather. It pointed the other way. \"Hoot,\" she said kindly, \"let's go with the feather.\"",
+     "picture": "Mid shot at night on the calm starry sea, silver crescent moon high on the right. Biscuit the honey-wood boat sits in the middle with a giant round yellow cheese in its stern. Hoot stands on top of the cheese, chest puffed out like a lecturer, one wing pointing very firmly to the RIGHT at a bright cluster of stars, the other wing on his hip. Ody sits at the tiller on the left, holding up the glowing blue feather, which points LEFT; she is giggling behind her other hand, eyes crinkled.",
+     "action": {
+      "word": "pointed",
+      "target": "companion1",
+      "sound": "twinkle",
+      "motion": "nod"
+     }
+    }
+   ],
+   "choice": {
+    "prompt": "How should they steer tomorrow?",
+    "options": [
+     {
+      "label": "Follow the feather"
+     },
+     {
+      "label": "Follow Hoot's stars"
+     },
+     {
+      "label": "Ask a fish"
+     }
+    ]
+   },
+   "chosen": "Follow the feather"
+  },
+  {
+   "pages": [
+    {
+     "text": "By noon the sea began to swirl, round and round and ROUND - a whirlpool! On a rock beside it, six shy heads peeked out. \"Hello,\" giggled Sissy. \"Mind the swirly bit!\"",
+     "picture": "Dramatic wide shot from slightly above, bright midday sea. In the lower right, a great whirlpool spirals into the teal water in curling rings of foam. On a tall rock on the left rises Sissy the shy sea-serpent: one green spotted coiled body with six long necks, each ending in a small smiling head wearing a different coloured bobble hat, all six leaning out and pointing the way with their noses. In the middle, Biscuit the honey-wood boat with its patched sail swerves safely between them; Ody stands at the tiller singing with her mouth wide open and one arm flung up; Hoot sits bolt upright on the bow, eyes wide awake.",
+     "characters": [
+      "hero",
+      "companion1",
+      "sissy"
+     ],
+     "action": {
+      "word": "swirled",
+      "target": "whirlpool",
+      "sound": "whoosh",
+      "motion": "spin"
+     },
+     "aside": null,
+     "place": "whirlpool-strait",
+     "camera": "wide"
+    },
+    {
+     "aside": null,
+     "place": "whirlpool-strait",
+     "camera": "mid",
+     "characters": [
+      "hero",
+      "companion1",
+      "sissy"
+     ],
+     "text": "\"Hop on!\" said Sissy. She coiled her long green body under Biscuit and lifted the little boat right over the whirlpool. Six heads cheered, six hats bobbed, and Ody clung on, laughing, \"Wheeeee!\"",
+     "picture": "Mid shot in bright midday light: the whirlpool swirls in rings of foam in the lower right. Sissy, the shy green spotted sea-serpent, rises from the water in the middle in a big loop, carrying Biscuit the honey-wood boat on top of her coils high above the whirlpool. Her six long necks curve up on the left of the boat, six small smiling heads in six different coloured bobble hats, all cheering with mouths open. In the boat, Ody grips the side with both hands, leaning out, laughing; Hoot clings to the mast with eyes shut tight.",
+     "action": {
+      "word": "coiled",
+      "target": "sissy",
+      "sound": "whoosh",
+      "motion": "float"
+     }
+    },
+    {
+     "aside": null,
+     "place": "whirlpool-strait",
+     "camera": "close",
+     "characters": [
+      "hero",
+      "sissy"
+     ],
+     "text": "On the other side, Sissy's smallest head pulled off its tiny red bobble hat. \"For your gran,\" she whispered shyly. Ody gave the little head a gentle pat. \"Thank you, Sissy. Gran LOVES hats.\"",
+     "picture": "Close-up in soft afternoon light, calm water now, a faint rainbow in the sky behind. On the right, the smallest of Sissy's six green spotted heads leans down close, shyly offering a tiny red bobble hat held in its mouth, cheeks pink, eyes looking down; two more of her heads in mustard and blue hats peek in from the top right edge. On the left, Ody leans out of Biscuit's side, one hand reaching up to gently pat the little head, the other hand open to take the hat, smiling warmly.",
+     "action": {
+      "word": "pat",
+      "target": "hero",
+      "sound": "giggle",
+      "motion": "nod"
+     }
+    },
+    {
+     "text": "As the sun went pink, there it was - Ithaca! White houses, olive trees, and on the jetty, old Argos wagging his whole back end. \"WOOF!\" Ody leapt ashore and threw her arms around his shaggy neck.",
+     "picture": "Mid shot at sunset: pink-gold sky, a rainbow fading over a small island with white cottages with blue doors and silver-green olive trees on the right. A wooden jetty runs across the foreground. Biscuit the honey-wood boat is tied up at the left end of the jetty. In the centre, Ody leaps from the boat onto the jetty mid-jump, arms flung wide, grinning. Argos the old shaggy grey-white sheepdog with a faded blue collar bounds towards her from the right, ears flying, tongue out, tail a blur of wagging. Hoot flutters above the boat with the cheese string in his beak.",
+     "characters": [
+      "hero",
+      "companion1",
+      "argos"
+     ],
+     "action": {
+      "word": "leapt",
+      "target": "hero",
+      "sound": "boing",
+      "motion": "leap"
+     },
+     "aside": null,
+     "place": "ithaca-jetty",
+     "camera": "mid"
+    }
+   ],
+   "choice": {
+    "prompt": "How should Ody surprise Gran?",
+    "options": [
+     {
+      "label": "Sneak in quietly"
+     },
+     {
+      "label": "Sing the shanty"
+     },
+     {
+      "label": "Send Argos first"
+     }
+    ]
+   },
+   "chosen": "Sneak in quietly"
+  },
+  {
+   "pages": [
+    {
+     "text": "Up the hill, Gran sat at her loom, weaving a blanket as blue as the sea. \"You came the long way round,\" she smiled. \"I did!\" said Ody. \"I helped a giant, sang to some birds and met a serpent with SIX hats!\" Gran hugged her tight.",
+     "picture": "Close-up mid shot inside Gran's cosy whitewashed cottage in warm lamplight: a blue door ajar on the left with the pink evening sky outside, a shelf with pots and a lit oil lamp. On the right, a big wooden loom holds a nearly finished blanket woven in sea-blue stripes, its threads running down to the loom. Gran - small, round, white curly hair in a bun with a red knitting needle, gold spectacles, olive-green dress and cream shawl - leans down from her stool to hug Ody with both arms, eyes closed happily. Ody hugs Gran back, face pressed to her shawl, grinning. Hoot perches on top of the loom; Argos sits at their feet.",
+     "characters": [
+      "hero",
+      "companion1",
+      "gran",
+      "argos"
+     ],
+     "action": {
+      "word": "weaving",
+      "target": "loom",
+      "sound": "rustle",
+      "motion": "wiggle"
+     },
+     "aside": null,
+     "place": "gran-cottage",
+     "camera": "close"
+    },
+    {
+     "aside": null,
+     "place": "gran-cottage",
+     "camera": "mid",
+     "characters": [
+      "hero",
+      "companion1",
+      "gran",
+      "argos"
+     ],
+     "text": "Then it was birthday supper! Gran wore her new red bobble hat. The giant cheese sat on the table like a full moon. \"A whole cheese from a giant?\" chuckled Gran. Argos gazed at it, drooling hopefully, and Hoot sang \"Happy Birthday\" - very, very wrong.",
+     "picture": "Mid shot in Gran's cottage in warm lamplight: the round wooden table in the middle holds a giant round yellow cheese as big as a cartwheel with one candle stuck in the top. Gran sits on the right of the table in her olive-green dress and cream shawl, now wearing a tiny red bobble hat perched on her white bun, laughing with both hands clasped. Ody kneels on a chair on the left, leaning over the table to cut the first slice with a big knife, grinning. Hoot stands on the table beside the cheese, wings out, beak wide open singing. Argos sits beside the table at the front, chin on the edge, gazing up at the cheese with big hopeful eyes and a drip of drool.",
+     "action": {
+      "word": "drooling",
+      "target": "argos",
+      "sound": "drip",
+      "motion": "wiggle"
+     }
+    },
+    {
+     "text": "That night Gran tucked the sea-blue blanket round Ody, with Argos snoring at her feet and Hoot dozing on the bedpost. \"Kindness is the best compass,\" yawned Ody. \"It always points home.\"",
+     "picture": "Calm close-up at bedtime in Gran's cottage bedroom: blue night through a small round window on the left with the silver moon over the sea; a lit oil lamp glowing warm on a bedside table. Ody lies tucked into a wooden bed under the sea-blue striped woven blanket, only her head and hair puffs showing on the pillow, eyes half-closed, a sleepy smile, her brass compass on the bedside table beside the lamp. Gran sits on the edge of the bed on the right tucking the blanket in, smiling softly. Argos sleeps curled on the foot of the bed; Hoot dozes on the bedpost with his spectacles pushed up.",
+     "characters": [
+      "hero",
+      "companion1",
+      "gran",
+      "argos"
+     ],
+     "action": {
+      "word": "tucked",
+      "target": "gran",
+      "sound": "snore",
+      "motion": "nod"
+     },
+     "aside": null,
+     "place": "gran-bedroom",
+     "camera": "close"
+    }
+   ],
+   "choice": null,
+   "chosen": null
+  }
+ ],
+ "length": "odyssey",
+ "places": [
+  {
+   "id": "harbour",
+   "light": "golden",
+   "about": "A little white harbour town on an island: white cottages with blue doors and silver-green olive trees climbing an ochre hill on the left, a stone jetty with drying fishing nets running in from the right, calm turquoise water in front."
+  },
+  {
+   "id": "open-sea",
+   "light": "day",
+   "about": "The open turquoise sea under a wide blue sky with puffy white clouds; a tiny far island on the right horizon; gentle waves all across the front."
+  },
+  {
+   "id": "storm-sea",
+   "light": "rain",
+   "about": "The open sea in a storm: towering curling teal waves with white foam across the front, dark grey-green clouds and slanting rain, no land anywhere."
+  },
+  {
+   "id": "cyclops-beach",
+   "light": "day",
+   "about": "A quiet rocky island beach after a storm: wet golden sand across the front, scattered seaweed and shells, tall ochre cliffs on the right with a big dark cave mouth, a sheep path climbing beside it."
+  },
+  {
+   "id": "polly-cave",
+   "light": "night",
+   "about": "Inside a giant's big warm cave, lit by a small fire at the back: rough ochre stone walls and roof, wooden shelves of round cheeses on the left wall, a great wooden stool and a basket of green wool on the right, a sandy floor."
+  },
+  {
+   "id": "night-sea",
+   "light": "night",
+   "about": "The calm sea at night under a deep blue sky full of stars and a silver crescent moon: moonlight shimmering on gentle ripples, a dark cliff with a glowing cave far off on the left."
+  },
+  {
+   "id": "siren-rocks",
+   "light": "golden",
+   "about": "A calm sea in hazy pink-gold morning light: three dark rocks in a row on the right, small and smooth-topped, with seaweed at their feet; open water to the left."
+  },
+  {
+   "id": "whirlpool-strait",
+   "light": "day",
+   "about": "A narrow bright strait between two tall rocks: a tall seaweedy rock on the left, a great swirling whirlpool of teal water and foam on the lower right, open sea and sky beyond."
+  },
+  {
+   "id": "ithaca-jetty",
+   "light": "dusk",
+   "about": "Ithaca at sunset: a small island with white cottages with blue doors and silver-green olive trees on the right, a long wooden jetty across the front, a pink-gold sky with a fading rainbow."
+  },
+  {
+   "id": "gran-cottage",
+   "light": "dusk",
+   "about": "Inside Gran's cosy whitewashed cottage in warm lamplight: a blue door on the left open to the pink evening sky, a shelf of pots and a lit oil lamp on the back wall, a big wooden loom on the right, a round wooden table in the middle, a striped rug on the stone floor."
+  },
+  {
+   "id": "gran-bedroom",
+   "light": "night",
+   "about": "Gran's small whitewashed bedroom at night: a round window on the left showing the moon over the sea, a wooden bed against the back wall, a bedside table with a lit oil lamp on the right, a rag rug on the floor."
+  }
+ ]
+}
