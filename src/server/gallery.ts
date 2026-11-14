@@ -106,7 +106,10 @@ export async function publishStory(story: Story, author: { id: string; username:
     const { notes: _notes, savedId: _savedId, ...rest } = c;
     return rest;
   };
-  const publicStory: Story = { ...story, hero: strip(story.hero), companions: (story.companions ?? []).map(strip) };
+  // (nor does the storyteller's own plot plan)
+  const { plan: _plan, ...told } = story;
+  void _plan;
+  const publicStory: Story = { ...told, hero: strip(story.hero), companions: (story.companions ?? []).map(strip) };
   await Promise.all([
     writeJson(INDEX_PATH, next),
     writeJson(storyPath(story.id), { ...publicStory, ratingSum, ratingCount, authorId, authorUsername }),
