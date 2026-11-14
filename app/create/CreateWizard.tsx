@@ -27,6 +27,7 @@ import { LimitDialog, type LimitNotice } from "@/components/LimitDialog";
 import { coverOf, titleOf } from "@/components/OngoingStory";
 import { useOngoingStory } from "@/lib/ongoing";
 import { forgetIdea, takeHandover } from "@/lib/ideas";
+import { beginStory } from "@/components/StoryReader";
 
 const AGE_KEY = "taleo.age";
 const MINUTES_KEY = "taleo.minutes";
@@ -77,6 +78,11 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
   // now, while the ages are read, so they're there when the slider opens)
   for (const l of STORY_LENGTHS) preload(`/art/lengths/${l.id}.webp`, { as: "image", fetchPriority: "low" });
   const router = useRouter();
+  // (the story's page itself, readied while the story is being chosen, so
+  // beginning it doesn't wait on it)
+  useEffect(() => {
+    router.prefetch("/story/new");
+  }, [router]);
   const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>(0);
   const { night } = useNightMode();
@@ -277,6 +283,9 @@ export function CreateWizard({ me, initialCharacters }: { me: { id: string; user
         keepalive: true,
       }).catch(() => {});
     }
+    // (its first page is asked for now - not once the story's page has
+    // loaded - and the reader there picks the reply up)
+    beginStory(story);
     router.push(`/story/${story.id}`);
   };
 

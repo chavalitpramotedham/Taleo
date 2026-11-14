@@ -286,27 +286,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       setProgressStart(Date.now());
       setError(null);
       setLimit(null);
-      const body =
-        s.segments.length === 0
-          ? { kind: "start", storyId: s.id, age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
-          : {
-              kind: "continue",
-              storyId: s.id,
-              // (the server's ticket for the part after these - see server/tickets)
-              ticket: s.ticket,
-              story: {
-                age: s.age,
-                minutes: s.minutes,
-                theme: s.theme,
-                world: s.world,
-                moral: s.moral,
-                title: s.title,
-                hero: s.hero,
-                companions: s.companions,
-                cast: s.cast,
-                segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })),
-              },
-            };
+      const body = storyRequestBody(s);
       // The new segment streams in page by page: the reader can start on
       // its first page (and its picture starts painting) while the rest is
       // still being written. The finished, validated segment then replaces
@@ -329,12 +309,17 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       document.addEventListener("visibilitychange", onVis);
       for (let tries = 0; ; tries++) {
       try {
-        const res = await fetch("/api/story", {
-          signal,
-          method: "POST",
-          headers: { "content-type": "application/json", ...deviceHeader() },
-          body: JSON.stringify({ ...body, jobId }),
-        });
+        // (a story's beginning may have been asked for already, the moment
+        // it was begun - see beginStory - while this page was on its way)
+        const early = tries === 0 ? takeEarlyStory(s.id) : null;
+        const res =
+          (early && (await early.catch(() => null))) ||
+          (await fetch("/api/story", {
+            signal,
+            method: "POST",
+            headers: { "content-type": "application/json", ...deviceHeader() },
+            body: JSON.stringify({ ...body, jobId }),
+          }));
         if (!res.ok || !res.body) {
           const data = (await res.json().catch(() => ({}))) as { error?: string; limited?: string; plan?: string };
           // The plan's allowance for new stories is used up: say so
@@ -1469,6 +1454,56 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
 /** The page's tappable moment, in the form the painting needs. */
 /** What's under the brush on this page, from the picture so far: the
  *  page's own character or thing by name, and who else is on it. */
+/** What's sent to the storyteller for a story's next part (or its
+ *  beginning). */
+function storyRequestBody(s: Story) {
+  return (
+    s.segments.length === 0
+      ? { kind: "start", storyId: s.id, age: s.age, minutes: s.minutes, theme: s.theme, hero: s.hero, companions: s.companions }
+      : {
+          kind: "continue",
+          storyId: s.id,
+          // (the server's ticket for the part after these - see server/tickets)
+          ticket: s.ticket,
+          story: {
+            age: s.age,
+            minutes: s.minutes,
+            theme: s.theme,
+            world: s.world,
+            moral: s.moral,
+            title: s.title,
+            hero: s.hero,
+            companions: s.companions,
+            cast: s.cast,
+            segments: s.segments.map((g) => ({ ...g, pages: g.pages.map((p) => ({ ...p, svg: null })) })),
+          },
+        });
+}
+
+// A story's beginning, asked for the moment it's begun (from the story
+// wizard, before the reader's page has even loaded): the reader picks the
+// reply up instead of asking again. Kept only in this page's memory.
+const earlyStories = new Map<string, Promise<Response>>();
+
+/** Ask for a new story's beginning at once (see the reader's `generate`). */
+export function beginStory(s: Story) {
+  if (s.segments.length || earlyStories.has(s.id)) return;
+  const p = fetch("/api/story", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...deviceHeader() },
+    body: JSON.stringify({ ...storyRequestBody(s), jobId: `${s.id}-part0` }),
+  });
+  earlyStories.set(s.id, p);
+  // (not picked up within a minute - the page never came: let it go)
+  window.setTimeout(() => earlyStories.delete(s.id), 60_000);
+}
+
+function takeEarlyStory(id: string): Promise<Response> | null {
+  const p = earlyStories.get(id) ?? null;
+  earlyStories.delete(id);
+  return p;
+}
+
 /** What the storyteller itself said went wrong (not a dropped connection). */
 class StoryAnswer extends Error {}
 
