@@ -111,12 +111,17 @@ export const Painting = memo(function Painting({
       // (a growing painting: drawn again at most every second or so, and
       // less often if drawing it takes long)
       if (liveTimer.current !== null) return;
-      // (drawing never takes more than a quarter of the time)
-      const wait = Math.max(0, lastLive.current + Math.max(1200, liveCost.current * 3) - performance.now());
+      // (drawing never takes more than a third of the time: in Safari most
+      // of it is done away from the page, so that's often)
+      const wait = Math.max(0, lastLive.current + Math.max(800, liveCost.current * 2) - performance.now());
       liveTimer.current = window.setTimeout(() => {
         const now = latest.current;
         const t0 = performance.now();
-        void bakePainting(now.clean, { width: now.width, night: now.night, split: false, soon: true }).then((b) =>
+        // (a drawing of a painting still arriving is gone within a second:
+        // drawn smaller - well under half the pixels to save and show -
+        // while the finished one is drawn full size)
+        const liveWidth = Math.round((now.width * 2) / 3 / 40) * 40;
+        void bakePainting(now.clean, { width: liveWidth, night: now.night, split: false, soon: true }).then((b) =>
           ready(b).then(() => {
             liveTimer.current = null;
             liveCost.current = performance.now() - t0;
