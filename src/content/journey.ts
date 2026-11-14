@@ -121,14 +121,14 @@ export const JOURNEY: JourneyDay[] = [
   },
   {
     date: "2026-11-14",
-    title: "Experimenting with painter RSI",
-    updates: 25,
+    title: "Taleo improves itself: pictures, speed and stories",
+    updates: 49,
     highlights: [
-      "Behind the scenes: experimenting with painter RSI. Over many rounds, the painter painted long test books, graded every page and learned from its own mistakes.",
-      "The result is now live for every reader: the thing each page is about is in the picture, giants look giant, and groups of friends come along together.",
-      "More natural poses: characters really sit, knees bent, with arms doing different things, and they ride on shoulders and get tucked into bed.",
-      "Four test books, among them a dragon, a snow troll and a kitchen cat ten times the hero's size, are now in the library to read.",
+      "Behind the scenes: recursive self-improvement. With three goals - better pictures, quicker and smoother pictures, and clearer stories - Taleo wrote and painted test books, measured every result against where it started, and kept only the changes that helped.",
+      "Better pictures: each page shows what it's about, giants look giant, friends come along together, and characters sit, wave, ride and get tucked into bed naturally.",
+      "Quicker and smoother on phones: the next page is ready the moment you turn, picture and words together; pictures are sharp; the first picture paints from the first seconds, and a story keeps going if you leave the app.",
+      "Clearer stories, especially for the youngest: one simple plot, told in order, that a parent can read aloud without a second look. Four test books are in the library to read.",
     ],
-    shots: [shot("14", "painter-rsi", "Painter RSI: the same page at round 0, round 10 and round 20", true), shot("14", "painter-live", "Before and after: a cat ten times the hero's size, now drawn that way", true)],
+    shots: [shot("14", "painter-rsi", "Before and after: one giant, at her size, instead of three", true), shot("14", "painter-live", "Before and after: a cat ten times the hero's size, now drawn that way", true)],
   },
 ];
