@@ -185,7 +185,7 @@ function buildSegmentRequest(req: StoryRequest) {
   const moral = isStart ? "" : req.story.moral?.trim();
   if (moral) parts.push(`THE STORY'S HEART (the lesson this book builds to and lands at the end): ${moral}`);
   const plan = isStart ? "" : (req.story as { plan?: string }).plan?.trim();
-  if (plan) parts.push(`YOUR PLAN FOR THIS BOOK (written with segment 1, private): ${plan}\nKeep to it: the child's choices change HOW the characters get there, never what the story is about. Every page still follows from the one before.`);
+  if (plan) parts.push(`YOUR PLAN FOR THIS BOOK (written with segment 1, private): ${plan}\nKeep to its want, problem and ending: the child's choices decide the route there, and you follow them faithfully - never what the story is about. Every page still follows from the one before.`);
   if (!isStart && req.story.world) parts.push(`BOOK ART DIRECTION: ${req.story.world}`);
   parts.push(
     `CENTRAL CHARACTERS (the story's protagonists - give each one real presence and at least one moment to shine, not just the first):\n${heroes.map(centralSheet).join("\n")}`,
@@ -217,7 +217,7 @@ function buildSegmentRequest(req: StoryRequest) {
   if (isStart) {
     const names = heroes.map((h) => `${h.name} (id "${h.id}")`).join(heroes.length > 1 ? " and " : "");
     parts.push(
-      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end - and write your "plan" for the whole book. Then give the story a short, charming title and the book's art direction ("world"), and introduce ${names} together in a lively opening that starts with something happening. Within the first two pages make the ONE want plain to a small child: what the characters want to do or get (or, only if the theme calls for one, what has gone wrong), and why it matters to them - shown, not just said (we SEE the music box stop, then we hear that its key is lost). If something gets lost, show how and where it goes (the wind lifts the hat over the hedge), so where it's found later makes sense. Plant one small detail you will pay off at the end, and end on an exciting moment with a choice for the child that follows from the problem.`,
+      `Write segment 1 of ${totalSegments}: first choose the story's heart ("moral") - one warm lesson that fits the theme (and any family notes) which this book will build to and land at the end - and write your "plan" for the whole book. Then give the story a short, charming title and the book's art direction ("world"), and introduce ${names} together in a lively opening that starts with something happening. Within the first two pages make the ONE want plain to a small child: what the characters want to do or get (or, only if the theme calls for one, what has gone wrong), and why it matters to them - shown, not just said (we SEE the music box stop, then we hear that its key is lost). If something gets lost, show how and where it goes (the wind lifts the hat over the hedge), so where it's found later makes sense. Make that want the very situation that tests the story's heart: in a sharing story, the problem IS whether to share (a friend with nothing, a treat for one) - and the characters must choose; never let an accident or a gust of wind make the choice for them. Plant one small detail you will pay off at the end, and end on an exciting moment with a choice for the child that follows from the problem.`,
     );
   } else {
     const story = segments
@@ -233,7 +233,7 @@ function buildSegmentRequest(req: StoryRequest) {
     const last = segments[segments.length - 1]?.chosen;
     if (last?.custom) {
       parts.push(
-        `The child typed their own idea: "${last.text}". Decide if it fits the story world. If yes, run with it joyfully - as a way to tackle the story's one problem, not a new adventure. If not, use "aside" on the first page to respond playfully and steer back to a positive, relevant plot. The aside is read out on its own, just before that page: the page's text then simply carries on the story - it must not repeat, quote or answer the idea again.`,
+        `The child typed their own idea: "${last.text}". Decide if it fits the story world. If yes, run with it joyfully - as a way to tackle the story's one problem, not a new adventure. If not, use "aside" on the first page to respond playfully, then carry on with the most sensible next step for the story - don't force the idea in. The aside is read out on its own, just before that page: the page's text then simply carries on the story - it must not repeat, quote or answer the idea again.`,
       );
     }
     parts.push(

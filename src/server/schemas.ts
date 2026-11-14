@@ -60,7 +60,7 @@ export const SegmentSchema = z.object({
   plan: z
     .string()
     .describe(
-      "First segment only (empty afterwards), written BEFORE the pages: your private plot plan for the whole book in 3-5 plain sentences - who wants what and why; the ONE problem in their way; how each segment moves it on (what is tried, what happens because of it); and exactly how it ends happily and lands the heart. The child's choices may change the route; this keeps the destination. Never shown to the reader.",
+      "First segment only (empty afterwards), written BEFORE the pages: your private plot plan in 3 short, plain sentences - who wants what and why; the ONE problem in their way (the one that tests the story's heart); and how it ends happily. Don't fix the steps in between: the child's choices decide the route, this only keeps the destination. Never shown to the reader.",
     ),
   keyword: z
     .string()
