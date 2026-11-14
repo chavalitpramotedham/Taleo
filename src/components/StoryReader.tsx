@@ -311,7 +311,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       try {
         // (a story's beginning may have been asked for already, the moment
         // it was begun - see beginStory - while this page was on its way)
-        const early = tries === 0 ? takeEarlyStory(s.id) : null;
+        const early = tries === 0 ? takeEarlyStory(jobId) : null;
         const res =
           (early && (await early.catch(() => null))) ||
           (await fetch("/api/story", {
@@ -639,6 +639,9 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   const pick = (text: string, custom: boolean) => {
     if (picked || busy || !text.trim()) return;
     setPicked(text);
+    // (the next part is asked for at the tap - the beat is only for the eye)
+    const segs = story.segments.map((s, i) => (i === story.segments.length - 1 ? { ...s, chosen: { text: text.trim(), custom } } : s));
+    if (!readOnly) beginPart({ ...story, segments: segs });
     window.setTimeout(() => {
       setPicked(null);
       choose(text, custom);
@@ -1485,22 +1488,26 @@ function storyRequestBody(s: Story) {
 // reply up instead of asking again. Kept only in this page's memory.
 const earlyStories = new Map<string, Promise<Response>>();
 
-/** Ask for a new story's beginning at once (see the reader's `generate`). */
-export function beginStory(s: Story) {
-  if (s.segments.length || earlyStories.has(s.id)) return;
+/** Ask for a story's next part (or its beginning) at once - the moment
+ *  it's begun or its choice tapped - for the reader's `generate` to pick up. */
+export function beginPart(s: Story) {
+  const key = `${s.id}-part${s.segments.length}`;
+  if (earlyStories.has(key)) return;
   const p = fetch("/api/story", {
     method: "POST",
     headers: { "content-type": "application/json", ...deviceHeader() },
-    body: JSON.stringify({ ...storyRequestBody(s), jobId: `${s.id}-part0` }),
+    body: JSON.stringify({ ...storyRequestBody(s), jobId: key }),
   });
-  earlyStories.set(s.id, p);
+  earlyStories.set(key, p);
   // (not picked up within a minute - the page never came: let it go)
-  window.setTimeout(() => earlyStories.delete(s.id), 60_000);
+  window.setTimeout(() => earlyStories.delete(key), 60_000);
 }
+/** A new story's beginning, asked for from the story wizard. */
+export const beginStory = (s: Story) => !s.segments.length && beginPart(s);
 
-function takeEarlyStory(id: string): Promise<Response> | null {
-  const p = earlyStories.get(id) ?? null;
-  earlyStories.delete(id);
+function takeEarlyStory(key: string): Promise<Response> | null {
+  const p = earlyStories.get(key) ?? null;
+  earlyStories.delete(key);
   return p;
 }
 
