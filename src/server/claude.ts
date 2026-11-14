@@ -248,7 +248,15 @@ function buildSegmentRequest(req: StoryRequest) {
 
   return {
     user: parts.join("\n\n"),
-    norm: { isLast, existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)], existing: [...heroes, ...cast].map((c) => ({ id: c.id, name: c.name })), optionCount: age.optionCount, knownPlaces: known.map((p) => p.id) },
+    norm: {
+      isLast,
+      existingIds: [...heroes.map((h) => h.id), ...cast.map((c) => c.id)],
+      existing: [...heroes, ...cast].map((c) => ({ id: c.id, name: c.name })),
+      optionCount: age.optionCount,
+      knownPlaces: known.map((p) => p.id),
+      // (the child's own typed idea, if that's what led here)
+      typed: !isStart && segments[segments.length - 1]?.chosen?.custom ? segments[segments.length - 1].chosen!.text : undefined,
+    },
   };
 }
 
@@ -418,7 +426,22 @@ export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): A
   yield { type: "done", response: normalizeSegment(out, norm) };
 }
 
-function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; existing?: { id: string; name: string }[]; optionCount: number; knownPlaces?: string[] }): SegmentResponse {
+/** The page's own words already take up the child's typed idea (they name
+ *  it: the rocket, the dinosaur): then the separate aside, read out just
+ *  before them, would say it twice - the page's words are kept alone. */
+function answersIdea(text: string, typed: string | undefined, names: string[] = []): boolean {
+  if (!typed) return false;
+  // (the characters' own names are in every page: they don't count)
+  const named = new Set(names.flatMap((n) => n.toLowerCase().match(/[a-z]+/g) ?? []));
+  const skip = new Set([...named, "with", "from", "into", "that", "this", "there", "their", "they", "them", "then", "have", "what", "when", "turn", "turns", "make", "makes", "whole", "very", "some", "just", "like", "will", "would", "could", "should", "look", "find", "away"]);
+  const words = (typed.toLowerCase().match(/[a-z]{4,}/g) ?? []).filter((w) => !skip.has(w));
+  // (an answer comes first: only the page's opening two sentences count -
+  // a party story's cake later on isn't an answer to "the cake flies away")
+  const said = (text.match(/[^.!?]+[.!?]+["”’']?/g) ?? [text]).slice(0, 2).join(" ").toLowerCase();
+  return words.some((w) => said.includes(w.replace(/s$/, "")));
+}
+
+function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; existing?: { id: string; name: string }[]; optionCount: number; knownPlaces?: string[]; typed?: string }): SegmentResponse {
   const taken = new Set(opts.existingIds);
   const idMap: Record<string, string> = {};
   const newCharacters: CharacterDef[] = [];
@@ -456,7 +479,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     place: placeIds.has(slugPlace(p.place ?? "")) ? slugPlace(p.place ?? "") : null,
     camera: p.camera ?? null,
     text: p.text.trim(),
-    aside: p.aside?.trim() ? p.aside.trim() : null,
+    aside: p.aside?.trim() && !answersIdea(p.text, opts.typed, (opts.existing ?? []).map((c) => c.name)) ? p.aside.trim() : null,
     picture: p.picture.trim().slice(0, 1200),
     characters: [...new Set(p.characters.map((id) => idMap[id] ?? id))].filter((id) => taken.has(id)).slice(0, 5),
     action: cleanAction(p.action, p.text, idMap),
