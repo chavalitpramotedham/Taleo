@@ -70,3 +70,25 @@ scored 5, 7 and 8 on three readings): compare several books per setup
 before trusting a small difference.
 
 Cost: about $0.10 a book with the storyteller, $0.01 a judgement.
+
+## 2. The child's own ideas come first (15 Nov 2026)
+
+A parent typed "summon the amazing dragon Vhagar ... and fight the Eye
+with dragonfire" into a Lord-of-the-Rings-style story. The storyteller
+answered with "Dragons? Anyone?" - only an owl hooted back. No dragon.
+The instructions had said to weave in an idea only "if it fits", and
+otherwise to answer it and carry on; with "nothing appears from nowhere"
+on top, the safe move was to sidestep anything wild.
+
+Now a typed idea that is safe and kind (or can be made so) really happens,
+on the very next page: with a way in the child can see (a wish that works,
+a bubble that glows), introduced plainly, and helping with the story's one
+problem so the plot stays clear. Its spirit is kept but made gentle (the
+dragon asked to fight lights the cold fire pit instead), anything borrowed
+from a book, film or game gets a fresh name of the story's own, and only
+an unsafe or unkind idea is declined - warmly, with something in the same
+spirit. Pretending to try an idea and having it fail is ruled out.
+
+Tested on five books (ages 2-6): the dragon, a unicorn, a rocket and a
+dinosaur-dad all happened on the next page and carried the plot; "the
+puppy bites the cat really hard" was turned to gentleness in the story.
