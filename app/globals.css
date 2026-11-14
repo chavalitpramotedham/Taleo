@@ -1282,27 +1282,18 @@ main {
     opacity: 0;
   }
 }
-/* A page comes in the way the bedtime note is pencilled on the age step:
-   wiped in from left to right as it fades up - the picture first, its
-   words just after, as one page. */
+/* A page comes in softly, as one: the picture fades up, its words just
+   after. Only opacity and a touch of transform move - the GPU does both
+   on the drawn picture, so even a phone never redraws the painting mid-
+   fade (a wipe across it did, every frame, and stuttered). */
 .art-fade.in {
   opacity: 1;
-  animation: pageWipe 1.1s cubic-bezier(0.45, 0.05, 0.4, 1) both;
-  /* (its own layer, so the wipe moves over the drawn picture rather than
-     drawing it again on every frame) */
-  will-change: opacity, clip-path;
+  animation: pageIn 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  will-change: opacity;
 }
-@keyframes pageWipe {
+@keyframes pageIn {
   from {
     opacity: 0;
-    clip-path: inset(-4% 100% -4% -4%);
-  }
-  35% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    clip-path: inset(-4% -4% -4% -4%);
   }
 }
 /* A page's words arrive with its picture, as one page. */
@@ -1310,7 +1301,13 @@ main {
   opacity: 0;
 }
 .page-words.in {
-  animation: pageWipe 1.1s 0.18s cubic-bezier(0.45, 0.05, 0.4, 1) both;
+  animation: wordsIn 0.8s 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+@keyframes wordsIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
 }
 /* (the turning leaf is a still copy of the page: nothing on it fades in) */
 .flip-leaf .art-fade,
