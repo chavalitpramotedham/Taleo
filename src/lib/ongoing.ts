@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Story } from "./types";
-import { deleteStory, getStory, listStories, saveStory } from "./storage";
+import { deleteStory, getStory, listStories, saveStory, storiesReady } from "./storage";
 import { discardDraft, fetchDraft } from "./drafts-client";
 
 /**
@@ -41,7 +41,7 @@ export function useOngoingStory({ finishing = false } = {}) {
     let live = true;
     const look = async () => {
       // (only to show it's there: without its paintings)
-      const draft = await fetchDraft({ light: true });
+      const [draft] = await Promise.all([fetchDraft({ light: true }), storiesReady()]);
       if (!live) return;
       const local = localUnfinished(userId);
       // (a finished story's draft only counts where asked for - and never
