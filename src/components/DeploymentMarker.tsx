@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { DeployedCommit, Deployment, LiveStatus } from "@/lib/deployment";
 import { useEscape } from "@/lib/useEscape";
-import { InfoIcon } from "./Icons";
+import { InfoIcon, ReplayIcon } from "./Icons";
 
 /** The version this page was built from (a short commit id). */
 const PAGE_SHA = process.env.TALEO_BUILD_SHA || "";
@@ -91,7 +91,13 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
   }
   const state = status ?? "live";
   return (
-    <>
+    <div className="deploy-marker-row">
+      {/* (a newer version is live: one tap to load it) */}
+      {state === "update" && (
+        <button type="button" className="deploy-refresh" role="menuitem" aria-label="Reload to get the newer version" title="Reload to get the newer version" onClick={() => window.location.reload()}>
+          <ReplayIcon />
+        </button>
+      )}
       <button
         type="button"
         className="deploy-marker"
@@ -120,7 +126,7 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
         </span>
         <InfoIcon />
       </button>
-    </>
+    </div>
   );
 }
 
