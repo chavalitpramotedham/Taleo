@@ -320,6 +320,7 @@ export function HeroPainting() {
         src={i < EAGER || rest ? l.src : undefined}
         // (for the early start, which fills these in itself)
         data-src={l.src}
+        suppressHydrationWarning
         alt=""
         className={`hero-layer hp-cut hp-g hp-g-${l.kind}`}
         style={{ ...timing, left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
@@ -347,8 +348,11 @@ export function HeroPainting() {
 
   return (
     <>
-    <figure className="hero-art hero-paint">
-      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms`, "--paint-ms": `${PAINT_MS}ms` } as React.CSSProperties}>
+    // (the page's own early script starts the painting before this is
+    // hydrated - classes, start time, picture sources - on purpose: React
+    // is told not to mind)
+    <figure className="hero-art hero-paint" suppressHydrationWarning>
+      <div ref={wrap} className="hero-paint-canvas hero-paint-pending" suppressHydrationWarning style={{ "--wait-out": `${WAIT_OUT_AT}ms`, "--jump-at": `${JUMP_AT}ms`, "--jump-ms": `${JUMP_MS}ms`, "--paint-ms": `${PAINT_MS}ms` } as React.CSSProperties}>
         {/* The scene as a stack of layers, one per part, in paint order. */}
         <div className="hero-layers painted-edge" role="img" aria-label={TITLE}>
           <svg viewBox="0 0 400 300" className="hero-layer" aria-hidden>
