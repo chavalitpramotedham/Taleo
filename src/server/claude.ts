@@ -33,6 +33,7 @@ import { spritesFor } from "./paint/sprite-maker";
 import { SPRITE_POSES, SPRITE_POSE_IDS, type Sprite, type SpritePose } from "@/lib/art/sprites";
 import type { CharacterParts } from "@/lib/art/parts";
 import { CharacterDesignSchema, NewCharacterSchema, PageSchema, PlaceSchema, SegmentSchema, type SegmentOut } from "./schemas";
+import { categoryOf } from "@/lib/keywords";
 
 type Effort = "low" | "medium" | "high";
 const STORY_MODEL = process.env.TALEO_MODEL || "claude-opus-5-5";
@@ -462,7 +463,9 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     title: out.title?.trim() || undefined,
     world: out.world?.trim() || undefined,
     moral: out.moral?.trim().slice(0, 200) || undefined,
-    keyword: out.keyword?.trim().split(/\s+/)[0]?.replace(/[^\p{L}-]/gu, "").slice(0, 24) || undefined,
+    // (one of the library's categories, or none - the story's theme then
+    // decides: see lib/keywords)
+    keyword: categoryOf(out.keyword?.trim().split(/\s+/)[0]?.replace(/[^\p{L}-]/gu, "")),
     newCharacters,
     ...(places.length ? { places } : {}),
     segment: { pages, choice, chosen: null },

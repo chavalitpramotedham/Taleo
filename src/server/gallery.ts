@@ -1,6 +1,6 @@
 import { allPages } from "@/lib/story-utils";
 import { ageById } from "@/lib/ages";
-import { storyKeyword } from "@/lib/keywords";
+import { isCategory, storyKeyword } from "@/lib/keywords";
 import type { CharacterDef, GalleryEntry, RatingRecord, Story } from "@/lib/types";
 import { deleteJson, readJson, writeJson } from "./store";
 import { ADMIN_USER_ID } from "./users";
@@ -30,7 +30,9 @@ export async function listGallery(opts: { cacheSeconds?: number; fresh?: boolean
   let entries = (await readJson<GalleryEntry[]>(INDEX_PATH, opts)) ?? [];
   // One-off back-fill of card details for entries published before they
   // were stored: read those stories once, then save the index.
-  const missing = entries.filter((e) => !e.keyword || !e.starring);
+  // (and of cards whose category isn't one of the library's - filed again
+  // from the story itself)
+  const missing = entries.filter((e) => !e.keyword || !isCategory(e.keyword) || !e.starring);
   if (missing.length) {
     const filled = new Map<string, ReturnType<typeof cardDetails>>();
     for (let i = 0; i < missing.length; i += 8) {

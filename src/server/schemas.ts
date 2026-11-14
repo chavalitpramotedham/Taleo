@@ -60,7 +60,7 @@ export const SegmentSchema = z.object({
   keyword: z
     .string()
     .describe(
-      "First segment only (empty afterwards): ONE word naming what this story is about, for its library card - e.g. Family, Friendship, Adventure, Kindness, Bravery, Bedtime, Feelings, Mystery, Nature, Celebration, Imagination",
+      "First segment only (empty afterwards): what this story is about, for its library card - EXACTLY ONE of these words, as written: Adventure, Bedtime, Bravery, Celebration, Family, Feelings, Friendship, Imagination, Kindness, Mission, Mystery, Nature",
     ),
   newCharacters: z.array(NewCharacterSchema).describe("Side characters introduced in this segment (empty if none)"),
   places: z

@@ -16,8 +16,17 @@ const BY_THEME: Record<string, string> = {
   sharing: "Kindness",
 };
 
-// For themes typed in freely: the first of these that fits.
+/** The library's categories: every story card shows one of these, and
+ *  only these (a story's own word - the storyteller's, or a book brought
+ *  in by hand - is filed under the nearest). */
+export const CATEGORIES = ["Adventure", "Bedtime", "Bravery", "Celebration", "Family", "Feelings", "Friendship", "Imagination", "Kindness", "Mission", "Mystery", "Nature"] as const;
+const CANON = new Map(CATEGORIES.map((c) => [c.toLowerCase(), c as string]));
+/** One of the library's categories already. */
+export const isCategory = (word: string | null | undefined) => Boolean(word && CANON.has(word.trim().toLowerCase()));
+
+// For themes typed in freely, and other words: the first of these that fits.
 const HINTS: [RegExp, string][] = [
+  [/\b(team|together|cooperat|teamwork)/i, "Friendship"],
   [/\b(family|mum|mom|dad|grand|sister|brother|baby)/i, "Family"],
   [/\bfriend/i, "Friendship"],
   [/\b(space|rocket|dragon|magic|fairy|wizard|unicorn|planet)/i, "Imagination"],
@@ -31,9 +40,19 @@ const HINTS: [RegExp, string][] = [
   [/\b(adventure|journey|explor|travel|quest)/i, "Adventure"],
 ];
 
+/** The category a word is, or plainly means ("Sharing" is Kindness),
+ *  if any. */
+export function categoryOf(word: string | null | undefined): string | undefined {
+  const w = word?.trim().toLowerCase();
+  if (!w) return undefined;
+  return CANON.get(w) ?? HINTS.find(([re]) => re.test(w))?.[1];
+}
+
 export function storyKeyword(s: { keyword?: string | null; theme?: string | null }): string {
-  const own = s.keyword?.trim();
-  if (own) return own.charAt(0).toUpperCase() + own.slice(1, 24);
+  // (the story's own word, if it's one of the categories or plainly means
+  // one; otherwise what its theme says)
+  const own = categoryOf(s.keyword);
+  if (own) return own;
   const theme = (s.theme || "").trim();
   const preset = THEMES.find((t) => t.line === theme || t.label === theme);
   if (preset) return BY_THEME[preset.key] ?? "Adventure";
