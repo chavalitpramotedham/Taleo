@@ -41,7 +41,7 @@ const QUICK_PAGES = 2;
 export async function POST(req: Request) {
   const no = devOnly();
   if (no) return no;
-  const body = (await req.json()) as { prepare?: boolean; round?: number; pages?: number[] };
+  const body = (await req.json()) as { prepare?: boolean; round?: number; pages?: number[]; effort?: "low" | "medium" | "high" };
   if (readLedger().spentUsd >= BUDGET_USD) return Response.json({ error: `Budget of $${BUDGET_USD} reached` }, { status: 402 });
 
   if (body.prepare) {
@@ -64,6 +64,8 @@ export async function POST(req: Request) {
       return painting.run(at, async () => {
         const r = benchRequest(n);
         r.quick = (r.pageInPart ?? 0) < QUICK_PAGES;
+        // (a candidate: the live settings with the composer's effort changed)
+        if (body.effort) r.reuse = { ...LIVE.settings, painter: { ...LIVE.settings.painter!, effort: body.effort } };
         const notes: Record<string, unknown> = {};
         let svg = "";
         try {

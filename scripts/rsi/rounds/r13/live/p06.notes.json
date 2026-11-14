@@ -1,0 +1,58 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 2,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 3,
+  "kinds": {
+   "sparkles": 1,
+   "motion": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.93 to 1.22, true to the others",
+   "layout: drawn back to front: companion1, something drawn, polly, hero",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<fig c=\"polly\" v=\"front\" x=\"300\" y=\"248\" s=\"0.93\" arms=\"hug,hug\" legs=\"sit\" mood=\"surprised\" look=\"left\" tilt=\"-6\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"90\" y=\"248\" s=\"0.81\" lean=\"-14\" arms=\"reach,reach\" legs=\"walk\" mood=\"laugh\" look=\"right\"/>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"130\" y=\"150\" s=\"0.45\" lean=\"10\" arms=\"up,up\" legs=\"jump\" mood=\"excited\" look=\"down\"/>\n<g class=\"paint\"><path d=\"M120 128 Q150 118 175 160\" fill=\"none\" stroke=\"#7FA66A\" stroke-width=\"3\"/><path d=\"M118 126 Q112 110 128 108 Q140 112 130 128 Z\" fill=\"#7FA66A\"/></g>\n<g class=\"ink\"><path d=\"M120 128 Q150 118 175 160\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><ellipse cx=\"170\" cy=\"215\" rx=\"75\" ry=\"14\" fill=\"#7FA66A\" opacity=\"0.5\"/><ellipse cx=\"150\" cy=\"238\" rx=\"50\" ry=\"5\" fill=\"#000\" opacity=\"0.15\"/></g>\n<g class=\"ink\"><path d=\"M95 205 Q125 175 160 190 Q190 175 215 205\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"3\"/><path d=\"M100 215 Q130 195 165 208 Q195 195 210 220\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"2\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"150\" cy=\"222\" rx=\"24\" ry=\"17\" fill=\"#F3E6D0\"/><circle cx=\"135\" cy=\"212\" r=\"10\" fill=\"#F3E6D0\"/><circle cx=\"160\" cy=\"210\" r=\"11\" fill=\"#F3E6D0\"/><circle cx=\"125\" cy=\"228\" r=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"195\" cy=\"232\" rx=\"20\" ry=\"14\" fill=\"#F3E6D0\"/><circle cx=\"185\" cy=\"224\" r=\"9\" fill=\"#F3E6D0\"/><circle cx=\"207\" cy=\"224\" r=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"240\" cy=\"200\" rx=\"18\" ry=\"13\" fill=\"#F3E6D0\"/><circle cx=\"232\" cy=\"193\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"105\" cy=\"196\" rx=\"17\" ry=\"12\" fill=\"#F3E6D0\"/><circle cx=\"98\" cy=\"190\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"255\" cy=\"236\" rx=\"19\" ry=\"13\" fill=\"#F3E6D0\"/><circle cx=\"247\" cy=\"229\" r=\"8\" fill=\"#F3E6D0\"/><circle cx=\"268\" cy=\"229\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"170\" cy=\"202\" rx=\"16\" ry=\"6\" fill=\"#4A3A2C\"/></g>\n<g class=\"ink\"><circle cx=\"119\" cy=\"231\" r=\"5\" fill=\"#4A3A2C\"/><circle cx=\"244\" cy=\"199\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"110\" cy=\"198\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"260\" cy=\"238\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"190\" cy=\"236\" r=\"4\" fill=\"#4A3A2C\"/><path d=\"M140 238 L138 250 M156 236 L160 248 M200 244 L202 252 M235 188 L233 178 M250 190 L254 180 M100 188 L96 178\" stroke=\"#4A3A2C\" stroke-width=\"3\"/></g>\n</g>\n<stamp k=\"sparkles\" x=\"230\" y=\"120\" s=\"1\"/>\n<stamp k=\"motion\" x=\"60\" y=\"190\" s=\"0.8\"/>",
+   "laid": "<who c=\"polly\"/>\n<fig c=\"companion1\" v=\"front\" x=\"145\" y=\"150\" s=\"0.45\" lean=\"10\" arms=\"up,up\" legs=\"jump\" mood=\"excited\" look=\"down\" flip=\"0\" laid=\"1\"/>\n<who c=\"hero\"/>\n<g class=\"paint\"><path d=\"M120 128 Q150 118 175 160\" fill=\"none\" stroke=\"#7FA66A\" stroke-width=\"3\"/><path d=\"M118 126 Q112 110 128 108 Q140 112 130 128 Z\" fill=\"#7FA66A\"/></g>\n<g class=\"ink\"><path d=\"M120 128 Q150 118 175 160\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"1.5\"/></g>\n<g class=\"paint\"><ellipse cx=\"170\" cy=\"215\" rx=\"75\" ry=\"14\" fill=\"#7FA66A\" opacity=\"0.5\"/><ellipse cx=\"150\" cy=\"238\" rx=\"50\" ry=\"5\" fill=\"#000\" opacity=\"0.15\"/></g>\n<g class=\"ink\"><path d=\"M95 205 Q125 175 160 190 Q190 175 215 205\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"3\"/><path d=\"M100 215 Q130 195 165 208 Q195 195 210 220\" fill=\"none\" stroke=\"#4F7A48\" stroke-width=\"2\"/></g>\n<g class=\"target\">\n<g class=\"paint\"><ellipse cx=\"150\" cy=\"222\" rx=\"24\" ry=\"17\" fill=\"#F3E6D0\"/><circle cx=\"135\" cy=\"212\" r=\"10\" fill=\"#F3E6D0\"/><circle cx=\"160\" cy=\"210\" r=\"11\" fill=\"#F3E6D0\"/><circle cx=\"125\" cy=\"228\" r=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"195\" cy=\"232\" rx=\"20\" ry=\"14\" fill=\"#F3E6D0\"/><circle cx=\"185\" cy=\"224\" r=\"9\" fill=\"#F3E6D0\"/><circle cx=\"207\" cy=\"224\" r=\"9\" fill=\"#F3E6D0\"/><ellipse cx=\"240\" cy=\"200\" rx=\"18\" ry=\"13\" fill=\"#F3E6D0\"/><circle cx=\"232\" cy=\"193\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"105\" cy=\"196\" rx=\"17\" ry=\"12\" fill=\"#F3E6D0\"/><circle cx=\"98\" cy=\"190\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"255\" cy=\"236\" rx=\"19\" ry=\"13\" fill=\"#F3E6D0\"/><circle cx=\"247\" cy=\"229\" r=\"8\" fill=\"#F3E6D0\"/><circle cx=\"268\" cy=\"229\" r=\"8\" fill=\"#F3E6D0\"/><ellipse cx=\"170\" cy=\"202\" rx=\"16\" ry=\"6\" fill=\"#4A3A2C\"/></g>\n<g class=\"ink\"><circle cx=\"119\" cy=\"231\" r=\"5\" fill=\"#4A3A2C\"/><circle cx=\"244\" cy=\"199\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"110\" cy=\"198\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"260\" cy=\"238\" r=\"4\" fill=\"#4A3A2C\"/><circle cx=\"190\" cy=\"236\" r=\"4\" fill=\"#4A3A2C\"/><path d=\"M140 238 L138 250 M156 236 L160 248 M200 244 L202 252 M235 188 L233 178 M250 190 L254 180 M100 188 L96 178\" stroke=\"#4A3A2C\" stroke-width=\"3\"/></g>\n</g>\n\n<who c=\"companion1\"/>\n<fig c=\"polly\" v=\"front\" x=\"300\" y=\"248\" s=\"1.22\" arms=\"hug,hug\" legs=\"sit\" mood=\"surprised\" look=\"left\" tilt=\"-6\" flip=\"0\" laid=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"75\" y=\"248\" s=\"0.81\" lean=\"-14\" arms=\"reach,reach\" legs=\"walk\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/><stamp k=\"sparkles\" x=\"230\" y=\"120\" s=\"1\"/>\n<stamp k=\"motion\" x=\"60\" y=\"190\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 13
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1267,
+   "firstStrokeMs": 1267,
+   "out": 1380,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.04, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

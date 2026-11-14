@@ -1,0 +1,61 @@
+{
+ "portraits": "Polly painted from their portrait in this book",
+ "reuse": {
+  "stamps": 4,
+  "scatter": 1,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "scatter:stars": 1,
+   "boat": 1,
+   "sparkles": 2,
+   "hull": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "companion1",
+   "polly",
+   "hero"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: polly resized from 0.61 to 1.15, true to the others",
+   "layout: hero turned towards the main action",
+   "layout: drawn back to front: companion1, something drawn, polly, hero, something drawn",
+   "layout: companion1, hero put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"polly\"/>\n<g class=\"target\"><fig c=\"polly\" v=\"front\" x=\"105\" y=\"236\" s=\"0.61\" lean=\"6\" tilt=\"-8\" arms=\"carry,carry\" legs=\"stand\" mood=\"calm\" look=\"down\"/></g>\n<stamp k=\"boat\" x=\"235\" y=\"246\" s=\"1.4\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"215\" y=\"240\" s=\"0.5\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"up\"/>\n<g class=\"paint\"><ellipse cx=\"275\" cy=\"212\" rx=\"34\" ry=\"24\" fill=\"#E8B83E\"/><ellipse cx=\"275\" cy=\"204\" rx=\"34\" ry=\"12\" fill=\"#F2CB5A\"/></g>\n<g class=\"ink\"><path d=\"M242 212 Q275 224 308 212\"/><path d=\"M262 200 L264 208\"/><path d=\"M285 198 L288 207\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"275\" y=\"200\" s=\"0.3\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"hull\" x=\"235\" y=\"246\" s=\"1.4\"/>\n<stamp k=\"sparkles\" x=\"330\" y=\"236\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"180\" y=\"250\" s=\"0.8\"/>\n<g class=\"ink\"><path d=\"M140 250 Q150 253 162 250\"/><path d=\"M300 254 Q315 257 330 254\"/><path d=\"M60 246 Q72 249 86 246\"/></g>",
+   "laid": "<who c=\"polly\"/>\n<stamp k=\"boat\" x=\"235\" y=\"246\" s=\"1.4\" near=\"1\"/><fig c=\"companion1\" v=\"front\" x=\"275\" y=\"243\" s=\"0.3\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n\n<stamp k=\"sparkles\" x=\"330\" y=\"236\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"180\" y=\"250\" s=\"0.8\"/>\n\n<who c=\"hero\"/>\n<g class=\"paint\"><ellipse cx=\"275\" cy=\"212\" rx=\"34\" ry=\"24\" fill=\"#E8B83E\"/><ellipse cx=\"275\" cy=\"204\" rx=\"34\" ry=\"12\" fill=\"#F2CB5A\"/></g>\n<g class=\"ink\"><path d=\"M242 212 Q275 224 308 212\"/><path d=\"M262 200 L264 208\"/><path d=\"M285 198 L288 207\"/></g>\n\n<g class=\"target\"><fig c=\"polly\" v=\"front\" x=\"105\" y=\"238\" s=\"1.15\" lean=\"6\" tilt=\"-8\" arms=\"carry,carry\" legs=\"stand\" mood=\"calm\" look=\"down\" flip=\"0\" laid=\"1\"/></g><who c=\"companion1\"/>\n<fig c=\"hero\" v=\"three\" x=\"215\" y=\"243\" s=\"0.5\" arms=\"wave,wave\" legs=\"stand\" mood=\"happy\" look=\"up\" flip=\"1\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"235\" y=\"246\" s=\"1.4\" near=\"1\"/>\n<g class=\"ink\"><path d=\"M140 250 Q150 253 162 250\"/><path d=\"M300 254 Q315 257 330 254\"/><path d=\"M60 246 Q72 249 86 246\"/></g>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "polly"
+  ],
+  "full": [],
+  "readyMs": 7
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1240,
+   "firstStrokeMs": 1240,
+   "out": 535,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

@@ -1,0 +1,65 @@
+{
+ "portraits": "Mr Puff painted from their portrait in this book",
+ "reuse": {
+  "stamps": 9,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "cloud": 2,
+   "bird": 2,
+   "butterfly": 1,
+   "boat": 1,
+   "hull": 1,
+   "motion": 1,
+   "ticks": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "puff",
+   "hero",
+   "companion1"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: puff resized from 0.90 to 1.10, true to the others",
+   "layout: companion1 resized from 0.70 to 0.49, true to the others",
+   "layout: hero turned towards the main action",
+   "layout: drawn back to front: something drawn, puff, hero, companion1",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<who c=\"puff\"/>\n<stamp k=\"cloud\" x=\"95\" y=\"228\" s=\"1.1\" near=\"1\"/>\n<fig c=\"puff\" v=\"front\" x=\"95\" y=\"226\" s=\"0.9\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"sit\" mood=\"happy\" look=\"right\"/>\n<stamp k=\"boat\" x=\"228\" y=\"250\" s=\"1.4\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"198\" y=\"238\" s=\"0.8\" flip=\"1\" lean=\"-4\" tilt=\"0\" arms=\"wave,down\" legs=\"stand\" mood=\"laugh\" look=\"left\"/>\n<who c=\"companion1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"268\" y=\"238\" s=\"0.7\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"hold,reach\" legs=\"stand\" mood=\"worried\" look=\"down\"/></g>\n<g class=\"paint\"><path d=\"M250 205 Q246 178 266 170 Q292 168 296 192 Q300 214 280 224 Q258 226 250 205 Z\" fill=\"#9B6B3E\"/><path d=\"M262 172 Q270 160 282 170 Q276 176 262 172 Z\" fill=\"#8A5A30\"/></g>\n<g class=\"ink\"><path d=\"M250 205 Q246 178 266 170 Q292 168 296 192 Q300 214 280 224 Q258 226 250 205 Z\" fill=\"none\" stroke=\"#4A2F18\" stroke-width=\"2\"/><path d=\"M270 172 Q262 182 272 190\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"3\"/><path d=\"M272 190 Q282 196 290 186\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"3\"/></g>\n<stamp k=\"hull\" x=\"228\" y=\"250\" s=\"1.4\"/>\n<stamp k=\"motion\" x=\"300\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"ticks\" x=\"262\" y=\"165\" s=\"0.7\"/>",
+   "laid": "<who c=\"puff\"/>\n<stamp k=\"cloud\" x=\"95\" y=\"228\" s=\"1.1\" near=\"1\"/>\n<g class=\"paint\"><path d=\"M250 205 Q246 178 266 170 Q292 168 296 192 Q300 214 280 224 Q258 226 250 205 Z\" fill=\"#9B6B3E\"/><path d=\"M262 172 Q270 160 282 170 Q276 176 262 172 Z\" fill=\"#8A5A30\"/></g>\n<g class=\"ink\"><path d=\"M250 205 Q246 178 266 170 Q292 168 296 192 Q300 214 280 224 Q258 226 250 205 Z\" fill=\"none\" stroke=\"#4A2F18\" stroke-width=\"2\"/><path d=\"M270 172 Q262 182 272 190\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"3\"/><path d=\"M272 190 Q282 196 290 186\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"3\"/></g>\n\n\n<who c=\"hero\"/>\n<fig c=\"puff\" v=\"front\" x=\"95\" y=\"226\" s=\"1.10\" flip=\"0\" lean=\"0\" tilt=\"6\" arms=\"wave,down\" legs=\"sit\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<who c=\"companion1\"/>\n<stamp k=\"boat\" x=\"228\" y=\"250\" s=\"1.4\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"198\" y=\"247\" s=\"0.8\" flip=\"0\" lean=\"-4\" tilt=\"0\" arms=\"wave,down\" legs=\"stand\" mood=\"laugh\" look=\"left\" ride=\"1\" laid=\"1\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"268\" y=\"247\" s=\"0.49\" flip=\"0\" lean=\"0\" tilt=\"-6\" arms=\"hold,reach\" legs=\"stand\" mood=\"worried\" look=\"down\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"228\" y=\"250\" s=\"1.4\" near=\"1\"/>\n<stamp k=\"motion\" x=\"300\" y=\"170\" s=\"0.8\"/>\n<stamp k=\"ticks\" x=\"262\" y=\"165\" s=\"0.7\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "puff"
+  ],
+  "full": [],
+  "readyMs": 12
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1313,
+   "firstStrokeMs": 1313,
+   "out": 680,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.08, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

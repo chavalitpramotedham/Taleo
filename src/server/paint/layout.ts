@@ -30,6 +30,8 @@ export interface LayoutOptions {
   /** the page's tap target when it's a thing, not a character ("kite",
    *  "the pumpkin"): made sure of (lesson 16) */
   targetThing?: string | null;
+  /** who hugs whom, from the brief (two ids), if it says so */
+  huggers?: [string, string] | null;
   /** the hero's id: never hidden behind anyone (lesson 17) */
   heroId?: string | null;
 }
@@ -482,9 +484,12 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
       // the viewer, where others may cross)
       const hugging = /\bhug\b/.test(`${attr(a.tag, "arms") ?? ""} ${attr(b.tag, "arms") ?? ""}`);
       const hero = (a.id === opts.heroId || b.id === opts.heroId) && !hugging;
-      if (apartInDepth(a, b) && !hero) continue;
+      // (apart in depth they may cross - but nobody is more than half hidden
+      // behind another: Argos vanished behind Gran - lesson 17)
+      const depth = apartInDepth(a, b) && !hero;
+      if (depth && (widthAt(a.s) + widthAt(b.s)) / 2 - (b.x - a.x) < Math.min(widthAt(a.s), widthAt(b.s)) * 0.5) continue;
       const bothHug = /\bhug\b/.test(attr(a.tag, "arms") ?? "") && /\bhug\b/.test(attr(b.tag, "arms") ?? "");
-      const allowed = bothHug ? 0.8 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
+      const allowed = bothHug ? 0.6 : depth ? 0.5 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
       const need = (widthAt(a.s) + widthAt(b.s)) / 2 - Math.min(widthAt(a.s), widthAt(b.s)) * allowed;
       if (b.x - a.x >= need) continue;
       const push = (need - (b.x - a.x)) / 2;
@@ -613,6 +618,16 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   markup = oncePerCharacter(markup, opts, notes);
   markup = furnitureToScale(markup, opts, notes);
   markup = tuckedIn(markup, notes);
+  // (the brief says they hug: they do - lesson 17)
+  if (opts.huggers)
+    for (const id of opts.huggers) {
+      const t = [...markup.matchAll(CHAR_TAG)].find((m) => (attr(m[0], "c") ?? attr(m[0], "id")) === id && m[0].trim().endsWith("/>"));
+      CHAR_TAG.lastIndex = 0;
+      if (t && !/\bhug\b/.test(attr(t[0], "arms") ?? "")) {
+        markup = markup.replace(t[0], setAttr(t[0], "arms", "hug,hug"));
+        notes.push(`${id} hugging, as the brief says`);
+      }
+    }
   const placed: Placed[] = [];
   for (const m of markup.matchAll(CHAR_TAG)) {
     const tag = m[0];
@@ -711,7 +726,8 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     // (close enough that their bodies overlap and their arms go round each
     // other, turned to face: two front views side by side only stood near
     // each other - lesson 17)
-    const half = (110 * Math.min(a.s, b.s) * 0.5) / 2;
+    // (but not so close one's head covers the other's face)
+    const half = (110 * Math.min(a.s, b.s) * 0.68) / 2;
     for (const p of [a, b]) if (/^<\s*fig\b/i.test(p.tag)) p.tag = setAttr(p.tag, "v", "three");
     if (Math.abs(b.x - a.x) > half * 2 + 4) notes.push(`${a.id} and ${b.id} brought together for the hug`);
     a.x = mid - half;

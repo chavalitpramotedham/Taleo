@@ -1,0 +1,66 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 3,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {
+   "stump": 1,
+   "hearts": 1,
+   "sparkles": 1
+  },
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "gran",
+   "hero",
+   "argos"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: gran resized from 1.42 to 1.20, true to the others",
+   "layout: argos resized from 0.90 to 0.92, true to the others",
+   "layout: hero and gran overlapped: eased apart",
+   "layout: gran and argos overlapped: eased apart",
+   "layout: hero and gran brought together for the hug",
+   "layout: argos turned towards the main action",
+   "layout: drawn back to front: companion1, gran, something drawn, hero, argos",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<g class=\"target\">\n<g class=\"paint\">\n<rect x=\"270\" y=\"112\" width=\"10\" height=\"134\" fill=\"#9A6B43\"/>\n<rect x=\"358\" y=\"112\" width=\"10\" height=\"134\" fill=\"#9A6B43\"/>\n<rect x=\"266\" y=\"108\" width=\"106\" height=\"12\" fill=\"#B8864F\"/>\n<rect x=\"266\" y=\"228\" width=\"106\" height=\"9\" fill=\"#B8864F\"/>\n<rect x=\"282\" y=\"140\" width=\"76\" height=\"20\" fill=\"#6F8FAF\"/>\n<rect x=\"282\" y=\"160\" width=\"76\" height=\"12\" fill=\"#AFC1C4\"/>\n<rect x=\"282\" y=\"172\" width=\"76\" height=\"22\" fill=\"#4F739A\"/>\n<rect x=\"282\" y=\"194\" width=\"76\" height=\"12\" fill=\"#8FA7B5\"/>\n<rect x=\"282\" y=\"206\" width=\"76\" height=\"22\" fill=\"#6F8FAF\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M290 120 L290 140 M302 120 L302 140 M314 120 L314 140 M326 120 L326 140 M338 120 L338 140 M350 120 L350 140\" stroke=\"#5A4630\" stroke-width=\"1.5\" fill=\"none\"/>\n<path d=\"M270 112 L270 246 M368 112 L368 246\" stroke=\"#5A3F26\" stroke-width=\"2\" fill=\"none\"/>\n</g>\n</g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"322\" y=\"110\" s=\"0.55\" flip=\"1\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\"/>\n<stamp k=\"stump\" x=\"215\" y=\"250\" s=\"1.5\" near=\"1\"/>\n<who c=\"gran\"/>\n<fig c=\"gran\" v=\"front\" x=\"215\" y=\"222\" s=\"1.42\" flip=\"1\" lean=\"8\" tilt=\"-6\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"left\"/>\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"front\" x=\"130\" y=\"278\" s=\"1.05\" lean=\"6\" tilt=\"-10\" arms=\"hug,hug\" legs=\"stand\" mood=\"laugh\" look=\"right\"/>\n<stamp k=\"hearts\" x=\"172\" y=\"80\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"120\" s=\"0.8\"/>\n<who c=\"argos\"/>\n<fig c=\"argos\" v=\"three\" x=\"240\" y=\"324\" s=\"0.9\" flip=\"1\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\"/>",
+   "laid": "<fig c=\"companion1\" v=\"front\" x=\"328\" y=\"110\" s=\"0.55\" flip=\"1\" arms=\"down,down\" legs=\"stand\" mood=\"happy\" look=\"left\" laid=\"1\"/><who c=\"companion1\"/>\n<fig c=\"gran\" v=\"three\" x=\"180\" y=\"222\" s=\"1.20\" flip=\"1\" lean=\"8\" tilt=\"-6\" arms=\"hug,hug\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/>\n<stamp k=\"stump\" x=\"215\" y=\"250\" s=\"1.5\" near=\"1\"/>\n<who c=\"gran\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<rect x=\"270\" y=\"112\" width=\"10\" height=\"134\" fill=\"#9A6B43\"/>\n<rect x=\"358\" y=\"112\" width=\"10\" height=\"134\" fill=\"#9A6B43\"/>\n<rect x=\"266\" y=\"108\" width=\"106\" height=\"12\" fill=\"#B8864F\"/>\n<rect x=\"266\" y=\"228\" width=\"106\" height=\"9\" fill=\"#B8864F\"/>\n<rect x=\"282\" y=\"140\" width=\"76\" height=\"20\" fill=\"#6F8FAF\"/>\n<rect x=\"282\" y=\"160\" width=\"76\" height=\"12\" fill=\"#AFC1C4\"/>\n<rect x=\"282\" y=\"172\" width=\"76\" height=\"22\" fill=\"#4F739A\"/>\n<rect x=\"282\" y=\"194\" width=\"76\" height=\"12\" fill=\"#8FA7B5\"/>\n<rect x=\"282\" y=\"206\" width=\"76\" height=\"22\" fill=\"#6F8FAF\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M290 120 L290 140 M302 120 L302 140 M314 120 L314 140 M326 120 L326 140 M338 120 L338 140 M350 120 L350 140\" stroke=\"#5A4630\" stroke-width=\"1.5\" fill=\"none\"/>\n<path d=\"M270 112 L270 246 M368 112 L368 246\" stroke=\"#5A3F26\" stroke-width=\"2\" fill=\"none\"/>\n</g>\n</g>\n\n<who c=\"hero\"/>\n<fig c=\"hero\" v=\"three\" x=\"122\" y=\"278\" s=\"1.05\" lean=\"6\" tilt=\"-10\" arms=\"hug,hug\" legs=\"stand\" mood=\"laugh\" look=\"right\" flip=\"0\" laid=\"1\"/>\n<stamp k=\"hearts\" x=\"172\" y=\"80\" s=\"1\"/>\n<stamp k=\"sparkles\" x=\"105\" y=\"120\" s=\"0.8\"/>\n<who c=\"argos\"/>\n<fig c=\"argos\" v=\"three\" x=\"278\" y=\"324\" s=\"0.92\" flip=\"0\" arms=\"down,down\" legs=\"sit\" mood=\"happy\" look=\"left\" laid=\"1\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1537,
+   "firstStrokeMs": 23123,
+   "out": 3181,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

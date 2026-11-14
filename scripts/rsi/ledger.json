@@ -1,5 +1,5 @@
 {
- "spentUsd": 4.260447,
+ "spentUsd": 5.037986,
  "calls": [
   {
    "at": "2026-11-13T22:40:38.963Z",
@@ -1328,6 +1328,302 @@
    "label": "composer",
    "model": "claude-sonnet-5-5",
    "usd": 0.017262
+  },
+  {
+   "at": "2026-11-14T02:35:29.255Z",
+   "round": 11,
+   "page": 14,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.008908
+  },
+  {
+   "at": "2026-11-14T02:35:29.712Z",
+   "round": 11,
+   "page": 13,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01027
+  },
+  {
+   "at": "2026-11-14T02:35:30.212Z",
+   "round": 11,
+   "page": 18,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.011972
+  },
+  {
+   "at": "2026-11-14T02:35:30.538Z",
+   "round": 11,
+   "page": 8,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01193
+  },
+  {
+   "at": "2026-11-14T02:35:30.895Z",
+   "round": 11,
+   "page": 7,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.011856
+  },
+  {
+   "at": "2026-11-14T02:35:31.713Z",
+   "round": 11,
+   "page": 3,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01235
+  },
+  {
+   "at": "2026-11-14T02:35:31.804Z",
+   "round": 11,
+   "page": 10,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.01271
+  },
+  {
+   "at": "2026-11-14T02:35:31.884Z",
+   "round": 11,
+   "page": 5,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.014036
+  },
+  {
+   "at": "2026-11-14T02:35:34.059Z",
+   "round": 11,
+   "page": 17,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.017314
+  },
+  {
+   "at": "2026-11-14T02:36:47.541Z",
+   "round": 12,
+   "page": 1,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.024158
+  },
+  {
+   "at": "2026-11-14T02:36:47.960Z",
+   "round": 12,
+   "page": 15,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.02555
+  },
+  {
+   "at": "2026-11-14T02:36:48.103Z",
+   "round": 12,
+   "page": 9,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.025544
+  },
+  {
+   "at": "2026-11-14T02:36:49.079Z",
+   "round": 12,
+   "page": 2,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.026066
+  },
+  {
+   "at": "2026-11-14T02:36:49.160Z",
+   "round": 12,
+   "page": 12,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.02666
+  },
+  {
+   "at": "2026-11-14T02:36:52.102Z",
+   "round": 12,
+   "page": 11,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.028642
+  },
+  {
+   "at": "2026-11-14T02:36:54.357Z",
+   "round": 12,
+   "page": 4,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.03432
+  },
+  {
+   "at": "2026-11-14T02:36:57.880Z",
+   "round": 12,
+   "page": 6,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.039032
+  },
+  {
+   "at": "2026-11-14T02:36:59.893Z",
+   "round": 12,
+   "page": 16,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.038774
+  },
+  {
+   "at": "2026-11-14T02:38:13.766Z",
+   "round": 13,
+   "page": 1,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.026247
+  },
+  {
+   "at": "2026-11-14T02:38:14.501Z",
+   "round": 13,
+   "page": 15,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.027229
+  },
+  {
+   "at": "2026-11-14T02:38:14.550Z",
+   "round": 13,
+   "page": 9,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.027423
+  },
+  {
+   "at": "2026-11-14T02:38:14.991Z",
+   "round": 13,
+   "page": 16,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.029103
+  },
+  {
+   "at": "2026-11-14T02:38:15.413Z",
+   "round": 13,
+   "page": 2,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.029425
+  },
+  {
+   "at": "2026-11-14T02:38:15.642Z",
+   "round": 13,
+   "page": 11,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.028891
+  },
+  {
+   "at": "2026-11-14T02:38:15.719Z",
+   "round": 13,
+   "page": 12,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.030049
+  },
+  {
+   "at": "2026-11-14T02:38:17.512Z",
+   "round": 13,
+   "page": 4,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.031929
+  },
+  {
+   "at": "2026-11-14T02:38:19.274Z",
+   "round": 13,
+   "page": 6,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.036441
+  },
+  {
+   "at": "2026-11-14T02:39:12.963Z",
+   "round": 14,
+   "page": 8,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.010207
+  },
+  {
+   "at": "2026-11-14T02:39:13.246Z",
+   "round": 14,
+   "page": 13,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.010337
+  },
+  {
+   "at": "2026-11-14T02:39:13.855Z",
+   "round": 14,
+   "page": 18,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.011039
+  },
+  {
+   "at": "2026-11-14T02:39:13.912Z",
+   "round": 14,
+   "page": 14,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.010605
+  },
+  {
+   "at": "2026-11-14T02:39:14.456Z",
+   "round": 14,
+   "page": 3,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.012237
+  },
+  {
+   "at": "2026-11-14T02:39:15.221Z",
+   "round": 14,
+   "page": 10,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.012417
+  },
+  {
+   "at": "2026-11-14T02:39:15.752Z",
+   "round": 14,
+   "page": 7,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.013613
+  },
+  {
+   "at": "2026-11-14T02:39:16.130Z",
+   "round": 14,
+   "page": 16,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.016031
+  },
+  {
+   "at": "2026-11-14T02:39:17.303Z",
+   "round": 14,
+   "page": 17,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.017181
+  },
+  {
+   "at": "2026-11-14T02:39:17.801Z",
+   "round": 14,
+   "page": 5,
+   "label": "composer",
+   "model": "claude-sonnet-5-5",
+   "usd": 0.017043
   }
  ]
 }

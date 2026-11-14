@@ -1,0 +1,61 @@
+{
+ "portraits": "Gran, Argos painted from their portrait in this book",
+ "reuse": {
+  "stamps": 0,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 1,
+  "kinds": {},
+  "figs": 4,
+  "torsos": 4,
+  "heads": 4,
+  "figIds": [
+   "companion1",
+   "gran",
+   "argos",
+   "hero"
+  ],
+  "posed": 4,
+  "fixes": [
+   "layout: gran resized from 1.30 to 1.49, true to the others",
+   "layout: hero resized from 0.95 to 1.02, true to the others",
+   "layout: argos and hero overlapped: eased apart",
+   "layout: hero and gran overlapped: eased apart",
+   "layout: hero and gran brought together for the hug",
+   "layout: drawn back to front: companion1, gran, argos, hero, something drawn",
+   "layout: spaced once more, finally"
+  ],
+  "composed": {
+   "wrote": "<fig c=\"argos\" v=\"three\" x=\"120\" y=\"300\" s=\"1.1\" flip=\"0\" legs=\"sit\" arms=\"down,down\" mood=\"happy\" look=\"right\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<rect x=\"268\" y=\"110\" width=\"8\" height=\"140\" fill=\"#9A6B3F\"/>\n<rect x=\"352\" y=\"110\" width=\"8\" height=\"140\" fill=\"#9A6B3F\"/>\n<rect x=\"266\" y=\"104\" width=\"96\" height=\"10\" fill=\"#B07D4A\"/>\n<rect x=\"278\" y=\"120\" width=\"72\" height=\"80\" fill=\"#6F8FAF\"/>\n<rect x=\"278\" y=\"136\" width=\"72\" height=\"8\" fill=\"#8FA7B5\"/>\n<rect x=\"278\" y=\"160\" width=\"72\" height=\"8\" fill=\"#8FA7B5\"/>\n<rect x=\"278\" y=\"182\" width=\"72\" height=\"8\" fill=\"#AFC1C4\"/>\n<rect x=\"270\" y=\"200\" width=\"88\" height=\"8\" fill=\"#9A6B3F\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M282 200 L282 120 M296 200 L296 120 M310 200 L310 120 M324 200 L324 120 M338 200 L338 120\" stroke=\"#3E5A78\" stroke-width=\"1\" fill=\"none\"/>\n</g>\n</g>\n<fig c=\"companion1\" v=\"front\" x=\"314\" y=\"104\" s=\"0.6\" legs=\"stand\" arms=\"down,down\" mood=\"happy\" look=\"left\"/>\n<fig c=\"gran\" v=\"front\" x=\"215\" y=\"300\" s=\"1.3\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\"/>\n<fig c=\"hero\" v=\"front\" x=\"190\" y=\"305\" s=\"0.95\" lean=\"-4\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"laugh\" look=\"left\"/>",
+   "laid": "<fig c=\"companion1\" v=\"front\" x=\"322\" y=\"104\" s=\"0.6\" legs=\"stand\" arms=\"down,down\" mood=\"happy\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<fig c=\"gran\" v=\"three\" x=\"240\" y=\"303\" s=\"1.49\" lean=\"6\" tilt=\"-8\" arms=\"hug,hug\" legs=\"stand\" mood=\"happy\" look=\"down\" flip=\"1\" laid=\"1\"/><fig c=\"argos\" v=\"three\" x=\"84\" y=\"300\" s=\"1.1\" flip=\"0\" legs=\"sit\" arms=\"down,down\" mood=\"happy\" look=\"right\" laid=\"1\"/>\n<fig c=\"hero\" v=\"three\" x=\"192\" y=\"303\" s=\"1.02\" lean=\"-4\" tilt=\"8\" arms=\"hug,hug\" legs=\"stand\" mood=\"laugh\" look=\"left\" flip=\"0\" laid=\"1\"/>\n<g class=\"target\">\n<g class=\"paint\">\n<rect x=\"268\" y=\"110\" width=\"8\" height=\"140\" fill=\"#9A6B3F\"/>\n<rect x=\"352\" y=\"110\" width=\"8\" height=\"140\" fill=\"#9A6B3F\"/>\n<rect x=\"266\" y=\"104\" width=\"96\" height=\"10\" fill=\"#B07D4A\"/>\n<rect x=\"278\" y=\"120\" width=\"72\" height=\"80\" fill=\"#6F8FAF\"/>\n<rect x=\"278\" y=\"136\" width=\"72\" height=\"8\" fill=\"#8FA7B5\"/>\n<rect x=\"278\" y=\"160\" width=\"72\" height=\"8\" fill=\"#8FA7B5\"/>\n<rect x=\"278\" y=\"182\" width=\"72\" height=\"8\" fill=\"#AFC1C4\"/>\n<rect x=\"270\" y=\"200\" width=\"88\" height=\"8\" fill=\"#9A6B3F\"/>\n</g>\n<g class=\"ink\">\n<path d=\"M282 200 L282 120 M296 200 L296 120 M310 200 L310 120 M324 200 L324 120 M338 200 L338 120\" stroke=\"#3E5A78\" stroke-width=\"1\" fill=\"none\"/>\n</g>\n</g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "gran",
+   "argos"
+  ],
+  "full": [],
+  "readyMs": 13
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1386,
+   "firstStrokeMs": 1386,
+   "out": 623,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1.12, pan 0",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

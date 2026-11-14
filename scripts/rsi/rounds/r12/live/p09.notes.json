@@ -1,0 +1,64 @@
+{
+ "portraits": "the Sea-Larks painted from their portrait in this book",
+ "reuse": {
+  "stamps": 12,
+  "scatter": 0,
+  "moved": 0,
+  "bareInk": 2,
+  "kinds": {
+   "cloud": 2,
+   "bird": 1,
+   "boulder": 3,
+   "boat": 1,
+   "hull": 1,
+   "ticks": 1,
+   "notes": 2,
+   "sparkles": 1
+  },
+  "figs": 3,
+  "torsos": 3,
+  "heads": 3,
+  "figIds": [
+   "hero",
+   "larks",
+   "companion1"
+  ],
+  "posed": 3,
+  "fixes": [
+   "layout: drawn back to front: hero, larks, companion1",
+   "layout: the boat made big enough for its riders (s 1.2 to 1.20)",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<stamp k=\"boulder\" x=\"275\" y=\"240\" s=\"1.2\" near=\"1\"/>\n<stamp k=\"boulder\" x=\"325\" y=\"232\" s=\"1.2\" near=\"1\"/>\n<stamp k=\"boulder\" x=\"372\" y=\"240\" s=\"1.1\" near=\"1\"/>\n<fig c=\"larks\" v=\"three\" x=\"322\" y=\"226\" s=\"0.62\" flip=\"1\" lean=\"-8\" tilt=\"10\" arms=\"cover,cover\" legs=\"sit\" mood=\"laugh\" look=\"left\"/>\n<g class=\"paint\"><ellipse cx=\"292\" cy=\"212\" rx=\"6\" ry=\"8\" fill=\"#D9A93E\"/><ellipse cx=\"338\" cy=\"205\" rx=\"6\" ry=\"8\" fill=\"#D9A93E\"/></g>\n<g class=\"ink\"><path d=\"M289 205 Q292 220 295 205 M335 198 Q338 213 341 198\" fill=\"none\" stroke=\"#6B4A22\" stroke-width=\"1.5\"/></g>\n<stamp k=\"boat\" x=\"125\" y=\"244\" s=\"1.2\"/>\n<fig c=\"hero\" v=\"three\" x=\"105\" y=\"238\" s=\"0.8\" lean=\"-6\" tilt=\"-8\" arms=\"wave,wave\" legs=\"kick\" mood=\"laugh\" look=\"ahead\"/>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"183\" y=\"238\" s=\"0.46\" lean=\"-8\" tilt=\"-6\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"up\"/></g>\n<stamp k=\"hull\" x=\"125\" y=\"244\" s=\"1.2\"/>\n<g class=\"paint\"><circle cx=\"203\" cy=\"148\" r=\"4\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/><circle cx=\"212\" cy=\"144\" r=\"4\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/></g>\n<g class=\"ink\"><path d=\"M207 147 L208 146 M196 152 L190 156 M214 150 L220 154\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.2\"/></g>\n<stamp k=\"ticks\" x=\"183\" y=\"140\" s=\"0.9\"/>\n<stamp k=\"notes\" x=\"85\" y=\"95\" s=\"1\"/>\n<stamp k=\"notes\" x=\"150\" y=\"85\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"250\" y=\"170\" s=\"0.8\"/>",
+   "laid": "<stamp k=\"boulder\" x=\"275\" y=\"240\" s=\"1.2\" near=\"1\"/>\n<stamp k=\"boulder\" x=\"325\" y=\"232\" s=\"1.2\" near=\"1\"/>\n<stamp k=\"boulder\" x=\"372\" y=\"240\" s=\"1.1\" near=\"1\"/>\n<stamp k=\"boat\" x=\"125\" y=\"244\" s=\"1.2\" near=\"1\"/><fig c=\"hero\" v=\"three\" x=\"105\" y=\"242\" s=\"0.8\" lean=\"-6\" tilt=\"-8\" arms=\"wave,wave\" legs=\"kick\" mood=\"laugh\" look=\"ahead\" flip=\"0\" ride=\"1\" laid=\"1\"/>\n\n<fig c=\"larks\" v=\"three\" x=\"322\" y=\"226\" s=\"0.62\" flip=\"1\" lean=\"-8\" tilt=\"10\" arms=\"cover,cover\" legs=\"sit\" mood=\"laugh\" look=\"left\" laid=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"292\" cy=\"212\" rx=\"6\" ry=\"8\" fill=\"#D9A93E\"/><ellipse cx=\"338\" cy=\"205\" rx=\"6\" ry=\"8\" fill=\"#D9A93E\"/></g>\n<g class=\"ink\"><path d=\"M289 205 Q292 220 295 205 M335 198 Q338 213 341 198\" fill=\"none\" stroke=\"#6B4A22\" stroke-width=\"1.5\"/></g>\n<g class=\"target\"><fig c=\"companion1\" v=\"front\" x=\"183\" y=\"242\" s=\"0.46\" lean=\"-8\" tilt=\"-6\" arms=\"up,up\" legs=\"stand\" mood=\"surprised\" look=\"up\" flip=\"0\" ride=\"1\" laid=\"1\"/></g><stamp k=\"hull\" x=\"125\" y=\"244\" s=\"1.2\" near=\"1\"/>\n\n<g class=\"paint\"><circle cx=\"203\" cy=\"148\" r=\"4\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/><circle cx=\"212\" cy=\"144\" r=\"4\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.5\"/></g>\n<g class=\"ink\"><path d=\"M207 147 L208 146 M196 152 L190 156 M214 150 L220 154\" fill=\"none\" stroke=\"#6B5A3A\" stroke-width=\"1.2\"/></g>\n<stamp k=\"ticks\" x=\"183\" y=\"140\" s=\"0.9\"/>\n<stamp k=\"notes\" x=\"85\" y=\"95\" s=\"1\"/>\n<stamp k=\"notes\" x=\"150\" y=\"85\" s=\"0.8\"/>\n<stamp k=\"sparkles\" x=\"250\" y=\"170\" s=\"0.8\"/>"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1",
+   "larks"
+  ],
+  "full": [],
+  "readyMs": 4
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1299,
+   "firstStrokeMs": 11134,
+   "out": 1897,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan -8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}

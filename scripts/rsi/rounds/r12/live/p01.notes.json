@@ -1,0 +1,59 @@
+{
+ "reuse": {
+  "stamps": 8,
+  "scatter": 2,
+  "moved": 0,
+  "bareInk": 4,
+  "kinds": {
+   "cloud": 1,
+   "bird": 4,
+   "scatter:grass": 1,
+   "scatter:flowers": 1,
+   "boat": 1,
+   "hull": 1,
+   "motion": 1
+  },
+  "figs": 2,
+  "torsos": 2,
+  "heads": 2,
+  "figIds": [
+   "hero",
+   "companion1"
+  ],
+  "posed": 2,
+  "fixes": [
+   "layout: drawn back to front: something drawn, something drawn, hero, companion1, something drawn, something drawn",
+   "layout: hero, companion1 put in the boat"
+  ],
+  "composed": {
+   "wrote": "<g class=\"paint\"><ellipse cx=\"206\" cy=\"251\" rx=\"64\" ry=\"5\" fill=\"#4F6F7F\" opacity=\"0.28\"/></g>\n<stamp k=\"boat\" x=\"200\" y=\"245\" s=\"1.1\"/>\n<who c=\"hero\"/>\n<g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"168\" y=\"238\" s=\"0.55\" flip=\"0\" lean=\"-12\" tilt=\"-6\" arms=\"reach,reach\" legs=\"stand\" mood=\"laugh\" look=\"right\"/></g>\n<who c=\"companion1\"/>\n<fig c=\"companion1\" v=\"front\" x=\"250\" y=\"234\" s=\"0.3\" lean=\"4\" tilt=\"8\" arms=\"point,down\" legs=\"stand\" mood=\"talk\" look=\"up\"/>\n<stamp k=\"hull\" x=\"200\" y=\"245\" s=\"1.1\"/>\n<g class=\"ink\"><path d=\"M188 198 Q196 165 203 128\" fill=\"none\" stroke=\"#7A5A3A\" stroke-width=\"1.5\"/><path d=\"M146 170 L132 172 M144 180 L128 183 M146 190 L134 193\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"1.5\"/></g>\n<stamp k=\"motion\" x=\"136\" y=\"200\" s=\"0.6\"/>\n<g class=\"paint\"><path d=\"M262 92 Q268 84 274 90 Q280 84 287 92 Q278 90 274 94 Q268 90 262 92Z\" fill=\"#FFFFFF\"/></g>\n<g class=\"ink\"><path d=\"M262 92 Q268 84 274 90 Q280 84 287 92 Q278 90 274 94 Q268 90 262 92Z\" fill=\"none\" stroke=\"#5E6B73\" stroke-width=\"1\"/></g>\n<stamp k=\"bird\" x=\"305\" y=\"75\" s=\"1\"/>\n<stamp k=\"bird\" x=\"120\" y=\"88\" s=\"1\"/>\n<g class=\"paint\"><path d=\"M326 214 Q342 206 358 214 L356 232 Q342 238 328 232Z\" fill=\"#C9B48A\" opacity=\"0.8\"/></g>\n<g class=\"ink\"><path d=\"M326 214 Q342 206 358 214 L356 232 Q342 238 328 232Z M332 212 L334 234 M340 209 L341 236 M348 209 L348 236 M327 222 L357 222 M328 228 L356 227\" fill=\"none\" stroke=\"#7A5A3A\" stroke-width=\"0.8\"/></g>\n<g class=\"ink\"><path d=\"M120 252 Q132 249 144 252 M214 255 Q228 252 242 255 M262 249 Q272 247 282 249 M100 246 Q108 244 116 246\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"1.4\" opacity=\"0.8\"/><path d=\"M150 249 Q170 252 190 249 M215 250 Q235 253 255 250\" fill=\"none\" stroke=\"#3F6B78\" stroke-width=\"1\"/></g>",
+   "laid": "<g class=\"paint\"><path d=\"M262 92 Q268 84 274 90 Q280 84 287 92 Q278 90 274 94 Q268 90 262 92Z\" fill=\"#FFFFFF\"/></g>\n<g class=\"ink\"><path d=\"M262 92 Q268 84 274 90 Q280 84 287 92 Q278 90 274 94 Q268 90 262 92Z\" fill=\"none\" stroke=\"#5E6B73\" stroke-width=\"1\"/></g>\n\n<who c=\"hero\"/>\n<g class=\"ink\"><path d=\"M188 198 Q196 165 203 128\" fill=\"none\" stroke=\"#7A5A3A\" stroke-width=\"1.5\"/><path d=\"M146 170 L132 172 M144 180 L128 183 M146 190 L134 193\" fill=\"none\" stroke=\"#B2443A\" stroke-width=\"1.5\"/></g>\n\n<who c=\"companion1\"/>\n<stamp k=\"boat\" x=\"200\" y=\"245\" s=\"1.1\" near=\"1\"/><g class=\"target\"><fig c=\"hero\" v=\"three\" x=\"168\" y=\"243\" s=\"0.55\" flip=\"0\" lean=\"-12\" tilt=\"-6\" arms=\"reach,reach\" legs=\"stand\" mood=\"laugh\" look=\"right\" ride=\"1\" laid=\"1\"/></g>\n<fig c=\"companion1\" v=\"front\" x=\"250\" y=\"243\" s=\"0.3\" lean=\"4\" tilt=\"8\" arms=\"point,down\" legs=\"stand\" mood=\"talk\" look=\"up\" flip=\"0\" ride=\"1\" laid=\"1\"/><stamp k=\"hull\" x=\"200\" y=\"245\" s=\"1.1\" near=\"1\"/>\n<stamp k=\"motion\" x=\"136\" y=\"200\" s=\"0.6\"/>\n<g class=\"paint\"><path d=\"M326 214 Q342 206 358 214 L356 232 Q342 238 328 232Z\" fill=\"#C9B48A\" opacity=\"0.8\"/></g>\n<g class=\"ink\"><path d=\"M326 214 Q342 206 358 214 L356 232 Q342 238 328 232Z M332 212 L334 234 M340 209 L341 236 M348 209 L348 236 M327 222 L357 222 M328 228 L356 227\" fill=\"none\" stroke=\"#7A5A3A\" stroke-width=\"0.8\"/></g>\n<g class=\"ink\"><path d=\"M120 252 Q132 249 144 252 M214 255 Q228 252 242 255 M262 249 Q272 247 282 249 M100 246 Q108 244 116 246\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"1.4\" opacity=\"0.8\"/><path d=\"M150 249 Q170 252 190 249 M215 250 Q235 253 255 250\" fill=\"none\" stroke=\"#3F6B78\" stroke-width=\"1\"/></g><stamp k=\"bird\" x=\"305\" y=\"75\" s=\"1\"/>\n<stamp k=\"bird\" x=\"120\" y=\"88\" s=\"1\"/>\n<g class=\"paint\"><ellipse cx=\"206\" cy=\"251\" rx=\"64\" ry=\"5\" fill=\"#4F6F7F\" opacity=\"0.28\"/></g>\n"
+  }
+ },
+ "parts": {
+  "from": [
+   "hero",
+   "companion1"
+  ],
+  "full": [],
+  "readyMs": 2
+ },
+ "composer": "posed from the library",
+ "painters": {
+  "scenery": {
+   "model": "claude-sonnet-5-5",
+   "measure": false
+  },
+  "characters": {
+   "model": "claude-sonnet-5-5",
+   "measure": false,
+   "acceptedMs": 1302,
+   "firstStrokeMs": 8799,
+   "out": 1824,
+   "stop": "end_turn"
+  }
+ },
+ "frame": "zoom 1, pan 8",
+ "backdrop": "prepared ahead",
+ "pageLayer": "made in code"
+}
