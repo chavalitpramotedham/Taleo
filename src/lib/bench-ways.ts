@@ -264,16 +264,18 @@ export function variantOf(slot: BenchSlot): string {
 export const LIVE = {
   /** the code it has on the bench */
   // (4-UN3W was made live on 14 Nov; moved to 4-RUYP the same night - the
-  // same settings, with lesson 16's layout and phrasebook, which it shares)
-  code: "4-RUYP",
+  // same settings, with lesson 16's layout and phrasebook, which it shares;
+  // then to 4-VT2Q on 14 Nov after the painter RSI's two parts - lessons
+  // 17 and 18, the same settings and calls)
+  code: "4-VT2Q",
   slot: "x" as BenchSlot,
   name: "Extreme reuse",
   settings: { stamps: true, parts: true, backdrops: true, poses: true, codeLayer: true, painter: { model: "claude-sonnet-5-5", effort: "medium", unthinking: false } } as ReuseSettings,
-  style: "s18",
+  style: "s20",
 };
 /** The versions that were live before, newest first: the baseline falls
  *  back to them until the live one has paintings of its own. */
-export const LIVE_EARLIER = ["4-UN3W"];
+export const LIVE_EARLIER = ["4-RUYP", "4-UN3W"];
 
 /** The live version's code, from its own settings and style (it must
  *  match LIVE.code). */
