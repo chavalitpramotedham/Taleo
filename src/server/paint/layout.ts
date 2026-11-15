@@ -30,7 +30,7 @@ export interface LayoutOptions {
   /** the page's words, picture brief and place, for what belongs there */
   said?: string;
   /** who rides on whom, and where: [rider, carrier, shoulder|head|back] */
-  perched?: [string, string, "shoulder" | "head" | "back"][];
+  perched?: [string, string, "shoulder" | "head" | "back" | "beside"][];
   /** each character's size against a grown one (1; a squirrel 0.67; a
    *  ladybird 0.1): sizes on the page are kept to usualS times this */
   sizeOf?: Record<string, number>;
@@ -934,6 +934,23 @@ function perched(markup: string, opts: LayoutOptions, notes: string[]): string {
     const r = find(rid);
     CHAR_TAG.lastIndex = 0;
     if (!c || !r) continue;
+    // Not a giant (16 Nov): two of about a size can't be joined, so the
+    // one the brief had riding or held stands at the other's side, on the
+    // ground, just apart - close enough to read as together.
+    if (where === "beside") {
+      const cx0 = Number(attr(c[0], "x")) || 200;
+      const cy0 = Number(attr(c[0], "y")) || 246;
+      const cs0 = Number(attr(c[0], "s")) || opts.usualS || 0.6;
+      const rs0 = Number(attr(r[0], "s")) || cs0 * 0.6;
+      const gap = 55 * cs0 + 45 * rs0;
+      const side = cx0 + gap < 375 ? 1 : -1;
+      let tag = setAttr(setAttr(r[0], "x", String(Math.round(cx0 + side * gap))), "y", String(Math.round(cy0)));
+      if (/^(sit|lie)$/.test(attr(tag, "legs") ?? "")) tag = setAttr(tag, "legs", "stand");
+      tag = setAttr(setAttr(tag, "laid", "1"), "flip", side > 0 ? "1" : "0");
+      out = out.replace(r[0], tag);
+      notes.push(`${rid} beside ${cid}, not on them: they're about a size`);
+      continue;
+    }
     const cx = Number(attr(c[0], "x")) || 200;
     const cy = Number(attr(c[0], "y")) || 246;
     const cs = Number(attr(c[0], "s")) || opts.usualS || 0.6;

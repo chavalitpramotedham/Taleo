@@ -945,10 +945,14 @@ function lastNamed(text: string, c: { name: string }, before = text.length): num
  *  fluffy head", "Nell and Pebble sitting on her back" - each rider, its
  *  carrier and where (part 2: Hoot floated beside Ody instead). A pronoun
  *  is whoever was named last before it who isn't riding. */
-export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head" | "back"][] {
+export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head" | "back" | "beside"][] {
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const short = (c: CharacterDef) => c.name.toLowerCase().replace(/^the\s+/, "");
-  const out: [string, string, "shoulder" | "head" | "back"][] = [];
+  const out: [string, string, "shoulder" | "head" | "back" | "beside"][] = [];
+  // (only a true giant is ridden: two of about a size can't be joined - a
+  // baby "on Mama's shoulder" was drawn pasted to her chest, 16 Nov - so
+  // the small one stands beside the other instead)
+  const giantTo = (rider: CharacterDef, carrier: CharacterDef) => sizeShare(carrier, req.cast) >= 2.5 * sizeShare(rider, req.cast);
   let before = "";
   for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
     // (a verb - "sits on his shoulder" - or none, the rider named right
@@ -957,7 +961,11 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
     // in the sky)
     const RIDE = /\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head|tummy|belly)\b/gi;
     const BARE = /\b([A-Z][\w-]*)\s+(?:is\s+|still\s+|now\s+|safe(?:ly)?\s+|high\s+up\s+){0,2}on\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head)\b/g;
-    const bare = [...t.matchAll(BARE)].flatMap((m) => {
+    // (held: "Dada holds Coliboo on his hip", "Dab sleeps curled in
+    // Nugatino's lap" - a character named just before it, never a thing:
+    // "a music box on her lap", "one arm on his hip")
+    const HELD = /\b([A-Z][\w-]*)\s+(?:[a-z][\w-]*\s+){0,3}?(?:in|on)\s+(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(arms|lap|hip)\b/g;
+    const bare = [...t.matchAll(BARE), ...t.matchAll(HELD)].flatMap((m) => {
       const w = m[1].toLowerCase();
       const rider = on.find((c) => short(c) === w || c.name.toLowerCase().split(/\s+/)[0] === w || nameKeys(c).includes(w));
       return rider ? [{ m, rider }] : [];
@@ -994,8 +1002,8 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
       // (on a tummy or belly - a penguin sliding on his front, a baby
       // giggling on top - is riding on its back as drawn)
       const w4 = m[4].toLowerCase();
-      const where = (w4.startsWith("shoulder") ? "shoulder" : w4 === "tummy" || w4 === "belly" ? "back" : w4) as "shoulder" | "head" | "back";
-      for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, where]);
+      const where = (w4.startsWith("shoulder") || /^(arms|lap|hip)$/.test(w4) ? "shoulder" : w4 === "tummy" || w4 === "belly" ? "back" : w4) as "shoulder" | "head" | "back";
+      for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, giantTo(r, carrier) ? where : "beside"]);
     }
     before += " " + t;
   }
@@ -1004,6 +1012,7 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
   // on the same carrier, beside it (not left in the sky where the rider's
   // seat was guessed).
   for (const [rid, cid, where] of [...out]) {
+    if (where === "beside") continue;
     const rider = on.find((c) => c.id === rid)!;
     const carrier = on.find((c) => c.id === cid)!;
     const her = `(?:her|him|${[short(rider), ...nameKeys(rider)].map((k) => k.replace(/[^\w\s-]/g, "")).join("|")}(?:'s)?)`;

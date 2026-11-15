@@ -6,6 +6,7 @@ import json, re, sys, collections
 RULES = {
     "partialBody": r"\b(face|head|nose|eye|bottom|tail|chin|cheek)s?\b[^.;]{0,40}\b(fills?|filling|pokes?|poking|peeps? (through|out)|sticks? out|sticking out|rests? on|resting on|jammed|wedged|through the (door|flap|window|hole))|\bhead-first\b|\bhalf (in|inside|out of|down)\b|\bup to (his|her|their) (shoulders|waist|neck)\b|\bclose-up of [^.]{0,30}'s (face|eye|nose)",
     "unsupportedPose": r"\bupside[- ]down\b|\bswim\w*|\bdiv(es|ing|ed)\b|\bbelly-first\b|\bslid(es|ing)\b|\bspin\w*|\btumbl\w+|\bsomersault\w*|\bclimb\w*|\bhang(s|ing)? (from|off|on)\b|\bdangl\w+|\bsprawl\w*|\bcrawl\w*",
+    "riding": r"\b(on|onto) (his|her|its|their|[A-Z]\w+'s) (\w+ )?(shoulders?|back|head)\b|\b(rides?|riding) on\b|\bpiggy-?back\b",
     "carryInArms": r"\b(in|into) (his|her|its|their) (\w+ ){0,2}(hands?|arms|paws|claws|flippers|tail|trunk)\b(?![^.;]{0,15}\b(up|out))|\bon (his|her) hip\b|\bcarr\w+ [A-Z]\w+ (and [A-Z]\w+ )?(in|on) (his|her|its)|\bcradl\w+|\btail (curled|wrapped|wound)\b|\btrunk (curled|wrapped|wound) (round|around)\b",
     "seatOrVehicle": r"\b(sits?|sitting|sat|ride\w*|riding) (in|on|inside) (a|the|his|her|their) (\w+ ){0,2}(bench|deckchair|hammock|swing|cot|car|train|bike|bicycle|scooter|picnic blanket|blanket|saucer|matchbox|teacup|basket|curl)\b",
     "standOnThing": r"\b(stands?|standing|perch\w*|balanc\w+|tiptoe\w*) (up )?on (top of )?(a|the|an) (\w+ ){0,2}(shelf|step|stair|stairs|branch|chair|wall|roof|jar|jars|ledge|lid|cheese|cake)\b|\bon the top step\b",

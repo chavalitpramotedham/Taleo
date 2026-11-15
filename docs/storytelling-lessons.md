@@ -157,3 +157,12 @@ table, rock, stump, log, chest, box, flowerpot or cloud; and lying down
 along the ground. The rules now allow them, and a second run of the four
 setups used them (Moss on the stepping rocks, a hedgehog on a log, Biscuit
 lying by Mia's feet) with hard asks still at 4 of 36 pages.
+
+**Riding only on giants (16 Nov).** In a reader's book, a baby "on Mama's
+shoulder" was drawn pasted to her chest: riding works only on a true giant.
+The rule is now "no one on anyone of a size", in the words as well as the
+picture: a baby rides in a pram or wagon, a small friend walks alongside,
+and only a giant (at least three times the rider's height: a stone giant,
+a troll, a dragon) is ridden. In the painter, a ride or a hold ("in Mama's
+arms", "on his hip", "in Gran's lap") on anyone smaller than about two and
+a half times the rider's size puts the rider at their side instead.
