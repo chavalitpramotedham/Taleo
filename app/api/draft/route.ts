@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
-import { clearDraft, DRAFT_MAX_BYTES, getDraft, saveDraft } from "@/server/drafts";
+import { clearDraft, DRAFT_MAX_BYTES, getDraft, markDiscarded, saveDraft, wasDiscarded } from "@/server/drafts";
+import { unlinkStory } from "@/server/characters";
 import type { Story } from "@/lib/types";
 import { releasePendingStories } from "@/server/billing";
 import { releaseStorySession } from "@/server/story-session";
@@ -11,7 +12,12 @@ export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ draft: null });
   try {
-    const draft = await getDraft(session.user.id);
+    let draft = await getDraft(session.user.id);
+    // (one thrown away and saved again since: it stays gone)
+    if (draft && (await wasDiscarded(session.user.id, draft.id))) {
+      await clearDraft(session.user.id, draft.id).catch(() => {});
+      draft = null;
+    }
     // `?light=1`: for showing that a story is under way (the "pick up where
     // you left off" card), not for reading it - its paintings left out but
     // the cover's, so every page load doesn't download the whole book.
@@ -45,6 +51,8 @@ export async function PUT(req: Request) {
   if (!story?.id || typeof story.id !== "string" || !/^[a-z0-9]+$/i.test(story.id) || !Array.isArray(story.segments) || !story.hero) {
     return NextResponse.json({ error: "Not a story." }, { status: 400 });
   }
+  // (thrown away: a save still on its way never brings it back)
+  if (await wasDiscarded(session.user.id, story.id)) return NextResponse.json({ ok: true, discarded: true });
   if (story.status === "complete" && story.publishedPainted) {
     await clearDraft(session.user.id, story.id);
     return NextResponse.json({ ok: true, cleared: true });
@@ -64,6 +72,9 @@ export async function DELETE(req: Request) {
   // been spent - and the account's story session is free again.
   let returned = 0;
   if (url.searchParams.get("discard") === "1") {
+    // (gone for good: remembered, so a late save can't bring it back, and
+    // off the characters' "stories they were in")
+    if (id) await Promise.all([markDiscarded(session.user.id, id), unlinkStory(session.user.id, id).catch(() => {})]);
     returned = await releasePendingStories(session.user.id, "The story was discarded before its first choice: credits returned").catch(() => 0);
     await releaseStorySession(session.user.id, null, true);
   }

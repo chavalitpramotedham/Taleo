@@ -1,4 +1,5 @@
 import type { Story } from "@/lib/types";
+import { metricsEnabled, pipeline } from "./metrics";
 import { canMovePlainFiles, deleteJson, hiddenName, readJson, writeJson } from "./store";
 
 /**
@@ -56,4 +57,22 @@ export async function clearDraft(userId: string, storyId?: string): Promise<void
   }
   const old = oldDraftPath(userId);
   await Promise.all([deleteJson(draftPath(userId)), old ? deleteJson(old).catch(() => {}) : null]);
+}
+
+/** Stories the reader threw away: remembered (for 90 days) so a save still
+ *  on its way - the reader closing, another tab or device - can't bring one
+ *  back as "unfinished" (16 Nov). Kept in the settings store; without one
+ *  (local development) nothing is remembered. */
+const discardedKey = (userId: string) => `draft:discarded:${userId}`;
+export async function markDiscarded(userId: string, storyId: string): Promise<void> {
+  if (!metricsEnabled()) return;
+  await pipeline([
+    ["SADD", discardedKey(userId), storyId],
+    ["EXPIRE", discardedKey(userId), 90 * 86_400],
+  ]).catch(() => {});
+}
+export async function wasDiscarded(userId: string, storyId: string): Promise<boolean> {
+  if (!metricsEnabled()) return false;
+  const [hit] = await pipeline([["SISMEMBER", discardedKey(userId), storyId]]).catch(() => [0]);
+  return Number(hit) === 1;
 }

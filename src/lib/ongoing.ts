@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { Story } from "./types";
-import { deleteStory, getStory, listStories, saveStory, storiesReady } from "./storage";
+import { discardStory, getStory, listStories, saveStory, storiesReady } from "./storage";
 import { discardDraft, fetchDraft } from "./drafts-client";
 
 /**
@@ -82,9 +82,11 @@ export function useOngoingStory({ finishing = false } = {}) {
         const draft = await fetchDraft({ light: true });
         if (draft && unfinished(draft)) ids.add(draft.id);
       }
-      // (the account keeps one draft; clearing by id leaves any other alone)
+      // (gone from this device first, so nothing still running - the reader
+      // closing, a painting arriving - can save it again; then from the
+      // account, which keeps one draft: clearing by id leaves any other)
+      for (const id of ids) discardStory(id);
       await Promise.all([...ids].map((id) => discardDraft(id)));
-      for (const id of ids) deleteStory(id);
       setStory(null);
       window.dispatchEvent(new Event(ONGOING_EVENT));
     },

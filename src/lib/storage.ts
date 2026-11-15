@@ -156,7 +156,38 @@ function readAll(): Story[] {
   return [...all.values()];
 }
 
+// Stories the reader threw away (an unfinished story deleted, or replaced
+// by a new one): never kept again on this device, whatever still tries to
+// save them - a reader closing, another tab, a painting finishing late. A
+// thrown-away story came back as "unfinished" (16 Nov).
+const DISCARDED = "taleo.discarded.v1";
+// (read once, and again when another tab throws one away)
+let discarded: Set<string> | null = null;
+function discardedIds(): Set<string> {
+  if (discarded) return discarded;
+  try {
+    discarded = new Set(JSON.parse(localStorage.getItem(DISCARDED) || "[]") as string[]);
+  } catch {
+    discarded = new Set();
+  }
+  return discarded;
+}
+if (typeof window !== "undefined") window.addEventListener("storage", (e) => e.key === DISCARDED && (discarded = null));
+export const isDiscarded = (id: string): boolean => typeof window !== "undefined" && discardedIds().has(id);
+/** Throws a story away for good on this device (see DISCARDED). */
+export function discardStory(id: string) {
+  const ids = discardedIds();
+  if (!ids.has(id)) {
+    ids.add(id);
+    try {
+      localStorage.setItem(DISCARDED, JSON.stringify([...ids].slice(-300)));
+    } catch {}
+  }
+  deleteStory(id);
+}
+
 function keep(story: Story) {
+  if (isDiscarded(story.id)) return;
   if (mem) mem.set(story.id, story);
   else {
     early.set(story.id, story);
@@ -184,6 +215,7 @@ export function flushStories() {
  *  once; the database gets it a moment later, the changes of that moment
  *  in one write - and at once if the page is left. */
 export function saveStorySoon(story: Story) {
+  if (isDiscarded(story.id)) return;
   const s = { ...story, updatedAt: Date.now() };
   keep(s);
   pending.set(s.id, s);
@@ -191,12 +223,13 @@ export function saveStorySoon(story: Story) {
   window.dispatchEvent(new Event("taleo:stories"));
 }
 
-export const listStories = (): Story[] => readAll().sort((a, b) => b.updatedAt - a.updatedAt);
+export const listStories = (): Story[] => readAll().filter((s) => !isDiscarded(s.id)).sort((a, b) => b.updatedAt - a.updatedAt);
 
-export const getStory = (id: string): Story | undefined => readAll().find((s) => s.id === id);
+export const getStory = (id: string): Story | undefined => (isDiscarded(id) ? undefined : readAll().find((s) => s.id === id));
 
 /** Saves a story now. False only where the old store is in use and full. */
 export function saveStory(story: Story): boolean {
+  if (isDiscarded(story.id)) return true;
   const s = { ...story, updatedAt: Date.now() };
   pending.delete(s.id);
   keep(s);
@@ -227,5 +260,5 @@ if (typeof window !== "undefined") void storiesReady();
 
 // (development only: the store, to try by hand)
 if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
-  (window as unknown as { __stories?: unknown }).__stories = { saveStory, getStory, listStories, deleteStory, storiesReady };
+  (window as unknown as { __stories?: unknown }).__stories = { saveStory, saveStorySoon, getStory, listStories, deleteStory, discardStory, storiesReady };
 }

@@ -1,5 +1,6 @@
 "use client";
 import type { Story } from "./types";
+import { isDiscarded } from "./storage";
 
 /**
  * Keeps the signed-in user's unfinished story saved to their account (see
@@ -15,13 +16,15 @@ let timer: number | undefined;
 let pending: Story | null = null;
 
 async function send(story: Story) {
+  // (thrown away: never saved to the account again)
+  if (isDiscarded(story.id)) return;
   try {
     await fetch("/api/draft", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(story), keepalive: false });
   } catch {}
 }
 
 export function saveDraftSoon(story: Story) {
-  if (story.demo || story.segments.length === 0) return;
+  if (story.demo || story.segments.length === 0 || isDiscarded(story.id)) return;
   // Done = finished AND published with every painting (that's "saved as
   // usual"); until then it stays a draft, so nothing is lost if closed
   // while the last pictures are still painting.
