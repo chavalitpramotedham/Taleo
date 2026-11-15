@@ -945,15 +945,30 @@ function lastNamed(text: string, c: { name: string }, before = text.length): num
  *  fluffy head", "Nell and Pebble sitting on her back" - each rider, its
  *  carrier and where (part 2: Hoot floated beside Ody instead). A pronoun
  *  is whoever was named last before it who isn't riding. */
-function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head" | "back"][] {
+export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head" | "back"][] {
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const short = (c: CharacterDef) => c.name.toLowerCase().replace(/^the\s+/, "");
   const out: [string, string, "shoulder" | "head" | "back"][] = [];
   let before = "";
   for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
-    for (const m of t.matchAll(/\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head|tummy|belly)\b/gi)) {
+    // (a verb - "sits on his shoulder" - or none, the rider named right
+    // before it: "Asha on his shoulder holds his ear", "with Asha on his
+    // shoulder" - test book, 15 Nov: four pages put that way floated her
+    // in the sky)
+    const RIDE = /\b(?:sits?|sitting|perch\w*|rides?|riding|stands?|standing|curled up|lies|lying)\b([^.;,]{0,30}?)\bon\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head|tummy|belly)\b/gi;
+    const BARE = /\b([A-Z][\w-]*)\s+(?:is\s+|still\s+|now\s+|safe(?:ly)?\s+|high\s+up\s+){0,2}on\s+(?:top\s+of\s+)?(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(shoulders?|back|head)\b/g;
+    const bare = [...t.matchAll(BARE)].flatMap((m) => {
+      const w = m[1].toLowerCase();
+      const rider = on.find((c) => short(c) === w || c.name.toLowerCase().split(/\s+/)[0] === w || nameKeys(c).includes(w));
+      return rider ? [{ m, rider }] : [];
+    });
+    const verbed = [...t.matchAll(RIDE)].filter((m) => !bare.some((b) => Math.abs(b.m.index! + b.m[0].length - (m.index! + m[0].length)) < 2)).map((m) => ({ m, rider: null as CharacterDef | null }));
+    for (const { m, rider } of [...verbed, ...bare]) {
+      // ("lies on his tummy", "lying flat on her tummy": its own tummy -
+      // on someone else's is said with their name)
+      if (m[3] && /^(tummy|belly)$/i.test(m[4])) continue;
       const lower = t.toLowerCase();
-      const at = m.index!;
+      const at = rider ? m.index! + m[1].length : m.index!;
       const riders = on.filter((c) => {
         const i = lastNamed(lower, c, at);
         return i >= 0 && i < at;
@@ -962,7 +977,7 @@ function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head"
       // any joined to it by "and")
       const clause = lower.slice(0, at).split(/[,;]| with /).pop() ?? "";
       const named = riders.filter((c) => firstNamed(clause, c) >= 0);
-      const who = named.length ? named : riders.slice(-1);
+      const who = rider ? [rider] : named.length ? named : riders.slice(-1);
       let carrier: CharacterDef | undefined;
       if (m[2]) {
         const w = m[2].toLowerCase();
@@ -983,6 +998,29 @@ function perchedOf(req: IllustrateRequest): [string, string, "shoulder" | "head"
       for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, where]);
     }
     before += " " + t;
+  }
+  // A smaller one kept with a rider - "Pip sits beside her", "tucked
+  // against her neck", "asleep in her arms", "clings to her wellie" - rides
+  // on the same carrier, beside it (not left in the sky where the rider's
+  // seat was guessed).
+  for (const [rid, cid, where] of [...out]) {
+    const rider = on.find((c) => c.id === rid)!;
+    const carrier = on.find((c) => c.id === cid)!;
+    const her = `(?:her|him|${[short(rider), ...nameKeys(rider)].map((k) => k.replace(/[^\w\s-]/g, "")).join("|")}(?:'s)?)`;
+    for (const c of on) {
+      // (no bigger than the rider itself, and well short of the carrier)
+      if (c.id === cid || out.some(([x]) => x === c.id) || sizeShare(c, req.cast) > sizeShare(rider, req.cast) * 1.1 || sizeShare(c, req.cast) >= sizeShare(carrier, req.cast) * 0.5) continue;
+      for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
+        const lower = t.toLowerCase();
+        const i = firstNamed(lower, c);
+        if (i < 0) continue;
+        const near = new RegExp(`^[^.;]{0,40}?\\b(?:beside|next to|against|in|on|to)\\s+${her}\\b`, "i");
+        if (near.test(lower.slice(i))) {
+          out.push([c.id, cid, where]);
+          break;
+        }
+      }
+    }
   }
   return out;
 }
