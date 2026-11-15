@@ -1108,7 +1108,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
         {seg.chosen ? (
           <>
             <p className="chosen-note">
-              {seg.chosen.custom ? "Your idea: " : "You chose: "}
+              {/* (a book from the library: the choice was its family's, not this reader's) */}
+              {readOnly ? (seg.chosen.custom ? "The family who made this book had an idea: " : "The family who made this book chose: ") : seg.chosen.custom ? "Your idea: " : "You chose: "}
               <em>{seg.chosen.text}</em>
             </p>
             {index < lastIndex && (

@@ -801,6 +801,11 @@ function perched(markup: string, opts: LayoutOptions, notes: string[]): string {
     tag = setAttr(tag, "y", String(Math.round(seatY + SIT_FEET * rs)));
     tag = setAttr(tag, "s", rs.toFixed(2));
     tag = setAttr(setAttr(tag, "legs", "sit"), "ride", "1");
+    // (and whose seat it is: the carrier is moved and sized again to fit
+    // the picture as it's laid, so the seat is found again from where the
+    // carrier really ends up - Muse, 15 Nov: Kai stood on the troll's
+    // forearm and Ellie floated beside him, both meant on his shoulders)
+    tag = setAttr(setAttr(setAttr(tag, "on", cid), "seat", where), "side", String(side));
     // (out of its own place, in just after the carrier)
     let rest = out.slice(0, r.index) + out.slice(r.index! + r[0].length);
     const c2 = [...rest.matchAll(CHAR_TAG)].find((m) => (attr(m[0], "c") ?? attr(m[0], "id")) === cid && m[0].trim().endsWith("/>"));
@@ -947,7 +952,10 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       const giant = share > 1 && !opts.groups?.includes(p.id);
       const cap = share > 1 ? fitS(p.y) : Infinity;
       const want = Math.min(cap, opts.usualS * share);
-      const kept = giant ? Math.min(cap, Math.max(want * 0.9, p.s)) : Math.min(want * 1.2, Math.max(want * 0.8, p.s));
+      // (and no bigger than its own size either: a queen twice Nell's
+      // height drawn towering on one page and Dad-sized the next read as
+      // two queens - Muse, 15 Nov. The same size on every page.)
+      const kept = giant ? Math.min(cap, want * 1.12, Math.max(want * 0.9, p.s)) : Math.min(want * 1.2, Math.max(want * 0.8, p.s));
       if (Math.abs(kept - p.s) > 0.01) {
         notes.push(`${p.id} resized from ${p.s.toFixed(2)} to ${kept.toFixed(2)}, true to the others`);
         p.s = kept;

@@ -1121,7 +1121,7 @@ export function sizeShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<Cha
   const r = relativeSize(c);
   return !r ? 1 : r.startsWith("TINY") ? 0.15 : r.startsWith("SMALL") ? 0.67 : 0.75;
 }
-const NUMBER_WORDS: Record<string, number> = { half: 0.5, "one and a half": 1.5, twice: 2, two: 2, "two and a half": 2.5, three: 3, four: 4, five: 5, six: 6, ten: 10 };
+const NUMBER_WORDS: Record<string, number> = { half: 0.5, "one and a half": 1.5, twice: 2, two: 2, "two and a half": 2.5, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
 function statedShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<CharacterDef, "id" | "name" | "look">[], depth: number): number | null {
   const look = c.look ?? "";
   const named = (who: string) => cast.find((o) => o.name.toLowerCase() === who.toLowerCase() || o.id === who.toLowerCase());
@@ -1132,17 +1132,29 @@ function statedShare(c: Pick<CharacterDef, "name" | "look">, cast: Pick<Characte
     if (!o || o === c || o.id === "hero") return 1;
     return depth > 0 ? 1 : sizeShare(o, cast, depth + 1);
   };
+  const NUM = "half|one and a half|twice|two and a half|two|three|four|five|six|seven|eight|nine|ten|\\d+(?:\\.\\d+)?";
+  // ("about four times as tall as Baby Colin", "twice as big as Nell": a
+  // name of one or two words, with no "'s height" - Mrs Muffle the yak was
+  // read as Colin's size and drawn huge on one page, small on the next -
+  // Muse, 15 Nov)
+  const timesAs = look.match(new RegExp(`\\b(${NUM})\\s+(?:times\\s+)?(?:as\\s+(?:tall|big|large)\\s+as|the\\s+(?:height|size)\\s+of)\\s+([A-Z][\\w-]*(?:\\s+[A-Z][\\w-]*)?)`, "i"));
+  // (against someone - a capitalised name - not "a house")
+  if (timesAs && /^[A-Z]/.test(timesAs[2]) && (/times/i.test(timesAs[0]) || /^(twice|half)$/i.test(timesAs[1]))) {
+    const n = NUMBER_WORDS[timesAs[1].toLowerCase()] ?? Number(timesAs[1]);
+    const who = named(timesAs[2]) ? timesAs[2] : timesAs[2].split(/\s+/).find((w) => named(w)) ?? timesAs[2];
+    if (Number.isFinite(n) && n > 0) return n * of(who);
+  }
   const times = look.match(/\babout\s+(half|one and a half|twice|two and a half|two|three|four|five|six|ten|\d+(?:\.\d+)?)\s*(?:times\s+)?(?:as tall as\s+)?([A-Z][\w-]*)'s\s+height/i) ?? look.match(/\b(half|one and a half|twice|two and a half|two|three|four|five|six|ten|\d+(?:\.\d+)?)\s+times\s+([A-Z][\w-]*)'s\s+height/i);
   if (times) {
     const n = NUMBER_WORDS[times[1].toLowerCase()] ?? Number(times[1]);
     if (Number.isFinite(n) && n > 0) return n * of(times[2]);
   }
-  const part = look.match(/\bas tall as\s+([A-Z][\w-]*)'s\s+(knee|knees|waist|hip|hips|shoulder|shoulders|chin)\b/i);
+  const part = look.match(/\bas (?:tall|big) as\s+(?:[A-Z][\w-]*\s+)?([A-Z][\w-]*)'s\s+(hand|hands|foot|feet|ankle|ankles|boot|knee|knees|waist|hip|hips|shoulder|shoulders|chin)\b/i);
   // (a group - "three snow hares, each about as tall as Kai's knee" - is
   // each one's height: its portrait shows them all, each at full height, so
   // no bigger - part 2; a single figure standing for a group, as before, is
   // drawn bigger to take the room of all of them)
-  if (part) return ({ knee: 0.3, knees: 0.3, waist: 0.5, hip: 0.5, hips: 0.5, shoulder: 0.8, shoulders: 0.8, chin: 0.85 } as Record<string, number>)[part[2].toLowerCase()] * of(part[1]) * (/\beach\s+(?:about\s+)?as\b/i.test(look) && !groupOf(c) ? 1.8 : 1);
+  if (part) return ({ hand: 0.12, hands: 0.12, foot: 0.12, feet: 0.12, ankle: 0.1, ankles: 0.1, boot: 0.12, knee: 0.3, knees: 0.3, waist: 0.5, hip: 0.5, hips: 0.5, shoulder: 0.8, shoulders: 0.8, chin: 0.85 } as Record<string, number>)[part[2].toLowerCase()] * of(part[1]) * (/\beach\s+(?:about\s+)?as\b/i.test(look) && !groupOf(c) ? 1.8 : 1);
   const as = look.match(/\b(?:about\s+)?as (?:tall|big|large) as\s+([A-Z][\w-]*)\b/i);
   // (a group's size is each one's, and its one tag draws them all: bigger)
   if (as && named(as[1])) return of(as[1]) * (/\bwhen sitting\b/i.test(look) ? 0.9 : 1) * (/\beach\s+(?:about\s+)?as\b/i.test(look) && !groupOf(c) ? 1.8 : 1);

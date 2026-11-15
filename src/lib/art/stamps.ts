@@ -272,13 +272,44 @@ function butterfly(r: R, P: Palette): Piece {
 
 // ------------------------------------------------------------------ the sky
 
+/** A cloud: a row of round puffs, the middle ones tallest, on a flat
+ *  base, lit from above and shaded underneath - a cumulus in a picture
+ *  book, not a flat disc (Muse, 15 Nov: "flat disc clouds" in all three
+ *  books). */
 function cloud(r: R, P: Palette): Piece {
-  const w = between(r, 34, 52);
-  const h = w * between(r, 0.35, 0.48);
-  const body = lumpy(r, 0, 0, w, h, 10, 0.32, true);
+  const w = between(r, 36, 54);
+  const n = 3 + Math.floor(r() * 3);
+  const base = w * 0.12;
+  const puffs: [number, number, number][] = [];
+  for (let i = 0; i < n; i++) {
+    const t = n === 1 ? 0.5 : i / (n - 1);
+    // (tallest towards the middle, a little off-centre)
+    const lift = 1 - Math.abs(t - 0.45) * 1.3;
+    const rad = w * between(r, 0.16, 0.2) * (0.7 + 0.5 * lift);
+    const x = -w / 2 + rad * 0.8 + t * (w - rad * 1.6);
+    puffs.push([x, base - rad * between(r, 0.7, 0.95), rad]);
+  }
+  const circles = puffs.map(([x, y, rad]) => `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rad)}"/>`).join("");
+  // (the flat underside the puffs sit on)
+  const bottom = `<rect x="${f(-w / 2 + puffs[0][2] * 0.5)}" y="${f(base - w * 0.14)}" width="${f(w - puffs[0][2] * 0.5 - puffs[n - 1][2] * 0.5)}" height="${f(w * 0.14)}" rx="${f(w * 0.07)}"/>`;
+  const shade = `<ellipse cx="${f(w * 0.04)}" cy="${f(base - w * 0.01)}" rx="${f(w * 0.42)}" ry="${f(w * 0.065)}" fill="${P.cloudShade}" opacity="0.5"/>`;
+  // (light on the tops of the biggest puffs)
+  const lit = puffs
+    .filter((_, i) => i === Math.floor(n / 2) || r() < 0.4)
+    .map(([x, y, rad]) => `<circle cx="${f(x - rad * 0.2)}" cy="${f(y - rad * 0.25)}" r="${f(rad * 0.55)}" fill="#FFFFFF" opacity="0.35"/>`)
+    .join("");
+  // (a few broken pen strokes over the tops, never round the whole shape)
+  const ink = puffs
+    .filter(() => r() < 0.4)
+    .map(([x, y, rad]) => {
+      const a0 = Math.PI * between(r, 1.15, 1.35);
+      const a1 = a0 + Math.PI * between(r, 0.2, 0.32);
+      return `<path d="M${f(x + Math.cos(a0) * rad)} ${f(y + Math.sin(a0) * rad)}A${f(rad)} ${f(rad)} 0 0 1 ${f(x + Math.cos(a1) * rad)} ${f(y + Math.sin(a1) * rad)}"/>`;
+    })
+    .join("");
   return {
-    paint: `<path d="${body.d}" fill="${P.cloud}"/><ellipse cx="${f(w * 0.1)}" cy="${f(h * 0.35)}" rx="${f(w * 0.75)}" ry="${f(h * 0.3)}" fill="${P.cloudShade}" opacity="0.6"/>`,
-    ink: brokenLine(body.pts, Math.floor(r() * 3), 4),
+    paint: `<g fill="${P.cloud}">${circles}${bottom}</g>${shade}${lit}`,
+    ink,
     detail: "",
   };
 }

@@ -2,7 +2,7 @@ import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
 import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
 import type { Sprite } from "@/lib/art/sprites";
-import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, LOOKS, MOODS, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
+import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, LOOKS, MOODS, SIT_FEET, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
 import { PROPS } from "@/lib/art/stamps-more";
 import { apartInDepth } from "./layout";
 
@@ -175,7 +175,9 @@ export function nearestKey(asked: string, table: Record<string, unknown>): strin
   if (!a) return null;
   const byNorm = new Map(keys.map((k) => [norm(k), k]));
   for (const c of [a, a.replace(/ies$/, "y"), a.replace(/es$/, ""), a.replace(/s$/, ""), `${a}s`]) if (byNorm.has(c)) return byNorm.get(c)!;
-  const starts = keys.filter((k) => norm(k).startsWith(a) || a.startsWith(norm(k)));
+  // (a longer name only a letter or two longer: "snow" is never the
+  // snowman - one stood on a mountain top, 15 Nov)
+  const starts = keys.filter((k) => (norm(k).startsWith(a) && norm(k).length - a.length <= 2) || a.startsWith(norm(k)));
   if (starts.length === 1) return starts[0];
   let best: string | null = null;
   let bestD = 3;
@@ -450,11 +452,19 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
   // or poses. (Well apart in depth - one far behind, much smaller - they
   // may cross.)
   const placedAt: { x: number; y: number; s: number }[] = [];
+  // (where each character was finally laid, and which way it faces: for
+  // a rider's seat)
+  const finalAt = new Map<string, { x: number; y: number; s: number }>();
+  const flipOf = new Map<string, boolean>();
+  // (and, for those put together from parts, where their neck, shoulders
+  // and eyes are)
+  const bodyOfId = new Map<string, { anchors: PartView["anchors"]; flip: boolean }>();
   const spaceOut = (id: string, x: number, y: number, sc: number, ride = false): number => {
     const w = (k: number) => 110 * k;
     // (riders share their boat: placed as laid out)
     if (ride) {
       placedAt.push({ x, y, s: sc });
+      finalAt.set(id, { x, y, s: sc });
       return x;
     }
     let nx = x;
@@ -483,7 +493,44 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     }
     if (Math.abs(nx - x) > 1) fixed(stats, `${id} overlapped another character: eased to x ${Math.round(nx)}`);
     placedAt.push({ x: nx, y, s: sc });
+    finalAt.set(id, { x: nx, y, s: sc });
     return nx;
+  };
+  /** A rider on someone's shoulder, head or back (on=, seat=, side= - see
+   *  layout's perched): its seat found from where its carrier was really
+   *  laid - after the carrier's own size and footing were kept to the
+   *  picture - so it sits on the shoulder, not where the shoulder was
+   *  first meant to be. */
+  const seatOn = (a: Record<string, string>): Record<string, string> => {
+    flipOf.set(idOf(a), a.flip === "1" || a.flip === "true");
+    const c = a.on ? finalAt.get(a.on) : undefined;
+    if (!c) return a;
+    const where = a.seat ?? "shoulder";
+    const side = a.side === "-1" ? -1 : 1;
+    const dir = flipOf.get(a.on) ? -1 : 1;
+    const rs = Math.min(Number(a.s) || c.s * 0.5, c.s * 0.55);
+    const body = bodyOfId.get(a.on);
+    if (body && where === "shoulder") {
+      // (on its real shoulder: just outside its head, so the carrier's face
+      // stays in view - seated on the shoulder's top, not over the face as
+      // a body of usual shape would put it: Muse, 15 Nov)
+      const at = ([px, py]: [number, number]) => ({ x: c.x + (px - 100) * c.s * (body.flip ? -1 : 1), y: c.y + (py - 190) * c.s });
+      const { neck, shoulderL, shoulderR, eyeL, eyeR } = body.anchors;
+      const face = at([(eyeL[0] + eyeR[0]) / 2, (eyeL[1] + eyeR[1]) / 2]);
+      const headR = Math.max(Math.abs(eyeL[0] - eyeR[0]) * 1.1, (neck[1] - (eyeL[1] + eyeR[1]) / 2) * 1.2) * c.s;
+      const top = Math.min(at(shoulderL).y, at(shoulderR).y);
+      // (the first rider on the shoulder behind the way the face looks, so
+      // the face and snout stay clear; a second on the other)
+      const neckAt = at(neck);
+      const looks = Math.sign(Math.round(face.x - neckAt.x));
+      const away = looks !== 0 ? -looks : 1;
+      const seatX = neckAt.x + (side === 1 ? away : -away) * (headR * 0.5 + 4 * rs);
+      return { ...a, x: String(Math.round(seatX)), y: String(Math.round(top + SIT_FEET * rs)), s: rs.toFixed(2) };
+    }
+    const H = 170 * c.s;
+    const seatY = where === "head" ? c.y - 0.93 * H : where === "back" ? c.y - 0.5 * H : c.y - 0.58 * H;
+    const seatX = where === "head" ? c.x : where === "back" ? c.x - dir * 0.14 * 110 * c.s + side * 8 * c.s : c.x + side * 0.24 * 110 * c.s;
+    return { ...a, x: String(Math.round(seatX)), y: String(Math.round(seatY + SIT_FEET * rs)), s: rs.toFixed(2) };
   };
   /** A character's id from a tag's c= (or id=, or its name). */
   const idOf = (a: Record<string, string>): string => {
@@ -522,6 +569,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
     const x = num(a, "x", null, -100, 500, stats);
     const fit = sized(ctx, num(a, "s", ctx.sizing?.s ?? 0.6, 0.15, 2.5), num(a, "y", null, -100, 400, stats), false, ctx.sizeOf?.[id] ?? 1, a.ride === "1" || a.laid === "1");
     const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
+    bodyOfId.set(id, { anchors: view.anchors, flip });
     const lean = num(a, "lean", 0, -45, 45);
     // (a sprite's pose word, turned into arms, legs and mood)
     const pose = (a.pose ?? "").toLowerCase();
@@ -598,7 +646,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       }
       // ---- newcomers: where each goes (it's laid there once painted)
       if (/^<\s*(npc|sprite|fig)\b/i.test(tag)) {
-        const a = attrsOf(tag);
+        const a = seatOn(attrsOf(tag));
         const id = idOf(a);
         if (isNewcomer(id)) {
           if (fig) out += endFig() + afterFig, (afterFig = "");
@@ -630,7 +678,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       if (/^<\s*sprite\b/i.test(tag)) {
         // (a pose written inside a figure: the figure is ended first)
         if (fig) out += endFig() + afterFig, (afterFig = "");
-        const a = attrsOf(tag);
+        const a = seatOn(attrsOf(tag));
         const id = idOf(a);
         const poses = ctx.sprites?.[id];
         if (poses && Object.keys(poses).length) out += spriteOf(id, poses, a);
@@ -645,7 +693,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
       // ---- figures from parts
       if (/^<\s*fig\b/i.test(tag)) {
         if (fig) out += endFig() + afterFig, (afterFig = "");
-        const a = attrsOf(tag);
+        const a = seatOn(attrsOf(tag));
         const id = idOf(a);
         const parts = ctx.figures?.[id];
         const v = ((a.v ?? a.view ?? "front").toLowerCase() === "three" ? "three" : "front") as View;
@@ -694,6 +742,7 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
         const y = seated ? num(a, "y", null, -100, 400, stats) : fit.y;
         // (a view drawn facing left is mirrored to face right first)
         const flip = (a.flip === "1" || a.flip === "true") !== Boolean(view.facesLeft);
+        bodyOfId.set(id, { anchors: view.anchors, flip });
         const lean = num(a, "lean", 0, -45, 45);
         fig = {
           id,
