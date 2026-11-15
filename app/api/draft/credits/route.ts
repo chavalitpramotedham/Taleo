@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { getDraft } from "@/server/drafts";
-import { pendingStoryHold, wasPaid } from "@/server/billing";
+import { heldFor, pendingStoryHold, pendingStoryRef, wasPaid } from "@/server/billing";
 import { storyTicket } from "@/server/tickets";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,12 @@ export async function GET() {
   const pastFirstChoice = Boolean(draft && (draft.segments.length > 1 || draft.segments[0]?.chosen));
   let held = 0;
   let spent = false;
-  if (!pastFirstChoice) held = (await pendingStoryHold(userId).catch(() => null))?.amount ?? 0;
+  // (what deleting it would return: exactly what was set aside for this
+  // story - see voidStoryHold in ../route.ts)
+  if (!pastFirstChoice) {
+    const own = draft ? await heldFor(userId, pendingStoryRef(storyTicket(userId, { age: draft.age, minutes: draft.minutes, theme: draft.theme, segments: draft.segments.slice(0, 1) }))).catch(() => 0) : 0;
+    held = own || ((await pendingStoryHold(userId).catch(() => null))?.amount ?? 0);
+  }
   else if (draft) {
     // (the reference its first choice was paid under: the story as it
     // stood with only its opening written)

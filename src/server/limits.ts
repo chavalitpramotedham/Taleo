@@ -4,7 +4,7 @@ import { auth } from "./auth";
 import { readPrivate as readJson, writePrivate as writeJson } from "./store";
 import { allowancePhrase, monthOf, tierFor, weekOf, CHARACTER_CREDITS, CREDITS_PER_STORY_MINUTE, FREE_STORY_MINUTES, type TierInfo } from "@/lib/tiers";
 import { accountOf, type Account } from "./entitlements";
-import { applyCredits, billingAvailable, heldCredits, holdCredits, pendingStoryHold, releaseHold, releasePendingStories, settleHold, moveHold, wasPaid, STORY_PENDING } from "./billing";
+import { applyCredits, billingAvailable, heldCredits, holdCredits, pendingStoryHold, pendingStoryRef, releaseHold, releasePendingStories, settleHold, moveHold, wasPaid, STORY_PENDING } from "./billing";
 import { underDailyCap, type CapKind } from "./caps";
 import { aLength, lengthOf } from "@/lib/ages";
 import { STARTER_CREDITS } from "@/lib/tiers";
@@ -430,7 +430,7 @@ async function guardWith(
   // they're settled at the first choice - and go back if writing it fails)
   // (...and from then they're held under the name of the story begun, so
   // only that story's own first choice can spend them)
-  const pendingFor = (key: string) => `${STORY_PENDING}${key}`.replace(/[^\w.:-]/g, "").slice(0, 110);
+  const pendingFor = pendingStoryRef;
   const heldOpen = (spent: number) => ({
     ok: true as const,
     session,

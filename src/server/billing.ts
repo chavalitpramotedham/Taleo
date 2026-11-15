@@ -530,6 +530,9 @@ export async function moveHold(userId: string, from: string, to: string): Promis
  *  pages aloud) - so that hold is given a day before it counts as left
  *  behind. Everything else is over in minutes. */
 export const STORY_PENDING = "story:pending:";
+/** The name a begun story's credits are held under until its first
+ *  choice: its opening's ticket (see tickets: storyTicket). */
+export const pendingStoryRef = (storyKey: string) => `${STORY_PENDING}${storyKey}`.replace(/[^\w.:-]/g, "").slice(0, 110);
 const STORY_PENDING_STALE_MS = 24 * 3600_000;
 
 /** Every hold on an account as it stands (null: couldn't be read). */
@@ -576,6 +579,12 @@ export async function pendingStoryHold(userId: string): Promise<{ ref: string; a
   const holds = (await listHolds(userId)) ?? [];
   const mine = holds.filter(([ref]) => ref.startsWith(STORY_PENDING)).sort((a, b) => b[1].at - a[1].at)[0];
   return mine ? { ref: mine[0], amount: mine[1].amount } : null;
+}
+
+/** What one hold sets aside right now (0: no such hold). */
+export async function heldFor(userId: string, ref: string): Promise<number> {
+  if (!safe(userId) || !safe(ref)) return 0;
+  return ((await listHolds(userId)) ?? []).find(([r]) => r === ref)?.[1].amount ?? 0;
 }
 
 /** Gives back whatever is held for stories begun and not carried on (one

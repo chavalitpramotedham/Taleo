@@ -3,7 +3,8 @@ import { auth } from "@/server/auth";
 import { clearDraft, DRAFT_MAX_BYTES, getDraft, markDiscarded, saveDraft, wasDiscarded } from "@/server/drafts";
 import { unlinkStory } from "@/server/characters";
 import type { Story } from "@/lib/types";
-import { releasePendingStories } from "@/server/billing";
+import { pendingStoryRef, releaseHold, releasePendingStories } from "@/server/billing";
+import { storyTicket } from "@/server/tickets";
 import { releaseStorySession } from "@/server/story-session";
 
 /** The signed-in user's unfinished story: GET it, PUT to save, DELETE to
@@ -64,19 +65,50 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  const userId = session.user.id;
   const url = new URL(req.url);
   const id = url.searchParams.get("id") || undefined;
-  await clearDraft(session.user.id, id);
-  // Thrown away (not finished): credits set aside for it when it was begun
-  // come back - if it hadn't reached its first choice, when they'd have
-  // been spent - and the account's story session is free again.
+  const discarding = url.searchParams.get("discard") === "1";
+  // (read before it's cleared: which story this is, and how far it got)
+  const draft = discarding ? await getDraft(userId).catch(() => null) : null;
+  await clearDraft(userId, id);
   let returned = 0;
-  if (url.searchParams.get("discard") === "1") {
+  if (discarding) {
     // (gone for good: remembered, so a late save can't bring it back, and
     // off the characters' "stories they were in")
-    if (id) await Promise.all([markDiscarded(session.user.id, id), unlinkStory(session.user.id, id).catch(() => {})]);
-    returned = await releasePendingStories(session.user.id, "The story was discarded before its first choice: credits returned").catch(() => 0);
-    await releaseStorySession(session.user.id, null, true);
+    if (id) await Promise.all([markDiscarded(userId, id), unlinkStory(userId, id).catch(() => {})]);
+    returned = await voidStoryHold(userId, id, draft);
+    await releaseStorySession(userId, null, true);
   }
   return NextResponse.json({ ok: true, returned });
+}
+
+/**
+ * Throwing a story away voids what was authorised for it, like a card
+ * authorisation that was never captured - and only that:
+ *   - before its first choice, the credits set aside for THIS story when
+ *     it was begun (held under its own opening's name) come back, exactly
+ *     what was held, once (a second ask finds nothing to release);
+ *   - past its first choice, nothing: that hold was captured as the spend,
+ *     and the story's pages were made;
+ *   - not saved to the account yet (thrown away within seconds of being
+ *     begun), the one hold still waiting for a first choice is this
+ *     story's - unless the account's copy is another story, whose hold it
+ *     would be: then nothing.
+ * Never more than was taken: every release ends one hold, in one step,
+ * and gives back what that hold took from the balance.
+ */
+async function voidStoryHold(userId: string, id: string | undefined, draft: Story | null): Promise<number> {
+  const note = "The story was thrown away before its first choice: the credits set aside for it are returned";
+  if (draft && id && draft.id !== id) return 0;
+  if (!draft) return releasePendingStories(userId, note).catch(() => 0);
+  const pastFirstChoice = draft.segments.length > 1 || Boolean(draft.segments[0]?.chosen);
+  if (pastFirstChoice) return 0;
+  const key = storyTicket(userId, { age: draft.age, minutes: draft.minutes, theme: draft.theme, segments: draft.segments.slice(0, 1) });
+  const own = await releaseHold(userId, pendingStoryRef(key), note).catch(() => ({ done: false, amount: 0 }));
+  if (own.done) return own.amount;
+  // (its opening not yet named for the hold - thrown away while it was
+  // still being written: the one waiting hold is this story's, the
+  // account's only story under way)
+  return releasePendingStories(userId, note).catch(() => 0);
 }
