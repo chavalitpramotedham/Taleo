@@ -41,6 +41,12 @@ export interface LayoutOptions {
   inBed?: string | null;
   /** who hugs whom, from the brief (two ids), if it says so */
   huggers?: [string, string] | null;
+  /** who rides in what: [who, wagon|wheelbarrow|sledge] (lesson 19) */
+  aboard?: [string, string][];
+  /** who stands or sits on top of a piece: [who, piece, stand|sit] */
+  onTop?: [string, string, "stand" | "sit"][];
+  /** who lies down along the ground (not in bed) */
+  lying?: string[];
   /** the hero's id: never hidden behind anyone (lesson 17) */
   heroId?: string | null;
 }
@@ -734,6 +740,150 @@ function inTheBoat(markup: string, notes: string[]): string {
   return out;
 }
 
+/** A character's whole span in the markup: its tag, with the target group
+ *  round it if it has one. */
+function charSpan(markup: string, id: string): { from: number; to: number; tag: string } | null {
+  for (const m of markup.matchAll(CHAR_TAG)) {
+    if (!m[0].trim().endsWith("/>") || (attr(m[0], "c") ?? attr(m[0], "id")) !== id) continue;
+    CHAR_TAG.lastIndex = 0;
+    let from = m.index!;
+    let to = from + m[0].length;
+    const before = /<g\s+class="target"\s*>\s*$/.exec(markup.slice(0, from));
+    const after = /^\s*<\/g>/.exec(markup.slice(to));
+    if (before && after) (from = before.index), (to += after[0].length);
+    return { from, to, tag: m[0] };
+  }
+  CHAR_TAG.lastIndex = 0;
+  return null;
+}
+
+/** What they ride in (lesson 19), like the boat: the seat's height in the
+ *  piece (its units, up from the ground), and whether the piece is drawn
+ *  in front of its riders (a wagon's box hides their legs) or under them
+ *  (a sledge they sit on top of). */
+const VEHICLES: Record<string, { seat: number; front: boolean; half: number; k: RegExp }> = {
+  wagon: { seat: 24, front: true, half: 30, k: /^(wagon|cart|trolley|pram|buggy|go-?kart)$/i },
+  wheelbarrow: { seat: 27, front: true, half: 22, k: /^(wheelbarrow|barrow)$/i },
+  sledge: { seat: 20, front: false, half: 26, k: /^(sledge|sled|toboggan)$/i },
+};
+function aboard(markup: string, opts: LayoutOptions, notes: string[]): string {
+  let out = markup;
+  const kinds = [...new Set((opts.aboard ?? []).map(([, k]) => k))];
+  for (const kind of kinds) {
+    const V = VEHICLES[kind];
+    if (!V) continue;
+    const ids = (opts.aboard ?? []).filter(([, k]) => k === kind).map(([id]) => id);
+    const riders = ids.map((id) => charSpan(out, id)).filter((r): r is NonNullable<typeof r> => Boolean(r));
+    if (!riders.length) continue;
+    const stamp = [...out.matchAll(/<stamp\b[^>]*\/>/gi)].find((m) => V.k.test(attr(m[0], "k") ?? ""));
+    const rs = Math.max(...riders.map((r) => Number(attr(r.tag, "s")) || opts.usualS || 0.6));
+    let vx = stamp ? Number(attr(stamp[0], "x")) || 200 : riders.reduce((a, r) => a + (Number(attr(r.tag, "x")) || 200), 0) / riders.length;
+    const standing = riders.map((r) => Number(attr(r.tag, "y"))).filter((y) => Number.isFinite(y) && y > 200);
+    const vy = stamp ? Number(attr(stamp[0], "y")) || 248 : standing.length ? Math.max(...standing) : 248;
+    // (big enough for its riders: a child sits in it waist-deep)
+    const vs = Math.min(3, Math.max(stamp ? Number(attr(stamp[0], "s")) || 1 : 0, rs * (kind === "sledge" ? 1.5 : 1.7) * (riders.length > 1 ? 1.25 : 1)));
+    vx = Math.max(V.half * vs + 8, Math.min(400 - V.half * vs - 8, vx));
+    // (every other piece of that kind is the same one: one wagon)
+    out = out.replace(/<stamp\b[^>]*\/>/gi, (t) => (V.k.test(attr(t, "k") ?? "") ? "" : t));
+    // riders out of their places (last first), then in together
+    const spans = riders.map((r) => charSpan(out, attr(r.tag, "c") ?? attr(r.tag, "id") ?? "")!).filter(Boolean).sort((a, b) => b.from - a.from);
+    const at = Math.min(...spans.map((r) => r.from));
+    const texts: string[] = [];
+    for (const r of spans) {
+      texts.unshift(out.slice(r.from, r.to));
+      out = out.slice(0, r.from) + out.slice(r.to);
+    }
+    const n = texts.length;
+    const seated = texts.map((text, i) => {
+      const tag = text.match(CHAR_TAG)![0];
+      CHAR_TAG.lastIndex = 0;
+      const x = n === 1 ? vx : vx - V.half * vs * 0.5 + (i * V.half * vs) / (n - 1);
+      // (its hips on the seat, its feet SIT_FEET below them - see poses)
+      const s1 = Number(attr(tag, "s")) || opts.usualS || 0.6;
+      let t = setAttr(setAttr(setAttr(tag, "x", String(Math.round(x))), "y", String(Math.round(vy - V.seat * vs + SIT_FEET * s1))), "legs", "sit");
+      t = setAttr(setAttr(t, "ride", "1"), "laid", "1");
+      return text.replace(tag, t);
+    });
+    const piece = `<stamp k="${kind}" x="${Math.round(vx)}" y="${Math.round(vy)}" s="${Math.round(vs * 100) / 100}" near="1"/>`;
+    const at2 = Math.min(at, out.length);
+    out = out.slice(0, at2) + (V.front ? seated.join("") + piece : piece + seated.join("")) + out.slice(at2);
+    notes.push(`${ids.join(", ")} put in the ${kind}`);
+  }
+  return out;
+}
+
+/** Standing or sitting on top of a thing the brief names (lesson 19): the
+ *  feet (or the seat) on its top, inside its width, drawn just after it.
+ *  A thing named but not placed is added under them. */
+const TOPS: Record<string, { k: RegExp; inset: number; s: (cs: number) => number }> = {
+  table: { k: /^(table|counter|desk)$/i, inset: 0.04, s: (cs) => cs * 1.7 },
+  boulder: { k: /^(boulder|rock|rocks|stone)$/i, inset: 0.38, s: (cs) => cs * 1.9 },
+  stump: { k: /^stump$/i, inset: 0.08, s: (cs) => cs * 2.2 },
+  log: { k: /^log$/i, inset: 0.15, s: (cs) => cs * 1.6 },
+  shelf: { k: /^shelf$/i, inset: 0.05, s: (cs) => cs * 2 },
+  chest: { k: /^(chest|crate)$/i, inset: 0.1, s: (cs) => cs * 1.6 },
+  toybox: { k: /^(toybox|box)$/i, inset: 0.06, s: (cs) => cs * 1.6 },
+  flowerpot: { k: /^(flowerpot|pot)$/i, inset: 0.5, s: (cs) => cs * 1.8 },
+  cloud: { k: /^cloud$/i, inset: 0.3, s: (cs) => cs * 2 },
+};
+function onTop(markup: string, opts: LayoutOptions, notes: string[]): string {
+  let out = markup;
+  for (const [id, key, how] of opts.onTop ?? []) {
+    const T = TOPS[key];
+    const span = charSpan(out, id);
+    if (!T || !span || attr(span.tag, "ride") === "1") continue;
+    const cs = Number(attr(span.tag, "s")) || opts.usualS || 0.6;
+    const cx = Number(attr(span.tag, "x")) || 200;
+    // (the piece nearest them, or a new one under them)
+    // (one each: a rock someone already stands on is theirs - "Moss stands
+    // on the first rock... Asha stands on the rock beside him" is two)
+    const pieces = [...out.matchAll(/<stamp\b[^>]*\/>/gi)].filter((m) => T.k.test(attr(m[0], "k") ?? "") && !attr(m[0], "topof")).sort((a, b) => Math.abs((Number(attr(a[0], "x")) || 200) - cx) - Math.abs((Number(attr(b[0], "x")) || 200) - cx));
+    let tag = pieces[0]?.[0] ?? null;
+    if (!tag) {
+      tag = `<stamp k="${key}" x="${Math.round(cx)}" y="${key === "cloud" ? 170 : key === "shelf" ? 150 : 248}" s="${Math.round(T.s(cs) * 100) / 100}" near="1"/>`;
+      notes.push(`a ${key} added for ${id} to ${how} on`);
+    } else out = out.replace(tag, "");
+    // (a second one beside a taken one, not on top of it)
+    if (!pieces.length && (opts.onTop ?? []).some(([o, k]) => o !== id && k === key)) {
+      const taken = [...out.matchAll(/<stamp\b[^>]*\btopof="[^"]*"[^>]*\/>/gi)].map((m) => pieceExtent(setAttr(m[0], "k", key))).filter(Boolean);
+      for (const e of taken) if (e && cx > e.x0 - 20 && cx < e.x1 + 20) tag = setAttr(tag, "x", String(Math.round(cx < (e.x0 + e.x1) / 2 ? e.x0 - 20 * cs : e.x1 + 20 * cs)));
+    }
+    tag = setAttr(setAttr(tag, "near", "1"), "topof", id);
+    const ext = pieceExtent(setAttr(tag, "k", key));
+    if (!ext) continue;
+    const top = ext.y0 + (ext.y1 - ext.y0) * T.inset;
+    const x = Math.max(ext.x0 + 12 * cs, Math.min(ext.x1 - 12 * cs, Number(attr(tag, "x")) === Math.round(cx) ? cx : (ext.x0 + ext.x1) / 2));
+    const legs = (attr(span.tag, "legs") ?? "stand").toLowerCase();
+    // (standing: its feet on the top; sitting: its hips there, its feet
+    // SIT_FEET below - see poses)
+    let fig = setAttr(setAttr(span.tag, "x", String(Math.round(x))), "y", String(Math.round(top + (how === "sit" ? SIT_FEET * cs : 0))));
+    if (how === "sit") fig = setAttr(fig, "legs", "sit");
+    // (feet on it: a jump, a run or a kick there lifted them off it)
+    else if (!/^(stand|tiptoe|crouch)$/.test(legs)) fig = setAttr(fig, "legs", "stand");
+    fig = setAttr(setAttr(fig, "ride", "1"), "laid", "1");
+    const s2 = charSpan(out, id)!;
+    const text = out.slice(s2.from, s2.to).replace(s2.tag, fig);
+    out = out.slice(0, s2.from) + out.slice(s2.to);
+    out = out.slice(0, s2.from) + tag + text + out.slice(s2.from);
+    notes.push(`${id} ${how === "sit" ? "sat" : "stood"} on top of the ${key}, as the brief says`);
+  }
+  return out;
+}
+
+/** Lying down (lesson 19): whoever the brief has lying (not in bed) lies
+ *  along the ground. */
+function laidDown(markup: string, opts: LayoutOptions, notes: string[]): string {
+  let out = markup;
+  for (const id of opts.lying ?? []) {
+    const span = charSpan(out, id);
+    if (!span || !/^<\s*fig\b/i.test(span.tag) || attr(span.tag, "bed") === "1" || attr(span.tag, "ride") === "1") continue;
+    if ((attr(span.tag, "legs") ?? "") === "lie") continue;
+    out = out.replace(span.tag, setAttr(span.tag, "legs", "lie"));
+    notes.push(`${id} lying down, as the brief says`);
+  }
+  return out;
+}
+
 /** Only the tags a composer may write (lesson 17): a stray "<boat>" opened
  *  around a whole page made everything in it vanish. */
 const ALLOWED = /^(stamp|scatter|fig|sprite|npc|who|g|path|ellipse|circle|rect|polygon|polyline|line)$/i;
@@ -1228,5 +1378,8 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   out = finalSpacing(out, opts, notes);
   out = propsSeen(out, notes);
   out = perched(out, opts, notes);
+  out = aboard(out, opts, notes);
+  out = onTop(out, opts, notes);
+  out = laidDown(out, opts, notes);
   return { markup: out, notes };
 }

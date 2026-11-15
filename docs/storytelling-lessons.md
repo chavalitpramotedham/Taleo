@@ -151,7 +151,9 @@ Seven pages of the new books were painted: the party pages read at a
 glance and the shoulder ride held; the one weak page had two moments in
 one brief, hence the one-moment rule.
 
-**Left for code, not for the storyteller:** a wagon, cart or sledge that
-characters sit in (as the boat is); standing on top of a table, rock or
-shelf; and the composer's lying pose. Each would let the storyteller say
-more.
+**Then given to the painter (16 Nov, painting lesson 19):** sitting in a
+wagon, cart, wheelbarrow or on a sledge; standing or sitting on top of a
+table, rock, stump, log, chest, box, flowerpot or cloud; and lying down
+along the ground. The rules now allow them, and a second run of the four
+setups used them (Moss on the stepping rocks, a hedgehog on a log, Biscuit
+lying by Mia's feet) with hard asks still at 4 of 36 pages.

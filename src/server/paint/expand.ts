@@ -2,7 +2,7 @@ import { hashOf, seeded, SCATTER, STAMPS, type Piece } from "@/lib/art/stamps";
 import type { Palette } from "@/lib/art/palette";
 import { rolesOf, viewOf, type CharacterParts, type PartView, type View } from "@/lib/art/parts";
 import type { Sprite } from "@/lib/art/sprites";
-import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, LOOKS, MOODS, SIT_FEET, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
+import { arm, ARM_POSES, bodyOf, face, legs, LEG_POSES, liesDown, LOOKS, MOODS, SIT_FEET, type ArmPose, type LegPose, type Mood } from "@/lib/art/poses";
 import { PROPS } from "@/lib/art/stamps-more";
 import { apartInDepth } from "./layout";
 
@@ -408,7 +408,7 @@ function posedFigure(fig: { id: string; t: string; s: number; tilt: number; view
   stats.posed++;
   stats.torsos++;
   stats.heads++;
-  const t = body.lift || body.lean ? `${fig.t} rotate(${f(body.lean)} 100 190) translate(0 ${f(-body.lift)})` : fig.t;
+  const t = legPose === "lie" && !inBed ? `${fig.t} ${liesDown(view)}` : body.lift || body.lean ? `${fig.t} rotate(${f(body.lean)} 100 190) translate(0 ${f(-body.lift)})` : fig.t;
   return `<g class="paint"><g transform="${t}">${paint}</g></g><g class="ink" fill="none" stroke="#4F3A2A" stroke-width="${f(1.2 / fig.s)}" stroke-linecap="round" stroke-linejoin="round"><g transform="${t}">${unscaleStrokes(ink, fig.s)}</g></g><g class="detail"><g transform="${t}">${detail}</g></g>`;
 }
 

@@ -357,6 +357,27 @@ function sledge(r: R, p: Palette): Piece {
   const seat = pick(r, [p.bloom1, p.wood, p.fabric2]);
   return P(`${ground(30)}<rect x="-30" y="-20" width="58" height="7" rx="2" fill="${seat}"/><rect x="-22" y="-13" width="4" height="8" fill="${p.woodDark}"/><rect x="16" y="-13" width="4" height="8" fill="${p.woodDark}"/>`, `<path d="M-34 -2H26C32 -2 34 -8 31 -12M-30 -20H28V-13H-30ZM-22 -13V-2M-18 -13V-2M16 -13V-2M20 -13V-2"/>`);
 }
+/** A child's pull-along wagon: an open box on four wheels (two seen) with
+ *  a handle. Riders sit IN it: the layout draws it after them, so the box
+ *  hides their legs and they show from the waist up. */
+function wagon(r: R, p: Palette): Piece {
+  const c = pick(r, [p.bloom1, "#B2443A", p.fabric2]);
+  const wheel = (x: number) => `<circle cx="${x}" cy="-8" r="8" fill="#4A3A30"/><circle cx="${x}" cy="-8" r="3" fill="${p.stone}"/>`;
+  return P(
+    `${ground(38)}<path d="M34 -24L52 -44" stroke="${p.woodDark}" stroke-width="2.6"/><rect x="47" y="-48" width="10" height="5" rx="2" fill="${p.woodDark}"/><path d="M-35 -32H35L32 -12H-32Z" fill="${c}"/><rect x="-36" y="-35" width="72" height="5" rx="1.5" fill="${p.wood}"/>${wheel(-20)}${wheel(20)}${shade(0, -22, 30, 8, 0.12)}`,
+    `<path d="M-35 -32H35L32 -12H-32ZM-36 -35H36V-30H-36ZM34 -24L52 -44M47 -48H57V-43H47Z"/><circle cx="-20" cy="-8" r="8"/><circle cx="20" cy="-8" r="8"/>`,
+    `<path d="M-28 -27H28" stroke="#FFFFFF" stroke-width="1" opacity="0.35"/>`,
+  );
+}
+/** A garden wheelbarrow: a deep tray on one wheel at the front, two
+ *  handles and legs behind. A rider sits IN the tray, drawn in front. */
+function wheelbarrow(r: R, p: Palette): Piece {
+  const c = pick(r, [p.fabric2, p.stoneDark, "#6E8B5A"]);
+  return P(
+    `${ground(34)}<path d="M-20 -24L-46 -36" stroke="${p.woodDark}" stroke-width="3"/><path d="M-16 -16L-20 0M10 -16L12 -6" stroke="${p.woodDark}" stroke-width="3"/><path d="M-32 -38H30L20 -16H-22Z" fill="${c}"/><rect x="-33" y="-40" width="64" height="4" rx="1.5" fill="${p.stoneDark}"/><circle cx="26" cy="-10" r="10" fill="#4A3A30"/><circle cx="26" cy="-10" r="3.4" fill="${p.stone}"/>${shade(0, -28, 26, 8, 0.12)}`,
+    `<path d="M-32 -38H30L20 -16H-22ZM-33 -40H31V-36H-33ZM-20 -24L-46 -36M-16 -16L-20 0M10 -16L12 -6"/><circle cx="26" cy="-10" r="10"/>`,
+  );
+}
 function drum(r: R, p: Palette): Piece {
   const c = pick(r, [p.bloom1, p.fabric2]);
   return P(`<rect x="-12" y="-8" width="24" height="16" fill="${c}"/><ellipse cx="0" cy="-8" rx="12" ry="4" fill="#F4EFE4"/><path d="M-12 -6L-6 8L0 -6L6 8L12 -6" stroke="${p.bloom2}" stroke-width="1.4" fill="none"/>`, `<ellipse cx="0" cy="-8" rx="12" ry="4"/><path d="M-12 -8V8C-12 12 12 12 12 8V-8"/>`);
@@ -473,7 +494,9 @@ export const MORE_STAMPS: Record<string, StampKind> = {
   rocket: K("a rocket ship standing ready (big enough to ride in at s 1.6)", "48x86", "ground", false, rocket),
   ladder: K("a wooden ladder, standing", "30x90", "ground", false, ladder),
   chest: K("a treasure chest with a golden lock", "48x38", "ground", false, chest),
-  sledge: K("a wooden sledge on its runners", "68x22", "ground", false, sledge),
+  sledge: K("a wooden sledge on its runners (riders sit on it)", "68x22", "ground", false, sledge),
+  wagon: K("a child's pull-along wagon or cart, big enough to sit in (riders are put in it)", "92x50", "ground", false, wagon),
+  wheelbarrow: K("a garden wheelbarrow, big enough to sit in (riders are put in it)", "80x44", "ground", false, wheelbarrow),
   nest: K("a bird's nest with eggs (in a tree or on the ground)", "34x14", "ground", false, nest),
 };
 

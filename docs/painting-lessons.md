@@ -408,3 +408,45 @@ composer tags; model calls only for new books and one fresh dev round.
   it corrects itself ("Final output:") only the corrected copy is kept.
 
 New code: 4-VT2Q (way 4, style s20).
+
+**Lesson 19 - wagons, standing on things, lying down (16 Nov).**
+
+The composition audit behind storytelling lesson 3 found three things the
+painter couldn't show, so the storyteller had been told to avoid them.
+Now the painter can, and the storyteller may use them again.
+
+- **Riding in a wagon, cart, wheelbarrow or on a sledge.** Two new pieces
+  (`wagon`, `wheelbarrow`) join the sledge. When the brief says someone
+  sits in or on one ("Colin sits in the wooden wagon", "Kai and Ellie sit
+  side by side on the sledge"), they're seated in it: the box of a wagon
+  or wheelbarrow is drawn in front of them so they show from the waist up,
+  and on a sledge they sit on top. Several riders share it, and it grows to
+  hold them. A baby "in the wagon" had stood behind it on four pages.
+- **Standing or sitting on top of a table, rock, stump, log, chest, box,
+  flowerpot or cloud.** Their feet (or seat) go on its top, within its
+  width, and it's drawn first. If it isn't in the picture it's added under
+  them, and two characters on "the first rock" and "the rock beside him"
+  get one each. A jump, run or kick there becomes standing, so they don't
+  hover above it. When the shot itself is set on the thing ("Mid shot of
+  the high pantry shelf", "the cloud palace"), it's the floor, not
+  something to climb on. "The cloud floor", "the stone edge" and "a table
+  leg" aren't the thing itself.
+- **Lying down.** A new leg pose, `lie`: the figure is laid on its side
+  along the ground, head the way it faces. The composer can choose it, and
+  the brief's "lies on the grass", "lying flat on her tummy", "curled up
+  asleep on the rug" or "stretched out on the rug" sets it. A tail
+  "curled up", or legs "stretched out in front", doesn't.
+
+Checked: the brief readers on all 28 library books found 28 cases (wagons,
+the sledge, a crate, flowerpots, tables, rocks, logs, a cloud, lying on
+grass and on tummies), every one right after fixes for "her chest", "legs
+stretched out" and a describing clause ("Moss, the giant five times taller
+than Asha, stands on the rock" is Moss). The 769 saved bench pages laid out
+again: none worse, and fewer seated in mid-air. Six pages drawn from
+hand-written composer tags (each made the way the composer gets it wrong),
+and three laid out by the live composer: all show what the brief says.
+
+Where: `aboard`, `onTop` and `laidDown` in `src/server/paint/layout.ts`;
+`aboardOf`, `onTopOf` and `lyingOf` (and `namedBefore`) in
+`src/server/claude.ts`; the pose in `src/lib/art/poses.ts` (`liesDown`);
+the pieces in `src/lib/art/stamps-more.ts`.

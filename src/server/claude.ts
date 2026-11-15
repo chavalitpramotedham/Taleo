@@ -1025,6 +1025,93 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
   return out;
 }
 
+/** The characters a clause is about: those named in it before `at` (after
+ *  its last comma or "with", so "Kai and Ellie sit on the sledge" is both),
+ *  else the nearest one named before it. */
+function namedBefore(t: string, at: number, on: CharacterDef[]): CharacterDef[] {
+  const lower = t.toLowerCase();
+  const riders = on.filter((c) => {
+    const i = lastNamed(lower, c, at);
+    return i >= 0 && i < at;
+  });
+  const clauses = lower.slice(0, at).split(/[,;]| with | while | as /);
+  const named = riders.filter((c) => firstNamed(clauses[clauses.length - 1] ?? "", c) >= 0);
+  if (named.length) return named;
+  // (back through the clauses to the nearest that names someone, passing
+  // over one that only describes - "Moss, the giant five times taller than
+  // Asha, stands on the first rock" is Moss)
+  for (let i = clauses.length - 2; i >= 0; i--) {
+    if (/^\s*(?:the|a|an|who|whose|which)\b/.test(clauses[i])) continue;
+    const here = riders.map((c) => [c, lastNamed(clauses[i], c)] as const).filter(([, j]) => j >= 0).sort((a, b) => b[1] - a[1]);
+    if (here.length) return [here[0][0]];
+  }
+  const nearest = riders.map((c) => [c, lastNamed(lower, c, at)] as const).sort((a, b) => b[1] - a[1])[0];
+  return nearest ? [nearest[0]] : [];
+}
+const sentencesOf = (picture: string) => picture.split(/(?<=[.;!?])\s+/);
+
+/** What they ride in, from the brief: "Colin sits in the wooden wagon",
+ *  "Kai and Ellie sit on the sledge", "Dada pushes Coliboo in the
+ *  wheelbarrow" - [who, wagon|wheelbarrow|sledge]. (Painter lesson 19:
+ *  a baby "in the wagon" stood behind it on four pages.) */
+const VEHICLE_WORD: Record<string, string> = { wagon: "wagon", cart: "wagon", trolley: "wagon", "go-kart": "wagon", pram: "wagon", buggy: "wagon", wheelbarrow: "wheelbarrow", barrow: "wheelbarrow", sledge: "sledge", sled: "sledge", toboggan: "sledge" };
+export function aboardOf(req: IllustrateRequest): [string, string][] {
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const out: [string, string][] = [];
+  for (const t of sentencesOf(req.page.picture)) {
+    for (const m of t.matchAll(/\b(?:in|inside|on|aboard|into|onto)\s+(?:the|a|an|his|her|their|its)\s+(?:[\w-]+\s+){0,3}?(wagon|cart|trolley|go-kart|pram|buggy|wheelbarrow|barrow|sledge|sled|toboggan)s?\b/gi)) {
+      const kind = VEHICLE_WORD[m[1].toLowerCase()];
+      // (who rides: named right before - "pulls Colin in the wagon" is
+      // Colin; "Kai and Ellie sit on the sledge" both)
+      const before = t.slice(0, m.index!).toLowerCase();
+      const sitting = /\b(sits?|sitting|sat|rides?|riding|ride|perched|tucked|squeezed|snuggled|curled|crouch\w*|climbs?|jumps?|hops?|tumbles?|are|is)\s+(?:up\s+|down\s+|back\s+|together\s+|side by side\s+)?$/.test(before);
+      const who = sitting ? namedBefore(t, m.index!, on) : namedBefore(t, m.index!, on).slice(-1);
+      for (const c of who) if (!out.some(([x]) => x === c.id)) out.push([c.id, kind]);
+    }
+  }
+  return out;
+}
+
+/** Who stands or sits on top of what, from the brief: "Pebble stands on
+ *  the table", "Colin sits on the big grey rock", "the frog perches on top
+ *  of the stump" - [who, the piece, stand|sit]. */
+const TOP_WORD: Record<string, string> = { table: "table", counter: "table", desk: "table", rock: "boulder", boulder: "boulder", stone: "boulder", stump: "stump", log: "log", shelf: "shelf", chest: "chest", crate: "chest", box: "toybox", toybox: "toybox", flowerpot: "flowerpot", pot: "flowerpot", cloud: "cloud" };
+export function onTopOf(req: IllustrateRequest): [string, string, "stand" | "sit"][] {
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const out: [string, string, "stand" | "sit"][] = [];
+  // (where the picture is set: its first sentence, "Mid shot of the high
+  // pantry shelf.")
+  const setting = sentencesOf(req.page.picture)[0] ?? "";
+  for (const t of sentencesOf(req.page.picture)) {
+    // (the thing itself: "the cloud floor", "the stone edge", "a table
+    // leg" are not a cloud, a stone or a table to stand on)
+    for (const m of t.matchAll(/\b(stands?|standing|stood|sits?|sitting|sat|perch\w*|balanc\w+|tiptoes?|tiptoeing|kneel\w*|crouch\w*|is|are|hops? up|jumps? up|climbs? up|climbed up)\s+(?:up\s+|down\s+|proudly\s+|tall\s+|together\s+|side by side\s+)?on\s+(?:top\s+of\s+)?(?:the|a|an)\s+(?:[\w-]+\s+){0,2}?(table|counter|desk|rock|boulder|stone|stump|log|shelf|chest|crate|box|toybox|flowerpot|pot|cloud)\b(?!['-]?\w*\s+(?:floor|edge|path|palace|bank|throne|top|ledge|wall|steps?|kingdom|room|house|castle|fountain|bridge|shelf|cupboard|legs?|cloth|lid|corner|side))/gi)) {
+      // (set on it - a book on a pantry shelf, a party on the table top, a
+      // cloud palace: there it is the ground, not a thing to stand on)
+      const word = m[2].toLowerCase();
+      if (new RegExp(`\\b(?:shot|view|close-up)\\b[^:.]{0,30}\\b(?:on|of|across|along|over|in|at|inside)\\s+(?:the|a)\\s+(?:[\\w-]+\\s+){0,3}?${word}`, "i").test(setting.split(/[:.]/)[0])) continue;
+      const how = /^(sits?|sitting|sat|perch)/i.test(m[1]) ? "sit" : "stand";
+      for (const c of namedBefore(t, m.index!, on)) if (!out.some(([x]) => x === c.id)) out.push([c.id, TOP_WORD[m[2].toLowerCase()], how]);
+    }
+  }
+  return out;
+}
+
+/** Who lies down (not in bed), from the brief: "lies on the grass",
+ *  "lying flat on her tummy on the lily pad", "asleep on the rug, curled
+ *  up". Drawn lying along the ground. */
+export function lyingOf(req: IllustrateRequest): string[] {
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const bed = inBedOf(req);
+  const out: string[] = [];
+  for (const t of sentencesOf(req.page.picture)) {
+    for (const m of t.matchAll(/(?<!\b(?:tail|trunk|ears?|whiskers|hair|scarf|blanket|quilt|rope|ribbon|string|tongue|leaf|leaves|paper|map)\s+(?:is\s+|was\s+)?)\b(?:lies|lying|lay|lie|sprawl\w*|curled up(?=\s+(?:asleep|on|in|by|at|beside|against|under|next|together))|flat on (?:his|her|its|their) (?:back|tummy|front)|stretched out(?=\s+(?:on|across|along|asleep|flat)))\b(?![^.;]{0,25}\b(?:in|under|into) (?:the|a|her|his|their|its) (?:\w+ )?(?:bed|cot|quilt|blanket|sleeping bag|covers))/gi)) {
+      for (const c of namedBefore(t, m.index!, on)) if (c.id !== bed && !out.includes(c.id)) out.push(c.id);
+    }
+  }
+  return out;
+}
+
 /** Who hugs whom, from the picture brief: the two characters named in the
  *  sentence that says "hug" (lesson 17). */
 function huggersOf(req: IllustrateRequest): [string, string] | null {
@@ -1380,6 +1467,9 @@ export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
     huggers: huggersOf(req),
     inBed: inBedOf(req),
     perched: perchedOf(req),
+    aboard: aboardOf(req),
+    onTop: onTopOf(req),
+    lying: lyingOf(req),
     said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "),
     groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id),
     targetThing: target && !isCast ? target : null,

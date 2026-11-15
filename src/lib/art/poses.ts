@@ -14,7 +14,7 @@ import type { PartView, Pt } from "./parts";
 import type { Piece } from "./stamps";
 
 export const ARM_POSES = ["down", "wave", "up", "hip", "point", "reach", "hold", "hug", "carry", "clap", "chin", "cover", "shrug"] as const;
-export const LEG_POSES = ["stand", "walk", "run", "jump", "sit", "kick", "tiptoe", "crouch"] as const;
+export const LEG_POSES = ["stand", "walk", "run", "jump", "sit", "kick", "tiptoe", "crouch", "lie"] as const;
 export const MOODS = ["happy", "laugh", "excited", "surprised", "worried", "scared", "sad", "shy", "sleepy", "cross", "determined", "wink", "calm", "talk"] as const;
 /** What each arm word does, for the composer's brief. */
 export const ARM_HINTS: Record<(typeof ARM_POSES)[number], string> = {
@@ -242,6 +242,7 @@ export const SIT_FEET = 14;
  *  leaning into a run. */
 export function bodyOf(pose: LegPose, view?: PartView, three = true): { lift: number; lean: number } {
   const room = view ? legRoom(view) : 0;
+  if (pose === "lie") return { lift: 0, lean: 0 };
   if (pose === "jump") return { lift: 22 + room, lean: 0 };
   if (pose === "crouch") return { lift: room - (view ? Math.round(legLength(view) * 0.3) : 10), lean: 4 };
   if (pose === "sit") return { lift: view ? -sitDrop(view) : -11, lean: 0 };
@@ -259,7 +260,10 @@ export function bodyOf(pose: LegPose, view?: PartView, three = true): { lift: nu
  *  stubs). The figure is moved as a whole by bodyOf (lifted for a jump,
  *  lowered to sit or crouch), so the feet here are placed to land on the
  *  ground after that move. */
-export function legs(view: PartView, build: Build, pose: LegPose, three: boolean): { far: Piece; near: Piece } {
+export function legs(view: PartView, build: Build, poseAsked: LegPose, three: boolean): { far: Piece; near: Piece } {
+  // (lying down: the legs of a standing figure, the whole of which is laid
+  // along the ground - see liesDown)
+  const pose: LegPose = poseAsked === "lie" ? "stand" : poseAsked;
   const a = view.anchors;
   const hipW = Math.max(18, Math.abs(a.hipR[0] - a.hipL[0]));
   const lw = build.thin ? 4 : Math.max(10, hipW * 0.6) * (build.leg ?? 1);
@@ -419,4 +423,21 @@ export function face(view: PartView, build: Build, mood: Mood, lookAt: Look = "a
     default:
       return { paint: cheeks, ink: brows(2.8, 0) + smile, detail: open(eyeL) + open(eyeR) };
   }
+}
+
+/** Lying down (on the grass, asleep on the rug, flat on a lily pad): the
+ *  figure standing, laid on its side along the ground - turned a quarter
+ *  about its feet so its head goes the way it faces, then brought back
+ *  down to the ground and centred where it was placed. In its own
+ *  coordinates (feet at 100,190), as a transform to put after its
+ *  placing. */
+export function liesDown(view: PartView): string {
+  const a = view.anchors;
+  // (half the body's thickness, which lies under it once it's turned)
+  const half = Math.max(26, Math.abs(a.shoulderR[0] - a.shoulderL[0]) / 2 + 12);
+  // (its height: the feet to about the top of the head, as far above the
+  // eyes as the eyes are above the neck)
+  const top = Math.max(0, 2 * a.eyeL[1] - a.neck[1]);
+  const tall = 190 - top;
+  return `translate(${-Math.round(tall / 2)} ${-Math.round(half)}) rotate(90 100 190)`;
 }
