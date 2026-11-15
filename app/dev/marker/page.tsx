@@ -1,3 +1,4 @@
+import { StorytellerSwitch } from "@/components/StorytellerSwitch";
 import { BrushIcon, InfoIcon, QuillIcon, ReplayIcon } from "@/components/Icons";
 
 /** Dev only: the admin menu's "what's live" row, both ways, to look at. */
@@ -36,6 +37,7 @@ export default function MarkerDev() {
       {[false, true].map((u) => (
         <div key={String(u)} style={{ position: "relative", width: 260, height: 200 }}>
           <div className="account-dropdown" style={{ position: "static", display: "block" }}>
+            <StorytellerSwitch />
             {row(u)}
           </div>
         </div>

@@ -2198,6 +2198,90 @@ html[data-night] .canvas-wait {
   padding: 2px 18px 8px;
   border-bottom: 1px solid var(--rule);
 }
+/* The admin's storyteller switch: three settings in a pill, the one on
+   marked by a thumb that slides between them. */
+.story-switch {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.story-switch-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 4px 7px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.story-switch-now {
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.story-switch-pill {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink-faint) 14%, var(--page));
+}
+.story-switch-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / 3);
+  border-radius: 999px;
+  background: var(--page);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.14);
+  transform: translateX(calc(var(--at) * 100%));
+  transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.story-switch-pill[data-none] .story-switch-thumb {
+  opacity: 0;
+}
+.story-switch-pill button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.story-switch-pill button svg {
+  width: 16px;
+  height: 16px;
+}
+.story-switch-pill button.on {
+  color: var(--ink);
+}
+.story-switch-pill button.on svg {
+  color: var(--sage);
+}
+.story-switch-pill.busy button {
+  cursor: progress;
+}
+.story-switch-error {
+  margin: 6px 4px 0;
+  font-size: 0.75rem;
+  color: var(--russet);
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-switch-thumb {
+    transition: none;
+  }
+}
 .account-dropdown-item {
   display: block;
   width: 100%;

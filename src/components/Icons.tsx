@@ -130,6 +130,13 @@ export const QuillIcon = () => (
   </svg>
 );
 
+/** Fast (the storyteller's fast mode): a lightning bolt. */
+export const BoltIcon = () => (
+  <svg {...base} width={13} height={13}>
+    <path d="M13.5 3L5.5 13.5h6l-1 7.5 8-10.5h-6z" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
 /** A ribbon bookmark: "save to my bookshelf" (filled once saved). */
 export const BookmarkIcon = ({ on = false }: { on?: boolean }) => (
   <svg {...base}>

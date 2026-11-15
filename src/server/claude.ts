@@ -1,3 +1,4 @@
+import { storyteller } from "./storyteller";
 import Anthropic from "@anthropic-ai/sdk";
 import { streamUsageTracker, type AiFeature } from "./metrics";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
@@ -38,24 +39,14 @@ import { CharacterDesignSchema, NewCharacterSchema, PageSchema, PlaceSchema, Seg
 import { categoryOf } from "@/lib/keywords";
 
 type Effort = "low" | "medium" | "high";
-/** The storyteller. Sonnet 5.5 at medium effort since 15 Nov: page 1 is
- *  written about 30% sooner than by Opus 5.5 at low effort (8.0 s / 6.4 s
- *  against 11.2 s / 8.9 s on the same two stories), at half the price.
- *  TALEO_MODEL / TALEO_EFFORT put another back. */
-const STORY_MODEL = process.env.TALEO_MODEL || "claude-sonnet-5-5";
+/** The storyteller: Sonnet 5.5 at medium effort unless the admin has
+ *  switched it (see server/storyteller), read afresh for each story part. */
 /** Each job has its own model and effort setting, independent of the
  *  others (changing the story writer never changes the painter). */
 const ART_MODEL = process.env.TALEO_ART_MODEL || "claude-opus-5-5";
 /** The character designer has its own model setting (it used to follow the
  *  story writer's). */
 const CHARACTER_MODEL = process.env.TALEO_CHARACTER_MODEL || "claude-opus-5-5";
-const STORY_EFFORT = (process.env.TALEO_EFFORT as Effort) || "medium";
-/** The storyteller's fast mode (TALEO_STORY_FAST=1): the same model,
- *  writing up to 2.5x faster - page 1 sooner at the start and after every
- *  choice - at twice the price per token. Opus only. */
-const STORY_FAST = process.env.TALEO_STORY_FAST === "1" && /opus-5/.test(STORY_MODEL);
-/** What the story is written with, for the admin's "what's live". */
-export const storytellerInfo = () => ({ model: STORY_MODEL, effort: STORY_EFFORT, fast: STORY_FAST });
 const ART_EFFORT = (process.env.TALEO_ART_EFFORT as Effort) || "low";
 /** The pictures a reader is waiting on (the first page or two of each part - see app/api/illustrate) are painted
  *  by a quicker model: in side-by-side tests Sonnet 5.5 at medium effort
@@ -127,9 +118,11 @@ async function ask<T extends z.ZodType>(
   system: string,
   user: string,
   maxTokens = 16000,
-  effort: Effort = STORY_EFFORT,
+  effortAsked?: Effort,
   feature: AiFeature = "story",
 ): Promise<z.infer<T>> {
+  const { model: STORY_MODEL, effort: STORY_EFFORT } = await storyteller();
+  const effort = effortAsked ?? STORY_EFFORT;
   const usage = streamUsageTracker(feature, STORY_MODEL, { effort });
   const response = await getClient()
     .beta.messages.parse({
@@ -334,6 +327,7 @@ function completeItems(json: string, key: string): { items: string[]; closed: bo
  */
 export async function* streamSegment(req: StoryRequest, signal?: AbortSignal): AsyncGenerator<SegmentEvent> {
   const { user, norm } = buildSegmentRequest(req);
+  const { model: STORY_MODEL, effort: STORY_EFFORT, fast: STORY_FAST } = await storyteller();
   const open = (fast: boolean) =>
     getClient().beta.messages.stream({
       model: STORY_MODEL,

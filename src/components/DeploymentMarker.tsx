@@ -99,7 +99,9 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
     const every = window.setInterval(ask, CHECK_MS);
     window.addEventListener("online", ask);
     window.addEventListener("offline", ask);
+    window.addEventListener("taleo:storyteller", ask);
     return () => {
+      window.removeEventListener("taleo:storyteller", ask);
       here = false;
       window.clearInterval(every);
       window.removeEventListener("online", ask);
