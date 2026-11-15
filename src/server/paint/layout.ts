@@ -510,10 +510,12 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
       const hero = (a.id === opts.heroId || b.id === opts.heroId) && !hugging;
       // (apart in depth they may cross - but nobody is more than half hidden
       // behind another: Argos vanished behind Gran - lesson 17)
+      // (apart in depth, a little more crossing - but only a little: two
+      // grown-ups half inside each other read as a mistake, not depth -
+      // 16 Nov, Dada and Mama, Bruno and Mama)
       const depth = apartInDepth(a, b) && !hero;
-      if (depth && (widthAt(a.s) + widthAt(b.s)) / 2 - (b.x - a.x) < Math.min(widthAt(a.s), widthAt(b.s)) * 0.5) continue;
       const bothHug = /\bhug\b/.test(attr(a.tag, "arms") ?? "") && /\bhug\b/.test(attr(b.tag, "arms") ?? "");
-      const allowed = bothHug ? 0.6 : depth ? 0.5 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.28 : 0.08;
+      const allowed = bothHug ? 0.6 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.15 : depth ? 0 : -0.06;
       const need = (widthAt(a.s) + widthAt(b.s)) / 2 - Math.min(widthAt(a.s), widthAt(b.s)) * allowed;
       if (b.x - a.x >= need) continue;
       const push = (need - (b.x - a.x)) / 2;
@@ -777,7 +779,10 @@ function aboard(markup: string, opts: LayoutOptions, notes: string[]): string {
     if (!riders.length) continue;
     const stamp = [...out.matchAll(/<stamp\b[^>]*\/>/gi)].find((m) => V.k.test(attr(m[0], "k") ?? ""));
     const rs = Math.max(...riders.map((r) => Number(attr(r.tag, "s")) || opts.usualS || 0.6));
-    let vx = stamp ? Number(attr(stamp[0], "x")) || 200 : riders.reduce((a, r) => a + (Number(attr(r.tag, "x")) || 200), 0) / riders.length;
+    // (where the riders were put - "Coliboo sits in a wagon on the left" -
+    // not wherever the composer dropped the wagon: one dropped at Dada's
+    // feet had Dada standing in it, 16 Nov)
+    let vx = riders.reduce((a, r) => a + (Number(attr(r.tag, "x")) || 200), 0) / riders.length;
     const standing = riders.map((r) => Number(attr(r.tag, "y"))).filter((y) => Number.isFinite(y) && y > 200);
     const vy = stamp ? Number(attr(stamp[0], "y")) || 248 : standing.length ? Math.max(...standing) : 248;
     // (big enough for its riders: a child sits in it waist-deep)
@@ -880,6 +885,89 @@ function laidDown(markup: string, opts: LayoutOptions, notes: string[]): string 
     if ((attr(span.tag, "legs") ?? "") === "lie") continue;
     out = out.replace(span.tag, setAttr(span.tag, "legs", "lie"));
     notes.push(`${id} lying down, as the brief says`);
+  }
+  return out;
+}
+
+/** Nobody inside what's ridden or stood on (16 Nov): a wagon, sledge or
+ *  boat with its riders, a rock or table with whoever stands on it, and a
+ *  carrier with its riders on its shoulders are each one solid block, laid
+ *  last of all. Anyone else overlapping a block at about its depth moves
+ *  out to its nearer side (the other side if that leaves the picture), and
+ *  if there's no room a block moves too - so no one stands in the wagon,
+ *  in front of the baby in it, or half inside a giant. */
+const CARRIED_IN = /^(wagon|wheelbarrow|sledge|boat|hull)$/i;
+function clearOfBlocks(markup: string, opts: LayoutOptions, notes: string[]): string {
+  type Unit = { tags: string[]; pieces: string[]; x0: number; x1: number; y: number; fixed: boolean; id: string };
+  const chars = [...markup.matchAll(CHAR_TAG)].map((m) => m[0]).filter((t) => t.trim().endsWith("/>"));
+  CHAR_TAG.lastIndex = 0;
+  const stamps = [...markup.matchAll(/<stamp\b[^>]*\/>/gi)].map((m) => m[0]);
+  const idOf = (t: string) => attr(t, "c") ?? attr(t, "id") ?? "";
+  const num = (t: string, k: string, d: number) => Number(attr(t, k)) || d;
+  const half = (t: string) => widthAt(num(t, "s", opts.usualS || 0.6)) / 2;
+  const used = new Set<string>();
+  const units: Unit[] = [];
+  // blocks: a vehicle (and its hull) with the riders inside its length
+  for (const st of stamps.filter((t) => CARRIED_IN.test(attr(t, "k") ?? "") && !/^hull$/i.test(attr(t, "k") ?? ""))) {
+    const e = pieceExtent(st);
+    if (!e) continue;
+    const riders = chars.filter((c) => attr(c, "ride") === "1" && !attr(c, "on") && num(c, "x", 200) > e.x0 - 4 && num(c, "x", 200) < e.x1 + 4);
+    if (!riders.length) continue;
+    const hull = stamps.filter((t) => /^hull$/i.test(attr(t, "k") ?? "") && Math.abs(num(t, "x", 0) - num(st, "x", 0)) < 2);
+    riders.forEach((r) => used.add(r));
+    units.push({ tags: riders, pieces: [st, ...hull], x0: Math.min(e.x0, ...riders.map((r) => num(r, "x", 200) - half(r) * 0.8)), x1: Math.max(e.x1, ...riders.map((r) => num(r, "x", 200) + half(r) * 0.8)), y: e.y1, fixed: true, id: attr(st, "k") ?? "" });
+  }
+  // a thing stood or sat on, with whoever is on it
+  for (const st of stamps.filter((t) => attr(t, "topof"))) {
+    const e = pieceExtent(setAttr(st, "k", attr(st, "k") ?? ""));
+    const who = chars.find((c) => idOf(c) === attr(st, "topof"));
+    if (!e || !who) continue;
+    used.add(who);
+    units.push({ tags: [who], pieces: [st], x0: Math.min(e.x0, num(who, "x", 200) - half(who) * 0.8), x1: Math.max(e.x1, num(who, "x", 200) + half(who) * 0.8), y: e.y1, fixed: true, id: `${attr(st, "k")} of ${attr(st, "topof")}` });
+  }
+  if (!units.length) return markup;
+  // everyone else, each with any riders on their shoulders
+  for (const c of chars) {
+    if (used.has(c) || (attr(c, "ride") === "1" && attr(c, "on"))) continue;
+    const riders = chars.filter((r) => attr(r, "on") === idOf(c));
+    const x = num(c, "x", 200);
+    units.push({ tags: [c, ...riders], pieces: [], x0: x - half(c), x1: x + half(c), y: num(c, "y", 246), fixed: false, id: idOf(c) });
+  }
+  const dx = new Map<Unit, number>(units.map((u) => [u, 0]));
+  const at = (u: Unit) => [u.x0 + dx.get(u)!, u.x1 + dx.get(u)!] as const;
+  let moved = false;
+  for (let pass = 0; pass < 4; pass++) {
+    const order = [...units].sort((a, b) => at(a)[0] + at(a)[1] - at(b)[0] - at(b)[1]);
+    for (let i = 0; i + 1 < order.length; i++) {
+      const a = order[i], b = order[i + 1];
+      // (two free ones were spaced already - again here only if moving
+      // clear of a block pushed one into the other: a touch is allowed,
+      // and a hug is theirs)
+      const free2 = !a.fixed && !b.fixed;
+      if (free2 && [a, b].some((u) => /\bhug\b/.test(attr(u.tags[0], "arms") ?? ""))) continue;
+      if (!free2 && Math.abs(a.y - b.y) > 30) continue;
+      const overlap = at(a)[1] - at(b)[0] + (free2 ? 0 : 4);
+      if (overlap <= 0) continue;
+      // (the free one moves; two blocks share it)
+      const wa = a.fixed && !b.fixed ? 0 : !a.fixed && b.fixed ? 1 : 0.5;
+      dx.set(a, dx.get(a)! - overlap * wa);
+      dx.set(b, dx.get(b)! + overlap * (1 - wa));
+      moved = true;
+    }
+    // (all of it inside the picture: whatever spills over comes back in)
+    for (const u of units) {
+      const [l, r] = at(u);
+      if (l < 6) dx.set(u, dx.get(u)! + (6 - l));
+      else if (r > 394) dx.set(u, dx.get(u)! - (r - 394));
+    }
+  }
+  if (!moved) return markup;
+  let out = markup;
+  for (const u of units) {
+    const d = Math.round(dx.get(u)!);
+    if (!d) continue;
+    for (const t of [...u.tags, ...u.pieces]) out = out.replace(t, setAttr(t, "x", String(Math.round(num(t, "x", 200) + d))));
+    notes.push(`${u.id} moved ${d > 0 ? "right" : "left"} ${Math.abs(d)}, clear of ${u.fixed ? "the others" : "what's ridden or stood on"}`);
   }
   return out;
 }
@@ -1398,5 +1486,6 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   out = aboard(out, opts, notes);
   out = onTop(out, opts, notes);
   out = laidDown(out, opts, notes);
+  out = clearOfBlocks(out, opts, notes);
   return { markup: out, notes };
 }
