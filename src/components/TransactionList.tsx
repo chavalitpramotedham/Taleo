@@ -13,29 +13,44 @@ const clock = (at: number) => {
 
 /**
  * An account's credit transactions, set out as a bank lists them: one row
- * each with a rule between - what it was and when on the left, the credits
- * in or out on the right, the coin after the figure. Newest first, as given.
+ * each with a rule between - what it was, and when, on the left (with its
+ * status if it isn't simply done: pending, or reversed - its credits given
+ * back, the figure struck through), the credits in or out on the right,
+ * the coin after the figure. Newest first, as given.
  */
 export function TransactionList({ items }: { items: Transaction[] }) {
   return (
     <ul className="txn-list">
-      {items.map((t) => (
-        <li key={t.id} className="txn">
-          <span className="txn-what">
-            <b>{t.label}</b>
-            <small suppressHydrationWarning>
-              {shortDate(t.at)}, {clock(t.at)}
-              {t.detail ? ` · ${t.detail}` : ""}
-              {t.pending ? " · being made" : ""}
-            </small>
-          </span>
-          <span className={`txn-amount ${t.amount > 0 ? "in" : "out"}`} aria-label={`${t.amount > 0 ? "plus" : "minus"} ${n(Math.abs(t.amount))} credits`}>
-            {t.amount > 0 ? "+" : "−"}
-            {n(Math.abs(t.amount))}
-            <CreditIcon size={18} />
-          </span>
-        </li>
-      ))}
+      {items.map((t) => {
+        const status = t.reversed ? "reversed" : t.pending ? "pending" : null;
+        return (
+          <li key={t.id} className={`txn${status ? ` txn-${status}` : ""}`}>
+            <span className="txn-what">
+              <b>{t.label}</b>
+              {/* (when, and its status only while it isn't simply done) */}
+              <small suppressHydrationWarning>
+                {shortDate(t.at)}, {clock(t.at)}
+                {status && (
+                  <>
+                    {" · "}
+                    <span className={`txn-status ${status}`}>{status === "pending" ? "Pending" : "Reversed"}</span>
+                  </>
+                )}
+              </small>
+            </span>
+            <span
+              className={`txn-amount ${t.amount > 0 ? "in" : "out"}${t.reversed ? " struck" : ""}`}
+              aria-label={`${t.amount > 0 ? "plus" : "minus"} ${n(Math.abs(t.amount))} credits${t.reversed ? ", reversed" : t.pending ? ", pending" : ""}`}
+            >
+              <span className="txn-figure">
+                {t.amount > 0 ? "+" : "−"}
+                {n(Math.abs(t.amount))}
+              </span>
+              <CreditIcon size={18} />
+            </span>
+          </li>
+        );
+      })}
     </ul>
   );
 }

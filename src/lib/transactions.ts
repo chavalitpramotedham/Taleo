@@ -10,6 +10,9 @@ export interface Transaction {
   amount: number;
   /** Set aside for something still being made (not yet settled). */
   pending?: boolean;
+  /** Set aside, then given back (a story thrown away before its first
+   *  choice, something that failed): shown, struck through. */
+  reversed?: boolean;
   /** A few words more, under the title: how a story was paid for when
    *  part of it was the plan's free story ("Free 5 min + 1 min"). */
   detail?: string;
@@ -107,11 +110,12 @@ export function transactionsOf(ledger: Entry[]): Transaction[] {
     if (e.reason === "hold") {
       // (titled with the character's or the story's own name once it's made)
       // (under a story's name, how it was paid for if part of it was free)
-      if (!undone.has(e.ref)) line(named.get(e.ref) || spentOn(e.note), { amount: e.delta - (e.weekly ?? 0), pending: !settled.has(e.ref), detail: paidWith(e) || (named.has(e.ref) ? mixed(e.note) || undefined : undefined) });
+      // (one given back stays in the history, marked reversed)
+      line(named.get(e.ref) || spentOn(e.note), { amount: e.delta - (e.weekly ?? 0), pending: !undone.has(e.ref) && !settled.has(e.ref), reversed: undone.has(e.ref), detail: paidWith(e) || (named.has(e.ref) ? mixed(e.note) || undefined : undefined) });
     } else if (e.reason === "spend") {
       // (a settling changes nothing more: its hold is the line. A spend
       // from before holds existed is its own line.)
-      if (!e.ref.startsWith("settled:") && e.delta < 0 && !undone.has(e.ref)) line(nameIn(e.note) || spentOn(e.note));
+      if (!e.ref.startsWith("settled:") && e.delta < 0) line(nameIn(e.note) || spentOn(e.note), { reversed: undone.has(e.ref) });
     } else if (e.reason === "release" || e.reason === "refund") {
       // (the other half of something that came to nothing)
     } else if (e.reason === "purchase" || (e.reason === "grant" && e.ref.startsWith("self:"))) {

@@ -14629,6 +14629,30 @@ html[data-night] .txn-amount.in {
 .txn-amount .credit-icon {
   flex: none;
 }
+/* Its status, only while it isn't simply done: pending (set aside, not yet
+   spent) in yellow, reversed (given back) in red, its figure struck. */
+.txn-status {
+  font-weight: 700;
+}
+.txn-status.pending {
+  color: #b8860b;
+}
+.txn-status.reversed {
+  color: #b2443a;
+}
+html[data-night] .txn-status.pending {
+  color: #e8c25a;
+}
+html[data-night] .txn-status.reversed {
+  color: #e57b6c;
+}
+.txn-amount.struck .txn-figure {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.txn-amount.struck {
+  opacity: 0.6;
+}
 .txn-page {
   max-width: 640px;
 }
