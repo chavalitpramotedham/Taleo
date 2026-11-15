@@ -1,4 +1,4 @@
-import { InfoIcon, ReplayIcon } from "@/components/Icons";
+import { BrushIcon, InfoIcon, QuillIcon, ReplayIcon } from "@/components/Icons";
 
 /** Dev only: the admin menu's "what's live" row, both ways, to look at. */
 export default function MarkerDev() {
@@ -11,8 +11,15 @@ export default function MarkerDev() {
             <span className={`deploy-dot ${update ? "update" : "live"}`} aria-hidden />v1.4.6<code>7163de0</code>
           </span>
           <span className="deploy-marker-when">{update ? "Newer version live · reload" : "15 Nov, 02:10"}</span>
-          <span className="deploy-marker-when deploy-marker-paint">
-            Painting: <code>4-VT2Q</code> Natural limbs
+          <span className="deploy-marker-when deploy-ai">
+            <BrushIcon />
+            <code>4-VT2Q</code>Sonnet 5.5
+            <span className="deploy-effort"><i className="on" /><i className="on" /><i /></span>
+          </span>
+          <span className="deploy-marker-when deploy-ai">
+            <QuillIcon />
+            Sonnet 5.5
+            <span className="deploy-effort"><i className="on" /><i className="on" /><i /></span>
           </span>
         </span>
         {!update && <InfoIcon />}

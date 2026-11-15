@@ -12476,6 +12476,43 @@ p.deploy-marker {
 .deploy-marker-when {
   color: var(--ink-faint);
 }
+/* Painting and storytelling: an icon, then the model, its effort as a
+   small three-step meter. */
+.deploy-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.deploy-marker .deploy-ai svg {
+  width: 12px;
+  height: 12px;
+  color: var(--ink-faint);
+}
+.deploy-effort {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 9px;
+  margin-left: 1px;
+}
+.deploy-effort i {
+  width: 3px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ink-faint) 35%, transparent);
+}
+.deploy-effort i:nth-child(1) { height: 4px; }
+.deploy-effort i:nth-child(2) { height: 6.5px; }
+.deploy-effort i:nth-child(3) { height: 9px; }
+.deploy-effort i.on {
+  background: var(--sage);
+}
+.deploy-fast {
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.86em;
+  color: var(--russet);
+  background: color-mix(in srgb, var(--russet) 12%, transparent);
+}
 @media (hover: hover) {
   button.deploy-marker:hover {
     background: var(--sage-soft);

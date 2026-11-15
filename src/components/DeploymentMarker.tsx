@@ -2,7 +2,32 @@
 import { useEffect, useState } from "react";
 import type { DeployedCommit, Deployment, LiveStatus } from "@/lib/deployment";
 import { useEscape } from "@/lib/useEscape";
-import { InfoIcon, ReplayIcon } from "./Icons";
+import { BrushIcon, InfoIcon, QuillIcon, ReplayIcon } from "./Icons";
+
+/** "claude-sonnet-5-5" -> "Sonnet 5.5". */
+const modelName = (id?: string) => {
+  const m = id?.match(/claude-([a-z]+)-(\d+)(?:-(\d+))?/);
+  return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? `.${m[3]}` : ""}` : (id ?? "");
+};
+const EFFORT_LEVEL: Record<string, number> = { low: 1, medium: 2, high: 3, xhigh: 4, max: 4 };
+/** A model and its effort, with the effort as a small three-step meter. */
+function ModelTag({ model, effort, fast }: { model?: string; effort?: string; fast?: boolean }) {
+  const level = EFFORT_LEVEL[effort ?? ""] ?? 0;
+  return (
+    <>
+      {modelName(model)}
+      {effort && (
+        <span className="deploy-effort" title={`${effort} effort`} aria-label={`${effort} effort`}>
+          {[1, 2, 3].map((i) => (
+            <i key={i} className={i <= level ? "on" : ""} />
+          ))}
+        </span>
+      )}
+      {fast && <span className="deploy-fast">fast</span>}
+    </>
+  );
+}
+const modelWords = (model?: string, effort?: string, fast?: boolean) => [modelName(model), effort && `${effort} effort`, fast && "fast mode"].filter(Boolean).join(", ");
 
 /** The version this page was built from (a short commit id). */
 const PAGE_SHA = process.env.TALEO_BUILD_SHA || "";
@@ -96,7 +121,7 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
         type="button"
         className="deploy-marker"
         role="menuitem"
-        aria-label={`${STATUS_WORDS[state]}. Version ${live.version}, ${short(live.sha)}, ${when(live.builtAt, BRIEF)}. Show the details`}
+        aria-label={`${STATUS_WORDS[state]}. Version ${live.version}, ${short(live.sha)}, ${when(live.builtAt, BRIEF)}.${live.painting?.model ? ` Painting: ${modelWords(live.painting.model, live.painting.effort)}.` : ""}${live.storyteller ? ` Storytelling: ${modelWords(live.storyteller.model, live.storyteller.effort, live.storyteller.fast)}.` : ""} Show the details`}
         onClick={() => onShow({ ...live, status: state })}
       >
         <span className="deploy-marker-text">
@@ -107,16 +132,24 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
           <span className="deploy-marker-when">
             {state === "update" ? "Newer version live · reload" : state === "offline" ? "Offline" : when(live.builtAt, BRIEF) || "Live"}
           </span>
-          {/* (what readers' pages are painted with) */}
-          <span className="deploy-marker-when deploy-marker-paint">
-            Painting: {live.painting ? (
+          {/* (what readers' pages are painted, and their stories written, with) */}
+          <span className="deploy-marker-when deploy-ai" title="Painting">
+            <BrushIcon />
+            {live.painting ? (
               <>
-                <code>{live.painting.code}</code> {live.painting.name}
+                <code>{live.painting.code}</code>
+                {live.painting.model && <ModelTag model={live.painting.model} effort={live.painting.effort} />}
               </>
             ) : (
               "classic"
             )}
           </span>
+          {live.storyteller && (
+            <span className="deploy-marker-when deploy-ai" title="Storytelling">
+              <QuillIcon />
+              <ModelTag {...live.storyteller} />
+            </span>
+          )}
         </span>
         {state !== "update" && <InfoIcon />}
       </button>
@@ -138,7 +171,8 @@ export function DeploymentDialog({ live, onClose }: { live: Deployment; onClose:
   const facts: [string, React.ReactNode][] = [
     ["Status", STATUS_WORDS[state]],
     ["Version", `v${live.version}`],
-    ["Painting", live.painting ? `${live.painting.code} (${live.painting.name})` : "classic (TALEO_PAINT_LIVE=0)"],
+    ["Painting", live.painting ? `${live.painting.code} (${live.painting.name})${live.painting.model ? ` · ${modelWords(live.painting.model, live.painting.effort)}` : ""}` : "classic (TALEO_PAINT_LIVE=0)"],
+    ...(live.storyteller ? ([["Storytelling", modelWords(live.storyteller.model, live.storyteller.effort, live.storyteller.fast)]] as [string, React.ReactNode][]) : []),
     ["Commit", live.sha ? <code key="c">{live.sha}</code> : "-"],
     ["Branch", live.branch || "-"],
     ["Deployed", [when(live.builtAt, FULL), ago(live.builtAt)].filter(Boolean).join(" · ") || "-"],

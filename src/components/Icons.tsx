@@ -114,6 +114,22 @@ export const PencilIcon = () => (
   </svg>
 );
 
+/** The painter (admin's "what's live"): a round brush with paint at its tip. */
+export const BrushIcon = () => (
+  <svg {...base} width={13} height={13}>
+    <path d="M20 4l-8.6 8.6" />
+    <path d="M11.4 12.6c-2.2-.6-4.4.6-4.9 3-.4 1.8-1.3 2.9-2.5 3.4 3.2 1 7.2.4 8.4-2.4.7-1.6.3-3.1-1-4z" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+/** The storyteller (admin's "what's live"): a quill. */
+export const QuillIcon = () => (
+  <svg {...base} width={13} height={13}>
+    <path d="M20 4C12 5 7.5 10 6 18c3-1 5.4-2.4 7-4.4-1.2 0-2.2-.3-2.8-.8 2 0 3.6-.6 4.8-1.8-1 0-1.8-.3-2.3-.8C16.5 9 19 6.8 20 4z" fill="currentColor" fillOpacity="0.25" />
+    <path d="M4 20l5-5" />
+  </svg>
+);
+
 /** A ribbon bookmark: "save to my bookshelf" (filled once saved). */
 export const BookmarkIcon = ({ on = false }: { on?: boolean }) => (
   <svg {...base}>

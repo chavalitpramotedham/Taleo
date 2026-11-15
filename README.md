@@ -51,9 +51,9 @@ Without an `ANTHROPIC_API_KEY` the app runs in **demo mode**: a templated storyt
 | Env var | Default | |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | – | Server-side only; never sent to the browser |
-| `TALEO_MODEL` | `claude-opus-5-5` | |
-| `TALEO_EFFORT` | `low` | Story writing effort |
-| `TALEO_ART_MODEL` | same as `TALEO_MODEL` | Model that paints the pages (e.g. `claude-sonnet-5-5` to paint faster and cheaper) |
+| `TALEO_MODEL` | `claude-sonnet-5-5` | Story writing model |
+| `TALEO_EFFORT` | `medium` | Story writing effort |
+| `TALEO_ART_MODEL` | `claude-opus-5-5` | Model that paints the pages (e.g. `claude-sonnet-5-5` to paint faster and cheaper) |
 | `TALEO_ART_EFFORT` | `low` | Painting effort |
 | `RESEND_API_KEY` | – | Emails "Contact us" messages (via [Resend](https://resend.com)). Without it, messages are still saved under `contact/` in storage |
 | `CONTACT_EMAIL` | `taleostories.dev@gmail.com` | Where "Contact us" messages go |

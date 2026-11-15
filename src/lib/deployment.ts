@@ -18,7 +18,9 @@ export interface Deployment {
   /** (set in the browser: see DeploymentMarker) */
   status?: LiveStatus;
   /** What readers' pages are painted with: the live bench version. */
-  painting?: { code: string; name: string } | null;
+  painting?: { code: string; name: string; model?: string; effort?: string } | null;
+  /** What the story is written with. */
+  storyteller?: { model: string; effort: string; fast: boolean };
   /** package.json's version. */
   version: string;
   /** The commit the live site was built from. */
