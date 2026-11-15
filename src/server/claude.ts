@@ -1365,6 +1365,27 @@ function replayOf(req: IllustrateRequest): AsyncIterable<string> | null {
 
 /** A composer's tags, whole, through the layout pass (see layoutComposed);
  *  its changes are noted with the page's other mends. */
+/** What the layout pass is told about a page: its tap target, the usual
+ *  size for its camera, everyone's size against the others, and who hugs,
+ *  is in bed or rides whom (read from the brief and the words). One place,
+ *  so a replay of saved composer tags is laid out exactly as a live page. */
+export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
+  const target = req.page.action?.target;
+  const isCast = Boolean(target && req.cast.some((c) => c.id === target));
+  return {
+    targetId: isCast ? target! : null,
+    usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s,
+    sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])),
+    heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null,
+    huggers: huggersOf(req),
+    inBed: inBedOf(req),
+    perched: perchedOf(req),
+    said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "),
+    groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id),
+    targetThing: target && !isCast ? target : null,
+  };
+}
+
 async function* laidOut(src: AsyncIterable<string>, opts: LayoutOptions, stats: ExpandStats): AsyncGenerator<string> {
   let all = "";
   for await (const s of src) all += s;
@@ -1740,7 +1761,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
         ? expandStream(
             // (a composer's tags are read whole - they're short - and its
             // placement checked before anything is drawn: see layoutComposed)
-            posing ? laidOut(replayOf(req) ?? brushStrokes(main, stop, logs.characters, why), { targetId: req.page.action && req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null, usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s, sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])), heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null, huggers: huggersOf(req), inBed: inBedOf(req), perched: perchedOf(req), said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "), groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id), targetThing: req.page.action && !req.cast.some((c) => c.id === req.page.action!.target) ? req.page.action.target : null }, stats) : everyone(main, stop, logs.characters, why, onPage, notes),
+            posing ? laidOut(replayOf(req) ?? brushStrokes(main, stop, logs.characters, why), layoutOptionsFor(req), stats) : everyone(main, stop, logs.characters, why, onPage, notes),
             {
               ...expandCtx(null),
               stamps: posing || (reuse.stamps && (partsOf.size > 0 || Boolean(reuse.backdrops && reuse.codeLayer && req.place?.id))),

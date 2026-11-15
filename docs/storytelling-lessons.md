@@ -92,3 +92,66 @@ spirit. Pretending to try an idea and having it fail is ruled out.
 Tested on five books (ages 2-6): the dragon, a unicorn, a rocket and a
 dinosaur-dad all happened on the next page and carried the plot; "the
 puppy bites the cat really hard" was turned to gentleness in the story.
+
+## 3. Brief only what the painter can draw (15 Nov 2026)
+
+Pictures are put together from whole characters in a set of poses, a
+painted place and ready-drawn things, and laid out by code. A brief that
+asks for anything else comes out wrong however well the rest is done. So
+the storyteller now tells each moment in the painter's terms: the words
+stay free, only the picture brief changes.
+
+**How it was found (no new books).** Every page of the six bench books and
+their 62 rounds (769 pages) was laid out again by today's layout code from
+the composer's saved tags, and checked by script; then about 150 pages
+were looked at by eye against their briefs: the latest round of each bench
+book, the three reader books painted by today's painter (14-15 Nov), one
+from the day before, and a whole book made on 15 Nov with live settings.
+The 19 older library books (painted whole by the earlier painter) were
+only counted, for what their briefs ask for, not judged on their pictures.
+Each rule below comes from at least two books.
+
+| What failed | Pages | E.g. |
+|---|---|---|
+| Poses that can't be drawn: lying, curled up, on a tummy, swimming, diving, sliding, upside down, spinning | ~14 | a dragon "curled up on the ledge" drawn standing; a penguin "swims" standing on the pond |
+| Named things missing or misdrawn | ~14 | the fishing hole, the hook on the cairn, the mouse hole, the oars; a sledge drawn as a sailboat |
+| Part of a character | ~11 | "the yak's head pokes through the tent flap" (the whole yak inside), "her face fills the picture", "jammed in the doorway up to her shoulders" |
+| Sitting in a wagon, wheelbarrow, tail curl; on a bench or picnic blanket | ~11 | the baby "sits in the wagon" on four pages, standing behind it on every one |
+| Standing on top of things | ~10 | a penguin on the table, on a flowerpot; a frog on the robot's head (floating) |
+| Carried in hands, arms, on a hip, in a tail or trunk | ~7 | "carrying Kai and Ellie in his cupped hands": one on his chest, one in the sky |
+| Touch between a giant and a tiny one, or by wings, tail, trunk, rope | ~6 | "her tail wrapped round them in a hug": Nell standing alone in front |
+| More than four characters | ~4 | the tea party: the hero hidden behind the table, the giant octopus over the rest |
+| A view out of a window, or inside and outside a tent at once | ~3 | a tent drawn inside the tent |
+
+What works and is kept: riding on a shoulder, back or head (fixed in code
+the same day), riding in a boat, sitting at a table or on a chair, log or
+stone, being tucked into bed, hugs between two of a size, a giant at its
+stated size, and anything from the piece library.
+
+**The rules** (in "BRIEF ONLY WHAT THE PAINTER CAN DRAW", `writerPrompt`
+in `src/server/prompts.ts`): whole characters; the poses that can be drawn,
+and the nearest one for those that can't; carrying only as a ride (or in a
+boat); seats and standing on the ground; touch between sizes; one moment
+per picture; four characters at most; at most two named things a page,
+the painter's ready pieces listed by name, anything else given a plain
+shape and size; one place seen from inside it, water no deeper than the
+knees. The old examples that asked for "tumbling head over heels" and
+"peeking round a tree" are gone.
+
+**Checked.** Four setups (three from the test books, one held out: a
+birthday party, chosen for crowds and tables), written by the live
+storyteller with the old and new instructions, the same choices, text
+only: briefs asking for something hard went from 8 of 36 pages to 3, and
+from 2.8 to 1.1 hard asks per 10 pages (`scripts/rsi/briefcheck.py`
+counts them; on the existing books it finds 44-52% of briefs asking for
+at least one). The stories read as well (read side by side), with one
+cost: the storyteller sometimes changes the event to suit the picture (a
+ride became holding hands), so the rule now says a ride is a fine picture.
+Seven pages of the new books were painted: the party pages read at a
+glance and the shoulder ride held; the one weak page had two moments in
+one brief, hence the one-moment rule.
+
+**Left for code, not for the storyteller:** a wagon, cart or sledge that
+characters sit in (as the boat is); standing on top of a table, rock or
+shelf; and the composer's lying pose. Each would let the storyteller say
+more.
