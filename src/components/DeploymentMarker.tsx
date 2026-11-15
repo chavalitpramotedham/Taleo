@@ -118,6 +118,7 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
   }
   const state = status ?? "live";
   return (
+    <>
     <div className={`deploy-marker-row${state === "update" ? " has-refresh" : ""}`}>
       <button
         type="button"
@@ -134,7 +135,18 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
           <span className="deploy-marker-when">
             {state === "update" ? "Newer version live · reload" : state === "offline" ? "Offline" : when(live.builtAt, BRIEF) || "Live"}
           </span>
-          {/* (what readers' pages are painted, and their stories written, with) */}
+        </span>
+        {state !== "update" && <InfoIcon />}
+      </button>
+      {/* (a newer version is live: the info mark becomes a refresh, one tap to load it) */}
+      {state === "update" && (
+        <button type="button" className="deploy-refresh" role="menuitem" aria-label="Reload to get the newer version" title="Reload to get the newer version" onClick={() => window.location.reload()}>
+          <ReplayIcon />
+        </button>
+      )}
+    </div>
+    {/* (a section of its own: what readers' pages are painted, and their stories written, with) */}
+    <div className="deploy-ai-block">
           <span className="deploy-marker-when deploy-ai" title="Painting">
             <BrushIcon />
             {live.painting ? (
@@ -152,16 +164,8 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
               <ModelTag {...live.storyteller} />
             </span>
           )}
-        </span>
-        {state !== "update" && <InfoIcon />}
-      </button>
-      {/* (a newer version is live: the info mark becomes a refresh, one tap to load it) */}
-      {state === "update" && (
-        <button type="button" className="deploy-refresh" role="menuitem" aria-label="Reload to get the newer version" title="Reload to get the newer version" onClick={() => window.location.reload()}>
-          <ReplayIcon />
-        </button>
-      )}
     </div>
+    </>
   );
 }
 

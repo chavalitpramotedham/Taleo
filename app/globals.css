@@ -2190,6 +2190,11 @@ html[data-night] .canvas-wait {
   display: flex;
   flex-direction: column;
 }
+/* The admin's menu is one fixed width, whatever the lines at its foot say
+   (a "fast" tag or a longer model name never makes it jump). */
+.account-dropdown.admin {
+  width: 250px;
+}
 .account-dropdown-name {
   font-family: var(--font-caps);
   color: var(--ink-faint);
@@ -2201,23 +2206,7 @@ html[data-night] .canvas-wait {
 /* The admin's storyteller switch: three settings in a pill, the one on
    marked by a thumb that slides between them. */
 .story-switch {
-  padding: 10px 14px 12px;
-  border-bottom: 1px solid var(--rule);
-}
-.story-switch-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  padding: 0 4px 7px;
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-.story-switch-now {
-  color: var(--ink-faint);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 2px 14px 4px;
 }
 .story-switch-pill {
   position: relative;
@@ -12525,6 +12514,30 @@ p.deploy-marker {
   .deploy-refresh:hover {
     background: color-mix(in srgb, var(--russet) 22%, var(--page));
   }
+}
+/* Painting and storytelling: a section of their own under the version,
+   then the storyteller switch. */
+.deploy-ai-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 9px 18px 9px;
+  border-top: 1px solid var(--rule);
+  font-size: 0.82rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.deploy-ai-block .deploy-ai svg {
+  width: 12px;
+  height: 12px;
+  color: var(--ink-faint);
+}
+.deploy-ai-block code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  color: var(--ink-soft);
 }
 .deploy-marker-quiet {
   color: var(--ink-faint);

@@ -12,7 +12,7 @@ const ICON: Record<StorytellerMode, React.ReactNode> = {
 let known: StorytellerMode | null | undefined;
 
 /**
- * The admin's storyteller switch, at the top of the account menu: three
+ * The admin's storyteller switch, at the foot of the account menu: three
  * settings side by side, like a pair of earbuds' listening modes - tap one
  * to choose it, or tap the one that's on to move to the next. Every story
  * part written from then on (on any server, within 15 seconds) uses it.
@@ -54,13 +54,8 @@ export function StorytellerSwitch() {
     }
   };
   const at = STORYTELLER_MODES.findIndex((m) => m.id === mode);
-  const current = STORYTELLER_MODES[at];
   return (
-    <div className="story-switch">
-      <div className="story-switch-head">
-        <span>Storyteller</span>
-        <span className="story-switch-now">{mode === undefined ? "…" : current ? current.detail.split(":")[0] : "set in Vercel"}</span>
-      </div>
+    <div className="story-switch" aria-label="Storyteller" title={mode === null ? "Never switched: Vercel's settings are used" : undefined}>
       <div className={`story-switch-pill${busy ? " busy" : ""}`} style={{ "--at": Math.max(at, 0) } as React.CSSProperties} data-none={at < 0 || undefined}>
         <span className="story-switch-thumb" aria-hidden />
         {STORYTELLER_MODES.map((m, i) => (

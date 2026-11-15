@@ -54,10 +54,8 @@ export function AccountNav() {
         {session.user.avatarKey ? <Avatar avatarKey={session.user.avatarKey} /> : <AccountIcon />}
       </button>
       {open && (
-        <div className="account-dropdown" role="menu">
+        <div className={`account-dropdown${session.user.isAdmin ? " admin" : ""}`} role="menu">
           <p className="account-dropdown-name">@{session.user.username}</p>
-          {/* (admin only) who writes the stories: switched here */}
-          {session.user.isAdmin && <StorytellerSwitch />}
           {/* what's left at a glance: stories on the plan, credits held */}
           <AllowanceSummary onGo={() => setOpen(false)} />
           <Link href="/my-stories" className={item("/my-stories")} aria-current={path.startsWith("/my-stories") ? "page" : undefined} role="menuitem" onClick={() => setOpen(false)}>
@@ -118,6 +116,8 @@ export function AccountNav() {
               }}
             />
           )}
+          {/* (admin only) who writes the stories: switched here, at the very foot */}
+          {session.user.isAdmin && <StorytellerSwitch />}
         </div>
       )}
       {shortcut && createPortal(<AddShortcutDialog onClose={() => setShortcut(false)} />, document.body)}
