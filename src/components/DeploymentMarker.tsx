@@ -108,6 +108,34 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
       window.removeEventListener("offline", ask);
     };
   }, []);
+  // Still asking: the same lines, as soft bars, so nothing moves when the
+  // answer comes.
+  if (!live && status !== "offline") {
+    // (a bar, and an empty letter that keeps the line's own height)
+    const bar = (w: string) => (
+      <>
+        <span className="deploy-skel" style={{ width: w }} />
+        {"\u200b"}
+      </>
+    );
+    return (
+      <div className="deploy-skeleton" aria-label="Reading what's live">
+        <div className="deploy-marker-row">
+          <p className="deploy-marker">
+            <span className="deploy-marker-text">
+              <span className="deploy-marker-version">{bar("118px")}</span>
+              <span className="deploy-marker-when">{bar("84px")}</span>
+            </span>
+            <InfoIcon />
+          </p>
+        </div>
+        <div className="deploy-ai-block">
+          <span className="deploy-marker-when deploy-ai">{bar("132px")}</span>
+          <span className="deploy-marker-when deploy-ai">{bar("96px")}</span>
+        </div>
+      </div>
+    );
+  }
   if (!live) {
     return (
       <p className="deploy-marker deploy-marker-quiet">

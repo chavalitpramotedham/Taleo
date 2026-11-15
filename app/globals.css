@@ -12539,6 +12539,28 @@ p.deploy-marker {
   font-size: 0.86em;
   color: var(--ink-soft);
 }
+/* Still asking what's live: soft bars in the lines' own places. */
+.deploy-skel {
+  display: inline-block;
+  height: 0.8em;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rule) 70%, var(--page));
+  animation: deploySkel 1.4s ease-in-out infinite alternate;
+}
+.deploy-skeleton .deploy-marker svg {
+  opacity: 0.35;
+}
+@keyframes deploySkel {
+  to {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deploy-skel {
+    animation: none;
+  }
+}
 .deploy-marker-quiet {
   color: var(--ink-faint);
   font-style: italic;

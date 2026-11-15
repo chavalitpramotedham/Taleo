@@ -48,6 +48,26 @@ export default function MarkerDev() {
           {foot(u, f)}
         </div>
       ))}
+      <div className="account-dropdown admin" style={{ position: "static" }}>
+        <p className="account-dropdown-name">@admin</p>
+        <span className="account-dropdown-item">Sign out</span>
+        <div className="deploy-skeleton">
+          <div className="deploy-marker-row">
+            <p className="deploy-marker">
+              <span className="deploy-marker-text">
+                <span className="deploy-marker-version"><span className="deploy-skel" style={{ width: 118 }} />{"\u200b"}</span>
+                <span className="deploy-marker-when"><span className="deploy-skel" style={{ width: 84 }} />{"\u200b"}</span>
+              </span>
+              <InfoIcon />
+            </p>
+          </div>
+          <div className="deploy-ai-block">
+            <span className="deploy-marker-when deploy-ai"><span className="deploy-skel" style={{ width: 132 }} />{"\u200b"}</span>
+            <span className="deploy-marker-when deploy-ai"><span className="deploy-skel" style={{ width: 96 }} />{"\u200b"}</span>
+          </div>
+        </div>
+        <StorytellerSwitch />
+      </div>
     </main>
   );
 }
