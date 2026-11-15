@@ -515,7 +515,10 @@ function finalSpacing(markup: string, opts: LayoutOptions, notes: string[]): str
       // 16 Nov, Dada and Mama, Bruno and Mama)
       const depth = apartInDepth(a, b) && !hero;
       const bothHug = /\bhug\b/.test(attr(a.tag, "arms") ?? "") && /\bhug\b/.test(attr(b.tag, "arms") ?? "");
-      const allowed = bothHug ? 0.6 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.15 : depth ? 0 : -0.06;
+      // (sitting - at a table, on chairs side by side - they keep to their
+      // seats: closer, as before)
+      const seatedPair = /^sit$/.test(attr(a.tag, "legs") ?? "") || /^sit$/.test(attr(b.tag, "legs") ?? "");
+      const allowed = bothHug ? 0.6 : hero ? 0 : a.touching || b.touching || a.id === opts.targetId || b.id === opts.targetId ? 0.15 : seatedPair ? (depth ? 0.5 : 0.08) : depth ? 0 : -0.06;
       const need = (widthAt(a.s) + widthAt(b.s)) / 2 - Math.min(widthAt(a.s), widthAt(b.s)) * allowed;
       if (b.x - a.x >= need) continue;
       const push = (need - (b.x - a.x)) / 2;
@@ -949,7 +952,10 @@ function clearOfBlocks(markup: string, opts: LayoutOptions, notes: string[]): st
       const overlap = at(a)[1] - at(b)[0] + (free2 ? 0 : 4);
       if (overlap <= 0) continue;
       // (the free one moves; two blocks share it)
-      const wa = a.fixed && !b.fixed ? 0 : !a.fixed && b.fixed ? 1 : 0.5;
+      // (someone sitting keeps to their seat: they count as fixed here)
+      const held = (u: Unit) => u.fixed || /^sit$/.test(attr(u.tags[0], "legs") ?? "");
+      // (a sitter beside a block: the block moves)
+      const wa = held(a) && !held(b) ? 0 : !held(a) && held(b) ? 1 : !a.fixed && b.fixed ? 0 : a.fixed && !b.fixed ? 1 : 0.5;
       dx.set(a, dx.get(a)! - overlap * wa);
       dx.set(b, dx.get(b)! + overlap * (1 - wa));
       moved = true;
