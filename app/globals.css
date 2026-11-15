@@ -1480,7 +1480,7 @@ html[data-night] .canvas-wait {
   -webkit-backface-visibility: hidden;
   pointer-events: none;
   will-change: transform;
-  animation-duration: var(--turn-ms, 0.72s);
+  animation-duration: var(--turn-ms, 0.5s);
   /* (moving from the first frame - a page lifts at once - then easing
      down as it lands: an ease-in start read as a lag after the tap) */
   animation-timing-function: var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1));
@@ -1510,7 +1510,9 @@ html[data-night] .canvas-wait {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  animation: leafShade var(--turn-ms, 0.72s) var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1)) both;
+  /* (even between samples taken on the turn's own easing: see leafShade) */
+  animation: leafShade var(--turn-ms, 0.5s) linear both;
+  will-change: opacity;
 }
 .flip-leaf-next {
   transform-origin: left center;
@@ -1543,7 +1545,7 @@ html[data-night] .canvas-wait {
     transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(-92deg);
+    transform: rotateY(-84deg);
   }
 }
 @keyframes leafTurnPrev {
@@ -1551,18 +1553,42 @@ html[data-night] .canvas-wait {
     transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(92deg);
+    transform: rotateY(84deg);
   }
 }
 @keyframes leafShade {
   0% {
-    opacity: 0;
+    opacity: 0.00;
   }
-  25% {
-    opacity: 0.45;
+  10% {
+    opacity: 0.46;
+  }
+  20% {
+    opacity: 0.63;
+  }
+  30% {
+    opacity: 0.76;
+  }
+  40% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.91;
+  }
+  60% {
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.97;
+  }
+  80% {
+    opacity: 0.99;
+  }
+  90% {
+    opacity: 1.00;
   }
   100% {
-    opacity: 1;
+    opacity: 1.00;
   }
 }
 /* The shadow the turning leaf throws onto the newly revealed page: it
@@ -1573,10 +1599,11 @@ html[data-night] .canvas-wait {
   bottom: 0;
   z-index: 5;
   pointer-events: none;
-  animation-duration: var(--turn-ms, 0.72s);
-  /* (moving from the first frame - a page lifts at once - then easing
-     down as it lands: an ease-in start read as a lag after the tap) */
-  animation-timing-function: var(--turn-ease, cubic-bezier(0.22, 0.55, 0.3, 1));
+  /* (its own layer from the first frame, so Safari never promotes it
+     mid-turn; even between samples - the keyframes carry the easing) */
+  will-change: transform, opacity;
+  animation-duration: var(--turn-ms, 0.5s);
+  animation-timing-function: linear;
   animation-fill-mode: both;
 }
 .flip-shade-next {
@@ -1594,48 +1621,182 @@ html[data-night] .canvas-wait {
 /* The shadow's edge follows the leaf toward the hinge by sliding (a
    transform the GPU moves for free) rather than shrinking its width,
    which would re-lay-out and repaint the page on every frame of a turn. */
+/* Sampled from where the leaf's lifting edge is really seen (its hinge,
+   the book's 1800px perspective and the turn's own easing, on a phone-
+   width page; it turns to 84deg, edge-on there, and is gone), and run evenly between samples: an easing on each step
+   would ease every step again, and the shadow lagged the edge. It fades
+   as the leaf goes edge-on at the hinge, where the turn ends: nothing
+   waits on a leaf no longer seen. */
 @keyframes shadeSweep {
   0% {
-    transform: translateX(0);
-    opacity: 0;
+    transform: translateX(0.0%);
+    opacity: 0.00;
+  }
+  5% {
+    transform: translateX(0.2%);
+    opacity: 1.00;
   }
   10% {
-    transform: translateX(-1%);
-    opacity: 1;
+    transform: translateX(-3.5%);
+    opacity: 1.00;
+  }
+  15% {
+    transform: translateX(-11.3%);
+    opacity: 1.00;
+  }
+  20% {
+    transform: translateX(-21.7%);
+    opacity: 1.00;
+  }
+  25% {
+    transform: translateX(-33.3%);
+    opacity: 1.00;
+  }
+  30% {
+    transform: translateX(-44.5%);
+    opacity: 1.00;
+  }
+  35% {
+    transform: translateX(-54.7%);
+    opacity: 1.00;
+  }
+  40% {
+    transform: translateX(-63.6%);
+    opacity: 1.00;
+  }
+  45% {
+    transform: translateX(-71.2%);
+    opacity: 1.00;
   }
   50% {
-    transform: translateX(-29%);
-    opacity: 1;
+    transform: translateX(-77.5%);
+    opacity: 1.00;
+  }
+  55% {
+    transform: translateX(-82.8%);
+    opacity: 1.00;
+  }
+  60% {
+    transform: translateX(-87.1%);
+    opacity: 1.00;
+  }
+  65% {
+    transform: translateX(-90.6%);
+    opacity: 1.00;
+  }
+  70% {
+    transform: translateX(-93.5%);
+    opacity: 1.00;
+  }
+  75% {
+    transform: translateX(-95.7%);
+    opacity: 1.00;
   }
   80% {
-    transform: translateX(-69%);
-    opacity: 0.7;
+    transform: translateX(-97.4%);
+    opacity: 0.80;
+  }
+  85% {
+    transform: translateX(-98.6%);
+    opacity: 0.60;
+  }
+  90% {
+    transform: translateX(-99.4%);
+    opacity: 0.40;
+  }
+  95% {
+    transform: translateX(-99.9%);
+    opacity: 0.20;
   }
   100% {
-    transform: translateX(-100%);
-    opacity: 0;
+    transform: translateX(-100.0%);
+    opacity: 0.00;
   }
 }
 @keyframes shadeSweepBack {
   0% {
-    transform: translateX(0);
-    opacity: 0;
+    transform: translateX(-0.0%);
+    opacity: 0.00;
+  }
+  5% {
+    transform: translateX(-0.2%);
+    opacity: 1.00;
   }
   10% {
-    transform: translateX(1%);
-    opacity: 1;
+    transform: translateX(3.5%);
+    opacity: 1.00;
+  }
+  15% {
+    transform: translateX(11.3%);
+    opacity: 1.00;
+  }
+  20% {
+    transform: translateX(21.7%);
+    opacity: 1.00;
+  }
+  25% {
+    transform: translateX(33.3%);
+    opacity: 1.00;
+  }
+  30% {
+    transform: translateX(44.5%);
+    opacity: 1.00;
+  }
+  35% {
+    transform: translateX(54.7%);
+    opacity: 1.00;
+  }
+  40% {
+    transform: translateX(63.6%);
+    opacity: 1.00;
+  }
+  45% {
+    transform: translateX(71.2%);
+    opacity: 1.00;
   }
   50% {
-    transform: translateX(29%);
-    opacity: 1;
+    transform: translateX(77.5%);
+    opacity: 1.00;
+  }
+  55% {
+    transform: translateX(82.8%);
+    opacity: 1.00;
+  }
+  60% {
+    transform: translateX(87.1%);
+    opacity: 1.00;
+  }
+  65% {
+    transform: translateX(90.6%);
+    opacity: 1.00;
+  }
+  70% {
+    transform: translateX(93.5%);
+    opacity: 1.00;
+  }
+  75% {
+    transform: translateX(95.7%);
+    opacity: 1.00;
   }
   80% {
-    transform: translateX(69%);
-    opacity: 0.7;
+    transform: translateX(97.4%);
+    opacity: 0.80;
+  }
+  85% {
+    transform: translateX(98.6%);
+    opacity: 0.60;
+  }
+  90% {
+    transform: translateX(99.4%);
+    opacity: 0.40;
+  }
+  95% {
+    transform: translateX(99.9%);
+    opacity: 0.20;
   }
   100% {
-    transform: translateX(100%);
-    opacity: 0;
+    transform: translateX(100.0%);
+    opacity: 0.00;
   }
 }
 @media (prefers-reduced-motion: reduce) {
