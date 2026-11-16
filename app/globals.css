@@ -14750,9 +14750,12 @@ html[data-night] .txn-amount.in {
 .txn-kind {
   display: block;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.35;
   color: var(--ink-soft);
+}
+.txn-kind strong {
+  font-weight: 700;
 }
 /* a transaction that isn't simply done: a small tinted pill after its date */
 .txn-status {

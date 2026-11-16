@@ -28,7 +28,13 @@ export function TransactionList({ items }: { items: Transaction[] }) {
             <span className="txn-what">
               <b>{t.label}</b>
               {/* (what kind of thing: "Story • Odyssey", "Character • New") */}
-              {t.kind && <span className="txn-kind">{t.kind}</span>}
+              {t.kind && (
+                <span className="txn-kind">
+                  {/* (the kind in bold, the rest - Odyssey, New, Repaint - not) */}
+                  <strong>{t.kind.split(" • ")[0]}</strong>
+                  {t.kind.split(" • ").slice(1).map((w) => ` • ${w}`)}
+                </span>
+              )}
               <small suppressHydrationWarning>
                 {shortDate(t.at)}, {clock(t.at)}
               </small>
