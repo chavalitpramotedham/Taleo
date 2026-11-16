@@ -81,7 +81,7 @@ function spentOn(note: string | undefined): string {
  *  still being made or thrown away, a character that never came to be. */
 function untitled(note: string | undefined): string {
   const kind = kindOf(note);
-  return kind?.startsWith("Story") ? "Untitled story" : kind?.startsWith("Character") ? "Untitled character" : spentOn(note);
+  return kind?.startsWith("Story") ? "New untitled story" : kind?.startsWith("Character") ? "New untitled character" : spentOn(note);
 }
 
 /**
