@@ -124,7 +124,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "plus",
     name: "Plus",
     blurb: "A story every other night of the week",
-    monthlyUsd: 12.99,
+    monthlyUsd: 10.99,
     credits: "auto",
     limits: { stories: WEEKLY(2), changesOfMind: 4, weeklyCredits: 5, characters: 6, designs: MONTHLY(2), quickPages: 2, burst: SAFETY, verified: true },
   },
@@ -132,7 +132,7 @@ export const PLANS: Record<TierId, TierInfo> = {
     id: "pro",
     name: "Pro",
     blurb: "Stories every night, longer adventures",
-    monthlyUsd: 29.99,
+    monthlyUsd: 21.99,
     credits: "auto",
     limits: { stories: WEEKLY(4), changesOfMind: 6, weeklyCredits: 12, characters: 10, designs: MONTHLY(4), quickPages: 2, burst: SAFETY, verified: true },
   },
@@ -169,8 +169,15 @@ export const PLANS: Record<TierId, TierInfo> = {
  *             account, so both the free and the credit flow can be tried)
  *   "always"  every story and character costs credits (no plan uses this
  *             now; kept so a credits-only plan needs no new code)
- * (These prices follow what a story costs to make - its paintings, one a
- * page, and pages go with minutes - not yet measured spend.)
+ * (Priced to break even, not to profit - 16 Nov 2026. A credit costs about
+ * 22 US cents to deliver on a typical mix of lengths and about 25 on
+ * Quests alone (lib/ages: PAGES), and a card payment takes about 4% and 40
+ * cents. So at 30 cents no pack loses money, even with the discounts
+ * below. The plans sell a credit for less than it costs (Plus about 20.5
+ * cents, Pro 19) and break even while a subscriber uses up to about 85%
+ * (Plus) or 81% (Pro) of the allowance. Painting costs were measured on
+ * the bench on 14 Nov; the writing, voice and character costs are
+ * estimates - check the admin dashboard's cost per finished story.)
  */
 export type CreditsMode = "beyond" | "auto" | "always";
 export const CREDITS_PER_STORY_MINUTE = 1;
@@ -194,7 +201,7 @@ export const CREDIT_PACKS = [10, 20, 30, 50, 100];
 export const CREDIT_PACK_MIN = CREDIT_PACKS[0];
 export const CREDIT_PACK_MAX = 10_000;
 /** What one credit costs to buy, in US cents - the same in every pack. */
-export const CREDIT_PRICE_CENTS = 50;
+export const CREDIT_PRICE_CENTS = 30;
 export const CREDIT_CURRENCY = "USD";
 /** Bigger orders cost less a credit: so much off (per cent) from so many
  *  credits upward - whether a pack or an amount of one's own. */

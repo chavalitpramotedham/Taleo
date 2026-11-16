@@ -211,11 +211,13 @@ export interface LengthProfile {
  *  every age, the opening and the ending a little shorter than the
  *  middle: a Quest 9 (3, 3, 3), an Adventure 14 (3, 4, 4, 3), an Odyssey
  *  18 (3, 4, 4, 4, 3). Every page is a painting, and paintings are most of
- *  what a story costs to make: at about 14 US cents a painted page (and a
- *  little for the writing), a Quest (3 credits, US$1.50) keeps about 8%
- *  of its price, an Adventure (5, US$2.50) about 15% and an Odyssey (8,
- *  US$4.00) about 32% - chosen to be generous. The age sets how much is
- *  written on each page (lib/ages: words). */
+ *  what a story costs to make: at about 5-6 US cents a painted page with
+ *  its share of backdrops and newcomers (measured 14 Nov 2026), plus the
+ *  writing, the voice and a little spare, a Quest costs about US$0.74 to
+ *  make, an Adventure about US$1.08 and an Odyssey about US$1.44 - against
+ *  US$0.90, US$1.50 and US$2.40 in credits (lib/tiers: priced to break
+ *  even). The age sets how much is written on each page (lib/ages:
+ *  words). */
 const PAGES: Record<LengthId, number[]> = { quest: [3, 3, 3], adventure: [3, 4, 4, 3], odyssey: [3, 4, 4, 4, 3] };
 
 /**
