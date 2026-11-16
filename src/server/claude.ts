@@ -475,6 +475,26 @@ function answersIdea(text: string, typed: string | undefined, names: string[] = 
   return words.some((w) => said.includes(w.replace(/s$/, "")));
 }
 
+/** A picture brief that corrects itself mid-way ("...on top of the
+ *  biggest's head? No: the smallest stands on a mound...") keeps only the
+ *  settled version: the painter reads every word, and drew the idea the
+ *  storyteller had dropped. Exported for the checks. */
+export function settledBrief(picture: string): string {
+  const re = /\?\s*(?:no|actually|wait|or rather|rather|scratch that)\b[\s:,.;-]*/gi;
+  let out = picture;
+  for (let m = re.exec(out); m; m = re.exec(out)) {
+    // (back to the start of the sentence - or the clause after a colon -
+    // the doubted idea began in)
+    const before = out.slice(0, m.index);
+    const start = Math.max(before.lastIndexOf(". "), before.lastIndexOf("! "), before.lastIndexOf(": ")) + 2;
+    const keep = start >= 2 ? out.slice(0, start) : "";
+    const rest = out.slice(m.index + m[0].length);
+    out = keep + (keep.endsWith(": ") ? rest : rest.charAt(0).toUpperCase() + rest.slice(1));
+    re.lastIndex = keep.length;
+  }
+  return out;
+}
+
 function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds: string[]; existing?: { id: string; name: string }[]; optionCount: number; knownPlaces?: string[]; typed?: string }): SegmentResponse {
   const taken = new Set(opts.existingIds);
   const idMap: Record<string, string> = {};
@@ -514,7 +534,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     camera: p.camera ?? null,
     text: p.text.trim(),
     aside: p.aside?.trim() && !answersIdea(p.text, opts.typed, (opts.existing ?? []).map((c) => c.name)) ? p.aside.trim() : null,
-    picture: p.picture.trim().slice(0, 1200),
+    picture: settledBrief(p.picture.trim()).slice(0, 1200),
     characters: [...new Set(p.characters.map((id) => idMap[id] ?? id))].filter((id) => taken.has(id)).slice(0, 5),
     action: cleanAction(p.action, p.text, idMap, [...(opts.existing ?? []), ...newCharacters]),
     svg: null,

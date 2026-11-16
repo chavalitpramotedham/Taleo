@@ -280,3 +280,27 @@ Now:
 
 Where: `src/server/prompts.ts` (storyteller PICTURE BRIEFS, composer
 FLYING), `perchedOf` in `src/server/claude.ts`.
+
+## 7. A brief is settled, groups act as one, and things up high hang on something (17 Nov 2026)
+
+"Coliboo and the Tallest Snow Mountain", page 14: the text has the smallest
+ice monster climb onto the biggest to reach a blanket caught on a pine
+branch. The picture showed the three monsters standing side by side, and the
+pine's top branches with the blanket floating in the sky, with no trunk.
+
+- **The brief thought aloud.** It read "...on top of the biggest's head?
+  No: the smallest stands on a tall mound...". The painter reads every word.
+  The storyteller is now told a brief is a final instruction that agrees
+  with the words. `settledBrief` keeps only the corrected version. It
+  changed none of the other 208 briefs on file.
+- **A group is one figure.** "Three ice monsters, always together" is one
+  character, so no member can climb on another. The storyteller is now told
+  a group acts together on every page, and that a member who must act alone
+  is their own character from the start.
+- **Up high, held by something.** "Looking up at the pine" got a hand-drawn
+  bough in the sky. The composer is now told that a thing caught up high
+  hangs on a whole tree or building standing on the ground, placed as a
+  piece, and never on a loose branch.
+
+Where: `src/server/prompts.ts` (storyteller PICTURE BRIEFS and EVERYONE WHO
+APPEARS, composer UP HIGH), `settledBrief` in `src/server/claude.ts`.
