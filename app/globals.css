@@ -590,7 +590,9 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 26px;
+  /* (as far below the "Why I made Taleo" pill as the pill sits below the
+     words - those carry a tall line's air under their last line) */
+  margin-top: 38px;
 }
 .floating-cta {
   position: fixed;
