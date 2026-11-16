@@ -244,3 +244,39 @@ written and in the reader for books written before):
 Where: `src/lib/tap-word.ts`, `fitActing` in `src/lib/actions.ts`,
 `cleanAction` in `src/server/claude.ts`, `tapTarget` in
 `src/components/StoryReader.tsx`; the storyteller's rule in `writerPrompt`.
+
+## 6. The action is shown happening - and the child's choice is seen (16 Nov) - P0
+
+The reader chose "call their phoenix friend and get a lift… fly above the
+mountain". The words did it ("Ember rose up, up, up, with everyone safe on
+her back… landed softly on a high ridge"), but no picture did: the briefs
+showed Ember landing with her wings folded, everyone standing on the snow
+beside her. A child who can't read saw a family standing next to a bird.
+
+Why: the storyteller had declared Ember "as tall as Dada", and its own rule
+forbids anyone riding a character of about their size - so the one picture
+that was the point of the choice couldn't be briefed, and it fell back to
+the standing scene after it. Flying wasn't among the poses it was told the
+painter can draw, a line warned off "wings spread wide", and the page held
+two events (the flight and the landing), of which it picked the calm one.
+
+Now:
+- **A creature that carries them is a giant** from the moment it's
+  declared (at least three times the tallest rider, a back wide enough for
+  all) - so the ride can be drawn.
+- **Flying is a drawable pose** for anything with wings or magic, with
+  riders sitting on a flying giant's back.
+- **Show the action happening, not before or after it**: the picture
+  catches the key action mid-way (the swoop, the flight, mid-slope); a
+  journey is shown on the way; a page that goes up and lands shows the
+  flight. The test: could a child who can't read tell from the picture
+  what the words say happened?
+- **The child's choice is seen**: the part after a choice shows that very
+  thing happening, in action, on its first page or two.
+- The composer puts a flyer up in the sky with its riders' tags after it;
+  the layout reads a whole list of riders ("with Dada, Mama and Coliboo
+  sitting on her back") and takes "her back" to be the giant's that can
+  carry them, not whoever was named last.
+
+Where: `src/server/prompts.ts` (storyteller PICTURE BRIEFS, composer
+FLYING), `perchedOf` in `src/server/claude.ts`.

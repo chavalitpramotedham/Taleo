@@ -1063,7 +1063,11 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
       });
       // (the riders named in this clause: the nearest before the verb, and
       // any joined to it by "and")
-      const clause = lower.slice(0, at).split(/[,;]| with /).pop() ?? "";
+      // (a list of them counts whole: "with Dada, Mama and Coliboo sitting
+      // on her back" is all three, not Mama and Coliboo with Dada carrying)
+      const parts = (lower.slice(0, at).split(/;| with /).pop() ?? "").split(",");
+      let clause = parts.pop() ?? "";
+      while (parts.length && /^\s*(?:and\s+)?(?:the\s+)?[\w'-]+(?:\s+[\w'-]+)?\s*$/.test(parts[parts.length - 1]) && on.some((c) => firstNamed(parts[parts.length - 1], c) >= 0)) clause = parts.pop() + "," + clause;
       const named = riders.filter((c) => firstNamed(clause, c) >= 0);
       const who = rider ? [rider] : named.length ? named : riders.slice(-1);
       let carrier: CharacterDef | undefined;
@@ -1072,11 +1076,14 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
         carrier = on.find((c) => short(c) === w || c.name.toLowerCase() === w || c.id === w || nameKeys(c).includes(w)) ?? on.find((c) => new RegExp(`\\b${w}\\b`, "i").test(c.look ?? ""));
       } else {
         const text = (before + " " + t.slice(0, at)).toLowerCase();
-        carrier = on
+        const named = on
           .filter((c) => !who.includes(c) && !group.includes(c))
           .map((c) => [c, lastNamed(text, c)] as const)
           .filter(([, i]) => i >= 0)
-          .sort((a, b) => b[1] - a[1])[0]?.[0];
+          .sort((a, b) => b[1] - a[1]);
+        // ("her back": a giant who can carry them before whoever was named
+        // last - "Coliboo sits in his sledge on her back" is Ember's, not Mama's)
+        carrier = (named.find(([c]) => who.length > 0 && who.every((r) => giantTo(r, c))) ?? named[0])?.[0];
       }
       if (!carrier) continue;
       // (on a tummy or belly - a penguin sliding on his front, a baby
