@@ -25,15 +25,19 @@ export default function MarkerDev() {
       </div>
       <div className="deploy-ai-block">
         <span className="deploy-marker-when deploy-ai">
-          <BrushIcon />
-          <code>4-VT2Q</code>Sonnet 5.5
-          <span className="deploy-effort"><i className="on" /><i className="on" /><i /></span>
+          <b className="deploy-ai-label"><BrushIcon />Paint:</b>
+          <span className="deploy-ai-value">
+            <code>4-VT2Q</code>Sonnet 5.5
+            <span className="deploy-effort"><i className="on" /><i className="on" /><i /></span>
+          </span>
         </span>
         <span className="deploy-marker-when deploy-ai">
-          <QuillIcon />
-          {fast ? "Opus 5.5" : "Sonnet 5.5"}
-          <span className="deploy-effort"><i className="on" />{fast ? <i /> : <i className="on" />}<i /></span>
-          {fast && <span className="deploy-fast">fast</span>}
+          <b className="deploy-ai-label"><QuillIcon />Story:</b>
+          <span className="deploy-ai-value">
+            {fast ? "Opus 5.5" : "Sonnet 5.5"}
+            <span className="deploy-effort"><i className="on" />{fast ? <i /> : <i className="on" />}<i /></span>
+            {fast && <span className="deploy-fast">fast</span>}
+          </span>
         </span>
       </div>
       <StorytellerSwitch />

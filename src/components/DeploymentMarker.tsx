@@ -176,20 +176,30 @@ export function DeploymentMarker({ onShow }: { onShow: (live: Deployment) => voi
     {/* (a section of its own: what readers' pages are painted, and their stories written, with) */}
     <div className="deploy-ai-block">
           <span className="deploy-marker-when deploy-ai" title="Painting">
-            <BrushIcon />
-            {live.painting ? (
-              <>
-                <code>{live.painting.code}</code>
-                {live.painting.model && <ModelTag model={live.painting.model} effort={live.painting.effort} />}
-              </>
-            ) : (
-              "classic"
-            )}
+            <b className="deploy-ai-label">
+              <BrushIcon />
+              Paint:
+            </b>
+            <span className="deploy-ai-value">
+              {live.painting ? (
+                <>
+                  <code>{live.painting.code}</code>
+                  {live.painting.model && <ModelTag model={live.painting.model} effort={live.painting.effort} />}
+                </>
+              ) : (
+                "classic"
+              )}
+            </span>
           </span>
           {live.storyteller && (
             <span className="deploy-marker-when deploy-ai" title="Storytelling">
-              <QuillIcon />
-              <ModelTag {...live.storyteller} />
+              <b className="deploy-ai-label">
+                <QuillIcon />
+                Story:
+              </b>
+              <span className="deploy-ai-value">
+                <ModelTag {...live.storyteller} />
+              </span>
             </span>
           )}
     </div>
