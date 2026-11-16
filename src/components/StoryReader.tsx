@@ -5,7 +5,8 @@ import { paintingStage, preparingStage } from "@/lib/art/paintingStage";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, Segment, SegmentResponse, Story, StoryPlace } from "@/lib/types";
 import { allPages, castFor, pageKey } from "@/lib/story-utils";
-import { ageLevel, motionForAge } from "@/lib/actions";
+import { actingOut, ageLevel, motionForAge, fitActing } from "@/lib/actions";
+import { shownWord } from "@/lib/tap-word";
 import { shareUrl } from "@/lib/share";
 import { publishToGallery } from "@/lib/gallery-client";
 import { useMarkMaking } from "@/lib/making";
@@ -866,7 +867,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
       } catch {}
       if (words) prefetchSpeech(words, "page", true, !listens);
     }
-    if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
+    const tapWord = (p: Page) => shownWord(p.text, p.action?.word, [story.hero, ...story.companions, ...story.cast].find((c) => c?.id === p.action?.target)?.name);
+    if (view?.kind === "page" && tapWord(view.page)) prefetchSpeech(tapWord(view.page)!, "word", true);
     const nextView = views[index + 1];
     if (readAloud && nextView?.kind === "page") prefetchSpeech([nextView.page.aside, nextView.page.text].filter(Boolean).join(" "), "page", true);
     // ...and a little further on: once this page has settled, the next two
@@ -883,13 +885,13 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           if (v.kind !== "page" && v.kind !== "choice") continue;
           const words = wordsOf(v);
           if (words) prefetchSpeech(words, "page", true, true);
-          if (v.kind === "page" && v.page.action?.word) prefetchSpeech(v.page.action.word, "word", true, true);
+          if (v.kind === "page" && tapWord(v.page)) prefetchSpeech(tapWord(v.page)!, "word", true, true);
         }
       },
       { timeout: 2500 },
     );
     return () => stop(id);
-  }, [view, views, index, readAloud, cover, wordsOf]);
+  }, [view, views, index, readAloud, cover, wordsOf, story.hero, story.companions, story.cast]);
 
   useEffect(() => {
     setSpeechStory(story.id);
@@ -1111,7 +1113,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
           </p>
         )}
         <p className={`story-text ${first ? "drop" : ""}`}>
-          {withTappableWord(view.page.text, view.page.action?.word, () => paintingRef.current?.play(), readingAt(view.page))}
+          {withTappableWord(view.page.text, shownWord(view.page.text, view.page.action?.word, [story.hero, ...story.companions, ...story.cast].find((c) => c?.id === view.page.action?.target)?.name) ?? undefined, () => paintingRef.current?.play(), readingAt(view.page))}
         </p>
         <p className="folio">— {view.number} —</p>
       </div>
@@ -1597,12 +1599,18 @@ function tapTarget(page: Page, cast: CharacterDef[], age: string): TapTarget | n
   const a = page.action;
   if (!a) return null;
   const who = cast.find((c) => c.id === a.target);
+  // (the word as the page has it - in books written before words were
+  // checked, one the page never says is replaced by the target's own doing
+  // word - and a motion or sound that plainly doesn't fit it, an "asleep"
+  // that floats off, a "tiptoed" that snores, put right)
+  const word = shownWord(page.text, a.word, who?.name) ?? a.word;
+  const fit = word === a.word || word.toLowerCase().startsWith(a.word.toLowerCase()) ? fitActing(word, a.motion, a.sound) : (actingOut(word) ?? fitActing(word, a.motion, a.sound));
   return {
-    word: a.word,
+    word,
     // Gentle for toddlers, bigger and bolder as children get older.
-    motion: motionForAge(a.motion, age),
+    motion: motionForAge(fit.motion, age),
     level: ageLevel(age),
-    sound: a.sound,
+    sound: fit.sound,
     hint: who ? `Tap ${who.name}!` : `Tap the ${a.target}!`,
   };
 }

@@ -6,7 +6,9 @@ import type { z } from "zod";
 import { aLength, ageById, lengthProfile } from "@/lib/ages";
 import { characterArt, presetByKey } from "@/lib/presets";
 import { sanitizeSvg } from "@/lib/svg-sanitize";
-import { isMotion, isSound } from "@/lib/actions";
+import { actingOut, fitActing, isMotion, isSound } from "@/lib/actions";
+import { actionWordOf, doerOf, wordOnPage } from "@/lib/tap-word";
+export { actionWordOf, doerOf, wordOnPage };
 import type {
   CharacterDef,
   CharacterRequest,
@@ -517,6 +519,12 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     action: cleanAction(p.action, p.text, idMap, [...(opts.existing ?? []), ...newCharacters]),
     svg: null,
   }));
+  // (a character who acts out the page's word is in its picture: the hint
+  // said "Tap Bubbly!" on a page Bubbly wasn't painted on)
+  for (const pg of pages) {
+    const t = pg.action?.target;
+    if (t && taken.has(t) && !pg.characters.includes(t) && pg.characters.length < 5) pg.characters = [...pg.characters, t];
+  }
 
   let choice = opts.isLast ? null : out.choice;
   if (choice) {
@@ -553,74 +561,19 @@ function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text:
   // was given for a page that never says it - 16 Nov)
   const word = wordOnPage(text, asked) ?? actionWordOf(text, people.find((c) => c.id === said)?.name);
   if (!word) return null;
+  // (a replaced word is acted out its own way; a kept one keeps its motion
+  // and sound where they fit it, and has them put right where they don't)
+  const replaced = word.toLowerCase() !== asked.toLowerCase() && !word.toLowerCase().startsWith(asked.toLowerCase());
+  const given = { motion: isMotion(a.motion) ? a.motion : ("bounce" as const), sound: isSound(a.sound) ? a.sound : ("twinkle" as const) };
+  const acted = replaced ? (actingOut(word) ?? { motion: "bounce" as const, sound: "twinkle" as const }) : fitActing(word, given.motion, given.sound);
   return {
     word,
     target: doerOf(text, word, said, people),
-    sound: isSound(a.sound) ? a.sound : "twinkle",
-    motion: isMotion(a.motion) ? a.motion : "bounce",
+    sound: acted.sound,
+    motion: acted.motion,
   };
 }
 
-/** The page's word as the page itself has it: the word, or a form of it
- *  ("wobble" for "wobbled", "carry" for "carried", "tiptoe" for
- *  "tiptoeing"), or null when the page doesn't say it at all. */
-export function wordOnPage(text: string, word: string): string | null {
-  const words = [...text.matchAll(/[\p{L}']+/gu)].map((m) => m[0]);
-  const w = word.toLowerCase();
-  const exact = words.find((x) => x.toLowerCase() === w);
-  if (exact) return word;
-  // (a form that starts with it - what the reader's tap finds - keeps the
-  // word as given)
-  if (words.some((x) => x.toLowerCase().startsWith(w))) return word;
-  // (its stem: carry / carried, hop / hopped, giggle / giggling)
-  const stem = w.replace(/(ies|ied|ing|ed|es|s|e|y)$/, "");
-  if (stem.length < 3) return null;
-  const form = words.find((x) => x.toLowerCase().startsWith(stem) && x.length <= w.length + 4);
-  return form ? form.replace(/^'+|'+$/g, "") : null;
-}
-
-const NOT_ACTIONS = new Set(["said", "asked", "called", "replied", "looked", "wanted", "needed", "seemed", "started", "decided", "thing", "something", "nothing", "everything", "morning", "evening", "during", "ceiling", "darling", "darlings", "darling's"]);
-/** A word for a page whose given word isn't on it: the doing word of the
- *  target's own sentence where there is one (Coliboo "clutching" his
- *  blanket), else the first one on the page - something done, that the
- *  picture shows and a tap can act out. */
-export function actionWordOf(text: string, targetName?: string): string | null {
-  const sentences = text.split(/(?<=[.!?]["'\u201d]?)\s+/);
-  const doing = (t: string) => [...t.matchAll(/[\p{L}]+/gu)].map((m) => m[0]).find((x) => x.length >= 5 && /(ed|ing)$/i.test(x) && !NOT_ACTIONS.has(x.toLowerCase()));
-  const own = targetName ? sentences.find((t) => new RegExp(`\\b${targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(t)) : undefined;
-  return (own && doing(own)) || sentences.map(doing).find(Boolean) || null;
-}
-
-/** Who does the page's word, checked against its own sentence: the tap
- *  target must be the one acting it out, not a bystander. "Out tiptoed
- *  three ice monsters" had Coliboo as the target of "tiptoe", so the hop
- *  went to the baby (16 Nov). Where the target named is a character who
- *  isn't in the word's sentence (or only as an owner - "Coliboo's
- *  blanket"), and one other character is - the nearest one before the
- *  word, else after it - that one is the doer. Anything less clear is left
- *  as the storyteller gave it. */
-export function doerOf(text: string, word: string, target: string, people: { id: string; name: string }[]): string {
-  const stem = word.toLowerCase().replace(/(ing|ed|es|s)$/, "").slice(0, Math.max(3, word.length - 3));
-  const sentences = text.split(/(?<=[.!?]["'\u201d]?)\s+/);
-  const sentence = sentences.find((t) => new RegExp(`\\b${stem.replace(/[^\p{L}]/gu, "")}`, "iu").test(t));
-  if (!sentence) return target;
-  const at = sentence.toLowerCase().search(new RegExp(`\\b${stem.replace(/[^\p{L}]/gu, "")}`, "iu"));
-  // (each character named in the sentence, not as an owner, with where)
-  const named: { id: string; at: number }[] = [];
-  for (const c of people) {
-    const name = c.name.trim();
-    if (!name) continue;
-    const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b(?!['\u2019]s\\b)`, "gi");
-    for (const m of sentence.matchAll(re)) named.push({ id: c.id, at: m.index ?? 0 });
-  }
-  const isCharacter = people.some((c) => c.id === target);
-  if (!isCharacter || named.some((n) => n.id === target)) return target;
-  const ids = [...new Set(named.map((n) => n.id))];
-  if (!ids.length) return target;
-  const before = named.filter((n) => n.at < at).sort((x, y) => y.at - x.at)[0];
-  const after = named.filter((n) => n.at > at).sort((x, y) => x.at - y.at)[0];
-  return (before ?? after)!.id;
-}
 
 // ---------------------------------------------------------------- illustrations
 

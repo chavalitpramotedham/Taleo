@@ -73,3 +73,54 @@ export function motionForAge(motion: MotionId, ageId: string): MotionId {
 
 /** How far and how hard things move at each age level (scales every animation). */
 export const AMPLITUDE = [0.7, 0.9, 1.15, 1.45, 1.75] as const;
+
+/**
+ * How a word is acted out, where the word says it plainly: the motion's
+ * family and the fitting sound. Used to give a page's word its motion and
+ * sound when the word had to be replaced (its first one wasn't on the
+ * page), and to correct a motion that contradicts its word (a "tiptoe"
+ * that leaps, a "sank" that flies up). Words it doesn't know are left as
+ * the storyteller chose.
+ */
+type Acting = [RegExp, MotionId[], SoundId[]];
+/** (motions and sounds that act each kind of word out - the first of each
+ *  is the one given when the storyteller's choice doesn't fit) */
+const ACTING: Acting[] = [
+  [/^(jump|hop|bounc|leap|spring|sprang|skip|bound|pounc)/, ["hop", "bounce", "leap"], ["boing", "splash", "giggle"]],
+  [/^(tiptoe|creep|crept|sneak|snuck|peek|peep|peer|hid|hide|tuck)/, ["nod", "wiggle", "bounce"], ["rustle", "squeak"]],
+  [/^(fly|flew|flown|soar|float|drift|flutter|glid|hover|rise|rose|lift|launch|blast)/, ["float", "fly"], ["whoosh", "twinkle", "tweet", "pop"]],
+  [/^(zoom|race|raced|dash|rush|speed|sped|scurr|scamper|skitter|gallop|whizz|whoosh|sled|ski|skat|swoosh|zip|run|ran|carv|slid|slide)/, ["zoom", "dash", "fly", "float"], ["whoosh", "giggle"]],
+  [/^(spin|spun|twirl|whirl|swirl|roll|somersault)/, ["spin", "tumble", "wiggle"], ["whoosh", "giggle"]],
+  [/^(wobbl|wiggl|wriggl|jiggl|giggl|danc|sway|waddl|tickl|chuckl|laugh)/, ["wiggle", "shake", "bounce", "spin", "hop"], ["giggle", "boing", "twinkle", "quack"]],
+  [/^(shiver|shake|shook|shudder|trembl|rattl|quiver|rumbl)/, ["shake", "grow", "wiggle"], ["thud", "roar", "rustle", "whoosh", "drip"]],
+  [/^(grow|grew|swell|stretch|bloom|blossom|burst|pop|explod|sparkl|glow(?!er)|shine|shone|twinkl|gleam|glitter|unfold)/, ["grow", "burst", "hop", "float"], ["twinkle", "pop", "ding", "rustle"]],
+  [/^(splash|dive|dove|dip|plop|plunge|sink|sank|sunk|drip|pour|paddl|wad)/, ["dive", "nod", "bounce", "burst", "tumble", "hop", "float"], ["splash", "drip", "quack"]],
+  [/^(fall|fell|tumbl|trip|bump|crash|land|thud|plonk|flop|slip)/, ["tumble", "dive", "nod", "bounce", "spin"], ["thud", "giggle", "splash", "boing"]],
+  [/^(sleep|slept|asleep|snor|yawn|doze|nap|snooz)/, ["nod"], ["snore"]],
+  [/^(knock|tap|hammer|bang|clatter)/, ["bounce", "shake", "nod"], ["knock", "thud"]],
+  [/^(munch|crunch|chomp|nibbl|gobbl|eat|ate|bite|slurp|lick|gulp)/, ["bounce", "nod", "wiggle"], ["munch"]],
+  [/^(roar|growl|bellow|boom|stomp|stamp)/, ["shake", "grow", "bounce", "hop"], ["roar", "thud"]],
+  [/^(buzz)/, ["wiggle", "shake", "float"], ["buzz"]],
+  [/^(tweet|chirp|sing|sang|whistl|cheep)/, ["bounce", "wiggle", "float", "hop", "spin"], ["tweet", "twinkle", "giggle"]],
+  [/^(squeak|squeez|squish)/, ["bounce", "wiggle", "shake", "grow", "hop"], ["squeak", "pop"]],
+  [/^(meow|purr)/, ["wiggle", "nod"], ["meow"]],
+  [/^(ring|rang|ding|chime|clink)/, ["shake", "bounce", "grow"], ["ding", "twinkle"]],
+  [/^(rustl|crinkl|unwrap|flap)/, ["wiggle", "shake", "bounce", "float", "grow", "fly"], ["rustle", "whoosh", "tweet", "quack"]],
+  [/^(toot|trumpet|honk)/, ["grow", "shake", "bounce"], ["trumpet"]],
+];
+/** A page's motion and sound, kept where they fit its word and put right
+ *  where they plainly don't (the storyteller once had "asleep" float off,
+ *  a "hop" nod, a "tiptoed" snore). Words this doesn't know keep what they
+ *  were given. */
+export function fitActing(word: string, motion: MotionId, sound: SoundId): { motion: MotionId; sound: SoundId } {
+  const w = word.toLowerCase().replace(/[^a-z]/g, "");
+  const hit = ACTING.find(([re]) => re.test(w));
+  if (!hit) return { motion, sound };
+  return { motion: hit[1].includes(motion) ? motion : hit[1][0], sound: hit[2].includes(sound) ? sound : hit[2][0] };
+}
+/** How a word is acted out, if it says so plainly: its first motion and sound. */
+export function actingOut(word: string): { motion: MotionId; sound: SoundId } | null {
+  const w = word.toLowerCase().replace(/[^a-z]/g, "");
+  const hit = ACTING.find(([re]) => re.test(w));
+  return hit ? { motion: hit[1][0], sound: hit[2][0] } : null;
+}

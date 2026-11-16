@@ -213,3 +213,34 @@ characters is a failed picture.**
 Where: `writerPrompt` (PICTURE BRIEFS) and `composerPrompt` in
 `src/server/prompts.ts`.
 
+
+## 5. The tap word, its doer, its motion and sound tell one action (16 Nov 2026)
+
+**What happened.** "Skiing down the tallest snow mountain": page 1's word
+was "gigantic" - never said on the page - with Coliboo growing; page 3's
+"tiptoe" belonged to the ice monsters but Coliboo hopped. An audit of all
+28 library books (403 pages) found 12 words not on their page, 12 targets
+who weren't doing the word, 2 targets not in the picture, and dozens of
+motions and sounds that contradicted their word ("asleep" floating off, a
+"hop" that nods, a "tiptoed" that snores, a "wobble" that drips).
+
+**The rules now** (all checked in code, on the server as a part is
+written and in the reader for books written before):
+- **The word is on the page** - a form of it is found ("crept" for creep,
+  "bumblebee" for bee); one the page never says is replaced by the doing
+  word of the target's own sentence, acted out its own way.
+- **The target does the word** - read from the word's own clause: "Tilly
+  poured, the mice danced" stays the mice; "whispered Kai" is Kai; "Out
+  tiptoed three ice monsters" is the monsters; "he gave Bao a hug" stays
+  the one who hugs.
+- **The target is in the picture** - a character who acts out the word is
+  added to the page's characters.
+- **Motion and sound fit the word** - each kind of word has motions and
+  sounds that act it out; a choice outside them is put right, a fitting
+  one is kept.
+- **One form everywhere** - the word lit in the text, the bubble over the
+  picture and the voice all say the page's own form ("hopped").
+
+Where: `src/lib/tap-word.ts`, `fitActing` in `src/lib/actions.ts`,
+`cleanAction` in `src/server/claude.ts`, `tapTarget` in
+`src/components/StoryReader.tsx`; the storyteller's rule in `writerPrompt`.
