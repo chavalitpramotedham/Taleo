@@ -450,3 +450,16 @@ Where: `aboard`, `onTop` and `laidDown` in `src/server/paint/layout.ts`;
 `aboardOf`, `onTopOf` and `lyingOf` (and `namedBefore`) in
 `src/server/claude.ts`; the pose in `src/lib/art/poses.ts` (`liesDown`);
 the pieces in `src/lib/art/stamps-more.ts`.
+
+**Lesson 20 - the new thing is the star; no picture repeats the last (16 Nov).**
+Three ice monsters arrived on a page and were drawn small, behind the
+family, who stood exactly as on the two pages before. The storyteller
+hadn't declared them (no newcomer, so nothing to place), and nothing asked
+for a page to differ from the last. The storyteller now declares everyone
+who appears, gives a page one new event and puts the new character, thing
+or event at the centre, with the cast stepping aside to react; and every
+brief changes at least two of camera, centre, order, depth and poses from
+the last. The composer is told the same: the newest thing gets the
+strongest place, and the previous page's arrangement is never repeated.
+See storytelling lesson 4.
+

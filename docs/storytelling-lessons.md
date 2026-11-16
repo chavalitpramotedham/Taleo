@@ -166,3 +166,50 @@ and only a giant (at least three times the rider's height: a stone giant,
 a troll, a dragon) is ridden. In the painter, a ride or a hold ("in Mama's
 arms", "on his hip", "in Gran's lap") on anyone smaller than about two and
 a half times the rider's size puts the rider at their side instead.
+
+## 4. Pictures follow what's new, and never look the same twice (16 Nov 2026)
+
+**What happened.** "Skiing down the tallest snow mountain" (16 Nov), page 3:
+"Out tiptoed three round, shaggy ice monsters... Coliboo's blanket slipped
+and flew away! Then, far above, a deep RUMBLE began." The monsters came out
+small and half-hidden behind the family, and the family stood exactly as on
+the page before (Coliboo in the middle, Mama and Dada either side - the
+same line-up on all three pages of the part).
+
+**Why.**
+- The storyteller never declared the monsters: `newCharacters` was empty
+  and the page's `characters` listed only the family. The painter places
+  only listed characters, so the composer had to scribble the monsters in
+  as loose shapes, at the edge.
+- The brief put the newcomers "behind the pines on the left" - out of the
+  way of the cast, instead of at the heart of the picture.
+- The page held three new events (the monsters, the blanket, the
+  avalanche), so no one of them owned the picture.
+- Nothing asked for the picture to differ from the last one, so each brief
+  restated the same arrangement.
+
+**The rules now** (storyteller, picture briefs; composer):
+- **Everyone who appears is a character** - in `newCharacters` where they
+  first appear and in every page's `characters` they're on. A group that's
+  always together is one character.
+- **The new thing takes the stage** - on the page it first appears, a new
+  character, thing or event is in the centre or foreground, big, whole and
+  doing something; the familiar cast step aside, turned towards it,
+  reacting.
+- **One new event per page** - the next happening waits for the next page;
+  where a page still holds more, the picture shows the biggest new one.
+- **Every picture looks different from the last** - change at least two of:
+  camera, who's in the centre and in front, the left-to-right order, poses,
+  facing, the part of the place. Never the same line-up twice running.
+- The composer gets the same two rules ("the newest thing is the star",
+  "different from the last page"), checked against the previous page's
+  brief it is already given.
+
+The principle: **a composition must be relevant (about this page's new
+action, thing or event), focused (the new thing is the star), and dynamic
+(each page visibly changes from the last) - a tidy row of the same
+characters is a failed picture.**
+
+Where: `writerPrompt` (PICTURE BRIEFS) and `composerPrompt` in
+`src/server/prompts.ts`.
+
