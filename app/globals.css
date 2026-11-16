@@ -7413,7 +7413,7 @@ html[data-night] .admin-spark.bad {
 }
 @media (hover: hover) {
   .admin-find-clear:hover {
-    color: var(--ink);
+    color: #fff;
   }
 }
 .admin-find-clear:active {
@@ -12676,24 +12676,84 @@ p.deploy-marker {
     background: color-mix(in srgb, var(--russet) 22%, var(--page));
   }
 }
-/* The admin's foot of the menu (version, models, storyteller switch): a cool
-   sage wash, like the credits' warm one, so it reads as a panel of its own;
-   it runs to the menu's bottom edge. */
+/* The admin's foot of the menu (version, models, storyteller switch): a
+   panel of its own, set apart like the credits' warm strip but cooler and
+   more instrument-like - a sage wash over a faint dot grid, monospaced
+   readouts, dashed rules, and a grey segmented switch. Static: nothing moves. */
 .admin-foot {
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --foot-track: #74786d;
+  --foot-thumb: #fcfaf3;
+  --foot-thumb-ink: var(--ink);
+  --foot-label: rgb(255 255 255 / 0.82);
   margin: 6px 0 -10px;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
   border-top: 1px solid var(--rule);
-  background: linear-gradient(100deg, color-mix(in srgb, var(--sage) 6%, transparent), color-mix(in srgb, var(--sage) 14%, transparent) 55%, color-mix(in srgb, var(--sage) 7%, transparent));
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--sage) 22%, transparent) 0.8px, transparent 1.2px) 0 0 / 9px 9px,
+    linear-gradient(100deg, color-mix(in srgb, var(--sage) 7%, transparent), color-mix(in srgb, var(--sage) 15%, transparent) 55%, color-mix(in srgb, var(--sage) 8%, transparent));
+}
+html[data-night] .admin-foot {
+  --foot-track: #3d4138;
+  --foot-thumb: #e8e3d4;
+  --foot-thumb-ink: #23261f;
+  --foot-label: rgb(255 255 255 / 0.7);
 }
 .admin-foot .deploy-marker {
   margin-top: 0;
   border-top: 0;
 }
+/* (the "newer version live" note keeps the book face: in monospace it
+   would run under the reload button) */
+.admin-foot .deploy-marker-row:not(.has-refresh) .deploy-marker-when,
+.admin-foot .deploy-ai {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
 .admin-foot .deploy-ai-block {
-  border-top-color: color-mix(in srgb, var(--sage) 22%, var(--rule));
+  gap: 4px;
+  border-top: 1px dashed color-mix(in srgb, var(--sage) 40%, var(--rule));
+}
+.admin-foot .deploy-ai-block code {
+  font-size: 1em;
+  color: var(--ink);
+}
+.admin-foot .deploy-ai svg {
+  color: var(--sage);
+}
+/* the switch: a grey track, the setting in use a light key on it */
+.admin-foot .story-switch {
+  padding: 2px 14px 0;
 }
 .admin-foot .story-switch-pill {
-  background: color-mix(in srgb, var(--sage) 13%, var(--page));
+  border-radius: 10px;
+  background: var(--foot-track);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.22), 0 1px 0 rgb(255 255 255 / 0.55);
+}
+html[data-night] .admin-foot .story-switch-pill {
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4), 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+.admin-foot .story-switch-thumb {
+  border-radius: 7px;
+  background: var(--foot-thumb);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+.admin-foot .story-switch-pill button {
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foot-label);
+}
+.admin-foot .story-switch-pill button.on {
+  color: var(--foot-thumb-ink);
+}
+@media (hover: hover) {
+  .admin-foot .story-switch-pill button:not(.on):hover {
+    color: var(--ink);
+  }
 }
 /* Painting and storytelling: a section of their own under the version,
    then the storyteller switch. */
