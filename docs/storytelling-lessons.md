@@ -337,3 +337,61 @@ basket" was briefly taken for a rider, so "basket" is off the list.
 
 Where: `src/server/prompts.ts`, `aboardOf` in `src/server/claude.ts`,
 `aboard` in `src/server/paint/layout.ts`, `src/lib/art/stamps-more.ts`.
+
+## 9. Adaptive, not hard-coded: the story's world comes first (17 Nov 2026)
+
+Lesson 8 fixed vehicles. The cause was wider than that. Staging was read
+from the brief with fixed word lists, and the painter's world was a fixed
+countryside set:
+
+- **Word lists.** `aboardOf`, `onTopOf`, `inBedOf` and `perchedOf` only
+  knew the objects on their lists (wagon, sledge, table, boulder, bed).
+  Anything else fell through.
+- **Piece library.** About 100 English-countryside pieces, and the painter
+  was told to use one "for EVERY standard element". A jungle got oaks, an
+  airplane got a trolley.
+- **Size cap.** "At most 12 shapes" for anything without a piece, so the
+  story's own airplane was a sketch next to a stock wagon.
+- **Code layer.** Every outdoor page got meadow grass, flowers,
+  butterflies, clouds and birds. 14 of 29 stored outdoor places got grass
+  where none belonged: snowy ledges, the open sea, a sandy cove, a cloud
+  palace, a dragon mountain and a pantry shelf.
+
+What changed:
+
+1. **Staging from the storyteller.** Every brief ends with a "Staging:"
+   sentence: who sits, stands, lies or rides in, on, under or behind what,
+   naming any object as the story does.
+   - `stagingOf` reads only the grammar words (who, how, in/on).
+   - Each object is then looked up, not listed. It is a cast member, a
+     piece the library really has (by its catalogue name or a plain alias),
+     or something to draw.
+   - `stagedLayout` turns this into layout options: a wagon or sledge, a
+     top to stand on, a bed, or `craft:<posture>:<thing>` for anything
+     drawn. Riders of a drawn thing stay where the composer put them, in
+     the right posture, and a stand-in ride piece is dropped.
+   - Ground and place words (the grass, the kitchen) hold nobody.
+   - The old word lists remain only as a fallback for older briefs and for
+     anyone the staging leaves out.
+2. **The painter is told the staging,** each object marked as a piece, a
+   character, or "no piece is this, draw it yourself" (`stagingNote`).
+3. **One rule for every painter:** `STORY_WORLD_FIRST`. A piece is used
+   only when it *is* the thing named; when in doubt, draw it. The shape
+   allowance is now about 35 for the moment's big thing.
+4. **Code layer:** the meadow fringe and butterflies only on green ground;
+   no clouds or birds under the sea or in space; no ground fringe in a
+   picture high in the sky.
+5. **Odds and ends:** the brief cap goes from 1,200 to 1,600 characters,
+   which keeps old signatures valid. Readers never see the Staging line
+   (`briefForReaders`).
+
+Audit: all 769 stored pages are laid out the same, because none has a
+Staging line yet. Unit checks cover an airplane (seated, the stray wagon
+dropped), a cart (the wagon), a big rock (the boulder), the grass
+(nothing), Moss's back (riding), a hammock (lying, held), a palm tree (to
+be drawn) and the kitchen (nothing).
+
+Where: `src/server/prompts.ts` (STAGING, STORY_WORLD_FIRST),
+`stagingOf`/`stagedLayout`/`stagingNote` in `src/server/claude.ts`,
+`aboard` in `src/server/paint/layout.ts`, `src/server/paint/page-layer.ts`,
+`briefForReaders` in `src/lib/story-utils.ts`.

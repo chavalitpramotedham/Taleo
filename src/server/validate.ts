@@ -47,7 +47,7 @@ const cleanPage = (p: Partial<Page>): Pick<Page, "text" | "picture" | "character
   place: typeof p.place === "string" ? p.place.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || null : null,
   camera: p.camera === "close" || p.camera === "mid" || p.camera === "wide" ? p.camera : null,
   text: str(p.text, 800),
-  picture: str(p.picture, 1200),
+  picture: str(p.picture, 1600),
   characters: strs(p.characters, 6),
   aside: p.aside ? str(p.aside, 400) : null,
   action: cleanAction(p.action),

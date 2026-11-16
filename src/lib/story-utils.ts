@@ -16,3 +16,8 @@ export const wordCount = (story: Pick<Story, "segments">) =>
   allPages(story).reduce((n, p) => n + p.text.split(/\s+/).filter(Boolean).length, 0);
 
 export const pageKey = (seg: number, page: number) => `${seg}:${page}`;
+
+/** A picture brief as readers meet it (a picture's title, its words while
+ *  it paints): without the closing "Staging:" note, which is for the
+ *  painter alone (storytelling lesson 9). */
+export const briefForReaders = (picture: string | null | undefined): string => (picture ?? "").replace(/\s*\bStaging:[\s\S]*$/i, "").trim();

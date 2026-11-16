@@ -40,7 +40,7 @@ export const inLegacyGrace = () => Date.now() < LEGACY_GRACE_UNTIL;
 // (what a page says and shows - the parts a painting is made from. Trimmed
 // to the same lengths the request parser allows, so a page signs the same
 // whether it's fresh from the storyteller or back from the browser.)
-const pageParts = (p: Pick<Page, "text" | "picture">) => [(p.text ?? "").slice(0, 800), (p.picture ?? "").slice(0, 1200)];
+const pageParts = (p: Pick<Page, "text" | "picture">) => [(p.text ?? "").slice(0, 800), (p.picture ?? "").slice(0, 1600)];
 
 export const signPage = (userId: string, page: Pick<Page, "text" | "picture">) => mac("page", [userId, ...pageParts(page)]);
 

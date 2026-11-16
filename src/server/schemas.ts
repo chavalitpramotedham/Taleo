@@ -13,7 +13,7 @@ export const PageSchema = z.object({
   picture: z
     .string()
     .describe(
-      "Illustrator's brief for this page's full-page painting (2-4 sentences): the single most dynamic moment, what each character is physically doing with their whole body, their expressions, where they are looking, key objects, setting details, camera (close-up / mid / wide, low or high angle) and composition.",
+      "Illustrator's brief for this page's full-page painting (2-4 sentences): the single most dynamic moment, what each character is physically doing with their whole body, their expressions, where they are looking, key objects, setting details, camera (close-up / mid / wide, low or high angle) and composition - then, if anyone is in, on, under or behind something, the closing \"Staging:\" sentence.",
     ),
   characters: z.array(z.string()).describe("Ids of characters visible in the picture ('hero' and/or side-character ids)"),
   place: z.string().describe("Id of the place this page is set in: one of the story's places (from PLACES, or one you add in this segment's places)"),

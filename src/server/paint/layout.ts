@@ -801,19 +801,22 @@ function aboard(markup: string, opts: LayoutOptions, notes: string[], composed: 
     out = out.replace(/<stamp\b[^>]*\/>/gi, (t) => {
       const k = attr(t, "k") ?? "";
       if (!RIDE_PIECE.test(k) || [...named].some((n) => VEHICLES[n]?.k.test(k))) return t;
-      notes.push(`no ${k}: the brief has them in the ${craft[0][1].slice(6)}`);
+      notes.push(`no ${k}: the brief has them in ${craft[0][1].split(":").slice(2).join(":")}`);
       return "";
     });
-    for (const [id] of craft) {
+    for (const [id, kind] of craft) {
       const span = charSpan(out, id);
       const was = composed.get(id);
       if (!span || !was) continue;
+      // ("craft:sit:little red airplane" - sitting, lying or standing in or on it)
+      const posture = kind.split(":")[1];
       let t = setAttr(setAttr(span.tag, "x", was.x), "y", was.y);
       if (was.s) t = setAttr(t, "s", was.s);
-      t = setAttr(setAttr(setAttr(t, "legs", "sit"), "ride", "1"), "laid", "1");
+      if (posture === "sit") t = setAttr(t, "legs", "sit");
+      t = setAttr(setAttr(t, "ride", "1"), "laid", "1");
       out = out.slice(0, span.from) + out.slice(span.from, span.to).replace(span.tag, t) + out.slice(span.to);
     }
-    notes.push(`${craft.map(([id]) => id).join(", ")} kept in the ${craft[0][1].slice(6)}, where they were seated`);
+    notes.push(`${craft.map(([id]) => id).join(", ")} kept in or on ${[...new Set(craft.map(([, k]) => k.split(":").slice(2).join(":")))].join(", ")}, where they were put`);
   }
   const kinds = [...new Set((opts.aboard ?? []).map(([, k]) => k))];
   for (const kind of kinds) {

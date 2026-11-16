@@ -534,7 +534,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     camera: p.camera ?? null,
     text: p.text.trim(),
     aside: p.aside?.trim() && !answersIdea(p.text, opts.typed, (opts.existing ?? []).map((c) => c.name)) ? p.aside.trim() : null,
-    picture: settledBrief(p.picture.trim()).slice(0, 1200),
+    picture: settledBrief(p.picture.trim()).slice(0, 1600),
     characters: [...new Set(p.characters.map((id) => idMap[id] ?? id))].filter((id) => taken.has(id)).slice(0, 5),
     action: cleanAction(p.action, p.text, idMap, [...(opts.existing ?? []), ...newCharacters]),
     svg: null,
@@ -1193,7 +1193,7 @@ export function aboardOf(req: IllustrateRequest): [string, string][] {
       const before = t.slice(0, m.index!).toLowerCase();
       const sitting = /\b(sits?|sitting|sat|rides?|riding|ride|perched|tucked|squeezed|snuggled|curled|buckled|strapped|flies|flying|fly|zooms?|zooming|travels?|travelling|traveling|peeks?|peeking|waves?|waving|looks?|looking|are|is)\b[^.;,]{0,40}$/.test(before);
       if (!sitting) continue;
-      for (const c of namedBefore(t, m.index!, on)) if (!out.some(([x]) => x === c.id)) out.push([c.id, `craft:${word}`]);
+      for (const c of namedBefore(t, m.index!, on)) if (!out.some(([x]) => x === c.id)) out.push([c.id, `craft:sit:${word}`]);
     }
   }
   return out;
@@ -1605,9 +1605,125 @@ function replayOf(req: IllustrateRequest): AsyncIterable<string> | null {
  *  size for its camera, everyone's size against the others, and who hugs,
  *  is in bed or rides whom (read from the brief and the words). One place,
  *  so a replay of saved composer tags is laid out exactly as a live page. */
+/**
+ * The brief's own staging (storytelling lesson 9): the storyteller ends a
+ * brief with "Staging: Colin sits in the little red airplane; Kit stands on
+ * the boulder; Asha sits on Moss's back." - who is in, on or under what,
+ * for ANY thing at all. Only the grammar is read here (who, how, in/on,
+ * the thing); the thing itself is then looked up, not listed: a character
+ * of the story, a piece the library really has (by its own name in the
+ * catalogue), or else something to be drawn. The word lists further up
+ * (aboardOf, onTopOf...) are the fallback for briefs without a staging
+ * line - older stories, and anyone it leaves out.
+ */
+export type Staged = {
+  who: CharacterDef[];
+  how: string;
+  rel: string;
+  /** the thing, as the story names it ("little red airplane") */
+  thing: string;
+  /** and as written, with its article ("the little red airplane") */
+  named: string;
+  /** the character it is on ("Moss's back"), if it's one */
+  carrier: CharacterDef | null;
+  /** the library piece it IS, if there is one - else it's drawn */
+  piece: string | null;
+  /** ground underfoot or the place itself ("the grass", "the kitchen"): nothing to hold them to */
+  ground: boolean;
+};
+const STAGE_HOW = String.raw`sits?|sitting|sat|stands?|standing|lies|lying|rides?|riding|hangs?|hanging|hides?|hiding|flies|flying|perch(?:es|ed)?|kneels?|kneeling|crouch(?:es|ing)?|curls? up|curled up|snuggles?|is|are|peeks? out|peeking out|waves?|waving|looks? out|looking out`;
+const STAGE_REL = String.raw`on top of|in front of|next to|inside|aboard|underneath|under|behind|beside|in|on|at|onto|into`;
+/** Underfoot or all around - not a thing they are in or on. A short set of
+ *  surfaces and kinds of place (grammar, more or less), not of objects. */
+const GROUND = /^(ground|grass|floor|snow|sand|beach|meadow|field|lawn|path|road|street|pavement|track|earth|mud|moss|ice|hill|hillside|slope|bank|shore|clearing|garden|park|forest|wood|woods|jungle|desert|kitchen|room|bedroom|hall|house|cave|town|village|city|sky|air|clouds?|sun|sunshine|rain|middle|centre|center|corner|front|back|distance|foreground|background|light|shade|shadows?|dark|water|sea|river|pond|lake|waves)$/i;
+const singular = (w: string) => (STAMPS[w] || /(?:ss|us|is)$/.test(w) ? w : w.replace(/(?:ies)$/, "y").replace(/(?:ches|shes|xes|ses)$/, (m) => m.slice(0, -2)).replace(/s$/, ""));
+/** The library piece a thing IS: its last word (the thing named, past its
+ *  colours and sizes) is a piece's own name, or a plain other word for one
+ *  (a cart is the wagon, a rock the boulder). "Little red airplane" isn't. */
+function pieceOf(thing: string): string | null {
+  const head = singular((thing.toLowerCase().match(/([a-z-]+)\W*$/)?.[1] ?? "").trim());
+  if (!head) return null;
+  if (STAMPS[head]) return head;
+  const alias = VEHICLE_WORD[head] ?? TOP_WORD[head];
+  return alias && STAMPS[alias] ? alias : null;
+}
+export function stagingOf(req: Pick<IllustrateRequest, "cast" | "page" | "place">): Staged[] {
+  const m = /(?:^|[.!?]\s+)Staging:\s*([\s\S]*)$/i.exec(req.page.picture ?? "");
+  if (!m) return [];
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id));
+  const clause = new RegExp(String.raw`^(.*?)\s+(${STAGE_HOW})\s+(?:(?:safely|together|side by side|snugly|up|down|high up|right)\s+)*(${STAGE_REL})\s+(.+)$`, "i");
+  const out: Staged[] = [];
+  for (const raw of m[1].replace(/[.\s]+$/, "").split(/\s*;\s*/)) {
+    const c = clause.exec(raw.trim());
+    if (!c) continue;
+    const whoText = c[1].toLowerCase();
+    const who = on.filter((ch) => firstNamed(whoText, ch) >= 0);
+    if (!who.length) continue;
+    const named = c[4].trim();
+    const thing = named.replace(/^(?:the|a|an|his|her|their|its|our)\s+/i, "").trim();
+    const low = thing.toLowerCase();
+    // (on a character: "Moss's back", "the phoenix's back", "Dada")
+    const carrier = req.cast.find((ch) => !who.includes(ch) && firstNamed(low, ch) === 0) ?? null;
+    const head = singular(low.match(/([a-z-]+)\W*$/)?.[1] ?? "");
+    const placeWords = `${req.place?.id ?? ""}`.toLowerCase().split(/[^a-z]+/);
+    const ground = !carrier && (GROUND.test(head) || (head.length > 2 && placeWords.includes(head)));
+    out.push({ who, how: c[2].toLowerCase(), rel: c[3].toLowerCase(), thing, named, carrier, piece: carrier ? null : pieceOf(thing), ground });
+  }
+  return out;
+}
+/** What the staging asks of the layout, by kind of thing - and who it
+ *  covers (for them the word-list readings give way). */
+function stagedLayout(staged: Staged[]) {
+  const aboard: [string, string][] = [];
+  const onTop: [string, string, "stand" | "sit"][] = [];
+  let inBed: string | null = null;
+  const ids = new Set<string>();
+  const into = (s: Staged) => /^(in|inside|aboard|into|on|onto|on top of)$/.test(s.rel);
+  for (const s of staged) {
+    // (on a character: the riding rules - perchedOf - already read these)
+    if (s.carrier || s.ground || !into(s)) continue;
+    const sitting = /^(sits?|sitting|sat|rides?|riding|perch|kneel|crouch|curl|snuggle|is|are|peek|wave|look)/.test(s.how);
+    const lying = /^(lies|lying)/.test(s.how);
+    for (const c of s.who) {
+      ids.add(c.id);
+      if (s.piece === "bed" && (lying || sitting)) inBed ??= c.id;
+      else if (s.piece && ["wagon", "wheelbarrow", "sledge"].includes(s.piece)) aboard.push([c.id, s.piece]);
+      else if (s.piece && TOP_KEYS.has(s.piece) && /^(on|onto|on top of)$/.test(s.rel)) onTop.push([c.id, s.piece, sitting || lying ? "sit" : "stand"]);
+      else if (s.piece === "boat" || s.piece === "hull") ids.delete(c.id); // (the boat rule places them)
+      else if (!s.piece) aboard.push([c.id, `craft:${lying ? "lie" : sitting ? "sit" : "stand"}:${s.thing.toLowerCase().slice(0, 40)}`]);
+      else ids.delete(c.id); // (another piece - an armchair, the rocket: the composer seats them at it)
+    }
+  }
+  return { aboard, onTop, inBed, ids };
+}
+const TOP_KEYS = new Set(Object.values(TOP_WORD));
+
+/** The staging, told to the painter plainly: what each thing is - a piece
+ *  to place, a character to ride, or something only this story has, to
+ *  draw - so nothing is swapped for the nearest piece in the library. */
+export function stagingNote(req: Pick<IllustrateRequest, "cast" | "page" | "place">): string {
+  const staged = stagingOf(req).filter((s) => !s.ground);
+  if (!staged.length) return "";
+  const lines = staged.map((s) => {
+    const who = s.who.map((c) => c.name).join(" and ");
+    const what = s.carrier
+      ? `${s.carrier.name} is a character: their tags right after ${s.carrier.name}'s`
+      : s.piece
+        ? `that is the piece "${s.piece}"`
+        : `no piece is this - draw ${s.named} yourself, as the story describes it, big and clear${into(s) ? ", around them: its body, then them seated in it, then its near side in front of them" : ""}`;
+    return `- ${who} ${s.how} ${s.rel} ${s.named}: ${what}.`;
+  });
+  return `WHO IS IN OR ON WHAT (the brief's staging - follow it exactly, and never put a different piece in place of the thing named):\n${lines.join("\n")}`;
+}
+const into = (s: Staged) => /^(in|inside|aboard|into|on|onto|on top of)$/.test(s.rel);
+
 export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
   const target = req.page.action?.target;
   const isCast = Boolean(target && req.cast.some((c) => c.id === target));
+  // (the brief's staging first; the word-list readings for anyone it
+  // doesn't cover)
+  const staged = stagedLayout(stagingOf(req));
+  const bed = staged.inBed ?? inBedOf(req);
   return {
     targetId: isCast ? target! : null,
     usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s,
@@ -1615,10 +1731,10 @@ export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
     sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])),
     heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null,
     huggers: huggersOf(req),
-    inBed: inBedOf(req),
+    inBed: bed && (!staged.ids.has(bed) || bed === staged.inBed) ? bed : null,
     perched: perchedOf(req),
-    aboard: aboardOf(req),
-    onTop: onTopOf(req),
+    aboard: [...staged.aboard, ...aboardOf(req).filter(([id]) => !staged.ids.has(id))],
+    onTop: [...staged.onTop, ...onTopOf(req).filter(([id]) => !staged.ids.has(id))],
     lying: lyingOf(req),
     far: farOf(req),
     // (who wasn't in the last picture has just arrived: the page is theirs)
@@ -1946,6 +2062,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     previous,
     `THIS PAGE'S TEXT: ${req.page.text}`,
     `PAINT THIS MOMENT: ${req.page.picture}`,
+    stagingNote(req),
     target ? `${target} Wrap it in <g class="target">.${targetDrawn(req)}` : "",
     layered ? `${stageFor(req)}\n\n${LAYERED_CHARACTERS}` : "",
     partsOf.size && !posing ? PARTS_SECTION : "",

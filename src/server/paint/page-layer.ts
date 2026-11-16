@@ -15,13 +15,28 @@ const INDOORS = /\b(inside|indoors|room|kitchen|bedroom|bathroom|hall|attic|cell
 const OPEN_WATER = /\b(sea|ocean|waves?|strait|whirlpool|lake|open water|river|bay)\b/i;
 const LAND = /\b(beach|shore|sand|sandy|jetty|pier|harbour|harbor|quay|riverbank|bank|meadow|garden|lawn|path|town|village|street)\b/i;
 
+/** Green, growing ground - the only kind a meadow fringe of grass and
+ *  flowers belongs on. Anywhere else (a runway, a desert, a ship's deck, a
+ *  city street, the moon) the painted place keeps its own ground, untouched
+ *  (lesson 9: the countryside fringe went everywhere). */
+const GREEN = /\b(meadow|garden|field|fields|lawn|park|wood|woods|forest|grove|orchard|farm|farmyard|valley|glade|clearing|hill|hills|hillside|countryside|riverbank|pond|path|lane|hedgerow|allotment|green)\b/i;
+/** No open sky to fill with clouds and birds: under the sea, out in space. */
+const NO_SKY = /\b(under ?water|undersea|under the sea|sea ?bed|sea floor|ocean floor|coral|reef|deep sea|outer space|in space|space station|the moon's surface|on the moon|planet|galaxy|asteroid)\b/i;
+/** High in the air: no ground in the picture to fringe. */
+const ALOFT = /\b(high (?:up )?in the sky|above the clouds|among the clouds|through the clouds|over the (?:clouds|hills|sea|town|city|mountains|fields)|flying high|soaring)\b/i;
+
 export function codePageLayer(o: { place: string; picture: string; light: Light; season: Season; seed: string }): string {
   if (INDOORS.test(o.place)) return "";
+  const scene = `${o.place} ${o.picture}`;
+  const sky = !NO_SKY.test(scene);
+  const green = GREEN.test(o.place) && !NO_SKY.test(scene) && !ALOFT.test(o.picture);
   const r = seeded(hashOf(`layer:${o.seed}`));
   const pick = (lo: number, hi: number) => Math.round(lo + r() * (hi - lo));
   const out: string[] = [];
   const night = o.light === "night";
-  if (night) {
+  if (!sky) {
+    // (no sky here: nothing in it)
+  } else if (night) {
     out.push(`<scatter k="stars" x="0" y="0" w="400" h="120" n="${pick(14, 24)}"/>`);
   } else {
     // (one or two clouds, somewhere new on every page)
@@ -31,12 +46,12 @@ export function codePageLayer(o: { place: string; picture: string; light: Light;
   // (rain only when it rains: "a rainbow" isn't rain - lesson 17)
   if (o.light === "rain" || /\b(rain|raining|rainy|rainfall|drizzle|downpour|rainstorm)\b/i.test(o.picture)) out.push(`<scatter k="rain" x="0" y="0" w="400" h="290" n="${pick(40, 60)}"/>`);
   else if (o.season === "winter" && /\bsnow/i.test(`${o.place} ${o.picture}`)) out.push(`<scatter k="snow" x="0" y="0" w="400" h="290" n="${pick(30, 45)}"/>`);
-  if (o.season === "autumn" || /\bleaves\b/i.test(o.picture)) out.push(`<scatter k="leaves" x="20" y="120" w="360" h="150" n="${pick(5, 9)}"/>`);
-  else if (!night && r() < 0.5) out.push(`<stamp k="butterfly" x="${r() < 0.5 ? pick(30, 90) : pick(310, 370)}" y="${pick(105, 140)}" s="1"/>`);
+  if ((o.season === "autumn" && green) || /\bleaves\b/i.test(o.picture)) out.push(`<scatter k="leaves" x="20" y="120" w="360" h="150" n="${pick(5, 9)}"/>`);
+  else if (green && !night && r() < 0.5) out.push(`<stamp k="butterfly" x="${r() < 0.5 ? pick(30, 90) : pick(310, 370)}" y="${pick(105, 140)}" s="1"/>`);
   // (the foreground fringe, left and right of the characters - none on
   // open water: grass doesn't grow on the sea)
   const water = OPEN_WATER.test(o.place) && !LAND.test(o.place);
-  if (!water) out.push(`<scatter k="grass" x="0" y="262" w="400" h="28" n="${pick(8, 12)}"/>`);
-  if (!water && !night && o.season !== "winter") out.push(`<scatter k="flowers" x="0" y="258" w="400" h="30" n="${pick(6, 12)}"/>`);
+  if (!water && green) out.push(`<scatter k="grass" x="0" y="262" w="400" h="28" n="${pick(8, 12)}"/>`);
+  if (!water && green && !night && o.season !== "winter") out.push(`<scatter k="flowers" x="0" y="258" w="400" h="30" n="${pick(6, 12)}"/>`);
   return out.join("");
 }

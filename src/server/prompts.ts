@@ -127,6 +127,7 @@ ONE ACTION PER PAGE (the page's tappable moment)
 PICTURE BRIEFS (you art-direct every page)
 - For each page write "picture": the single most dynamic moment of that page, for a full-page painting. Describe what each character's whole body is doing, in the poses below (mid-leap with legs stretched, tiptoeing, running, crouching), what their arms/paws are doing (pointing, hugging, hands on hips, waving, covering a giggle), their facial expression (eyebrows, eyes, mouth) and where they look, the key objects, the setting details and weather, and the camera: vary between wide shots for journeys and places, mid shots for action, and close-ups for feelings; sometimes a low or high angle.
 - A brief is a final instruction, and agrees with the page's words: decide first, then write only what to paint. Never think aloud in it, ask yourself a question or correct yourself ("...on the biggest's head? No: ..."); the illustrator reads every word. What the words say happens (the smallest climbs on top of a snow pile) is what the brief shows, not something else.
+- STAGING: end the brief with one sentence beginning "Staging:" that says who is in, on, under or behind something - anything at all, named exactly as the story names it - one short clause each, joined by semicolons, in the form "<who> <sits|stands|lies|rides|hangs|hides|peeks out> <in|on|on top of|inside|under|behind|beside> <the thing>": "Staging: Colin and Dada sit in the little red airplane; Mama sits in the little red airplane; the parrot perches on the wing." / "Staging: Asha sits on Moss's back; Kit stands on the boulder; Pip hides behind the palm tree." Name the thing as the story does (the little red airplane, the bathtub boat, the dragon's nest - never "a vehicle"), and a character ridden by name ("Moss's back"). Leave out anyone just standing on the ground. If no one is in or on anything, leave the staging sentence out.
 - The illustrator paints each page on its own and sees ONLY that page's brief, the previous page's brief and the character sheets - never the story. So every brief must stand alone: name every character in the picture by name, say where each one is (left, right, foreground, up in the tree), restate the place and its two or three anchoring features (the blue door, the crooked apple tree, the striped rug), the time of day and the light, and anything a character is carrying or wearing that the story has given them (the borrowed red scarf stays on until the story takes it off). Pages in the same place must describe the same place.
 - EVERYONE WHO APPEARS IS A CHARACTER: any creature, person or group that turns up in the words - seen, speaking, moving - goes into newCharacters in the segment where it first appears, and into the "characters" of every page it is on. A group that is always together is ONE character ("three round, shaggy pale-blue ice monsters, always together, side by side"), and is painted as one figure, so on every page the group acts together (they all push, all reach, all climb the snow pile side by side): never write its members doing different things to each other (one climbing onto another's head, one running off alone) - the picture can't show it. If one member must act alone, they are their own character from the start. Never leave a newcomer only in the words and the brief: the painter paints only listed characters, so an unlisted one comes out as a few stray shapes at the edge, or not at all.
 - THE NEW THING TAKES THE STAGE: on the page where a character, a thing or an event first appears, the picture is about IT. It is in the centre or the foreground, big and whole, in full view, doing something (tiptoeing out, waving, glowing, rolling down the hill), and the familiar characters step aside - to one side, a little back - turned towards it and reacting (surprised, delighted, shy). Never tuck the newcomer behind trees, at the edge or behind the cast, and never let the cast stand where they stood on the page before as if nothing had changed.
@@ -163,6 +164,12 @@ ${ages}`;
 
 /** Added when the standard scenery pieces are on (TALEO_PAINT_STAMPS):
  *  how to place them instead of drawing them. */
+/** The one rule over every list of pieces (storytelling lesson 9): the
+ *  library is a countryside set; the story's own world comes first, and
+ *  nothing is swapped for the nearest piece (an airplane story's family
+ *  rode carts and trolleys, 17 Nov). */
+export const STORY_WORLD_FIRST = `THE STORY'S OWN WORLD COMES FIRST: the pieces are a small countryside set - use one only when it IS the thing this story names. Whatever else the story has (an airplane, a train, a spaceship, a castle, palm trees on an island, cacti in a desert, coral under the sea, tall buildings in a city, a hammock, a bathtub boat) you draw yourself, as the story describes it - never the nearest piece standing in for it: no wagon, trolley or cart for an airplane or a car, no oak or pine in a jungle, no boat for a bathtub, no cottage for a castle. When in doubt, draw it.`;
+
 export function stampsSection(): string {
   return `STANDARD PIECES (placed, not drawn)
 The app keeps a library of house-style scenery pieces, already in this book's colours and light. Place one with a single short tag instead of drawing it: it looks right, matches the rest of the book, and leaves your strokes for what is special about this picture.
@@ -173,7 +180,8 @@ The app keeps a library of house-style scenery pieces, already in this book's co
   <scatter k="grass" x="0" y="250" w="400" h="45" n="18"/>
 - Scatters n marks of a kind over a box (x, y is its top left; w, h its size).
 - Write stamps and scatters at the top level, between your layer groups, never inside a <g>. They are painted exactly where they appear in your markup, so their order is their depth: far things first, near things last.
-- Use them for EVERY standard element: trees, bushes, grass tufts, wild flowers, stones, toadstools, fences, puddles, clouds, birds, the sun and moon, stars, butterflies, leaves, rain, snow, pen hatching, and the common pieces of a room. Never draw any of these yourself.
+- ${STORY_WORLD_FIRST}
+- Use them for EVERY standard element that fits this story's world:trees, bushes, grass tufts, wild flowers, stones, toadstools, fences, puddles, clouds, birds, the sun and moon, stars, butterflies, leaves, rain, snow, pen hatching, and the common pieces of a room. Never draw any of these yourself.
 - Draw yourself only: the washes of sky, land, water, wall and floor; the landmarks particular to this story (a blue door with a brass knocker, a crooked footbridge); and whatever the brief says is happening to the place.
 - A bare layer group is fine and gets the house pen: <g class="ink">.
 THE PIECES:
@@ -491,7 +499,7 @@ AROUND THEM: standard pieces, placed with one tag each - things the moment needs
   <stamp k="splash" x="200" y="246" s="1"/>
 A thing that is the tap target: <g class="target"><stamp .../></g>.
 Something a character climbs, sits on, leans on or hides behind (the apple tree, a log, a fence) goes right where they are, BEFORE their tag, with near="1": <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>. (For "sit", put the character's y on its seat.)
-Only if the moment needs something that is not in any list (a story's own special object), draw it yourself as a few simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours, at most 12 shapes).
+${STORY_WORLD_FIRST} Draw it as simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours; about 12 shapes for a small thing, up to about 35 for something big the moment is about - the airplane they fly in, the castle, the giant sandcastle).
 
 THE PIECES:
 ${stampCatalogue()}
@@ -553,7 +561,7 @@ AROUND THEM: standard pieces, one tag each - things the moment needs (what a cha
   <stamp k="basket" x="168" y="205" s="0.9"/>
 Something a character climbs, sits on, leans on or hides behind (the apple tree, a log, a fence) goes right where they are, BEFORE their tag, with near="1": <stamp k="appletree" x="250" y="246" s="1.2" near="1"/>.
 A thing that is the tap target: <g class="target"><stamp .../></g>.
-Only if the moment needs something that is not in any list, draw it yourself as a few simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours, at most 12 shapes).
+${STORY_WORLD_FIRST} Draw it as simple shapes: <g class="paint">...</g><g class="ink">...</g> (whole-number coordinates, house watercolour colours; about 12 shapes for a small thing, up to about 35 for something big the moment is about - the airplane they fly in, the castle, the giant sandcastle).
 
 THE PIECES:
 ${stampCatalogue()}

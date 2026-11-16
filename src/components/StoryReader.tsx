@@ -4,7 +4,7 @@ import Link from "next/link";
 import { paintingStage, preparingStage } from "@/lib/art/paintingStage";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CharacterDef, Page, Segment, SegmentResponse, Story, StoryPlace } from "@/lib/types";
-import { allPages, castFor, pageKey } from "@/lib/story-utils";
+import { allPages, briefForReaders, castFor, pageKey } from "@/lib/story-utils";
 import { actingOut, ageLevel, motionForAge, fitActing } from "@/lib/actions";
 import { shownWord } from "@/lib/tap-word";
 import { shareUrl } from "@/lib/share";
@@ -1014,7 +1014,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
               <InteractivePainting
                 ref={paintingRef}
                 svg={svg}
-                title={shown.page.picture || shown.page.text}
+                title={briefForReaders(shown.page.picture) || shown.page.text}
                 className={partial && !done ? "painting live" : "painting"}
                 live={Boolean(partial && !done)}
                 // (only the page on show says so: the copy of the last page
@@ -1463,7 +1463,7 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
                     }}
                   >
                     {svg ? (
-                      <Painting svg={svg} title={v.kind === "page" ? v.page.picture || v.page.text : ""} className="overview-thumb" vignette={false} />
+                      <Painting svg={svg} title={v.kind === "page" ? briefForReaders(v.page.picture) || v.page.text : ""} className="overview-thumb" vignette={false} />
                     ) : (
                       <span className="overview-thumb overview-thumb-label">{jumpLabel(v)}</span>
                     )}
