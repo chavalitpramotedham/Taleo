@@ -12690,8 +12690,8 @@ p.deploy-marker {
 .admin-foot {
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --foot-track: #74786d;
-  --foot-thumb: #fcfaf3;
-  --foot-thumb-ink: var(--ink);
+  --foot-thumb: #c7d2ad;
+  --foot-thumb-ink: #2c3522;
   --foot-label: rgb(255 255 255 / 0.82);
   margin: 6px 0 -10px;
   padding-bottom: 12px;
@@ -12702,8 +12702,8 @@ p.deploy-marker {
 }
 html[data-night] .admin-foot {
   --foot-track: #3d4138;
-  --foot-thumb: #e8e3d4;
-  --foot-thumb-ink: #23261f;
+  --foot-thumb: #7d8e5f;
+  --foot-thumb-ink: #f3f1e6;
   --foot-label: rgb(255 255 255 / 0.7);
 }
 .admin-foot .deploy-marker {
@@ -12753,7 +12753,7 @@ html[data-night] .admin-foot {
   align-items: center;
   gap: 5px;
 }
-/* the switch: a grey track, the setting in use a light key on it */
+/* the switch: a grey track, the setting in use a sage key on it */
 .admin-foot .story-switch {
   padding: 2px 32px 0;
 }
@@ -12783,6 +12783,9 @@ html[data-night] .admin-foot .story-switch-pill {
 .admin-foot .story-switch-pill button svg {
   width: 13px;
   height: 13px;
+}
+.admin-foot .story-switch-pill button.on svg {
+  color: currentColor;
 }
 .admin-foot .story-switch-pill button.on {
   color: var(--foot-thumb-ink);
