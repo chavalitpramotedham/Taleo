@@ -29,14 +29,12 @@ export function TransactionList({ items }: { items: Transaction[] }) {
               <b>{t.label}</b>
               {/* (what kind of thing: "Story • Odyssey", "Character • New") */}
               {t.kind && <span className="txn-kind">{t.kind}</span>}
-              {/* (when, and its status only while it isn't simply done) */}
               <small suppressHydrationWarning>
                 {shortDate(t.at)}, {clock(t.at)}
-                {status && (
-                  <span className={`txn-status ${status}`}>{status === "pending" ? "Pending" : "Reversed"}</span>
-                )}
               </small>
             </span>
+            {/* (the credits, and under them its status only while it isn't simply done) */}
+            <span className="txn-side">
             <span
               className={`txn-amount ${t.amount > 0 ? "in" : "out"}${t.reversed ? " struck" : ""}`}
               aria-label={`${t.amount > 0 ? "plus" : "minus"} ${n(Math.abs(t.amount))} credits${t.reversed ? ", reversed" : t.pending ? ", pending" : ""}`}
@@ -46,6 +44,8 @@ export function TransactionList({ items }: { items: Transaction[] }) {
                 {n(Math.abs(t.amount))}
               </span>
               <CreditIcon size={18} />
+            </span>
+            {status && <span className={`txn-status ${status}`}>{status === "pending" ? "Pending" : "Reversed"}</span>}
             </span>
           </li>
         );

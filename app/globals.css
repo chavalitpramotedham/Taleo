@@ -14719,6 +14719,13 @@ html.leaves-taken .brand-mark {
   color: var(--ink-faint);
   line-height: 1.3;
 }
+.txn-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .txn-amount {
   display: inline-flex;
   align-items: center;
@@ -14750,7 +14757,6 @@ html[data-night] .txn-amount.in {
 /* a transaction that isn't simply done: a small tinted pill after its date */
 .txn-status {
   display: inline-block;
-  margin-left: 8px;
   padding: 1px 7px 0;
   border-radius: 999px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -14759,7 +14765,6 @@ html[data-night] .txn-amount.in {
   letter-spacing: 0.08em;
   line-height: 1.6;
   text-transform: uppercase;
-  vertical-align: 1px;
 }
 .txn-status.pending {
   color: #9a6f08;
