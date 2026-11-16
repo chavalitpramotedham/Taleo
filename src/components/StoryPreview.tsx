@@ -216,12 +216,9 @@ export function StoryPreview({
               </>
             )}
             by{" "}
-            <Link
-              className="story-preview-author"
-              href={`/author/${encodeURIComponent(story.author)}`}
-            >
+            <AuthorLink className="story-preview-author" author={story.author}>
               @{story.author}
-            </Link>
+            </AuthorLink>
             <ManageStory story={story} onDeleted={onClose} />
           </p>
           {children}
@@ -567,5 +564,17 @@ function ManageStory({
           document.body,
         )}
     </>
+  );
+}
+
+/** A link to an author's bookshelf - to your own, "My bookshelf", when
+ *  the author is you. */
+export function AuthorLink({ author, className, children }: { author: string; className?: string; children: React.ReactNode }) {
+  const { data: session } = useSession();
+  const mine = Boolean(session?.user?.username && session.user.username.toLowerCase() === author.toLowerCase());
+  return (
+    <Link className={className} href={mine ? "/my-stories" : `/author/${encodeURIComponent(author)}`}>
+      {children}
+    </Link>
   );
 }

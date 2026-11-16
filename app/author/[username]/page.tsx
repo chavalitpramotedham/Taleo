@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { GalleryShelf } from "@/components/GalleryShelf";
 import { Avatar } from "@/components/Avatar";
+import { OwnShelfRedirect } from "@/components/OwnShelfRedirect";
 import { getUserByUsername } from "@/server/users";
 import { StoryIndex, publicStories } from "@/components/StoryIndex";
 import { OG_IMAGE, SITE_URL, breadcrumbs, jsonLd } from "@/lib/seo";
@@ -76,6 +77,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ usernam
   };
   return (
     <div className="container">
+      <OwnShelfRedirect username={shown} />
       {profile && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(structured)} />}
       <GalleryShelf
         author={shown}

@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import type { Story } from "@/lib/types";
 import { allPages } from "@/lib/story-utils";
 import { Painting } from "./art/Painting";
-import { LeafLoader, MapleMark } from "./Icons";
+import { LeafLoader } from "./Icons";
 
 export const titleOf = (s: Story) => s.title || `${s.hero.name}'s story`;
 export const coverOf = (s: Story) => allPages(s).find((p) => p.svg)?.svg ?? null;
@@ -71,7 +71,7 @@ export function OngoingCard({
           <span className="story-card-title">{title}</span>
           <span className="ongoing-meta">{soFar(story)}</span>
           <span className="btn btn-primary btn-sm ongoing-cta">
-            <MapleMark /> Carry on
+            Carry on
           </span>
         </span>
       </button>

@@ -13,6 +13,9 @@ import type { GalleryEntry } from "@/lib/types";
 import { shareUrl, shareStory } from "@/lib/share";
 import { CharacterPortrait } from "@/components/art/Painting";
 import { MapleMark } from "@/components/Icons";
+import { Avatar } from "@/components/Avatar";
+import { OngoingCard } from "@/components/OngoingStory";
+import { useOngoingStory } from "@/lib/ongoing";
 import { StoryCard } from "@/components/StoryCard";
 import { PreviewButtons, StoryPreview, stepper, summaryFromEntry } from "@/components/StoryPreview";
 import { PRESETS, presetCharacter } from "@/lib/presets";
@@ -26,7 +29,10 @@ const avg = (s: GalleryEntry) => (s.ratingCount ? s.ratingSum / s.ratingCount : 
 /** The bookshelf, given by the page (already read on the server); a list
  *  the server couldn't read is null, and asked for here. */
 export function MyStories({ initialStories, initialSaved }: { initialStories: GalleryEntry[] | null; initialSaved: GalleryEntry[] | null }) {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
+  const avatarKey = session?.user?.avatarKey;
+  // The story under way (if any) leads your originals, as on the home page.
+  const ongoing = useOngoingStory();
   const router = useRouter();
   const [stories, setStories] = useState<GalleryEntry[] | null>(() => initialStories ?? recall<GalleryEntry[]>("mine") ?? null);
   const [sort, setSort] = useState<Sort>("recent");
@@ -112,17 +118,25 @@ export function MyStories({ initialStories, initialSaved }: { initialStories: Ga
       <div className="container">
         <header className="wizard-head">
           <p className="eyebrow">Just yours</p>
-          <h1>My bookshelf</h1>
+          <h1 className="author-title">
+            {avatarKey && <Avatar avatarKey={avatarKey} className="author-avatar" />}
+            My bookshelf
+          </h1>
         </header>
         <ShelfSkeleton label="Fetching your bookshelf…" />
       </div>
     );
 
+  // (not while picking a category: it has none yet)
+  const underWay = !category ? ongoing.story ?? null : null;
   return (
     <div className="container">
       <header className="wizard-head">
         <p className="eyebrow">Just yours</p>
-        <h1>My bookshelf</h1>
+        <h1 className="author-title">
+          {avatarKey && <Avatar avatarKey={avatarKey} className="author-avatar" />}
+          My bookshelf
+        </h1>
         {stories.length + saved.length > 1 && (
           <div className="filter-row">
             <Segmented
@@ -145,7 +159,7 @@ export function MyStories({ initialStories, initialSaved }: { initialStories: Ga
       </header>
 
       {saved.length > 0 && <h2 className="shelf-section-title">My originals</h2>}
-      {sorted.length === 0 ? (
+      {sorted.length === 0 && !underWay ? (
         <div className="empty">
           <CharacterPortrait character={presetCharacter(PRESETS[0])} className="empty-portrait" />
           <h2>Your shelf is waiting for its first story</h2>
@@ -158,6 +172,7 @@ export function MyStories({ initialStories, initialSaved }: { initialStories: Ga
         </div>
       ) : (
         <div className="shelf">
+          {underWay && <OngoingCard key={`ongoing-${underWay.id}`} story={underWay} onResume={ongoing.resume} onDiscard={() => ongoing.discard()} />}
           {sorted.map((s) => (
             <StoryCard key={s.id} entry={s} onOpen={() => setOpenId(s.id)} />
           ))}
