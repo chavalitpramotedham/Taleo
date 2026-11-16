@@ -1184,6 +1184,17 @@ export function aboardOf(req: IllustrateRequest): [string, string][] {
       const who = sitting ? namedBefore(t, m.index!, on) : namedBefore(t, m.index!, on).slice(-1);
       for (const c of who) if (!out.some(([x]) => x === c.id)) out.push([c.id, kind]);
     }
+    // A vehicle of the story's own that the library hasn't a piece for
+    // (the airplane, the train): the composer draws it, and whoever sits
+    // in it stays where it seated them - "craft:airplane". (The airplane
+    // story had its family in trolleys and carts, 17 Nov.)
+    for (const m of t.matchAll(/\b(?:in|inside|on|aboard|into|onto)\s+(?:the|a|an|his|her|their|its)\s+(?:[\w-]+\s+){0,3}?(airplane|aeroplane|plane|jet|seaplane|helicopter|rocket|spaceship|space ship|car|taxi|bus|minibus|train|tram|carriage|coach|truck|lorry|van|tractor|fire engine|submarine|hot-air balloon|balloon|canoe|kayak)s?\b/gi)) {
+      const word = m[1].toLowerCase().replace(/^aeroplane$|^seaplane$|^jet$/, "airplane").replace(/^space ship$/, "spaceship");
+      const before = t.slice(0, m.index!).toLowerCase();
+      const sitting = /\b(sits?|sitting|sat|rides?|riding|ride|perched|tucked|squeezed|snuggled|curled|buckled|strapped|flies|flying|fly|zooms?|zooming|travels?|travelling|traveling|peeks?|peeking|waves?|waving|looks?|looking|are|is)\b[^.;,]{0,40}$/.test(before);
+      if (!sitting) continue;
+      for (const c of namedBefore(t, m.index!, on)) if (!out.some(([x]) => x === c.id)) out.push([c.id, `craft:${word}`]);
+    }
   }
   return out;
 }

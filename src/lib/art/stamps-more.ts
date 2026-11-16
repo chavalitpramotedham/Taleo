@@ -495,8 +495,8 @@ export const MORE_STAMPS: Record<string, StampKind> = {
   ladder: K("a wooden ladder, standing", "30x90", "ground", false, ladder),
   chest: K("a treasure chest with a golden lock", "48x38", "ground", false, chest),
   sledge: K("a wooden sledge on its runners (riders sit on it)", "68x22", "ground", false, sledge),
-  wagon: K("a child's pull-along wagon or cart, big enough to sit in (riders are put in it)", "92x50", "ground", false, wagon),
-  wheelbarrow: K("a garden wheelbarrow, big enough to sit in (riders are put in it)", "80x44", "ground", false, wheelbarrow),
+  wagon: K("a child's pull-along wagon or cart, big enough to sit in (riders are put in it) - only when the brief names a wagon or cart", "92x50", "ground", false, wagon),
+  wheelbarrow: K("a garden wheelbarrow, big enough to sit in (riders are put in it) - only when the brief names a wheelbarrow", "80x44", "ground", false, wheelbarrow),
   nest: K("a bird's nest with eggs (in a tree or on the ground)", "34x14", "ground", false, nest),
 };
 

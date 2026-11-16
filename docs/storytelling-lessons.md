@@ -304,3 +304,36 @@ pine's top branches with the blanket floating in the sky, with no trunk.
 
 Where: `src/server/prompts.ts` (storyteller PICTURE BRIEFS and EVERYONE WHO
 APPEARS, composer UP HIGH), `settledBrief` in `src/server/claude.ts`.
+
+## 8. The story's own vehicle, not the painter's stock pieces (17 Nov 2026)
+
+In an airplane story the family rode carts and trolleys. The rules were
+hard-coded to the painter's stock pieces:
+- the storyteller was told a baby rides "in a pram, wagon or wheelbarrow",
+  and a long way is crossed "by boat, by wagon or sledge";
+- the composer's only riding rule was "RIDING IN A BOAT (or cart, sledge,
+  raft)";
+- the stock pieces are wagon, cart, trolley, wheelbarrow, sledge and boat.
+
+So the story's own airplane was swapped for whatever piece existed.
+
+Now:
+- **Storyteller:** the story's own vehicle (airplane, train, bus, rocket,
+  car) is what everyone travels in, side by side in its seats. Nothing gets
+  swapped for it or added to it. Pram, wagon and sledge are only examples
+  of things that suit a place.
+- **Composer:** "RIDING IN ANYTHING THE PIECES DON'T HAVE". The composer
+  draws the vehicle itself, in three layers: its body, then the riders
+  sitting in its seats, then its near side in front of them. It never puts
+  in a wagon, trolley, cart, sledge or boat piece instead. The wagon and
+  wheelbarrow pieces now say "only when the brief names" them.
+- **Layout:** `aboardOf` reads "Colin and Dada sit in the little red
+  airplane" as `craft:airplane`. `aboard` keeps those riders exactly where
+  the composer seated them, sitting and pinned. It removes a wagon, sledge
+  or barrow piece that no one in the brief rides in.
+
+Audit: all 769 stored pages are laid out the same. A cat "curled in her
+basket" was briefly taken for a rider, so "basket" is off the list.
+
+Where: `src/server/prompts.ts`, `aboardOf` in `src/server/claude.ts`,
+`aboard` in `src/server/paint/layout.ts`, `src/lib/art/stamps-more.ts`.

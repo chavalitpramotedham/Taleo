@@ -785,8 +785,36 @@ const VEHICLES: Record<string, { seat: number; front: boolean; half: number; k: 
   wheelbarrow: { seat: 27, front: true, half: 22, k: /^(wheelbarrow|barrow)$/i },
   sledge: { seat: 20, front: false, half: 26, k: /^(sledge|sled|toboggan)$/i },
 };
-function aboard(markup: string, opts: LayoutOptions, notes: string[]): string {
+/** Ride pieces the library has: in a story with a vehicle of its own (an
+ *  airplane, a train) a wagon or sledge nobody named is a stand-in the
+ *  composer reached for, and goes (the airplane story's family rode
+ *  trolleys and carts, 17 Nov). */
+const RIDE_PIECE = /^(wagon|cart|trolley|pram|buggy|go-?kart|wheelbarrow|barrow|sledge|sled|toboggan)$/i;
+function aboard(markup: string, opts: LayoutOptions, notes: string[], composed: Map<string, { x: string; y: string; s: string | null }>): string {
   let out = markup;
+  // A vehicle the library hasn't got (kind "craft:airplane") is drawn by
+  // the composer around its riders: they keep the very places it seated
+  // them in, sitting, and nothing after moves them.
+  const craft = (opts.aboard ?? []).filter(([, k]) => k.startsWith("craft:"));
+  if (craft.length) {
+    const named = new Set((opts.aboard ?? []).map(([, k]) => k));
+    out = out.replace(/<stamp\b[^>]*\/>/gi, (t) => {
+      const k = attr(t, "k") ?? "";
+      if (!RIDE_PIECE.test(k) || [...named].some((n) => VEHICLES[n]?.k.test(k))) return t;
+      notes.push(`no ${k}: the brief has them in the ${craft[0][1].slice(6)}`);
+      return "";
+    });
+    for (const [id] of craft) {
+      const span = charSpan(out, id);
+      const was = composed.get(id);
+      if (!span || !was) continue;
+      let t = setAttr(setAttr(span.tag, "x", was.x), "y", was.y);
+      if (was.s) t = setAttr(t, "s", was.s);
+      t = setAttr(setAttr(setAttr(t, "legs", "sit"), "ride", "1"), "laid", "1");
+      out = out.slice(0, span.from) + out.slice(span.from, span.to).replace(span.tag, t) + out.slice(span.to);
+    }
+    notes.push(`${craft.map(([id]) => id).join(", ")} kept in the ${craft[0][1].slice(6)}, where they were seated`);
+  }
   const kinds = [...new Set((opts.aboard ?? []).map(([, k]) => k))];
   for (const kind of kinds) {
     const V = VEHICLES[kind];
@@ -1156,6 +1184,16 @@ export function stampFor(name: string): string | null {
 
 export function layoutComposed(markup: string, opts: LayoutOptions = {}): { markup: string; notes: string[] } {
   const notes: string[] = [];
+  // (where the composer put each character, as written: riders in a vehicle
+  // it drew itself stay in it - see aboard)
+  const composed = new Map<string, { x: string; y: string; s: string | null }>();
+  for (const m of markup.matchAll(CHAR_TAG)) {
+    const id = attr(m[0], "c") ?? attr(m[0], "id");
+    const x = attr(m[0], "x");
+    const y = attr(m[0], "y");
+    if (id && x && y && !composed.has(id)) composed.set(id, { x, y, s: attr(m[0], "s") ?? null });
+  }
+  CHAR_TAG.lastIndex = 0;
   markup = onlyKnownTags(markup, notes);
   markup = onlyWhatBelongs(markup, opts, notes);
   markup = oncePerCharacter(markup, opts, notes);
@@ -1521,7 +1559,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   out = finalSpacing(out, opts, notes);
   out = propsSeen(out, notes);
   out = perched(out, opts, notes);
-  out = aboard(out, opts, notes);
+  out = aboard(out, opts, notes, composed);
   out = onTop(out, opts, notes);
   out = laidDown(out, opts, notes);
   out = clearOfBlocks(out, opts, notes);
