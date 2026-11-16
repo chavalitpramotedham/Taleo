@@ -31,10 +31,7 @@ export function TransactionList({ items }: { items: Transaction[] }) {
               <small suppressHydrationWarning>
                 {shortDate(t.at)}, {clock(t.at)}
                 {status && (
-                  <>
-                    {" · "}
-                    <span className={`txn-status ${status}`}>{status === "pending" ? "Pending" : "Reversed"}</span>
-                  </>
+                  <span className={`txn-status ${status}`}>{status === "pending" ? "Pending" : "Reversed"}</span>
                 )}
               </small>
             </span>

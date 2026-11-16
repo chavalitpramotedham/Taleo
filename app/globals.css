@@ -14740,20 +14740,35 @@ html[data-night] .txn-amount.in {
 }
 /* Its status, only while it isn't simply done: pending (set aside, not yet
    spent) in yellow, reversed (given back) in red, its figure struck. */
+/* a transaction that isn't simply done: a small tinted pill after its date */
 .txn-status {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px 0;
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  vertical-align: 1px;
 }
 .txn-status.pending {
-  color: #b8860b;
+  color: #9a6f08;
+  background: #f6e7bd;
 }
 .txn-status.reversed {
-  color: #b2443a;
+  color: #a63b31;
+  background: #f5d9d3;
 }
 html[data-night] .txn-status.pending {
-  color: #e8c25a;
+  color: #ecc860;
+  background: rgb(232 194 90 / 0.16);
 }
 html[data-night] .txn-status.reversed {
-  color: #e57b6c;
+  color: #ef8b7c;
+  background: rgb(229 123 108 / 0.16);
 }
 .txn-amount.struck .txn-figure {
   text-decoration: line-through;
