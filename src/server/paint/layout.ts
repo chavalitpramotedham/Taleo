@@ -117,6 +117,8 @@ interface Placed {
   touching: boolean;
   /** whether it can face either way (a front view can't) */
   turns: boolean;
+  /** stood a step back, looking on (0d): kept off the front's ground line */
+  back?: boolean;
 }
 
 const CHAR_TAG = /<\s*(sprite|fig|npc)\b[^>]*\/?>/gi;
@@ -1327,6 +1329,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
         // (16 back: just past the 14 that lines up the standing - further,
         // and an onlooker at the side stood on the backdrop's wall)
         p.y = 230;
+        p.back = true;
         p.s = Math.round(p.s * 0.92 * 100) / 100;
         p.tag = setAttr(setAttr(p.tag, "y", "230"), "s", p.s.toFixed(2));
         notes.push(`${p.id} stands a step further back, looking on`);
@@ -1451,7 +1454,9 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     }
   const standing = placed.filter((p) => !/\bsit\b/i.test(`${attr(p.tag, "pose") ?? ""} ${attr(p.tag, "legs") ?? ""}`));
   for (const p of standing) {
-    const group = standing.filter((q) => Math.abs(q.y - p.y) <= 14);
+    // (one stood back stays back: the hares stepped back to 230 were drawn
+    // in the row again at 241, the front's line averaged in - part 3)
+    const group = standing.filter((q) => Math.abs(q.y - p.y) <= 14 && Boolean(q.back) === Boolean(p.back));
     if (group.length < 2) continue;
     const line = Math.round(group.reduce((t, q) => t + q.y, 0) / group.length);
     for (const q of group)

@@ -487,6 +487,10 @@ A placement audit of the 769 saved bench pages and the 28 library books'
 - *An arrival stepped back.* Mrs Hedge, new "in the middle of the path",
   was moved back as an onlooker in a row of three. A side character who
   wasn't in the last picture is never stepped back.
+- *Stepped back, then pulled forward again.* Onlookers stood a step back
+  (y 230) were put back in the row by the last pass, which lines up the
+  feet of everyone within 14 of each other (the hares running "up the path"
+  ended at 241 with the cast). Those stood back now keep their own line.
 
 Checked by the same audit afterwards: faces covered, 0; brief's left and
 right kept, 477 of 484 (the rest say "the grass on the left"); only the
