@@ -478,6 +478,63 @@ export const InteractivePainting = forwardRef<
 
   useEffect(() => setTapped(false), [svg]);
 
+  // The "Tap …!" hint, kept off the picture's own star (16 Nov: on a phone
+  // it sat right over the ice monsters it named):
+  // - in whichever bottom corner (top, on a wide screen) the thing to tap
+  //   isn't in;
+  // - on a phone, said in full when the page opens, then folded to a small
+  //   hand after a few seconds. Tapping the hand says it again and points
+  //   at the thing (a nudge); tapping the words then plays the moment; left
+  //   alone it folds again.
+  const [side, setSide] = useState<"left" | "right">("left");
+  const [open, setOpen] = useState(true);
+  const fold = useRef(0);
+  const wide = () => typeof window !== "undefined" && window.matchMedia("(min-width: 760px) and (min-aspect-ratio: 5/4)").matches;
+  const foldIn = useCallback((ms: number) => {
+    window.clearTimeout(fold.current);
+    if (wide()) return setOpen(true);
+    fold.current = window.setTimeout(() => setOpen(false), ms);
+  }, []);
+  useEffect(() => () => window.clearTimeout(fold.current), []);
+  useEffect(() => {
+    if (live || !hasTarget) return;
+    setOpen(true);
+    foldIn(4000);
+  }, [svg, live, hasTarget, foldIn]);
+  useEffect(() => {
+    if (live || !hasTarget) return;
+    const place = () => {
+      const el = targetEl();
+      const host = box.current?.getBoundingClientRect();
+      if (!el || !host || !host.width) return;
+      const r = el.getBoundingClientRect();
+      // (the hint's corner at its fullest, against the target's box)
+      const top = wide();
+      const hy0 = top ? 0 : host.height - 56;
+      const hy1 = top ? 56 : host.height;
+      const over = (x0: number, x1: number) => Math.max(0, Math.min(x1, r.right - host.left) - Math.max(x0, r.left - host.left)) * Math.max(0, Math.min(hy1, r.bottom - host.top) - Math.max(hy0, r.top - host.top));
+      const w = Math.min(240, host.width * 0.6);
+      const left = over(0, w);
+      const right = over(host.width - w, host.width);
+      setSide(right < left ? "right" : "left");
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [svg, live, hasTarget, targetEl, drawn]);
+  const onHint = () => {
+    if (!open) {
+      // (folded: say it again, and show where)
+      setOpen(true);
+      const el = targetEl();
+      if (el) animate(el, "tl-anim-hint");
+      foldIn(4000);
+      return;
+    }
+    play();
+    foldIn(1600);
+  };
+
   const onClick = (e: React.MouseEvent) => {
     if (!target || live) return;
     if ((e.target as Element).closest?.(`.${TARGET_CLASS}`) || !targetEl()) play();
@@ -512,8 +569,16 @@ export const InteractivePainting = forwardRef<
         </span>
       )}
       {target && !live && (
-        <button type="button" className={`tap-hint ${tapped ? "done" : ""}`} onClick={(e) => (e.stopPropagation(), play())}>
-          <TapIcon /> {target.hint}
+        <button
+          type="button"
+          className={`tap-hint ${side} ${open ? "" : "folded"} ${tapped ? "done" : ""}`}
+          aria-label={target.hint}
+          onClick={(e) => (e.stopPropagation(), onHint())}
+        >
+          <TapIcon />
+          <span className="tap-hint-words" aria-hidden>
+            {target.hint}
+          </span>
         </button>
       )}
     </div>

@@ -3186,6 +3186,52 @@ html[data-night] .canvas-wait {
   color: var(--ink-soft);
   border-color: var(--rule-strong);
 }
+/* Kept off the thing to tap: in the other bottom corner when it's there. */
+.tap-hint.right {
+  left: auto;
+  right: 12px;
+}
+/* The words fold away to leave a small hand (phones, after a few seconds),
+   and open again when it's tapped. */
+.tap-hint {
+  transition: padding 0.3s ease, gap 0.3s ease;
+}
+.tap-hint svg {
+  flex: none;
+}
+.tap-hint-words {
+  display: inline-block;
+  max-width: 16em;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.35s ease, opacity 0.25s ease;
+}
+.tap-hint.folded {
+  gap: 0;
+  padding: 6px;
+}
+.tap-hint.folded .tap-hint-words {
+  max-width: 0;
+  opacity: 0;
+}
+/* (folded and not yet played: a soft ring now and then, so it's found) */
+.tap-hint.folded:not(.done)::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--russet);
+  animation: hint-ring 3.2s ease-out 0.6s infinite;
+  pointer-events: none;
+}
+@keyframes hint-ring {
+  0% { opacity: 0.7; transform: scale(1); }
+  45%, 100% { opacity: 0; transform: scale(1.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tap-hint.folded:not(.done)::after { animation: none; }
+  .tap-hint, .tap-hint-words { transition: none; }
+}
 @keyframes hint-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
