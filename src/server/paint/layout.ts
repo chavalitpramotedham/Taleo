@@ -53,6 +53,10 @@ export interface LayoutOptions {
   lying?: string[];
   /** the hero's id: never hidden behind anyone (lesson 17) */
   heroId?: string | null;
+  /** characters the brief puts far off ("far below", "in the far
+   *  background", "a tiny dot on a leaf"): kept small, never sized up to
+   *  the front row's size, and a far giant doesn't shrink everyone else */
+  far?: string[];
 }
 
 /** The biggest a character standing with its feet at y can be and keep its
@@ -1213,6 +1217,19 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   if (opts.usualS)
     for (const p of placed) {
       const share = opts.sizeOf?.[p.id] ?? 1;
+      // (far off, as the brief says: smaller than at the front - an octopus
+      // "far below" waving from the sea came out twice the hero's size,
+      // the hero tiny in her bubble above - 16 Nov)
+      if (opts.far?.includes(p.id)) {
+        const want = opts.usualS * share * depthShare(opts.depth, p.y);
+        const kept = Math.min(want * 0.7, Math.max(want * 0.4, p.s));
+        if (Math.abs(kept - p.s) > 0.01) {
+          notes.push(`${p.id} resized from ${p.s.toFixed(2)} to ${kept.toFixed(2)}, far off as the brief says`);
+          p.s = kept;
+          p.tag = setAttr(p.tag, "s", kept.toFixed(2));
+        }
+        continue;
+      }
       // (a big one - a giant - as big as the picture allows, face in it)
       const giant = share > 1 && !opts.groups?.includes(p.id);
       const cap = share > 1 ? fitS(p.y) : Infinity;
@@ -1239,7 +1256,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
     let k = 1;
     for (const p of placed) {
       const share = opts.sizeOf?.[p.id] ?? 1;
-      if (share > 1.5 && !opts.groups?.includes(p.id)) k = Math.min(k, p.s / (opts.usualS * share));
+      if (share > 1.5 && !opts.groups?.includes(p.id) && !opts.far?.includes(p.id)) k = Math.min(k, p.s / (opts.usualS * share));
     }
     // (not below about 60% - 70% in a wide shot, where everyone is small
     // already: beside a yak four times his height a baby came out a speck
@@ -1269,7 +1286,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   // the giant still towers, the hero in front still reads as the star.
   // Not in a close-up.
   if (opts.usualS && opts.usualS < 1.2 && placed.length > 1) {
-    const giants = placed.filter((p) => (opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id));
+    const giants = placed.filter((p) => (opts.sizeOf?.[p.id] ?? 1) > 1.5 && !opts.groups?.includes(p.id) && !opts.far?.includes(p.id));
     if (giants.length && giants.length < placed.length) {
       for (const g of giants)
         if (g.y > 228) {

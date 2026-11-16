@@ -525,6 +525,24 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     const t = pg.action?.target;
     if (t && taken.has(t) && !pg.characters.includes(t) && pg.characters.length < 5) pg.characters = [...pg.characters, t];
   }
+  // (and a character the picture brief names is on the page: the painter
+  // paints only listed ones, and the storyteller forgets about one page in
+  // ten - Bubbly, named "bumping the ceiling" on four pages running, was
+  // never painted; Pip the caterpillar "on the rosy apple" wasn't there)
+  const people = [...(opts.existing ?? []), ...newCharacters];
+  for (const pg of pages)
+    for (const c of people) {
+      if (!taken.has(c.id) || pg.characters.includes(c.id) || !namedInBrief(pg.picture, c)) continue;
+      if (pg.characters.length < 5) pg.characters = [...pg.characters, c.id];
+      // (a full page still has the hero: Coliboo, named "clapping in the
+      // middle" of his own party, was left out for a side character)
+      else if (c.id === "hero") {
+        // (one the brief doesn't name first, else the last side character)
+        const side = [...pg.characters].reverse().filter((id) => id !== pg.action?.target);
+        const out = side.find((id) => !namedInBrief(pg.picture, people.find((p) => p.id === id) ?? { name: id })) ?? side[0];
+        if (out) pg.characters = [...pg.characters.filter((id) => id !== out), "hero"];
+      }
+    }
 
   let choice = opts.isLast ? null : out.choice;
   if (choice) {
@@ -547,6 +565,27 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     segment: { pages, choice, chosen: null },
     ending: opts.isLast || (!choice && out.ending),
   };
+}
+
+/** Whether a picture brief has this character in it: its full name, or a
+ *  distinctive part of it written as a name ("Bubbly", "Pip" - capitalised,
+ *  so "a big pale moon" isn't Mister Moon), in a sentence that doesn't say
+ *  they're away ("no sign of Bubbly", "Pip is nowhere to be seen"). */
+export function namedInBrief(picture: string, c: { name: string }, glimpses = false): boolean {
+  const esc = (k: string) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const full = c.name.trim().replace(/^the\s+/i, "");
+  // (a part of a longer name, mid-sentence: "Snow puffs up" opening a
+  // sentence isn't the Snow Hares)
+  const keys = nameKeys(c).slice(1).map((k) => k[0].toUpperCase() + k.slice(1));
+  const res = [new RegExp(`\\b${esc(full)}\\b`, "i"), ...keys.map((k) => new RegExp(`(?<=\\S\\s+)\\b${esc(k)}\\b`))];
+  // (only a glimpse - "Duchess's big paw at the right edge", "Brom's big
+  // eye peeks in through the window" - isn't the whole character)
+  const part = new RegExp(`\\b(?:${[full, ...keys].map(esc).join("|")})['’]s\\s+(?:[a-z]+\\s+){0,2}(?:paws?|eyes?|nose|tail|ears?|hands?|face|head|trunk|tentacles?|arms?|claws?|whiskers|shadow|feet|foot|snout|beak|wing|wings)\\b`, "gi");
+  return picture.split(/(?<=[.;!?])\s+/).some((t) => {
+    if (/\b(no sign of|nowhere|missing|gone|without|absent|left behind|far away at home|thinks? (?:of|about)|dreams? (?:of|about)|remembers?|misses)\b/i.test(t)) return false;
+    const rest = glimpses ? t : t.replace(part, " ");
+    return res.some((re) => re.test(rest));
+  });
 }
 
 /** A place id as the story keeps it: lowercase letters, digits, hyphens. */
@@ -998,14 +1037,21 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
     // (held: "Dada holds Coliboo on his hip", "Dab sleeps curled in
     // Nugatino's lap" - a character named just before it, never a thing:
     // "a music box on her lap", "one arm on his hip")
-    const HELD = /\b([A-Z][\w-]*)\s+(?:[a-z][\w-]*\s+){0,3}?(?:in|on)\s+(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(arms|lap|hip)\b/g;
+    // (and a giant's hands: "Brom carrying Kai and Ellie in his big cupped
+    // hands" - Kai stood far off on the snow, Ellie at the picture's edge)
+    const HELD = /\b([A-Z][\w-]*)\s+(?:[a-z][\w-]*\s+){0,3}?(?:in|on)\s+(?:(?:the\s+)?([A-Za-z][\w-]*)'s|(his|her|its|their))\s+(?:[a-z]+\s+){0,2}?(arms|lap|hip|hands|palms?|paws)\b/g;
+    const riderNamed = (w: string) => on.find((c) => short(c) === w || c.name.toLowerCase().split(/\s+/)[0] === w || nameKeys(c).includes(w));
     const bare = [...t.matchAll(BARE), ...t.matchAll(HELD)].flatMap((m) => {
-      const w = m[1].toLowerCase();
-      const rider = on.find((c) => short(c) === w || c.name.toLowerCase().split(/\s+/)[0] === w || nameKeys(c).includes(w));
-      return rider ? [{ m, rider }] : [];
+      const rider = riderNamed(m[1].toLowerCase());
+      if (!rider) return [];
+      // (the one joined to it by "and": both ride)
+      const also = /\b([A-Z][\w-]*)\s+and\s+$/.exec(t.slice(0, m.index!));
+      const other = also ? riderNamed(also[1].toLowerCase()) : undefined;
+      const group = other && other !== rider ? [rider, other] : [rider];
+      return group.map((r) => ({ m, rider: r, group }));
     });
-    const verbed = [...t.matchAll(RIDE)].filter((m) => !bare.some((b) => Math.abs(b.m.index! + b.m[0].length - (m.index! + m[0].length)) < 2)).map((m) => ({ m, rider: null as CharacterDef | null }));
-    for (const { m, rider } of [...verbed, ...bare]) {
+    const verbed = [...t.matchAll(RIDE)].filter((m) => !bare.some((b) => Math.abs(b.m.index! + b.m[0].length - (m.index! + m[0].length)) < 2)).map((m) => ({ m, rider: null as CharacterDef | null, group: [] as CharacterDef[] }));
+    for (const { m, rider, group } of [...verbed, ...bare]) {
       // ("lies on his tummy", "lying flat on her tummy": its own tummy -
       // on someone else's is said with their name)
       if (m[3] && /^(tummy|belly)$/i.test(m[4])) continue;
@@ -1027,7 +1073,7 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
       } else {
         const text = (before + " " + t.slice(0, at)).toLowerCase();
         carrier = on
-          .filter((c) => !who.includes(c))
+          .filter((c) => !who.includes(c) && !group.includes(c))
           .map((c) => [c, lastNamed(text, c)] as const)
           .filter(([, i]) => i >= 0)
           .sort((a, b) => b[1] - a[1])[0]?.[0];
@@ -1036,7 +1082,7 @@ export function perchedOf(req: IllustrateRequest): [string, string, "shoulder" |
       // (on a tummy or belly - a penguin sliding on his front, a baby
       // giggling on top - is riding on its back as drawn)
       const w4 = m[4].toLowerCase();
-      const where = (w4.startsWith("shoulder") || /^(arms|lap|hip)$/.test(w4) ? "shoulder" : w4 === "tummy" || w4 === "belly" ? "back" : w4) as "shoulder" | "head" | "back";
+      const where = (w4.startsWith("shoulder") || /^(arms|lap|hip|hands|palms?|paws)$/.test(w4) ? "shoulder" : w4 === "tummy" || w4 === "belly" ? "back" : w4) as "shoulder" | "head" | "back";
       for (const r of who) if (r.id !== carrier.id && !out.some(([x]) => x === r.id)) out.push([r.id, carrier.id, giantTo(r, carrier) ? where : "beside"]);
     }
     before += " " + t;
@@ -1143,6 +1189,28 @@ export function onTopOf(req: IllustrateRequest): [string, string, "stand" | "sit
 /** Who lies down (not in bed), from the brief: "lies on the grass",
  *  "lying flat on her tummy on the lily pad", "asleep on the rug, curled
  *  up". Drawn lying along the ground. */
+/** Who the brief puts far off - "In the far background Madame Pillowfold",
+ *  "Bolt waves far below by the workshop", "with Pip a tiny dot on a
+ *  leaf": the sentence naming them says so (in its clause naming them,
+ *  when it names others too - "Kai runs in front, and far behind, Hazel
+ *  peeks" is only Hazel). Not the hero, who is never a speck. */
+const FAR = /\b(far (?:off|away|below|behind|back|down|in the distance|across)|in the (?:far )?distance|(?:far|deep) background|a (?:tiny|small|little|faraway) (?:\w+ )?(?:dot|speck|shape|figure)|tiny,? far)\b/i;
+export function farOf(req: IllustrateRequest): string[] {
+  const on = req.cast.filter((c) => req.page.characters.includes(c.id) && c.id !== "hero");
+  const out = new Set<string>();
+  for (const t of req.page.picture.split(/(?<=[.;!?])\s+/)) {
+    if (!FAR.test(t)) continue;
+    const here = req.cast.filter((c) => req.page.characters.includes(c.id) && namedInBrief(t, c, true));
+    if (here.length === 1) {
+      if (on.includes(here[0])) out.add(here[0].id);
+      continue;
+    }
+    for (const clause of t.split(/,|;|\band\b|\bwhile\b|\bas\b/))
+      if (FAR.test(clause)) for (const c of on) if (namedInBrief(clause, c, true)) out.add(c.id);
+  }
+  return [...out];
+}
+
 export function lyingOf(req: IllustrateRequest): string[] {
   const on = req.cast.filter((c) => req.page.characters.includes(c.id));
   const bed = inBedOf(req);
@@ -1514,6 +1582,7 @@ export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
     aboard: aboardOf(req),
     onTop: onTopOf(req),
     lying: lyingOf(req),
+    far: farOf(req),
     said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "),
     groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id),
     targetThing: target && !isCast ? target : null,
