@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 /** When this page last changed in substance (shown at its head). */
-const UPDATED = "12 November 2026";
+const UPDATED = "17 November 2026";
 
 /**
  * The privacy policy, in plain words. Everything here describes what the
@@ -136,9 +136,9 @@ export default function PrivacyPage() {
           Four things remain: ratings and comments you left on other families&apos; stories, which stay under the username you wrote them with; recordings already made of your stories&apos; pages being read aloud, which hold only the words of the page and are no longer linked to anything; any emails already delivered to our inbox; and Stripe&apos;s own records of payments made, which it must keep by law. <Link href="/about#contact">Write to us</Link> if you&apos;d like those removed too, or if you&apos;d like a copy of what we hold about you or want something corrected.
         </p>
 
-        <h2>Children</h2>
+        <h2 id="children">Children</h2>
         <p>
-          Taleo is made for parents and other grown-ups to use with their children. Accounts are for adults. We don&apos;t ask children for any information, and we don&apos;t knowingly keep any that a child has given us directly. What we hold about a child is only what a grown-up chose to put into a character or a story.
+          Taleo is made for parents and other grown-ups to use with their children. Accounts are for adults: signing up asks you to confirm you&apos;re 18 or over. If we learn that a child has made an account, we delete it. We don&apos;t ask children for any information, and we don&apos;t knowingly keep any that a child has given us directly. What we hold about a child is only what a grown-up chose to put into a character or a story.
         </p>
 
         <h2>Changes to this page</h2>

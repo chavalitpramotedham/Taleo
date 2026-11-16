@@ -16,16 +16,19 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
   const [username, setUsername] = useState(sanitize(suggested));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Accounts are for grown-ups: signing up asks them to say so.
+  const [adult, setAdult] = useState(false);
+  const ready = username.length >= 3 && adult;
 
   const submit = async () => {
-    if (username.length < 3 || busy) return;
+    if (!ready || busy) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/user/username", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ username, adult }),
       });
       // (a timeout or server hiccup can answer with a page, not JSON)
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -60,7 +63,7 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
           spellCheck={false}
           name="taleo-username"
         />
-        <button type="button" className="btn btn-primary" onClick={submit} disabled={username.length < 3 || busy}>
+        <button type="button" className="btn btn-primary" onClick={submit} disabled={!ready || busy}>
           {busy ? (
             "Saving…"
           ) : (
@@ -72,6 +75,15 @@ export function WelcomeForm({ suggested, next }: { suggested: string; next?: str
         </button>
       </div>
       <p className="meta">3-20 letters, numbers or underscores{username.length > 0 && username.length < 3 ? " — a couple more, please" : "."}</p>
+      <label className="adult-check">
+        <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} />
+        <span>
+          I&apos;m 18 or over. Taleo accounts are for parents and other grown-ups, to make stories with their children.{" "}
+          <a href="/privacy#children" target="_blank" rel="noreferrer">
+            Why
+          </a>
+        </span>
+      </label>
       {error && <p className="error">{error}</p>}
     </section>
   );

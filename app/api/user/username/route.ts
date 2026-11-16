@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
 
-  let body: { username?: unknown };
+  let body: { username?: unknown; adult?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (typeof body.username !== "string") return NextResponse.json({ error: "Missing username." }, { status: 400 });
 
   try {
-    const profile = await setUsername(session.user.id, body.username, session.user);
+    const profile = await setUsername(session.user.id, body.username, session.user, body.adult === true);
     return NextResponse.json({ profile });
   } catch (e) {
     const status = e instanceof UsernameTakenError ? 409 : 400;

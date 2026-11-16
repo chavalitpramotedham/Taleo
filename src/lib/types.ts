@@ -167,6 +167,10 @@ export interface UserProfile {
    *  only by the server. */
   suspended?: boolean;
   createdAt: number;
+  /** When they confirmed, at sign-up, that they're an adult (accounts are
+   *  for grown-ups: see /privacy). Missing for accounts made before the
+   *  question was asked. */
+  adultAt?: number;
   /** Who can find this person's stories in the library and on their
    *  bookshelf page. Missing means "public" (the default for everyone). */
   visibility?: ContentVisibility;

@@ -101,6 +101,8 @@ export async function setUsername(
   /** who's asking (from their session): if their profile is missing from
    *  the index, it's re-created rather than leaving them stuck */
   who?: { email?: string | null; name?: string | null; image?: string | null },
+  /** they ticked "I'm 18 or over" - needed for the first username (sign-up) */
+  adult = false,
 ): Promise<UserProfile> {
   const username = raw.trim().toLowerCase();
   if (!USERNAME_RE.test(username)) {
@@ -126,7 +128,10 @@ export async function setUsername(
           isAdmin: Boolean(ADMIN_EMAIL) && who!.email!.toLowerCase() === ADMIN_EMAIL,
           createdAt: Date.now(),
         };
-  const profile: UserProfile = { ...base, username };
+  // Accounts are for grown-ups (children's privacy law): signing up -
+  // choosing the first username - needs the "18 or over" box ticked.
+  if (!base.username && !adult && !base.isAdmin) throw new Error("Please confirm you're 18 or over - Taleo accounts are for grown-ups.");
+  const profile: UserProfile = { ...base, username, ...(!base.username && adult ? { adultAt: Date.now() } : {}) };
   if (i >= 0 && users[i].username === username) return profile; // already saved (a retry)
   const next = [...users];
   if (i >= 0) next[i] = profile;

@@ -136,13 +136,17 @@ export const subscriptionsOpen = () => paymentsOpen() && Boolean(process.env.STR
 const planOfPrice = (priceId: string | null | undefined): PaidPlan | null => (priceId && priceId === process.env.STRIPE_PRICE_PLUS ? "plus" : priceId && priceId === process.env.STRIPE_PRICE_PRO ? "pro" : null);
 const idOf = (v: string | { id: string } | null | undefined) => (typeof v === "string" ? v : (v?.id ?? null));
 
+/** The renewal terms, shown beside Stripe's Subscribe button. */
+const RENEWAL_TERMS =
+  "Your plan renews automatically every month at the price shown until you cancel. Cancel any time from Manage subscription on Taleo's Plans page: you keep your plan until the month paid for ends, with no refund for the days left.";
+
 /** Opens Stripe Checkout for a new subscription to `plan`. Where to send
  *  the buyer. */
 export async function openSubscriptionCheckout(opts: { userId: string; email?: string | null; plan: PaidPlan; origin: string; customerId?: string | null }): Promise<string> {
   const { userId, plan, origin } = opts;
   const price = priceFor(plan);
   if (!price) throw new Error("Subscriptions aren't switched on.");
-  const session = await stripe().checkout.sessions.create({
+  const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     line_items: [{ price, quantity: 1 }],
     client_reference_id: userId,
@@ -152,9 +156,23 @@ export async function openSubscriptionCheckout(opts: { userId: string; email?: s
     // (the subscription itself carries whose it is: every later notice
     // about it is matched to the account by this)
     subscription_data: { metadata: { userId, plan } },
+    // (the renewal terms beside Stripe's Subscribe button too, as
+    // California's auto-renewal law asks)
+    custom_text: { submit: { message: RENEWAL_TERMS } },
     success_url: `${origin}/account/plans?subscribed=${plan}`,
     cancel_url: `${origin}/account/plans`,
-  });
+  };
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe().checkout.sessions.create(params);
+  } catch (e) {
+    // (should Stripe refuse the extra words - on some account setups it
+    // may - the checkout still opens, without them, and the dev inbox hears)
+    if (!(e instanceof Stripe.errors.StripeInvalidRequestError) || !/custom_text/.test(e.param ?? e.message)) throw e;
+    void import("./alerts").then(({ reportError }) => reportError("stripe-renewal-terms", e));
+    const { custom_text: _, ...plain } = params;
+    session = await stripe().checkout.sessions.create(plain);
+  }
   if (!session.url) throw new Error("Stripe didn't give a checkout page.");
   return session.url;
 }

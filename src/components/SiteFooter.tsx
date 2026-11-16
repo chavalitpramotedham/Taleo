@@ -23,6 +23,8 @@ export function SiteFooter() {
         <span aria-hidden>·</span>
         <Link href="/privacy">Privacy</Link>
         <span aria-hidden>·</span>
+        <Link href="/copyright">Copyright</Link>
+        <span aria-hidden>·</span>
         <Link href="/about#contact">Contact us</Link>
       </nav>
     </footer>

@@ -19,6 +19,9 @@ type Card = {
   act?: () => void;
   /** a line under the tagline: when it renews or ends, what follows it */
   status?: string;
+  /** the renewal terms, right under a button that starts or changes a paid
+   *  plan (California's auto-renewal law wants them beside the button) */
+  renew?: string;
   current: boolean;
   intro: string;
   features: TierRow[];
@@ -165,7 +168,9 @@ export function AccountPlans({ isAdmin, tier: tierId, subscription = null, open 
     if (id === "free") return sub?.ending ? c : { ...c, button: "Cancel in billing", act: subscription?.manageable ? portal : undefined };
     if (sub?.nextPlan === id) return { ...c, status: `From ${day(sub.periodEnd)}`, button: `Stay on ${mine.name}`, act: () => void send({ plan: mine.id }) };
     const up = mine.id === "free" || (mine.id === "plus" && id === "pro");
-    return { ...c, button: up ? `Upgrade to ${c.name}` : `Move to ${c.name}`, act: () => void send({ plan: id }) };
+    const usd = PLANS[id].monthlyUsd;
+    const renew = usd ? `Renews automatically every month at US$${usd.toFixed(2)}, plus any tax, until you cancel. Cancel any time in billing.` : undefined;
+    return { ...c, button: up ? `Upgrade to ${c.name}` : `Move to ${c.name}`, act: () => void send({ plan: id }), renew };
   };
   const cards: Card[] = isAdmin
     ? [fromTier(PLANS.admin, true), ...PUBLIC_PLANS.map((id) => others(fromTier(PLANS[id], false), id === "free" ? "Downgrade to Basic" : `Upgrade to ${PLANS[id].name}`))]
@@ -322,6 +327,7 @@ function PlanCard({ card }: { card: Card }) {
           {card.button}
         </button>
       )}
+      {card.renew && <p className="plan-renew">{card.renew}</p>}
       <div className="plan-features">
         <p>{card.intro}</p>
         <ul>

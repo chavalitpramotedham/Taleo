@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/pricing"), changeFrequency: "monthly", priority: 0.4 },
     { url: absoluteUrl("/journey"), changeFrequency: "daily", priority: 0.3 },
     { url: absoluteUrl("/privacy"), changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/copyright"), changeFrequency: "yearly", priority: 0.2 },
   ];
   try {
     const [entries, hidden] = await Promise.all([listGallery({ cacheSeconds: revalidate }), privateUserIds({ cacheSeconds: revalidate })]);
