@@ -1583,6 +1583,8 @@ export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
     onTop: onTopOf(req),
     lying: lyingOf(req),
     far: farOf(req),
+    // (who wasn't in the last picture has just arrived: the page is theirs)
+    arrived: req.previous ? req.cast.filter((c) => !CENTRAL_IDS.includes(c.id) && req.page.characters.includes(c.id) && !namedInBrief(req.previous!, c, true)).map((c) => c.id) : [],
     said: [req.page.picture, req.page.text, req.place?.about ?? ""].join(" "),
     groups: req.cast.filter((c) => groupOf(c) > 0).map((c) => c.id),
     targetThing: target && !isCast ? target : null,

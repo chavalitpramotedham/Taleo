@@ -57,6 +57,10 @@ export interface LayoutOptions {
    *  background", "a tiny dot on a leaf"): kept small, never sized up to
    *  the front row's size, and a far giant doesn't shrink everyone else */
   far?: string[];
+  /** characters who weren't in the last picture: this page's arrivals,
+   *  which take the stage - never stepped back as onlookers (storytelling
+   *  lesson 4) */
+  arrived?: string[];
 }
 
 /** The biggest a character standing with its feet at y can be and keep its
@@ -1315,7 +1319,7 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
   if (opts.usualS && opts.usualS < 1.2) {
     const onGround = placed.filter((p) => p.y >= 236 && p.y <= 256 && !/\bsit\b/i.test(`${attr(p.tag, "pose") ?? ""} ${attr(p.tag, "legs") ?? ""}`));
     const giantBack = placed.some((p) => (opts.sizeOf?.[p.id] ?? 1) > 1.5 && p.y <= 228);
-    const held = new Set([opts.heroId, opts.targetId, ...(opts.huggers ?? []), ...(opts.perched ?? []).flatMap(([a, b]) => [a, b]), opts.inBed].filter(Boolean) as string[]);
+    const held = new Set([opts.heroId, opts.targetId, ...(opts.arrived ?? []), ...(opts.huggers ?? []), ...(opts.perched ?? []).flatMap(([a, b]) => [a, b]), opts.inBed].filter(Boolean) as string[]);
     if (onGround.length >= 3 && !giantBack) {
       const lookers = onGround.filter((p) => !held.has(p.id) && !p.touching);
       // (never everyone back: at least one stays in front with the hero)

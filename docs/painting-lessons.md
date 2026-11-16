@@ -463,3 +463,35 @@ the last. The composer is told the same: the newest thing gets the
 strongest place, and the previous page's arrangement is never repeated.
 See storytelling lesson 4.
 
+
+**Lesson 21 - who the brief names, where the brief puts them (16 Nov).**
+A placement audit of the 769 saved bench pages and the 28 library books'
+403 briefs found four ways a picture lost what its brief said:
+- *Named, never painted.* Bubbly was named "bumping the ceiling" on four
+  pages running, and Pip the caterpillar "on the rosy apple", but neither
+  was in the page's list, and the painter paints only listed characters.
+  A story character the brief names is now added to its page; a full page
+  (five) still makes room for the hero. A glimpse ("Duchess's big paw at
+  the right edge", "Brom's eye at the window") doesn't count, nor does a
+  part of a longer name opening a sentence ("Snow puffs up" isn't the Snow
+  Hares).
+- *Carried in a giant's hands.* "Brom carrying Kai and Ellie in his big
+  cupped hands": nothing read hands, so Kai stood far off on the snow and
+  Ellie at the picture's edge. Hands, palms and paws now seat riders on
+  a giant, and both of two riders joined by "and" ride.
+- *Far off, drawn huge.* An octopus waving "far below" from the sea was
+  sized up to the front row's size (twice the hero) and shrank everyone
+  else as a giant. A character the brief puts far below, in the far
+  background or as a tiny dot is now kept small (40-70% of the size at its
+  depth) and never shrinks the others.
+- *An arrival stepped back.* Mrs Hedge, new "in the middle of the path",
+  was moved back as an onlooker in a row of three. A side character who
+  wasn't in the last picture is never stepped back.
+
+Checked by the same audit afterwards: faces covered, 0; brief's left and
+right kept, 477 of 484 (the rest say "the grass on the left"); only the
+pages above laid out differently.
+
+Where: `namedInBrief`, `farOf` and the page list in `normalizeSegment`,
+`perchedOf` and `layoutOptionsFor` in `src/server/claude.ts`; `far` and
+`arrived` in `src/server/paint/layout.ts`.
