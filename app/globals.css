@@ -12676,6 +12676,25 @@ p.deploy-marker {
     background: color-mix(in srgb, var(--russet) 22%, var(--page));
   }
 }
+/* The admin's foot of the menu (version, models, storyteller switch): a cool
+   sage wash, like the credits' warm one, so it reads as a panel of its own;
+   it runs to the menu's bottom edge. */
+.admin-foot {
+  margin: 6px 0 -10px;
+  padding-bottom: 10px;
+  border-top: 1px solid var(--rule);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--sage) 6%, transparent), color-mix(in srgb, var(--sage) 14%, transparent) 55%, color-mix(in srgb, var(--sage) 7%, transparent));
+}
+.admin-foot .deploy-marker {
+  margin-top: 0;
+  border-top: 0;
+}
+.admin-foot .deploy-ai-block {
+  border-top-color: color-mix(in srgb, var(--sage) 22%, var(--rule));
+}
+.admin-foot .story-switch-pill {
+  background: color-mix(in srgb, var(--sage) 13%, var(--page));
+}
 /* Painting and storytelling: a section of their own under the version,
    then the storyteller switch. */
 .deploy-ai-block {

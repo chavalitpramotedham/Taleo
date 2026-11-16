@@ -45,12 +45,13 @@ export default function MarkerDev() {
         <div key={`${u}${f}`} className="account-dropdown admin" style={{ position: "static" }}>
           <p className="account-dropdown-name">@admin</p>
           <span className="account-dropdown-item">Sign out</span>
-          {foot(u, f)}
+          <div className="admin-foot">{foot(u, f)}</div>
         </div>
       ))}
       <div className="account-dropdown admin" style={{ position: "static" }}>
         <p className="account-dropdown-name">@admin</p>
         <span className="account-dropdown-item">Sign out</span>
+        <div className="admin-foot">
         <div className="deploy-skeleton">
           <div className="deploy-marker-row">
             <p className="deploy-marker">
@@ -67,6 +68,7 @@ export default function MarkerDev() {
           </div>
         </div>
         <StorytellerSwitch />
+        </div>
       </div>
     </main>
   );

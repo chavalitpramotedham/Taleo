@@ -107,17 +107,20 @@ export function AccountNav() {
             <SignOutIcon />
             Sign out
           </button>
-          {/* (admin only) what's live: the version, and when it was deployed */}
+          {/* (admin only) what's live - the version, when it was deployed, who
+              paints and writes - and, at the very foot, the storyteller switch:
+              one tinted panel of its own, apart from the reader's menu */}
           {session.user.isAdmin && (
-            <DeploymentMarker
-              onShow={(live) => {
-                setOpen(false);
-                setDeployment(live);
-              }}
-            />
+            <div className="admin-foot">
+              <DeploymentMarker
+                onShow={(live) => {
+                  setOpen(false);
+                  setDeployment(live);
+                }}
+              />
+              <StorytellerSwitch />
+            </div>
           )}
-          {/* (admin only) who writes the stories: switched here, at the very foot */}
-          {session.user.isAdmin && <StorytellerSwitch />}
         </div>
       )}
       {shortcut && createPortal(<AddShortcutDialog onClose={() => setShortcut(false)} />, document.body)}
