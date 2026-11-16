@@ -1,3 +1,4 @@
+import { depthShare } from "./expand";
 import { STAMPS } from "@/lib/art/stamps";
 import { EFFECTS, PROPS } from "@/lib/art/stamps-more";
 import { SIT_FEET } from "@/lib/art/poses";
@@ -25,6 +26,9 @@ export interface LayoutOptions {
   targetId?: string | null;
   /** the usual size of a grown character on this page (sizingFor().s) */
   usualS?: number;
+  /** the page's depth (sizingFor().horizon and base): a character nearer
+   *  the front is kept bigger, one further back smaller (depthShare) */
+  depth?: { horizon?: number; base?: number };
   /** characters that are groups (three mice in one tag): wide, not giants */
   groups?: string[];
   /** the page's words, picture brief and place, for what belongs there */
@@ -1212,7 +1216,9 @@ export function layoutComposed(markup: string, opts: LayoutOptions = {}): { mark
       // (a big one - a giant - as big as the picture allows, face in it)
       const giant = share > 1 && !opts.groups?.includes(p.id);
       const cap = share > 1 ? fitS(p.y) : Infinity;
-      const want = Math.min(cap, opts.usualS * share);
+      // (at its depth: nearer the front, bigger - a character staged in the
+      // near foreground stays big, one far back stays small)
+      const want = Math.min(cap, opts.usualS * share * depthShare(opts.depth, p.y));
       // (and no bigger than its own size either: a queen twice Nell's
       // height drawn towering on one page and Dad-sized the next read as
       // two queens - Muse, 15 Nov. The same size on every page.)

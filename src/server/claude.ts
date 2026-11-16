@@ -514,7 +514,7 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
     aside: p.aside?.trim() && !answersIdea(p.text, opts.typed, (opts.existing ?? []).map((c) => c.name)) ? p.aside.trim() : null,
     picture: p.picture.trim().slice(0, 1200),
     characters: [...new Set(p.characters.map((id) => idMap[id] ?? id))].filter((id) => taken.has(id)).slice(0, 5),
-    action: cleanAction(p.action, p.text, idMap),
+    action: cleanAction(p.action, p.text, idMap, [...(opts.existing ?? []), ...newCharacters]),
     svg: null,
   }));
 
@@ -544,17 +544,82 @@ function normalizeSegment(out: SegmentOut, opts: { isLast: boolean; existingIds:
 /** A place id as the story keeps it: lowercase letters, digits, hyphens. */
 const slugPlace = (id: string) => id.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 
-function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text: string, idMap: Record<string, string>): PageAction | null {
+function cleanAction(a: SegmentOut["pages"][number]["action"] | undefined, text: string, idMap: Record<string, string>, people: { id: string; name: string }[] = []): PageAction | null {
   if (!a) return null;
-  const word = a.word.trim().replace(/[^\p{L}\p{N}' -]/gu, "").slice(0, 30);
+  const asked = a.word.trim().replace(/[^\p{L}\p{N}' -]/gu, "").slice(0, 30);
+  if (!asked) return null;
+  const said = (idMap[a.target] ?? a.target).trim().slice(0, 40) || "hero";
+  // (the word must be one the child can see on the page and tap: "gigantic"
+  // was given for a page that never says it - 16 Nov)
+  const word = wordOnPage(text, asked) ?? actionWordOf(text, people.find((c) => c.id === said)?.name);
   if (!word) return null;
   return {
     word,
-    target: (idMap[a.target] ?? a.target).trim().slice(0, 40) || "hero",
+    target: doerOf(text, word, said, people),
     sound: isSound(a.sound) ? a.sound : "twinkle",
     motion: isMotion(a.motion) ? a.motion : "bounce",
   };
-  void text;
+}
+
+/** The page's word as the page itself has it: the word, or a form of it
+ *  ("wobble" for "wobbled", "carry" for "carried", "tiptoe" for
+ *  "tiptoeing"), or null when the page doesn't say it at all. */
+export function wordOnPage(text: string, word: string): string | null {
+  const words = [...text.matchAll(/[\p{L}']+/gu)].map((m) => m[0]);
+  const w = word.toLowerCase();
+  const exact = words.find((x) => x.toLowerCase() === w);
+  if (exact) return word;
+  // (a form that starts with it - what the reader's tap finds - keeps the
+  // word as given)
+  if (words.some((x) => x.toLowerCase().startsWith(w))) return word;
+  // (its stem: carry / carried, hop / hopped, giggle / giggling)
+  const stem = w.replace(/(ies|ied|ing|ed|es|s|e|y)$/, "");
+  if (stem.length < 3) return null;
+  const form = words.find((x) => x.toLowerCase().startsWith(stem) && x.length <= w.length + 4);
+  return form ? form.replace(/^'+|'+$/g, "") : null;
+}
+
+const NOT_ACTIONS = new Set(["said", "asked", "called", "replied", "looked", "wanted", "needed", "seemed", "started", "decided", "thing", "something", "nothing", "everything", "morning", "evening", "during", "ceiling", "darling", "darlings", "darling's"]);
+/** A word for a page whose given word isn't on it: the doing word of the
+ *  target's own sentence where there is one (Coliboo "clutching" his
+ *  blanket), else the first one on the page - something done, that the
+ *  picture shows and a tap can act out. */
+export function actionWordOf(text: string, targetName?: string): string | null {
+  const sentences = text.split(/(?<=[.!?]["'\u201d]?)\s+/);
+  const doing = (t: string) => [...t.matchAll(/[\p{L}]+/gu)].map((m) => m[0]).find((x) => x.length >= 5 && /(ed|ing)$/i.test(x) && !NOT_ACTIONS.has(x.toLowerCase()));
+  const own = targetName ? sentences.find((t) => new RegExp(`\\b${targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(t)) : undefined;
+  return (own && doing(own)) || sentences.map(doing).find(Boolean) || null;
+}
+
+/** Who does the page's word, checked against its own sentence: the tap
+ *  target must be the one acting it out, not a bystander. "Out tiptoed
+ *  three ice monsters" had Coliboo as the target of "tiptoe", so the hop
+ *  went to the baby (16 Nov). Where the target named is a character who
+ *  isn't in the word's sentence (or only as an owner - "Coliboo's
+ *  blanket"), and one other character is - the nearest one before the
+ *  word, else after it - that one is the doer. Anything less clear is left
+ *  as the storyteller gave it. */
+export function doerOf(text: string, word: string, target: string, people: { id: string; name: string }[]): string {
+  const stem = word.toLowerCase().replace(/(ing|ed|es|s)$/, "").slice(0, Math.max(3, word.length - 3));
+  const sentences = text.split(/(?<=[.!?]["'\u201d]?)\s+/);
+  const sentence = sentences.find((t) => new RegExp(`\\b${stem.replace(/[^\p{L}]/gu, "")}`, "iu").test(t));
+  if (!sentence) return target;
+  const at = sentence.toLowerCase().search(new RegExp(`\\b${stem.replace(/[^\p{L}]/gu, "")}`, "iu"));
+  // (each character named in the sentence, not as an owner, with where)
+  const named: { id: string; at: number }[] = [];
+  for (const c of people) {
+    const name = c.name.trim();
+    if (!name) continue;
+    const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b(?!['\u2019]s\\b)`, "gi");
+    for (const m of sentence.matchAll(re)) named.push({ id: c.id, at: m.index ?? 0 });
+  }
+  const isCharacter = people.some((c) => c.id === target);
+  if (!isCharacter || named.some((n) => n.id === target)) return target;
+  const ids = [...new Set(named.map((n) => n.id))];
+  if (!ids.length) return target;
+  const before = named.filter((n) => n.at < at).sort((x, y) => y.at - x.at)[0];
+  const after = named.filter((n) => n.at > at).sort((x, y) => x.at - y.at)[0];
+  return (before ?? after)!.id;
 }
 
 // ---------------------------------------------------------------- illustrations
@@ -1487,6 +1552,7 @@ export function layoutOptionsFor(req: IllustrateRequest): LayoutOptions {
   return {
     targetId: isCast ? target! : null,
     usualS: sizingFor(req.camera, req.page.picture, req.page.characters.length).s,
+    depth: sizingFor(req.camera, req.page.picture, req.page.characters.length),
     sizeOf: Object.fromEntries(req.cast.map((c) => [c.id, sizeShare(c, req.cast)])),
     heroId: req.cast.some((c) => c.id === "hero") ? "hero" : null,
     huggers: huggersOf(req),
@@ -1581,6 +1647,44 @@ function splitLayers(svg: string): Sprite | null {
   return out.paint.length > 40 ? out : null;
 }
 
+/** The camera's height, from the brief: "a low angle", "looking up at
+ *  the giant" - the horizon sits low and the characters loom; "from
+ *  above", "a bird's-eye view" - the horizon high, the ground spread out
+ *  below. Else eye level. */
+export function angleOf(picture: string): "low" | "high" | "level" {
+  if (/\blow[- ]angle\b|\bfrom (?:down )?below\b|\bworm'?s[- ]eye\b|\blooking up at\b|\bfrom the ground,? looking up\b/i.test(picture)) return "low";
+  if (/\bhigh[- ]angle\b|\bfrom (?:high )?above\b|\bbird'?s[- ]eye\b|\blooking down (?:on|at)\b|\bfrom up high\b|\boverhead\b/i.test(picture)) return "high";
+  return "level";
+}
+
+/** How a page frames the place's backdrop: a modest zoom about the ground
+ *  line and a pan, from the page's own brief (a close-up comes closer), the
+ *  horizon moved for a low or high camera - and never the very same
+ *  framing as the page before (worked out the same way from its brief), so
+ *  turning the page always shows the place a little differently. Gentle
+ *  enough that a landmark at either side - about x 30-370 - stays in the
+ *  picture: at 1.25 and a 24-pixel pan, a tree on the right bank was cut
+ *  off. */
+export function frameFor(req: Pick<IllustrateRequest, "camera" | "page" | "previous">) {
+  const pick = (brief: string, camera: string | null | undefined, avoid?: { zoom: number; dx: number }) => {
+    const h = hashOf(brief) >>> 0;
+    const zooms = camera === "close" ? [1.12, 1.16] : camera === "wide" ? [1, 1.03] : [1, 1.04, 1.08];
+    const options = zooms.flatMap((z) => (z > 1.05 ? [0] : [-8, 0, 8]).map((dx) => ({ zoom: z, dx })));
+    let k = h % options.length;
+    if (avoid && options[k].zoom === avoid.zoom && options[k].dx === avoid.dx) k = (k + 1 + ((h >>> 4) % (options.length - 1))) % options.length;
+    return options[k];
+  };
+  // (the page before: its camera isn't sent, only its brief - read from it)
+  const before = req.previous ? pick(req.previous, /close[- ]?up|close shot/i.test(req.previous) ? "close" : /wide shot/i.test(req.previous) ? "wide" : "mid") : undefined;
+  const { zoom, dx } = pick(req.page.picture || req.page.text, req.camera, before);
+  const angle = angleOf(req.page.picture);
+  // (low: the backdrop drops, so the horizon sits low and the sky opens up
+  // behind the characters; high: it rises, the ground spreading below)
+  const dy = angle === "low" ? 16 : angle === "high" ? -18 : 0;
+  const frameOpen = `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round((240 * (1 - zoom) + dy) * 10) / 10}) scale(${zoom})">`;
+  return { zoom, dx, dy, angle, frameOpen };
+}
+
 async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefined, notes: Record<string, unknown>): AsyncGenerator<string> {
   const reuse = req.reuse ?? NO_REUSE;
   // A newcomer already painted in this book (see paint/newcomers) has its
@@ -1624,10 +1728,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
   // enough that a landmark at either side - where the backdrop puts them,
   // about x 30-370 - stays in the picture: at up to 1.25 and a 24-pixel
   // pan, a tree on the right bank was cut off)
-  const frameH = hashOf(req.page.text);
-  const zoom = req.camera === "close" ? 1.12 : req.camera === "wide" ? 1 : [1, 1.04, 1.08][frameH % 3];
-  const dx = zoom > 1.05 ? 0 : (((frameH >> 3) % 3) - 1) * 8;
-  const frameOpen = `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">`;
+  const { zoom, dx, frameOpen } = frameFor(req);
   // The place's backdrop - the slowest part of most pictures, and needing
   // nothing below - is begun this moment, and shown as it's painted while
   // the characters' parts are still being waited for (up to
@@ -1789,6 +1890,8 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
     // (the size every placed character is kept to - better aimed at than
     // corrected)
     posing || partsOf.size ? sizeLine(sizingFor(req.camera, req.page.picture, req.page.characters.length)) : "",
+    // (how high the camera is, read from the brief - see frameFor)
+    (posing || partsOf.size) && angleOf(req.page.picture) !== "level" ? (angleOf(req.page.picture) === "low" ? "CAMERA: a low angle, looking up - the horizon sits low; feet low in the picture, the characters big against the sky." : "CAMERA: seen from above - the horizon sits high; spread the characters over the ground, feet a little higher, with room between them.") : "",
     posing && newcomers.length ? NEWCOMERS_SECTION : "",
     // (the place is a standing backdrop, the page's sky and foreground
     // made in code: so this moment's own scene details - what makes this
@@ -1911,13 +2014,6 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           const key = req.benchVariant ? `bd:v2:${hashOf(`${req.storyId ?? ""}|${place.id}|${light}|${seasonFor(place.about, "", req.world)}`)}:bench:${req.benchVariant}` : placeKey(place, light, req.world);
           // (this page's framing: a modest zoom about the ground line and
           // a pan, chosen from the page itself - a close-up comes closer)
-          const h = hashOf(req.page.text);
-          // (gentle enough that a landmark at either side - where the
-          // backdrop puts them, about x 30-370 - stays in the picture: at
-          // up to 1.25 and a 24-pixel pan, a tree on the right bank was
-          // cut off)
-          const zoom = req.camera === "close" ? 1.12 : req.camera === "wide" ? 1 : [1, 1.04, 1.08][h % 3];
-          const dx = zoom > 1.05 ? 0 : (((h >> 3) % 3) - 1) * 8;
           notes.frame = `zoom ${zoom}, pan ${dx}`;
           // The page that paints the place shows it stroke by stroke as it
           // is painted (not blank until it's done); a page that reuses it
@@ -1956,7 +2052,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
             },
             { ttlS: 30 * 86_400, waitMs: 120_000 },
           );
-          yield `<g transform="translate(${Math.round((200 - 200 * zoom + dx) * 10) / 10} ${Math.round(240 * (1 - zoom) * 10) / 10}) scale(${zoom})">`;
+          yield frameOpen;
           // (painted here, or by someone else - the story's places are
           // begun as soon as they're named: shown as it's painted either way)
           let shown = "";

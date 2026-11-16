@@ -97,6 +97,22 @@ export interface Sizing {
   /** where feet may stand */
   yLo: number;
   yHi: number;
+  /** Depth (none in a close-up): the horizon line where sizes would shrink
+   *  to nothing, and where the usual-sized characters stand - so a
+   *  character standing nearer (feet lower) is bigger, one further back
+   *  smaller, as through a real camera (see depthShare). */
+  horizon?: number;
+  base?: number;
+}
+
+/** How much bigger (or smaller) than the usual size a character standing
+ *  with its feet at y is drawn: 1 where the usual characters stand, more
+ *  in the near foreground, less further back - within 0.65 to 1.4, so a
+ *  near one never swamps the page nor a far one turns into a speck. 1 in a
+ *  close-up (it's about a face, not about depth). */
+export function depthShare(z: Pick<Sizing, "horizon" | "base"> | undefined, y: number): number {
+  if (!z?.horizon || !z.base) return 1;
+  return Math.min(1.4, Math.max(0.65, (y - z.horizon) / (z.base - z.horizon)));
 }
 /** A page's sizing, from its camera (or, without one, its brief). */
 /** A grown character's usual size for each camera, as a share of its own
@@ -113,8 +129,10 @@ export function sizingFor(camera: string | null | undefined, picture: string, ch
   // (a close-up of two or more: each a good deal smaller than a close-up of
   // one, or they crowd the frame and hide each other - part 2)
   if (cam === "close") return { s: SIZES.close * (characters >= 3 ? 0.72 : characters === 2 ? 0.8 : 1), lo: 0.8, hi: 1.15, yLo: 240, yHi: 330 };
-  if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 230, yHi: 262 };
-  return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 238, yHi: 270 };
+  // (staged in depth: from well back to the near foreground - a near
+  // character's feet may be close to the bottom edge - sized by depth)
+  if (cam === "wide") return { s: SIZES.wide * crowd, lo: 0.8, hi: 1.2, yLo: 214, yHi: 282, horizon: 160, base: 246 };
+  return { s: SIZES.mid * crowd, lo: 0.85, hi: 1.15, yLo: 222, yHi: 296, horizon: 150, base: 252 };
 }
 const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share = 1, ride = false) => {
   const z = ctx.sizing;
@@ -134,7 +152,8 @@ const sized = (ctx: ExpandContext, sc: number, y: number, small = false, share =
   const fy = Math.min(z.yHi, Math.max(z.yLo, y));
   // (a big one - a giant - only as big as keeps its face in the picture)
   const fit = share > 1 ? Math.max(0.3, (fy - 18) / 170) : Infinity;
-  const u = Math.min(fit, z.s * share);
+  // (nearer is bigger: the usual size at this depth)
+  const u = Math.min(fit, z.s * share * depthShare(z, fy));
   return { sc: Math.min(fit, u * z.hi, Math.max(small ? z.s * 0.1 : u * z.lo, sc)), y: fy };
 };
 
@@ -903,4 +922,6 @@ export async function* expandStream(src: AsyncIterable<string>, ctx: ExpandConte
 
 /** The size line the composers and painters are given (see sizingFor). */
 export const sizeLine = (z: Sizing) =>
-  `SIZE ON THIS PAGE: a grown character is about s="${z.s.toFixed(2)}" (kept between ${(z.s * z.lo).toFixed(2)} and ${(z.s * z.hi).toFixed(2)}); smaller ones (a baby, a mouse) toward the low end. Feet stand between y ${z.yLo} and ${z.yHi}.`;
+  z.horizon && z.base
+    ? `SIZE ON THIS PAGE: a grown character standing at the usual feet line, y ${z.base}, is about s="${z.s.toFixed(2)}"; feet stand between y ${z.yLo} (further back) and ${z.yHi} (the near foreground), and size follows depth - nearer is bigger: about s="${(z.s * depthShare(z, z.yHi)).toFixed(2)}" at y ${z.yHi}, s="${(z.s * depthShare(z, z.yLo)).toFixed(2)}" at y ${z.yLo} (horizon at y ${z.horizon}). Smaller ones (a baby, a mouse) in proportion.`
+    : `SIZE ON THIS PAGE: a grown character is about s="${z.s.toFixed(2)}" (kept between ${(z.s * z.lo).toFixed(2)} and ${(z.s * z.hi).toFixed(2)}); smaller ones (a baby, a mouse) toward the low end. Feet stand between y ${z.yLo} and ${z.yHi}.`;
