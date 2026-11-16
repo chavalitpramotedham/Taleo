@@ -111,7 +111,6 @@ export function IdeaDialog({
   );
   const keepBtn = (primary: boolean) => (
     <button key="keep" type="button" className={`btn ${primary ? "btn-primary btn-block" : "btn-soft btn-sm"}`} onClick={keep}>
-      {primary && <MapleMark />}
       Save for later
     </button>
   );
@@ -275,7 +274,7 @@ export function IdeaCard({ idea }: { idea: NextIdea }) {
         <span className="body">
           <span className="story-card-title">{concept.title}</span>
           <span className="btn btn-primary btn-sm ongoing-cta">
-            <MapleMark /> Open idea
+            Open idea
           </span>
         </span>
       </button>

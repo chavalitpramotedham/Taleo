@@ -11513,6 +11513,32 @@ html[data-night] .char-arrange-grip {
 .ongoing-card .body {
   padding-bottom: 14px;
 }
+/* (the leaf is for the one main "Begin a story" button only: these carry a
+   sheen instead - the credits' band, crossing now and then) */
+.ongoing-cta.btn {
+  position: relative;
+  overflow: hidden;
+}
+.ongoing-cta.btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 246, 220, 0.42) 50%, transparent);
+  transform: translateX(-120%);
+  animation: allowanceSheen 5.5s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+html[data-night] .ongoing-cta.btn::after {
+  background: linear-gradient(100deg, transparent, rgba(255, 224, 170, 0.22) 50%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ongoing-cta.btn::after {
+    animation: none;
+  }
+}
 .ongoing-cta svg {
   width: 16px;
   height: 16px;
