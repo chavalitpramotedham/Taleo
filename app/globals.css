@@ -12748,7 +12748,7 @@ html[data-night] .admin-foot {
 }
 /* the switch: a grey track, the setting in use a light key on it */
 .admin-foot .story-switch {
-  padding: 2px 14px 0;
+  padding: 2px 32px 0;
 }
 .admin-foot .story-switch-pill {
   border-radius: 10px;
@@ -12764,12 +12764,18 @@ html[data-night] .admin-foot .story-switch-pill {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
 }
 .admin-foot .story-switch-pill button {
+  gap: 1px;
+  padding: 4px 2px 3px;
   border-radius: 7px;
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.56rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--foot-label);
+}
+.admin-foot .story-switch-pill button svg {
+  width: 13px;
+  height: 13px;
 }
 .admin-foot .story-switch-pill button.on {
   color: var(--foot-thumb-ink);
