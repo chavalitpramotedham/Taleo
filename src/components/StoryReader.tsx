@@ -71,6 +71,9 @@ interface Props {
 const TEXT_SIZE_KEY = "taleo.textSize";
 const TEXT_SIZES = [0.8, 0.9, 1, 1.12, 1.25, 1.4];
 
+/** Read-aloud has been used on this device (see the voice made ahead). */
+const LISTENS = "taleo.listens.v1";
+
 export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveCopyLabel, bookmark = false, picturesPending = false }: Props) {
   const [busy, setBusy] = useState(false);
   // A brand-new story starts as a closed book (see BookCover): its cover
@@ -845,10 +848,23 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
   // recording already exists (most do: a story is voiced once, for
   // everyone). A recording is never made before it's asked for: the first
   // time ever a page is read aloud, there is a short wait while it's made.
+  // (a reader who listens - read-aloud used before, on this device - has
+  // the page's voice made as the page opens, not when the button is pressed:
+  // making it takes a few seconds, and that was the wait after pressing)
+  useEffect(() => {
+    if (!readAloud) return;
+    try {
+      localStorage.setItem(LISTENS, "1");
+    } catch {}
+  }, [readAloud]);
   useEffect(() => {
     if (!readAloud && view && cover === "open" && (view.kind === "page" || view.kind === "choice")) {
       const words = wordsOf(view);
-      if (words) prefetchSpeech(words, "page", true, true);
+      let listens = false;
+      try {
+        listens = localStorage.getItem(LISTENS) === "1";
+      } catch {}
+      if (words) prefetchSpeech(words, "page", true, !listens);
     }
     if (view?.kind === "page" && view.page.action?.word) prefetchSpeech(view.page.action.word, "word", true);
     const nextView = views[index + 1];

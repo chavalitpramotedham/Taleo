@@ -114,6 +114,13 @@ function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = fa
     try {
       const r = await fetch(`${address}${only ? "&o=1" : ""}`, ahead ? { headers: { "x-taleo-ahead": "1" } } : undefined);
       if (!r.ok || r.status === 204) return null;
+      // (a page's word times asked for alongside the sound, not after it)
+      const marks: Promise<{ starts?: number[] } | null> | null =
+        kind === "page"
+          ? fetch(`${address}&m=1`)
+              .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
+              .catch(() => null)
+          : null;
       const bytes = await r.arrayBuffer();
       const c = getAudioContext();
       if (!c) return null;
@@ -129,10 +136,16 @@ function loadClip(text: string, kind: SpeechKind, ahead = false, onlyIfMade = fa
         // the server has to listen to the new recording first, which takes
         // a second or two: the reading starts without them, following its
         // estimate, and falls in step with them when they arrive.)
-        const exact = fetch(`${address}&m=1`)
-          .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
+        // (a recording made just now wasn't there to be timed when they were
+        // first asked for: asked again now that it is)
+        const again = () =>
+          fetch(`${address}&m=1`)
+            .then((m) => (m.ok && m.status !== 204 ? (m.json() as Promise<{ starts?: number[] }>) : null))
+            .catch(() => null);
+        const exact = (marks ?? Promise.resolve(null))
+          .then((m) => m ?? again())
           .then((m) => {
-            if (Array.isArray(m?.starts) && m.starts.length === wordCount(text)) clip.starts = m.starts;
+            if (Array.isArray(m?.starts) && m.starts.length === wordCount(text)) clip.starts = mendStarts(m.starts, heard);
           })
           .catch(() => {});
         await Promise.race([exact, new Promise((r) => setTimeout(r, 350))]);
@@ -388,6 +401,61 @@ function estimatedStarts(text: string, buf: AudioBuffer, heard: ReturnType<typeo
     }
   }
   return words.map((w) => w.start);
+}
+
+/**
+ * The listener's word times, mended against the sound itself. Its times
+ * are good inside a run of speech but go wrong around pauses - and this
+ * voice reads slowly, with long pauses: the first word after a pause is
+ * often put a third of a second or more late (the highlight hung on the
+ * last word while the next was already being said), and two words are
+ * sometimes given the very same moment (one of them never lit). So: a
+ * word put late, just after the voice came back from a pause, starts
+ * where the voice came back; and words sharing a moment are spread over
+ * the sound they share.
+ */
+export function mendStarts(starts: number[], heard: Pick<ReturnType<typeof soundOf>, "rms" | "quiet" | "sec">): number[] {
+  const { rms, quiet, sec } = heard;
+  // where the voice comes back after a real pause (150ms or more: shorter
+  // dips are inside words - "pock-ets")
+  const pauses: { from: number; to: number }[] = [];
+  let still = 0;
+  for (let f = 0; f < rms.length; f++) {
+    if (rms[f] <= quiet) still++;
+    else {
+      if (still * sec >= 0.15) pauses.push({ from: (f - still) * sec, to: f * sec });
+      still = 0;
+    }
+  }
+  const out = [...starts];
+  // (the first word: the listener puts it at the very start, in the
+  // silence a recording opens with - or on a click before it. It starts
+  // where the voice does, after the last pause before any other word.)
+  if (out.length) {
+    const p = pauses.findLast((q) => q.to <= (starts[1] ?? Infinity) - 0.1 && q.to - starts[0] < 0.8);
+    if (p && p.to > out[0]) out[0] = p.to;
+  }
+  for (let i = 1; i < out.length; i++) {
+    const was = starts[i];
+    const prev = i > 0 ? out[i - 1] : -1;
+    // (the latest return of the voice in the 0.8s before this word's time,
+    // after the word before it began, with no other word's time between)
+    // (and the word before began before that pause: the pause is between them)
+    const p = pauses.findLast((q) => q.to >= was - 0.8 && q.to < was - 0.04 && prev < q.from - 0.05 && !starts.some((x, k) => k !== i && x >= q.to && x < was));
+    if (p) out[i] = p.to;
+  }
+  // words sharing a moment: spread over the time until the next word
+  for (let i = 0; i < out.length; ) {
+    let e = i + 1;
+    while (e < out.length && out[e] - out[i] < 0.06) e++;
+    if (e - i > 1) {
+      const to = e < out.length ? out[e] : out[i] + 0.35 * (e - i);
+      for (let k = i + 1; k < e; k++) out[k] = out[i] + ((to - out[i]) * (k - i)) / (e - i);
+    }
+    i = e;
+  }
+  for (let i = 1; i < out.length; i++) if (out[i] < out[i - 1]) out[i] = out[i - 1];
+  return out;
 }
 
 /** The highlight follows just behind the voice, never ahead of it. */
