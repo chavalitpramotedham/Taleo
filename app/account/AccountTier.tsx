@@ -168,7 +168,7 @@ export function AccountPlans({ isAdmin, tier: tierId, subscription = null, open 
     return { ...c, button: up ? `Upgrade to ${c.name}` : `Move to ${c.name}`, act: () => void send({ plan: id }) };
   };
   const cards: Card[] = isAdmin
-    ? [fromTier(PLANS.admin, true), ...PUBLIC_PLANS.map((id) => others(fromTier(PLANS[id], false), id === "free" ? "Downgrade to Basic" : `${PLANS[id].name} (for families)`))]
+    ? [fromTier(PLANS.admin, true), ...PUBLIC_PLANS.map((id) => others(fromTier(PLANS[id], false), id === "free" ? "Downgrade to Basic" : `Upgrade to ${PLANS[id].name}`))]
     : // (your own first, then the rest in order)
       [forFamily(mine.id), ...PUBLIC_PLANS.filter((id) => id !== mine.id).map(forFamily)];
   return (
