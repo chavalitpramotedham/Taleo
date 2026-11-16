@@ -27,6 +27,7 @@ import { hashOf, STAMPS } from "@/lib/art/stamps";
 import { lightOf, paletteFor, seasonOf, type Light, type Season } from "@/lib/art/palette";
 import { BACKDROP_BRIEF, MOMENT_DETAILS, characterBriefPrompt, composerPrompt, composerSheet, newcomerPrompt, newcomerSheet, NEWCOMERS_SECTION, spriteComposerPrompt, spriteSheet, characterDesignerPrompt, illustratorPrompt, LAYERED_CHARACTERS, PAGE_LAYER_BRIEF, PARTS_SECTION, partsSheet, sceneryPrompt, writerPrompt } from "./prompts";
 import { partsFor } from "./paint/parts-maker";
+import { OVER_CLOSE, OVER_OPEN } from "@/lib/paint-order";
 import { kept, once } from "./paint/once";
 import { stampFor } from "./paint/layout";
 import { liveReader, liveWriter } from "./paint/live";
@@ -839,7 +840,13 @@ function aheadOf(gen: AsyncGenerator<string>) {
  *  stopped: it finishes, everything both painted is sent, and the failure
  *  is reported after - nothing painted is thrown away. */
 type Layer = (stop: AbortSignal, why: () => string | undefined) => AsyncGenerator<string>;
-async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): AsyncGenerator<string> {
+/** Two painters at once, the scenery under the characters: the under
+ *  layer is sent as it comes, the over layer after it - or, with
+ *  `earlyOver` (a reader's app that puts the layers back in order itself,
+ *  see lib/paint-order), the moment the over layer is whole and nothing in
+ *  it failed, marked, while the under layer carries on: a backdrop still
+ *  being painted no longer keeps finished characters off the page. */
+export async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal, earlyOver = false): AsyncGenerator<string> {
   const stop = new AbortController();
   const leave = () => stop.abort();
   signal?.addEventListener("abort", leave, { once: true });
@@ -851,6 +858,8 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
   const held: string[] = [];
   // (a layer that failed has ended too: what it painted stays)
   const ended = { under: false, over: false };
+  const broke = { under: false, over: false };
+  let overSent = false;
   let wake = () => {};
   const work = async (layer: Layer, into: string[], which: "under" | "over") => {
     try {
@@ -859,6 +868,7 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
         wake();
       }
     } catch (err) {
+      broke[which] = true;
       if (!failed) {
         failed = true;
         failure = err;
@@ -875,6 +885,12 @@ async function* inLayers(under: Layer, over: Layer, signal?: AbortSignal): Async
       // being sent on is missed)
       const more = new Promise<void>((r) => (wake = r));
       while (down.length) yield down.shift()!;
+      // (the characters are whole while the backdrop is still coming: sent
+      // now, in one marked piece, to be drawn over it)
+      if (earlyOver && !overSent && !ended.under && ended.over && !broke.over && held.length) {
+        overSent = true;
+        yield OVER_OPEN + held.splice(0).join("") + OVER_CLOSE;
+      }
       if (ended.under) {
         while (held.length) yield held.shift()!;
         if (ended.over && !down.length && !held.length) break;
@@ -1974,7 +1990,7 @@ async function* paintOnce(req: IllustrateRequest, signal: AbortSignal | undefine
           yield* expandStream(brushStrokes(pageLayer, stop, logs.scenery, why), expandCtx(stageBox(req)), stats);
         }
       : sceneryStrokes;
-    for await (const strokes of inLayers(under, characterStrokes, signal)) {
+    for await (const strokes of inLayers(under, characterStrokes, signal, Boolean(req.earlyOver) && Boolean(place))) {
       log.firstStrokeMs ??= Date.now() - began;
       yield strokes;
     }

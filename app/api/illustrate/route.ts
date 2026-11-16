@@ -4,6 +4,7 @@ import { reportError } from "@/server/alerts";
 import { parseIllustrateRequest } from "@/server/validate";
 import { placeIsSigned } from "@/server/tickets";
 import { composePainting } from "@/lib/art/compose";
+import { inPaintOrder } from "@/lib/paint-order";
 import { guard } from "@/server/limits";
 import { limitsFor, tierFor } from "@/lib/tiers";
 import { inLegacyGrace, pageIsSigned } from "@/server/tickets";
@@ -190,7 +191,7 @@ export async function POST(req: Request) {
         await Promise.all(Object.values((notes.painters ?? {}) as Record<string, { measuring?: Promise<void> }>).map((l) => l?.measuring)).catch(() => {});
         if (hasApiKey()) count({ paintings: 1, paintings_quick: parsed.quick ? 1 : 0 });
         // (a reader who left got no picture, whatever was painted)
-        await gen.end(left ? "left" : "ok", { summary: `${left ? `${shapes()} painted before the reader left` : shapes()}${reuseNote(notes)}`, result: svg });
+        await gen.end(left ? "left" : "ok", { summary: `${left ? `${shapes()} painted before the reader left` : shapes()}${reuseNote(notes)}`, result: inPaintOrder(svg) });
       } catch (err) {
         // (a painter too slow to begin isn't a failure to report: the page
         // is asked for again at once and the quick painter takes it)
@@ -203,7 +204,7 @@ export async function POST(req: Request) {
         await gen.end(left ? "left" : slow ? "slow" : err instanceof StoryRefusal ? "refused" : "error", {
           error: left ? "The reader left (or their page gave up waiting) before it finished." : err,
           summary: `${shapes()} painted`,
-          result: svg || undefined,
+          result: inPaintOrder(svg) || undefined,
         });
       } finally {
         await gen.end("error", { error: "Ended without an answer." });
@@ -219,7 +220,7 @@ export async function POST(req: Request) {
   after(() =>
     gen.done.then(async () => {
       if (!benchSaves) return;
-      await saveBenchResult(benchRun, lab!, { variant: variantOf(lab as BenchSlot), genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg, fellBack }).catch((e) => console.warn("bench: couldn't save the result", e));
+      await saveBenchResult(benchRun, lab!, { variant: variantOf(lab as BenchSlot), genId: gen.id, ok: finished > 0 && svg.length > 0, firstMs: firstSent, totalMs: finished || Date.now() - began, svg: inPaintOrder(svg), fellBack }).catch((e) => console.warn("bench: couldn't save the result", e));
     }),
   );
 

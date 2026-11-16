@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Story } from "./types";
 import { castFor, pageKey } from "./story-utils";
 import { extractSvgMarkup, sanitizeSvg } from "./svg-sanitize";
+import { inPaintOrder } from "./paint-order";
 
 /** Once the page is in sight again (at once if it is), and the network
  *  has had a moment to come back. */
@@ -144,6 +145,9 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             // (a second go, automatic or asked for: the server gives it to
             // the quick painter whatever page it is)
             retry: again || undefined,
+            // (the characters may come before the backdrop under them is
+            // finished: put back on top here - see lib/paint-order)
+            earlyOver: true,
             // (proof that this page is the storyteller's own writing)
             sig: page.sig,
             storyId: s.id,
@@ -183,7 +187,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
           }
           const now = performance.now();
           if (now - last > 250 && focusRef.current === key) {
-            const markup = extractSvgMarkup(text);
+            const markup = extractSvgMarkup(inPaintOrder(text));
             if (restarted && countShapes(markup) < shownShapes) continue;
             restarted = false;
             lastShown = markup;
@@ -191,7 +195,7 @@ export function usePaintings(story: Story, update: Updater | undefined, focus: s
             setLive((l) => ({ ...l, [key]: markup }));
           }
         }
-        const svg = sanitizeSvg(extractSvgMarkup(text.replace(DONE, "")));
+        const svg = sanitizeSvg(extractSvgMarkup(inPaintOrder(text).replace(DONE, "")));
         if (!text.includes(DONE) || svg.length < 200) throw new Error("unfinished painting");
         painted.current.add(key);
         update((cur) => ({

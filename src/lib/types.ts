@@ -265,6 +265,10 @@ export interface IllustrateRequest {
   quick?: boolean;
   /** A second go at a page whose first painting failed or stalled. */
   retry?: boolean;
+  /** The reader's app puts a painting's layers back in order itself (see
+   *  lib/paint-order): the characters may be sent as soon as they're whole,
+   *  before the backdrop under them is finished. */
+  earlyOver?: boolean;
   /** The page's signature, and the story it belongs to (see server/tickets). */
   sig?: string;
   storyId?: string;
