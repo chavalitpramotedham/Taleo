@@ -1,5 +1,5 @@
 "use client";
-import { getAudioContext } from "./audio-context";
+import { audioOut, getAudioContext } from "./audio-context";
 import { duckMusic, holdMusic } from "./music";
 
 // Read-aloud for the stories and the tappable words, in a calm, well-spoken
@@ -464,7 +464,7 @@ const HIGHLIGHT_LAG_S = 0.08;
 // ---------------------------------------------------------------- speaking
 
 let token = 0;
-let stopCurrent: (() => void) | null = null;
+let stopCurrent: ((soft?: boolean) => void) | null = null;
 let safety: number | undefined;
 
 const clean = (text: string) => text.replace(/\s+/g, " ").trim();
@@ -509,7 +509,9 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
         if (!isCurrent()) return;
         const src = c.createBufferSource();
         src.buffer = clip.buf;
-        src.connect(c.destination);
+        // (through its own volume, so stopping it eases it out - see cancelSpeech)
+        const vol = c.createGain();
+        src.connect(vol).connect(audioOut(c));
         src.onended = done;
         // (straight to the voice: the silence a recording opens with is skipped)
         const skip = Math.max(0, Math.min(clip.lead - 0.04, clip.buf.duration - 0.1));
@@ -539,11 +541,17 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
           };
           raf = requestAnimationFrame(tick);
         }
-        stopCurrent = () => {
+        stopCurrent = (soft?: boolean) => {
           cancelAnimationFrame(raf);
           src.onended = null;
           try {
-            src.stop();
+            if (soft && c.state === "running") {
+              // (eased out over a quarter of a second, not cut mid-word)
+              const now = c.currentTime;
+              vol.gain.setValueAtTime(vol.gain.value, now);
+              vol.gain.linearRampToValueAtTime(0, now + 0.25);
+              src.stop(now + 0.27);
+            } else src.stop();
           } catch {}
         };
         const ended = src.onended;
@@ -558,11 +566,13 @@ export function speakText(text: string, { kind = "page" }: { kind?: SpeechKind }
   })();
 }
 
-export function cancelSpeech() {
+/** Stops whatever is being read or said. `soft`: eased out (leaving the
+ *  story, the app hidden) rather than cut off. */
+export function cancelSpeech({ soft = false }: { soft?: boolean } = {}) {
   if (typeof window === "undefined") return;
   token++;
   window.clearTimeout(safety);
-  stopCurrent?.();
+  stopCurrent?.(soft);
   stopCurrent = null;
   emit(null);
   duckMusic("speech", false);

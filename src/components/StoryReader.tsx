@@ -896,7 +896,8 @@ export function StoryReader({ story, update, readOnly = false, onSaveCopy, saveC
     return () => setSpeechStory(null);
   }, [story.id]);
 
-  useEffect(() => () => cancelSpeech(), []);
+  // (leaving the story: the voice eases out, not cut off)
+  useEffect(() => () => cancelSpeech({ soft: true }), []);
 
   // ---------------------------------------------------------------- share
   /** Make sure the story is live in the public store before handing out its link.

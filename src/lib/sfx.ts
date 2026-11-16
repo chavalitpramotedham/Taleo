@@ -5,7 +5,7 @@ import { resumeMusic } from "./music";
 
 import type { SoundId } from "./actions";
 import { isNarrating, prefetchSpeech, speakText, unlockSpeech, usesDeviceVoice } from "./speech";
-import { getAudioContext } from "./audio-context";
+import { audioOut, getAudioContext } from "./audio-context";
 
 export { unlockAudio } from "./audio-context";
 const audio = getAudioContext;
@@ -15,7 +15,7 @@ const MASTER = 0.35;
 function out(c: AudioContext, gain = 1) {
   const g = c.createGain();
   g.gain.value = MASTER * gain;
-  g.connect(c.destination);
+  g.connect(audioOut(c));
   return g;
 }
 

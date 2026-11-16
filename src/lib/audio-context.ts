@@ -162,6 +162,40 @@ export function holdAudioOpen(on: boolean) {
   }
 }
 
+/** The app's one way out to the speaker: every sound (music, voice, taps)
+ *  passes through it, so all of them can be eased out together when the
+ *  app is left, and eased back in when it's back - never cut off dead. */
+let master: GainNode | null = null;
+export function audioOut(c: AudioContext): AudioNode {
+  if (!master || master.context !== c) {
+    master = c.createGain();
+    master.gain.value = 1;
+    master.connect(c.destination);
+  }
+  return master;
+}
+
+/** Eases every sound down to silence over `ms` (on the audio thread, so it
+ *  carries on even if the page's own timers are slowed in the background). */
+export function fadeAudioOut(ms = 350) {
+  if (!ctx || !master || ctx.state !== "running") return;
+  const g = master.gain;
+  const now = ctx.currentTime;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(g.value, now);
+  g.linearRampToValueAtTime(0, now + ms / 1000);
+}
+
+/** Eases every sound back up from silence over `ms`. */
+export function fadeAudioIn(ms = 800) {
+  if (!ctx || !master) return;
+  const g = master.gain;
+  const now = ctx.currentTime;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(Math.min(g.value, 0.001), now);
+  g.linearRampToValueAtTime(1, now + ms / 1000);
+}
+
 /** Leaving the app (another app, the home screen, the phone locked): put
  *  every sound to sleep - nothing plays in the background. */
 export function sleepAudio() {

@@ -1,5 +1,5 @@
 "use client";
-import { getAudioContext } from "./audio-context";
+import { audioOut, getAudioContext } from "./audio-context";
 // Looping background music for the story reader, played from the audio
 // files in /public/music through a single shared <audio> element - routed
 // through the app's Web Audio context where possible, so its volume can be
@@ -170,7 +170,7 @@ function player(): HTMLAudioElement | null {
         const src = ctx.createMediaElementSource(el);
         gain = ctx.createGain();
         gain.gain.value = level();
-        src.connect(gain).connect(ctx.destination);
+        src.connect(gain).connect(audioOut(ctx));
         el.volume = 1;
       } catch {
         gain = null;
@@ -231,10 +231,26 @@ export function playMusic(track: MusicTrack) {
 export function stopMusic() {
   wanted = false;
   stopWatchdog();
-  if (el) {
-    el.pause();
-    el.currentTime = 0;
+  const p = el;
+  if (!p) return;
+  // (eased out, then stopped - never cut off dead; unless it's wanted again
+  // in the meantime)
+  if (gain && gain.context.state === "running" && !p.paused) {
+    const g = gain.gain;
+    const now = gain.context.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(0, now + 0.6);
+    window.setTimeout(() => {
+      if (wanted) return void glide();
+      p.pause();
+      p.currentTime = 0;
+      if (gain) gain.gain.value = level();
+    }, 650);
+    return;
   }
+  p.pause();
+  p.currentTime = 0;
 }
 
 /** Muting pauses the music. Unmuting carries on: the same tune from where

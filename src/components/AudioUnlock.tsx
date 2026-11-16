@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { unlockAudio } from "@/lib/sfx";
-import { prewarmAudio, sleepAudio, stirAudio, wakeAudio } from "@/lib/audio-context";
+import { prewarmAudio, sleepAudio, fadeAudioIn, fadeAudioOut, stirAudio, wakeAudio } from "@/lib/audio-context";
 import { holdMusic } from "@/lib/music";
 import { cancelSpeech } from "@/lib/speech";
 import { unlockSpeech } from "@/lib/speech";
@@ -37,14 +37,23 @@ export function AudioUnlock() {
     // Leaving the app stops all sound - the music pauses (and stays paused
     // rather than being nudged back on), any reading stops; coming back
     // picks the music up again.
+    // (every sound is eased out first - a third of a second - then put to
+    // sleep; back again, it's eased in: no sudden stop, no sudden blare)
+    let sleeping = 0;
     const onVisibility = () => {
+      window.clearTimeout(sleeping);
       if (document.visibilityState === "hidden") {
-        holdMusic("hidden", true, { pause: true });
-        cancelSpeech();
-        sleepAudio();
+        fadeAudioOut(350);
+        cancelSpeech({ soft: true });
+        sleeping = window.setTimeout(() => {
+          if (document.visibilityState !== "hidden") return;
+          holdMusic("hidden", true, { pause: true });
+          sleepAudio();
+        }, 380);
       } else {
         stirAudio();
         holdMusic("hidden", false);
+        fadeAudioIn(800);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
