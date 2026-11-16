@@ -360,7 +360,7 @@ async function guardWith(
    *  plan's allowance is used up. Credits are never spent without it: a
    *  request that could have been paid with them is turned away like any
    *  other, with what it would cost (so the page can offer it). */
-  opts: { useCredits?: boolean } = {},
+  opts: { useCredits?: boolean; repaint?: boolean } = {},
 ): Promise<Guard> {
   let session = await auth();
   if (!session?.user?.id) {
@@ -423,7 +423,7 @@ async function guardWith(
     if (paid.ok) return { ok: true, spent: paid.applied ? price : 0 };
     return { ok: false, offer: { item, price, balance: paid.balance }, down: paid.reason === "unavailable" };
   };
-  const what = item === "story" ? `A ${price}-minute story` : "A character";
+  const what = item === "story" ? `A ${price}-minute story` : opts.repaint ? "A character, painted again" : "A new character";
   // (this week's credits from the plan are used first, then bought ones)
   const weeklyCap = account?.plan.limits.weeklyCredits ?? 0;
   // (a beginning's credits stay held when its opening has been written -

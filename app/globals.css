@@ -14740,6 +14740,13 @@ html[data-night] .txn-amount.in {
 }
 /* Its status, only while it isn't simply done: pending (set aside, not yet
    spent) in yellow, reversed (given back) in red, its figure struck. */
+.txn-kind {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
 /* a transaction that isn't simply done: a small tinted pill after its date */
 .txn-status {
   display: inline-block;

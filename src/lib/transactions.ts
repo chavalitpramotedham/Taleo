@@ -16,6 +16,9 @@ export interface Transaction {
   /** A few words more, under the title: how a story was paid for when
    *  part of it was the plan's free story ("Free 5 min + 1 min"). */
   detail?: string;
+  /** What it was, in bold under the title: "Story • Odyssey",
+   *  "Character • New", "Character • Repaint". */
+  kind?: string;
 }
 
 interface Entry {
@@ -52,6 +55,18 @@ function mixed(note: string | undefined): string {
   return m ? `Free story + ${m[2]} credit${m[2] === "1" ? "" : "s"}` : "";
 }
 
+/** What kind of thing a spend was for, from the note kept with it:
+ *  "Story • Odyssey", "Character • New", "Character • Repaint" (just
+ *  "Character" for those from before it was told). */
+function kindOf(note: string | undefined): string | undefined {
+  const story = /(\d+)-minute story/.exec(note ?? "");
+  if (story) return `Story • ${lengthOf(Number(story[1])).name}`;
+  if (/painted again/i.test(note ?? "")) return "Character • Repaint";
+  if (/new character/i.test(note ?? "")) return "Character • New";
+  if (/character/i.test(note ?? "")) return "Character";
+  return undefined;
+}
+
 /** What a spend was for, from the note kept with it. */
 function spentOn(note: string | undefined): string {
   const story = /(\d+)-minute story/.exec(note ?? "");
@@ -60,6 +75,13 @@ function spentOn(note: string | undefined): string {
   if (story) return `${lengthOf(Number(story[1])).name} story`;
   if (/character/i.test(note ?? "")) return "Character";
   return "Story or character";
+}
+
+/** The title of something that has no name (yet, or ever): a story
+ *  still being made or thrown away, a character that never came to be. */
+function untitled(note: string | undefined): string {
+  const kind = kindOf(note);
+  return kind?.startsWith("Story") ? "Untitled story" : kind?.startsWith("Character") ? "Untitled character" : spentOn(note);
 }
 
 /**
@@ -111,11 +133,12 @@ export function transactionsOf(ledger: Entry[]): Transaction[] {
       // (titled with the character's or the story's own name once it's made)
       // (under a story's name, how it was paid for if part of it was free)
       // (one given back stays in the history, marked reversed)
-      line(named.get(e.ref) || spentOn(e.note), { amount: e.delta - (e.weekly ?? 0), pending: !undone.has(e.ref) && !settled.has(e.ref), reversed: undone.has(e.ref), detail: paidWith(e) || (named.has(e.ref) ? mixed(e.note) || undefined : undefined) });
+      // (and under it, in bold, what kind of thing it was)
+      line(named.get(e.ref) || untitled(e.note), { amount: e.delta - (e.weekly ?? 0), pending: !undone.has(e.ref) && !settled.has(e.ref), reversed: undone.has(e.ref), detail: paidWith(e) || mixed(e.note) || undefined, kind: kindOf(e.note) });
     } else if (e.reason === "spend") {
       // (a settling changes nothing more: its hold is the line. A spend
       // from before holds existed is its own line.)
-      if (!e.ref.startsWith("settled:") && e.delta < 0) line(nameIn(e.note) || spentOn(e.note), { reversed: undone.has(e.ref) });
+      if (!e.ref.startsWith("settled:") && e.delta < 0) line(nameIn(e.note) || untitled(e.note), { reversed: undone.has(e.ref), kind: kindOf(e.note) });
     } else if (e.reason === "release" || e.reason === "refund") {
       // (the other half of something that came to nothing)
     } else if (e.reason === "purchase" || (e.reason === "grant" && e.ref.startsWith("self:"))) {

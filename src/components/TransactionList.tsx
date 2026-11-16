@@ -27,6 +27,8 @@ export function TransactionList({ items }: { items: Transaction[] }) {
           <li key={t.id} className={`txn${status ? ` txn-${status}` : ""}`}>
             <span className="txn-what">
               <b>{t.label}</b>
+              {/* (what kind of thing: "Story • Odyssey", "Character • New") */}
+              {t.kind && <span className="txn-kind">{t.kind}</span>}
               {/* (when, and its status only while it isn't simply done) */}
               <small suppressHydrationWarning>
                 {shortDate(t.at)}, {clock(t.at)}
