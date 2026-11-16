@@ -373,6 +373,12 @@ async function guardWith(
   if (me.account?.suspended) {
     return { ok: false, response: NextResponse.json({ error: "This account can't make new stories at the moment. Please get in touch with us and we'll sort it out." }, { status: 403 }) };
   }
+  // (sign-up finished - a username chosen, and with it "I'm 18 or over"
+  // ticked - before anything is made: the pages send people there, and
+  // this holds even for a request sent straight to the API)
+  if (!me.user.isAdmin && !(me.user.username ?? session.user.username)) {
+    return { ok: false, response: NextResponse.json({ error: "Please finish signing up first.", signup: "/welcome" }, { status: 403 }) };
+  }
   // (everything downstream sees the account as it is now)
   session = { ...session, user: me.user };
   const chosen = typeof bucket === "function" ? await bucket(session) : bucket;
