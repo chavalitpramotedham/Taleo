@@ -57,8 +57,8 @@ export async function getUserByUsername(username: string, opts: { cacheSeconds?:
 
 /** Called on every sign-in: creates the profile on first sign-in, refreshing
  *  the Google-provided name/picture each time. Username starts out null. */
-export async function upsertFromGoogle(input: { id: string; email: string; name: string | null; image: string | null }): Promise<UserProfile> {
-  const isAdmin = Boolean(ADMIN_EMAIL) && input.email.toLowerCase() === ADMIN_EMAIL;
+export async function upsertFromGoogle(input: { id: string; email: string; emailVerified?: boolean; name: string | null; image: string | null }): Promise<UserProfile> {
+  const isAdmin = Boolean(ADMIN_EMAIL) && input.emailVerified === true && input.email.toLowerCase() === ADMIN_EMAIL;
   const users = await currentUsers();
   const i = users.findIndex((u) => u.id === input.id);
   if (i < 0) {

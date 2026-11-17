@@ -24,11 +24,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: { signIn: "/sign-in" },
   callbacks: {
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account, profile: google, trigger }) {
       if (account && user) {
         const profile = await upsertFromGoogle({
           id: account.providerAccountId,
           email: user.email!,
+          // (Google says whether it has checked the address: the admin's
+          // address only makes an account the admin when it has)
+          emailVerified: (google as { email_verified?: unknown } | undefined)?.email_verified === true,
           name: user.name ?? null,
           image: user.image ?? null,
         });

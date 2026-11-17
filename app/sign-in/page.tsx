@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/server/auth";
 import { Ornament } from "@/components/Icons";
+import { safeNext } from "@/lib/safe-next";
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next } = await searchParams;
+  const next = safeNext((await searchParams).next);
   const session = await auth();
   if (session?.user) redirect(session.user.username ? next || "/home" : "/welcome");
 
